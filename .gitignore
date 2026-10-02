@@ -11,3 +11,4 @@ node_modules/
 !.env.example
 Thumbs.db
 desktop.ini
+docs/design/figma_assets/
