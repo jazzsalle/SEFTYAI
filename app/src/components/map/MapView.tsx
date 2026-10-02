@@ -74,8 +74,8 @@ function pointStyle(f: FeatureLike, res: number, hl: Set<string>, sel: string | 
             font: `${big ? 700 : 600} 12px Pretendard, sans-serif`,
             offsetY: big ? -28 : -22,
             fill: new Fill({ color: big ? "#fff" : "#1e2124" }),
-            backgroundFill: new Fill({ color: big ? "#17223b" : "rgba(255,255,255,.94)" }),
-            backgroundStroke: new Stroke({ color: big ? "#17223b" : color, width: 1 }),
+            backgroundFill: new Fill({ color: big ? "#063a74" : "rgba(255,255,255,.94)" }),
+            backgroundStroke: new Stroke({ color: big ? "#063a74" : color, width: 1 }),
             padding: [3, 6, 2, 6],
             textBaseline: "bottom",
           })
@@ -128,9 +128,9 @@ export default function MapView(p: Props) {
       source: new VectorSource(),
       style: (f) =>
         new Style({
-          stroke: new Stroke({ color: "#17223b", width: 1.6, lineDash: [6, 4] }),
+          stroke: new Stroke({ color: "#063a74", width: 1.6, lineDash: [6, 4] }),
           fill: new Fill({ color: "rgba(23,34,59,0.02)" }),
-          text: new Text({ text: f.get("sigungu"), font: "700 13px Pretendard, sans-serif", fill: new Fill({ color: "#17223b" }), stroke: new Stroke({ color: "#fff", width: 3.5 }), overflow: true }),
+          text: new Text({ text: f.get("sigungu"), font: "700 13px Pretendard, sans-serif", fill: new Fill({ color: "#063a74" }), stroke: new Stroke({ color: "#fff", width: 3.5 }), overflow: true }),
         }),
       zIndex: 3,
     });

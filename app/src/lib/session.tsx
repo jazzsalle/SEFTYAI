@@ -23,13 +23,18 @@ export interface Conversation {
   refEntity?: QueryContext["refEntity"];
 }
 
-interface Cond {
+export interface Cond {
   region: RegionId;
   sigungu?: string;
+  emd?: string;
   disasterType: DisasterType;
   baseTime?: string; // 비우면 특보/시나리오 기준
+  endTime?: string;
   hydro?: QueryContext["hydro"];
   keywords?: string[];
+  situationKind?: QueryContext["situationKind"];
+  scenarioId?: string;
+  scenarioTitle?: string;
 }
 
 interface SessionState {
@@ -50,6 +55,8 @@ interface SessionState {
   toggleCheck: (k: string) => void;
   toast: (m: string) => void;
   toastMsg: string | null;
+  aimOn: boolean;
+  setAimOn: (v: boolean) => void;
 }
 
 const Ctx = createContext<SessionState | null>(null);
@@ -81,12 +88,18 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   const [checks, setChecks] = useState<Record<string, boolean>>({});
   const [toastMsg, setToast] = useState<string | null>(null);
   const [wxTick, setWxTick] = useState(0);
+  const [aimOn, setAimOnS] = useState(false);
+  const setAimOn = useCallback((v: boolean) => {
+    LS.set("sa.aim", v);
+    setAimOnS(v);
+  }, []);
 
   useEffect(() => {
     const id = LS.get<string | null>("sa.account", null);
     const acc = ACCOUNTS.find((a) => a.id === id) ?? null;
     setAccount(acc);
     setModeS(LS.get<WeatherMode>("sa.mode", "scenario"));
+    setAimOnS(LS.get<boolean>("sa.aim", false));
     if (acc) {
       setCondS({ region: acc.region, disasterType: "호우" });
       setConvs(LS.get<Conversation[]>(`sa.convs.${acc.id}`, []));
@@ -187,9 +200,9 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     () => ({
       ready, account, login, logout, mode, setMode, cond, setCond, weather,
       reloadWeather: () => setWxTick((t) => t + 1),
-      convs, saveConv, deleteConvs, checks, toggleCheck, toast, toastMsg,
+      convs, saveConv, deleteConvs, checks, toggleCheck, toast, toastMsg, aimOn, setAimOn,
     }),
-    [ready, account, login, logout, mode, setMode, cond, setCond, weather, convs, saveConv, deleteConvs, checks, toggleCheck, toast, toastMsg],
+    [ready, account, login, logout, mode, setMode, cond, setCond, weather, convs, saveConv, deleteConvs, checks, toggleCheck, toast, toastMsg, aimOn, setAimOn],
   );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

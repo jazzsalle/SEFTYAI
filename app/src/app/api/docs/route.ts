@@ -3,6 +3,7 @@ import { MANUALS } from "@/lib/server/manual";
 import { RISK_BY_ID } from "@/lib/server/risk";
 import { EVENT_BY_ID, R119_BY_ID, SR_BY_ID, fmtKrwThousand } from "@/lib/server/events";
 import { LEDGER } from "@/lib/server/ledger";
+import riverPlans from "@data/seed/river_plans.json";
 
 /** GET /api/docs?docId=&page= — 근거 원문 뷰어 (FUN-UNE-601002~601004) */
 export function GET(req: Request) {
@@ -109,6 +110,24 @@ export function GET(req: Request) {
       text: rows.map((x) => `${x.date_start} ${x.disaster_name.trim()} | ${x.region.sigungu} ${x.region.emd ?? ""} | ${x.facility?.시설명 ?? ""} (${x.facility?.시설구분 ?? ""})\n   ${x.damage_summary} · 피해 ${fmtKrwThousand(x.damage_amount_krw_thousand)} · 복구비 ${fmtKrwThousand(x.recovery_cost_krw_thousand)}`).join("\n\n"),
       downloadable: false,
       meta: [{ label: "원천", value: "20260708_2010~2025재해대장보고서_New.xlsx (★ 9번 폴더)" }],
+    });
+  }
+  if (kind === "PLAN") {
+    const p = (riverPlans as unknown as { rivers: { name: string; planTitle: string; planYear: number; designFreq: string; designFlood_cms: number; requiredFreeboard_m: number; page: number; sections: Record<string, unknown>[]; riskFactors: { factor: string; detail: string; source: string }[] }[] }).rivers.find((r) => r.name === id);
+    if (!p) return nf();
+    return NextResponse.json({
+      title: p.planTitle, kind: "하천기본계획", page: p.page, region: `${p.planYear} 수립 · ${p.designFreq} · 계획홍수량 ${p.designFlood_cms}㎥/s`,
+      heading: "제4장 하천정비계획 › 제방 여유고 검토",
+      text: [
+        `필요 여유고 ${p.requiredFreeboard_m}m (하천설계기준)`,
+        "",
+        ...p.sections.map((x) => `${x["station"]} (${x["location"]})\n   계획홍수위 ${x["designFloodLevel_m"]}m · 현 제방고 ${x["currentLevee_m"] ?? "무제부"}m · 계획제방고 ${x["planLevee_m"]}m → 여유고 ${x["freeboard_m"] ?? "—"}m [${x["status"]}]`),
+        "",
+        "위험요인",
+        ...p.riskFactors.map((r) => `· ${r.factor} — ${r.detail} (${r.source})`),
+      ].join("\n"),
+      downloadable: false,
+      meta: [{ label: "출처", value: "T3Q 하천기본계획 지식 제공 가정 (시연용)" }],
     });
   }
   if (kind === "KMA") {

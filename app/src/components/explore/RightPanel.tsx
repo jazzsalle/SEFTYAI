@@ -40,8 +40,8 @@ export default function RightPanel(p: Props) {
         <span className="sp" />
         <button className="iconbtn" style={{ alignSelf: "center" }} title="패널 닫기" onClick={p.closeAll}><IcExpand size={15} /></button>
       </div>
-      {/* 지도는 탭 전환 시에도 상태 유지 */}
-      <div className={`rbody map ${tab?.kind === "map" ? "" : "hide"}`}>
+      {/* 지도는 탭 전환 시에도 상태 유지 · 상세/목록일 때는 위쪽에 함께 표시 (상세 ↔ 지도 동기화) */}
+      <div className={`rbody map ${tab?.kind === "map" ? "" : (tab?.kind === "detail" && (tab.entity?.lon != null || tab.entity?.type === "river" || tab.entity?.type === "event")) || tab?.kind === "list" ? "mini" : "hide"}`}>
         <MapPanel {...p} />
       </div>
       {tab && tab.kind !== "map" && (
@@ -103,7 +103,7 @@ function MapPanel(p: Props) {
             ))}
           </div>
           <h4>공통 참조 레이어</h4>
-          <label><input type="checkbox" checked={layers.admin} onChange={() => T("admin")} /><span className="sw" style={{ border: "2px dashed #17223b" }} />시·군·구 경계</label>
+          <label><input type="checkbox" checked={layers.admin} onChange={() => T("admin")} /><span className="sw" style={{ border: "2px dashed #063a74" }} />시·군·구 경계</label>
           <label><input type="checkbox" checked={layers.emd} onChange={() => T("emd")} /><span className="sw" style={{ border: "1px solid #464c53" }} />읍·면·동 경계</label>
           <label><input type="checkbox" checked={layers.rivers} onChange={() => T("rivers")} /><span className="sw" style={{ background: "#2b83d6" }} />하천 중심선 (국가·지방)</label>
           <label><input type="checkbox" checked={layers.riverArea} onChange={() => T("riverArea")} /><span className="sw" style={{ background: "rgba(64,150,230,.4)" }} />실폭하천</label>

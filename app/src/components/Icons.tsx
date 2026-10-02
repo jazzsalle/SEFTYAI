@@ -35,7 +35,7 @@ export function GovLogo({ size = 36 }: { size?: number }) {
       <circle cx="20" cy="20" r="18" fill="#fff" />
       <path d="M4 20a16 16 0 0 1 32 0c0-4.4-3.6-8-8-8s-8 3.6-8 8-3.6 8-8 8-8-3.6-8-8z" fill="#cd2e3a" />
       <path d="M36 20a16 16 0 0 1-32 0c0 4.4 3.6 8 8 8s8-3.6 8-8 3.6-8 8-8 8 3.6 8 8z" fill="#0047a0" />
-      <path d="M4 20c0-2 .6-3.7 1.8-5" stroke="#17223b" strokeWidth="2.2" fill="none" />
+      <path d="M4 20c0-2 .6-3.7 1.8-5" stroke="#063a74" strokeWidth="2.2" fill="none" />
     </svg>
   );
 }

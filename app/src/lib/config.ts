@@ -31,7 +31,7 @@ export interface Account {
 }
 
 export const ACCOUNTS: Account[] = [
-  { id: "mois_dsd01", name: "김안전 사무관", org: "행정안전부", dept: "재난안전데이터과", role: "행안부", roleLabel: "검토용 · 전국 기본 (v1.71 사용자유형 외)", region: "national", color: "#17223b", initial: "행안" },
+  { id: "mois_dsd01", name: "김안전 사무관", org: "행정안전부", dept: "재난안전데이터과", role: "행안부", roleLabel: "검토용 · 전국 기본 (v1.71 사용자유형 외)", region: "national", color: "#063a74", initial: "행안" },
   { id: "bs_safety01", name: "부산광역시 담당자", org: "부산광역시", dept: "시민안전실 자연재난과", role: "지자체", roleLabel: "지자체 · 부산광역시", region: "busan", color: "#256ef4", initial: "부산" },
   { id: "yc_safety02", name: "영천시 담당자", org: "경상북도 영천시", dept: "안전재난하천과", role: "지자체", roleLabel: "지자체 · 영천시", region: "yeongcheon", color: "#0f9d8a", initial: "영천" },
   { id: "ij_safety01", name: "인제군 담당자", org: "강원특별자치도 인제군", dept: "안전교통과", role: "지자체", roleLabel: "지자체 · 인제군", region: "inje", color: "#6f4bd8", initial: "인제" },
@@ -42,7 +42,7 @@ export const DISASTER_TYPES = ["전체", "호우", "태풍", "홍수", "침수",
 
 /** 위험·취약 객체 범주별 표시 색 (지도·목록 공통) */
 export const CATEGORY_STYLE: Record<string, { color: string; icon: string }> = {
-  급경사지: { color: "#a5271b", icon: "⛰" },
+  급경사지: { color: "#bd2c0f", icon: "⛰" },
   붕괴위험지역: { color: "#de3412", icon: "⛰" },
   산사태취약지역: { color: "#8a5a00", icon: "⛰" },
   위험저수지: { color: "#0b78cb", icon: "◉" },

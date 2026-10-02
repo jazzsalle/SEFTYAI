@@ -39,7 +39,7 @@ export default function SatCompare() {
           <img src={src("before")} alt="홍수 발생 전 위성영상" style={{ width: "100%", height: "100%", objectFit: "cover", filter: mask ? "none" : "contrast(1.15)" }} draggable={false} />
         </div>
         <div style={{ position: "absolute", top: 0, bottom: 0, left: `${x}%`, width: 3, background: "#fff", boxShadow: "0 0 6px rgba(0,0,0,.6)", transform: "translateX(-1.5px)" }}>
-          <span style={{ position: "absolute", top: "50%", left: -14, width: 30, height: 30, borderRadius: "50%", background: "#fff", display: "grid", placeItems: "center", fontSize: 13, fontWeight: 800, color: "#17223b", transform: "translateY(-50%)" }}>⇔</span>
+          <span style={{ position: "absolute", top: "50%", left: -14, width: 30, height: 30, borderRadius: "50%", background: "#fff", display: "grid", placeItems: "center", fontSize: 13, fontWeight: 800, color: "#063a74", transform: "translateY(-50%)" }}>⇔</span>
         </div>
       </div>
       <p className="xs mute2" style={{ marginTop: 6 }}>※ 시연용 예시 영상(SAR, POC 산출물)으로 사건 위치와 무관합니다. 위성데이터 제공 시 사건별 영상으로 교체됩니다.</p>

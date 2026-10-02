@@ -4,6 +4,7 @@ import { EVENTS, EVENT_BY_ID, R119_BY_ID, REPORTS_119, SCENARIO, regionRecord, s
 import { MANUAL_BY_REGION, stageFor, type Manual, type ManualStage } from "../manual";
 import type { RiskObject } from "../risk";
 import { REGIONS } from "../../config";
+import { SCENARIO_BY_ID } from "../scenarios";
 
 /* ---------------- 응답 빌더 ---------------- */
 export class Answer {
@@ -14,6 +15,8 @@ export class Answer {
   apis = new Set<string>();
   followUps: string[] = [];
   focus: string[] = [];
+  /** 이어서 질문하기 기준 객체 */
+  focusRef?: EntityRef;
   title = "";
   status: "ok" | "partial" | "clarify" = "ok";
 
@@ -91,7 +94,8 @@ export const rshort = (r: RegionId) => REGIONS[r].short;
 export function situation(ctx: QueryContext, regionOverride?: RegionId): Situation {
   const region = regionOverride ?? ctx.region;
   const pr = region === "national" ? null : region;
-  const scenario = ctx.mode === "scenario";
+  const preset = ctx.scenarioId ? SCENARIO_BY_ID.get(ctx.scenarioId) : undefined;
+  const scenario = ctx.mode === "scenario" && (!preset || preset.useEvent);
   const event = scenario && pr ? EVENT_BY_ID.get(SCENARIO[pr].eventId) ?? null : null;
   const rec = event && pr ? regionRecord(event, pr) ?? null : null;
   const wx = scenario && pr ? scenarioWeather(pr) : null;
@@ -106,7 +110,12 @@ export function situation(ctx: QueryContext, regionOverride?: RegionId): Situati
       advisoryText = `${top.type}${top.level}`;
       issuedAt = top.issuedAt;
     }
-  } else if (ctx.advisory && (region === "national" || !ctx.advisory.area || new RegExp(rshort(region)).test(ctx.advisory.area))) {
+  }
+  if (preset) {
+    level = preset.advisory ? (preset.advisory.level as Situation["level"]) : null;
+    advisoryText = preset.advisory ? `${preset.advisory.type}${preset.advisory.level}` : "";
+    issuedAt = issuedAt ?? ctx.baseTime;
+  } else if (!(scenario && event && pr) && ctx.advisory && (region === "national" || !ctx.advisory.area || new RegExp(rshort(region)).test(ctx.advisory.area))) {
     level = ctx.advisory.level as Situation["level"];
     advisoryText = `${ctx.advisory.type}${ctx.advisory.level}`;
     issuedAt = ctx.advisory.issuedAt;

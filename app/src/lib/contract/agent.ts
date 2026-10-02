@@ -18,8 +18,10 @@ export type WeatherMode = z.infer<typeof WeatherMode>;
 export const QueryContext = z.object({
   region: RegionId,
   sigungu: z.string().optional(),
+  emd: z.string().optional(),
   disasterType: DisasterType,
   baseTime: z.string(), // ISO
+  endTime: z.string().optional(),
   mode: WeatherMode,
   advisory: z
     .object({ type: z.string(), level: z.string(), issuedAt: z.string(), area: z.string() })
@@ -29,11 +31,25 @@ export const QueryContext = z.object({
     .object({
       rain1h: z.number().optional(),
       rain3h: z.number().optional(),
+      rain6h: z.number().optional(),
+      rain12h: z.number().optional(),
+      rain24h: z.number().optional(),
+      flow: z.number().optional(),
+      wind: z.number().optional(),
+      humidity: z.number().optional(),
       rainTotal: z.number().optional(),
       waterLevel: z.number().optional(),
+      waterStation: z.string().optional(),
+      tide: z.boolean().optional(),
     })
     .optional(),
   keywords: z.array(z.string()).optional(),
+  /** 상황 성격 (조건 변경 · 상황 상세정보) */
+  situationKind: z.object({ type: z.string().optional(), level: z.string().optional() }).optional(),
+  /** 재난상황 조건 시나리오 (직접 입력 프리셋) */
+  scenarioId: z.string().optional(),
+  /** AI 모드 상황점검 : 직전 점검 시각 (변화량 비교) */
+  prevCheckAt: z.string().optional(),
 });
 export type QueryContext = z.infer<typeof QueryContext>;
 
@@ -159,6 +175,8 @@ export const AgentResponse = z.object({
   citations: z.array(Citation),
   followUps: z.array(z.string()),
   mapFocus: z.object({ entityIds: z.array(z.string()) }).optional(),
+  /** 이어서 질문하기 기준 객체 (후속 질의 refEntity 로 전달) */
+  focusEntity: EntityRef.optional(),
   error: z.object({ code: z.enum(["TIMEOUT", "UNAVAILABLE", "BAD_REQUEST", "NO_DATA"]), message: z.string() }).optional(),
   trace: z.object({ apis: z.array(z.string()), datasets: z.array(z.string()), elapsedMs: z.number() }),
 });

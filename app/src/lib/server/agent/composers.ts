@@ -1,9 +1,11 @@
 import "server-only";
 import type { EntityRef, QueryContext, RegionId } from "../../contract/agent";
 import riversIdx from "@data/geo/rivers_index.json";
+import riverPlans from "@data/seed/river_plans.json";
 import { EVENTS, EVENT_BY_ID, SR_BY_ID, eventRef, eventsInRegion, fmtKrw, fmtKrwThousand, r119Ref, regionRecord, type DisasterEvent, type RegionRecord } from "../events";
 import { MANUAL_BY_REGION, type Manual } from "../manual";
 import { ledgerMentioning } from "../ledger";
+import { risksLinkedToEvent } from "./composers2";
 import { relevant119, RISKS, categoriesFromText, dist, nearbyRisks, rankRisks, riskRef, risksIn, type RiskObject } from "../risk";
 import {
   Answer, cite119, citeEvent, citeKMA, citeManual, citeRisk, citeSR, hhmm, hourlySeries, mdhm, rainThresholds, rname, rshort, situation, ymd, type Situation,
@@ -139,6 +141,7 @@ export function composeRisk(a: Answer, ctx: QueryContext, q: string) {
   a.push({ kind: "results", groups });
   groups.forEach((g) => g.items.slice(0, 12).forEach((it) => a.ents.set(it.id, it)));
   a.focus = t3.map((r) => r.o.id);
+  a.focusRef = t3[0] ? riskRef(t3[0].o) : undefined;
   a.followUps = [
     `${t3[0] ? riskRef(t3[0].o).name : label} 주변 과거 피해는?`,
     "지금 특보 단계에서 매뉴얼상 해야 할 일은?",
@@ -267,7 +270,7 @@ function whereFlooded(a: Answer, e: DisasterEvent, rec: RegionRecord | undefined
   if (ins?.house?.claims) parts.push(`풍수해보험 주택 ${ins.house.claims}건 지급`);
   const hu = rec.damages.human;
   if (hu?.dead) parts.push(`사망 ${hu.dead}명${/검증/.test(hu.source ?? "") ? "※" : ""}`);
-  return parts.length ? parts.join(", ") + citeEvent(a, e) : "";
+  return parts.length ? parts.slice(0, 3).join(", ") + citeEvent(a, e) : "";
 }
 
 export function composeSimilar(a: Answer, ctx: QueryContext) {
@@ -327,9 +330,16 @@ export function composeSimilar(a: Answer, ctx: QueryContext) {
     pts.forEach((p) => a.ents.set(p.id, p));
     a.focus = pts.map((p) => p.id);
   }
+  // 과거 재난 ↔ 현재 위험·취약지역 연관 (발주처 요구)
+  const linked = risksLinkedToEvent(t.e, s.region === "national" ? "busan" : s.region);
+  const undone = linked.filter((o) => /급경사|붕괴|개선지구|저수지|홍수|산사태/.test(o.category) && !/완료|해제/.test(String(o.plan?.["진행상태"] ?? o.plan?.["사업구분(진행상태)"] ?? "")));
+  if (linked.length) {
+    a.push({ kind: "notice", tone: "warn", text: `그때 피해가 난 동네에는 지금 위험·취약지역 **${linked.length}곳**(산사태·급경사 ${linked.filter((o) => /산사태|급경사|붕괴/.test(o.category)).length}곳 포함)이 관리되고 있고, 이 중 **${undone.length}곳은 정비가 끝나지 않았습니다** — ${undone.slice(0, 3).map((o) => a.e(riskRef(o))).join(", ")}. 같은 강도의 비가 오면 먼저 볼 곳입니다.` });
+  }
+  a.focusRef = eventRef(t.e, pr);
   if (sims.some((x) => x.e.weather.maxHourlyRain_mm == null))
     a.push({ kind: "notice", tone: "info", text: `수신 데이터(재해대장·피해내역)에는 강우량이 없어 ${sims.filter((x) => x.e.weather.maxHourlyRain_mm == null).length}개 사건은 강우를 비교하지 못했습니다. T3Q가 사건 기간·시군구로 기상청 ASOS/AWS 강우를 결합하면 "몇 mm에서 어디가 잠겼는지"가 사건마다 채워집니다.` });
-  a.followUps = [`${t.e.title.replace(/\(.*\)/, "").trim()} 때 대응 경과는?`, "지금 먼저 확인할 위험·취약지역은?", "이번 사건 119 신고 현황은?"];
+  a.followUps = ["그때 피해가 난 곳은 지금 어떻게 관리되나요?", "그때 복구는 어떻게 됐나요?", "그때 어떤 통제·대피 조치를 했나요?", "1·2순위 사례를 비교해 주세요"];
 }
 
 /* =========================================================
@@ -383,7 +393,7 @@ export function composeManual(a: Answer, ctx: QueryContext, q: string) {
   a.push({
     kind: "actions",
     title: "지금 할 일 — 순서대로",
-    stage: { name: stage.name.replace(/\s*\(.*\)/, ""), level: lvl, trigger: stage.trigger },
+    stage: { name: stage.name.replace(/\s*\(.*\)/, ""), level: lvlShort, trigger: stage.trigger },
     manualId: `${m.id}:${stage.stageId}`,
     items: tasks.slice(0, 12).map((t) => ({ seq: t.seq, task: t.task, owner: t.owner, due: t.timing, cite: [a.cid(citeManual(a, m, t.page, t.task.slice(0, 120)))] })),
   });
@@ -556,7 +566,8 @@ export function composeEvent(a: Answer, ctx: QueryContext, e: DisasterEvent) {
   pts.forEach((p) => a.ents.set(p.id, p));
   a.focus = pts.map((p) => p.id);
   a.push({ kind: "notice", tone: "info", text: `재난마스터 ID 규칙: (재난유형코드 ${e.typeCode}=${e.typeName})-(발생일 ${e.startDate.replace(/-/g, "")})-(같은 날 같은 유형 순번). 한 사건 아래 지역별 기록(${e.regions.map((r) => r.regionRecordId.slice(-5)).join(", ")})에 신고·피해·복구·침수흔적·상황보고를 묶습니다.${e.ndmsKey ? ` NDMS 키 ${e.ndmsKey.DSTR_YEAR}/${e.ndmsKey.DSTR_TY_CD}/${e.ndmsKey.DSTR_SN}(${e.ndmsKey.DSTR_NM})와 연결됩니다.` : ""}` });
-  a.followUps = ["이 사건과 비슷한 강우가 오면 지금 어디를 봐야 하나요?", "이 사건 때 침수된 곳 중 지금 위험·취약지역으로 관리되는 곳은?", "지금 매뉴얼상 해야 할 일은?"];
+  a.focusRef = eventRef(e, pr);
+  a.followUps = ["그때 피해가 난 곳은 지금 어떻게 관리되나요?", "그때 복구는 어떻게 됐나요?", "그때 어떤 통제·대피 조치를 했나요?"];
 }
 
 /* =========================================================
@@ -577,7 +588,33 @@ export function riverRelated(r: RiverIdx) {
     (o) => String(o.attrs["하천명"] ?? o.attrs["하천"] ?? o.attrs["인근하천"] ?? "").includes(r.name) || (o.lon >= x0 - pad && o.lon <= x1 + pad && o.lat >= y0 - pad && o.lat <= y1 + pad && /지하차도|홍수|상습침수|소하천|하천|야영장/.test(o.category) && dist({ lon: o.lon, lat: o.lat }, { lon: r.center[0], lat: r.center[1] }) < Math.max(2, r.length_km / 2)),
   );
 }
-export function composeRiver(a: Answer, ctx: QueryContext, r: RiverIdx) {
+interface RiverPlan { name: string; region: string; planYear: number; planTitle: string; designFreq: string; designFlood_cms: number; requiredFreeboard_m: number; page: number; sections: { station: string; location: string; designFloodLevel_m: number; currentLevee_m: number | null; planLevee_m: number; freeboard_m: number | null; status: string; note: string }[]; riskFactors: { factor: string; detail: string; source: string }[] }
+const PLANS = (riverPlans as unknown as { rivers: RiverPlan[] }).rivers;
+const citePlan = (a: Answer, p: RiverPlan) => a.c({ docId: `PLAN:${p.name}`, title: p.planTitle, kind: "계획문서", page: p.page, dataset: "하천기본계획(T3Q 지식)" });
+
+/** 하천기본계획 — 계획홍수위·제방고·여유고 비교 (데모 질의 "적정 제방고 대비 실제 제방고") */
+function composeRiverPlan(a: Answer, r: RiverIdx, p: RiverPlan) {
+  a.title = `${r.name} 제방고·여유고 검토`;
+  const short = p.sections.filter((x) => x.status !== "확보");
+  a.push({
+    kind: "headline",
+    text: `${a.e(riverRef(r))} ${p.planTitle}(${p.planYear}, ${p.designFreq}) 기준 계획홍수량 ${p.designFlood_cms.toLocaleString()}㎥/s로 **여유고 ${p.requiredFreeboard_m}m 이상**이 필요합니다. 검토 측점 ${p.sections.length}곳 중 **${short.length}곳이 부족**합니다 — ${short.slice(0, 2).map((x) => `${x.station}(현 제방고 ${x.currentLevee_m ?? "무제부"}m, 여유고 ${x.freeboard_m ?? "—"}m)`).join(", ")}${citePlan(a, p)}.`,
+  });
+  a.push({
+    kind: "facts",
+    title: "측점별 제방고 (계획홍수위 · 현 제방고 → 여유고)",
+    items: p.sections.map((x) => ({ label: x.station, value: x.freeboard_m == null ? "무제부" : `${x.freeboard_m}m`, tone: x.status === "확보" ? ("ok" as const) : ("danger" as const), note: `계획홍수위 ${x.designFloodLevel_m}m · 현 ${x.currentLevee_m ?? "—"}m / 계획 ${x.planLevee_m}m${x.note ? ` · ${x.note}` : ""}` })),
+  });
+  a.focusRef = riverRef(r);
+  a.followUps = [`${r.name} 풍수해 위험요인은?`, `${r.name} 주변 과거 피해는?`, "이 상황에서 행동매뉴얼상 확인해야 할 대응절차는?"];
+}
+
+export function composeRiver(a: Answer, ctx: QueryContext, r: RiverIdx, q = "") {
+  const plan = PLANS.find((p) => p.name === r.name && p.region === r.region);
+  if (plan && /제방|여유고|계획\s*홍수|홍수위|하천기본계획/.test(q)) {
+    a.apis.add("T3Q-05 하천 상세(하천기본계획)");
+    return composeRiverPlan(a, r, plan);
+  }
   a.apis.add("T3Q-05 하천 상세");
   const s = situation(ctx, r.region);
   a.title = `${r.name} — 위험 구간과 대응`;
@@ -585,10 +622,12 @@ export function composeRiver(a: Answer, ctx: QueryContext, r: RiverIdx) {
   const m = MANUAL_BY_REGION[r.region as Exclude<RegionId, "national">];
   const fa = m?.fieldActions.filter((f) => f.target.includes(r.name) || f.criteria.includes(r.name) || f.actions.some((l) => l.includes(r.name))) ?? [];
   const evs = EVENTS.filter((e) => e.regions.some((rr) => rr.floodTraces?.records?.some((t) => t.centroid.lon >= r.bbox[0] - 0.003 && t.centroid.lon <= r.bbox[2] + 0.003 && t.centroid.lat >= r.bbox[1] - 0.003 && t.centroid.lat <= r.bbox[3] + 0.003))).slice(0, 3);
+  const rf = plan?.riskFactors ?? [];
   a.push({
     kind: "headline",
-    text: `${a.e(riverRef(r))}${josa(r.name, "은", "는")} ${r.regionName}${r.region === "busan" ? " " + r.sigungu.join("·") : ""}${josa(r.region === "busan" ? r.sigungu.at(-1) ?? "" : r.regionName, "을", "를")} 흐르는 ${r.grade}(연장 ${r.length_km}km)입니다. 하천 주변 관리대상은 ${rel.length}곳이며${rel[0] ? ` ${rel.slice(0, 3).map((x) => a.e(riskRef(x.o))).join(", ")} 등을 먼저 보십시오` : ""}.${fa[0] ? ` 매뉴얼에는 '${fa[0].criteria.slice(0, 70)}…' 기준이 있습니다${citeManual(a, m, fa[0].page)}.` : ""}${s.active && s.rain1hMax ? ` 현재 시간 최대 ${s.rain1hMax}mm입니다.` : ""}`,
+    text: rf.length ? `${a.e(riverRef(r))}의 풍수해 위험요인은 **${rf.map((x) => x.factor).slice(0, 3).join(", ")}**입니다${citePlan(a, plan!)}. ${rf[0].detail}.${s.active && s.rain1hMax ? ` 지금 시간 최대 ${s.rain1hMax}mm입니다.` : ""} 주변 관리대상 ${rel.length}곳 중 ${rel.slice(0, 2).map((x) => a.e(riskRef(x.o))).join(", ")}을 먼저 보십시오.` : `${a.e(riverRef(r))}${josa(r.name, "은", "는")} ${r.regionName}${r.region === "busan" ? " " + r.sigungu.join("·") : ""}${josa(r.region === "busan" ? r.sigungu.at(-1) ?? "" : r.regionName, "을", "를")} 흐르는 ${r.grade}(연장 ${r.length_km}km)입니다. 하천 주변 관리대상은 ${rel.length}곳이며${rel[0] ? ` ${rel.slice(0, 3).map((x) => a.e(riskRef(x.o))).join(", ")} 등을 먼저 보십시오` : ""}.${fa[0] ? ` 매뉴얼에는 '${fa[0].criteria.slice(0, 70)}…' 기준이 있습니다${citeManual(a, m, fa[0].page)}.` : ""}${s.active && s.rain1hMax ? ` 현재 시간 최대 ${s.rain1hMax}mm입니다.` : ""}`,
   });
+  if (rf.length) a.push({ kind: "facts", title: "위험요인", items: rf.map((x) => ({ label: x.factor, value: "", note: `${x.detail} (${x.source})` })) });
   const sa = r.standardAttrs ?? {};
   a.push({ kind: "facts", items: [{ label: "하천 등급", value: r.grade }, { label: "연장", value: String(r.length_km), unit: "km" }, { label: "관리기관", value: sa["관리기관명"] ?? r.regionName }, { label: "주변 관리대상", value: String(rel.length), unit: "곳" }] });
   if (fa.length) a.push({ kind: "narrative", title: "매뉴얼 통제 기준", paragraphs: fa.map((f) => `**${f.target}** — ${f.criteria}${citeManual(a, m, f.page)} → ${f.actions.slice(0, 3).join(" / ")}`) });
@@ -609,7 +648,8 @@ export function composeRiver(a: Answer, ctx: QueryContext, r: RiverIdx) {
   if (rel.length) a.push({ kind: "results", groups: [{ key: `river:${r.riverId}`, label: `${r.name} 주변 관리대상`, total: rel.length, items: rel.map((x) => riskRef(x.o)) }] });
   rel.slice(0, 10).forEach((x) => a.ents.set(x.o.id, riskRef(x.o)));
   a.focus = rel.slice(0, 8).map((x) => x.o.id);
-  a.followUps = [`${r.name} 주변 지하차도 통제 기준은?`, "지금 특보 단계에서 해야 할 일은?", "비슷한 강우 때 과거 피해는?"];
+  a.focusRef = riverRef(r);
+  a.followUps = plan ? [`${r.name}의 적정 제방고 대비 실제 제방고는 얼마인가요?`, "하천변 출입 통제가 필요한가요?", "이 상황에서 행동매뉴얼상 확인해야 할 대응절차는?"] : [`${r.name} 주변 지하차도 통제 기준은?`, "지금 특보 단계에서 해야 할 일은?", "비슷한 강우 때 과거 피해는?"];
 }
 
 /* =========================================================
@@ -662,6 +702,9 @@ export function composeObject(a: Answer, ctx: QueryContext, o: RiskObject) {
     a.push({ kind: "results", groups: [...(nearRep.length ? [{ key: `nr:${o.id}`, label: "인근 119 신고", total: nearRep.length, items: nearRep.map(r119Ref) }] : []), ...(near.length ? [{ key: `nb:${o.id}`, label: "반경 800m 관리대상", total: near.length, items: near.map((x) => riskRef(x)) }] : [])] });
   a.ents.set(o.id, riskRef(o));
   a.focus = [o.id];
+  a.focusRef = riskRef(o);
+  const hist = (o.history ?? []).map((h) => EVENTS.find((e) => e.startDate === h.date)).filter((e): e is DisasterEvent => !!e);
+  if (hist.length) a.push({ kind: "results", groups: [{ key: `oh:${o.id}`, label: "이 동네가 피해를 입은 재난사건", total: hist.length, items: hist.slice(0, 8).map((e) => eventRef(e, region)) }] });
   a.followUps = ["이 주변에서 과거 어떤 피해가 있었나요?", "같은 유형 위험지역 전체를 보여주세요", "지금 매뉴얼상 해야 할 일은?"];
 }
 
