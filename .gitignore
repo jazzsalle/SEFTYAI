@@ -1,0 +1,13 @@
+# 발주처 원천 자료 (대용량·비공개) — 저장소에 올리지 않음
+/seed_data/
+# 가공 중간 산출물 (필지 주소 등 포함) — 서비스에 필요한 것은 app/data 로 복사됨
+/data/
+# 기타
+*.fig
+node_modules/
+.next/
+.vercel
+.env*
+!.env.example
+Thumbs.db
+desktop.ini
