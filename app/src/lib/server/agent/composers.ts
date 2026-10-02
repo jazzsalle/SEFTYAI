@@ -332,9 +332,9 @@ export function composeSimilar(a: Answer, ctx: QueryContext) {
   }
   // 과거 재난 ↔ 현재 위험·취약지역 연관 (발주처 요구)
   const linked = risksLinkedToEvent(t.e, s.region === "national" ? "busan" : s.region);
-  const undone = linked.filter((o) => /급경사|붕괴|개선지구|저수지|홍수|산사태/.test(o.category) && !/완료|해제/.test(String(o.plan?.["진행상태"] ?? o.plan?.["사업구분(진행상태)"] ?? "")));
+  const undone = linked.filter((o) => /급경사|붕괴|개선지구|저수지|홍수/.test(o.category) && !/완료|해제/.test(String(o.plan?.["진행상태"] ?? o.plan?.["사업구분(진행상태)"] ?? "")));
   if (linked.length) {
-    a.push({ kind: "notice", tone: "warn", text: `그때 피해가 난 동네에는 지금 위험·취약지역 **${linked.length}곳**(산사태·급경사 ${linked.filter((o) => /산사태|급경사|붕괴/.test(o.category)).length}곳 포함)이 관리되고 있고, 이 중 **${undone.length}곳은 정비가 끝나지 않았습니다** — ${undone.slice(0, 3).map((o) => a.e(riskRef(o))).join(", ")}. 같은 강도의 비가 오면 먼저 볼 곳입니다.` });
+    a.push({ kind: "notice", tone: "warn", text: `그때 피해가 난 동네에는 지금 위험·취약지역 **${linked.length}곳**(산사태·급경사 ${linked.filter((o) => /산사태|급경사|붕괴/.test(o.category)).length}곳 포함)이 관리되고 있고, 이 중 법정 위험지구 **${undone.length}곳은 정비가 끝나지 않았습니다** — ${undone.slice(0, 3).map((o) => a.e(riskRef(o))).join(", ")}. 같은 강도의 비가 오면 먼저 볼 곳입니다.` });
   }
   a.focusRef = eventRef(t.e, pr);
   if (sims.some((x) => x.e.weather.maxHourlyRain_mm == null))
