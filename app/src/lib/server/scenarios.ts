@@ -71,7 +71,7 @@ export const CONDITION_SCENARIOS: ConditionScenario[] = [
     summary: "호우경보 · 금호강 영천 수위 3.2m(주의) · 직접 입력", disasterType: "홍수", advisory: { type: "호우", level: "경보" },
     hydro: { rain1h: 41, rainTotal: 150, waterLevel: 3.2, waterStation: "금호강 영천" }, useEvent: true,
     question: "금호강이 범람하면 영향받는 곳과 먼저 확인할 홍수취약지구는?",
-    chain: ["금호강 주변 과거 피해는?", "둔치주차장·세월교 통제가 필요한가요?", "하류로 피해가 확산될 가능성은?"],
+    chain: ["금호강 주변 과거 피해는?", "둔치주차장·세월교 통제가 필요한가요?", "금호강 홍수취약지구는 어디고 대응수위는 얼마인가요?"],
     cq: ["KG-CQ-045", "KG-CQ-047", "KG-CQ-061"],
   },
   {
