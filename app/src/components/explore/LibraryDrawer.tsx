@@ -28,7 +28,7 @@ export default function LibraryDrawer(p: { region: RegionId; onClose: () => void
           <div className="subtabs" style={{ marginTop: 0 }}>
             <button className={tab === "q" ? "on" : ""} onClick={() => setTab("q")}>업무 단계별 질문</button>
             <button className={tab === "s" ? "on" : ""} onClick={() => setTab("s")}>조건 시나리오</button>
-            <button className={tab === "f" ? "on" : ""} onClick={() => setTab("f")}>연속 질의 시연</button>
+            <button className={tab === "f" ? "on" : ""} onClick={() => setTab("f")}>연속 질의</button>
           </div>
         </div>
         <div className="bd">

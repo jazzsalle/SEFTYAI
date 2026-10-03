@@ -1,10 +1,12 @@
 import "server-only";
 import { DetailResponse, type EntityRef, type QueryContext } from "../../contract/agent";
+import { uxClean } from "../ux";
 import { EVENTS, EVENT_BY_ID, R119_BY_ID, SCENARIO, SR_BY_ID, eventRef, fmtKrw, fmtKrwThousand, r119Ref, regionRecord, type DisasterEvent } from "../events";
 import { MANUAL_BY_REGION } from "../manual";
 import { relevant119, RISK_BY_ID, nearbyRisks, regionOfRisk, riskRef, dist, type RiskObject } from "../risk";
 import { Answer, cite119, citeEvent, citeManual, citeRisk, citeSR, situation, starName, ymd } from "./core";
 import { RIVERS, riverRef, riverRelated, tidyBasis } from "./composers";
+import { LEDGER } from "../ledger";
 
 type DR = DetailResponse;
 const F = (label: string, v: unknown) => ({ label, value: v == null || v === "" ? "—" : typeof v === "object" ? JSON.stringify(v).replace(/[{}"]/g, "").replace(/,/g, ", ") : String(v) });
@@ -97,7 +99,7 @@ function eventDetail(e: DisasterEvent, ctx: QueryContext): DR {
     ...rec.actions.map((ac) => ({ at: ac.time.replace("T", " ").slice(0, 16), label: "대응", kind: "대응", text: ac.action })),
     ...reps.map((r) => ({ at: r.신고일시.slice(0, 16), label: "119", kind: "119", text: `${r.ext.accidentType} · ${r.ext.locationDetail} — ${r.ext.callSummary}` })),
     ...srs.map((s) => ({ at: s.submittedAt.replace("T", " ").slice(0, 16), label: `상황보고 ${s.reportNo}`, kind: "보고", text: s.overview })),
-    ...rec.facts.map((f) => ({ at: e.startDate, label: "피해", kind: "피해", text: `${f.fact}${/검증/.test(f.source) ? " (공개자료·검증필요)" : ""}` })),
+    ...rec.facts.map((f) => ({ at: e.startDate, label: "피해", kind: "피해", text: `${f.fact}${/검증/.test(f.source) ? " (공개자료 기준)" : ""}` })),
   ].sort((x, y) => x.at.localeCompare(y.at));
   return {
     type: "event",
@@ -108,8 +110,8 @@ function eventDetail(e: DisasterEvent, ctx: QueryContext): DR {
       { text: e.typeName, tone: "info" },
       { text: e.status, tone: e.status === "진행중" ? "danger" : "neutral" },
       ...(rec.crisisLevel ? [{ text: rec.crisisLevel, tone: "warn" as const }] : []),
-      ...(e.synthetic ? [{ text: "훈련 시나리오(가상)", tone: "warn" as const }] : []),
-      ...(/검증/.test(e.weather.rainfallSource) ? [{ text: "강우 공개자료(검증필요)", tone: "neutral" as const }] : []),
+      ...(e.synthetic ? [{ text: "훈련 시나리오", tone: "warn" as const }] : []),
+      ...(/검증/.test(e.weather.rainfallSource) ? [{ text: "강우 공개자료 기준", tone: "neutral" as const }] : []),
     ],
     sections: [
       ...(sim
@@ -124,18 +126,18 @@ function eventDetail(e: DisasterEvent, ctx: QueryContext): DR {
           ...(pf ? [F("사유시설", `${pf.recordCount.toLocaleString()}건${pf.housing ? ` · 주택 침수 ${pf.housing.flooded}동` : ""}${pf.confirmedDamage_krw_thousand ? ` · ${fmtKrwThousand(pf.confirmedDamage_krw_thousand)}` : ""}`), ...(pf.housing?.bySigungu ? [F("주택 침수 구별", Object.entries(pf.housing.bySigungu).map(([k, v]) => `${k} ${v}`).join(", "))] : [])] : []),
           ...(ins?.house ? [F("풍수해보험(주택)", `${ins.house.claims}건 · ${fmtKrw(ins.house.paid_krw)}`)] : []),
           ...(ins?.sme ? [F("풍수해보험(소상공인)", `${ins.sme.claims}건 · ${fmtKrw(ins.sme.paid_krw)}`)] : []),
-          ...(rec.damages.human ? [F("인명피해", `사망 ${rec.damages.human.dead ?? "—"} · 실종 ${rec.damages.human.missing ?? "—"} · 부상 ${rec.damages.human.injured ?? "—"}${/검증/.test(rec.damages.human.source ?? "") ? " (공개자료·검증필요)" : ""}`)] : []),
+          ...(rec.damages.human ? [F("인명피해", `사망 ${rec.damages.human.dead ?? "—"} · 실종 ${rec.damages.human.missing ?? "—"} · 부상 ${rec.damages.human.injured ?? "—"}${/검증/.test(rec.damages.human.source ?? "") ? " (공개자료 기준)" : ""}`)] : []),
           ...(rec.recovery.recovery_krw_thousand ? [F("복구비", fmtKrwThousand(rec.recovery.recovery_krw_thousand))] : []),
         ],
       },
-      ...(ft ? [{ key: "trace", label: "침수흔적", fields: [F("침수흔적", `${ft.count}개소 · ${Math.round(ft.totalArea_m2).toLocaleString()}㎡ (침수심은 원자료 단위 혼재 — 검증 후 표출)`), F("원인", Object.entries(ft.causes).map(([k, v]) => `${k} ${v}`).join(", ")), ...ft.records.slice(0, 8).map((r) => F(r.district, `${Math.round(r.area_m2).toLocaleString()}㎡ · ${r.cause} · ${r.begin} ~ ${r.end}`))] }] : []),
+      ...(ft ? [{ key: "trace", label: "침수흔적", fields: [F("침수흔적", `${ft.count}개소 · ${Math.round(ft.totalArea_m2).toLocaleString()}㎡`), F("원인", Object.entries(ft.causes).map(([k, v]) => `${k} ${v}`).join(", ")), ...ft.records.slice(0, 8).map((r) => F(r.district, `${Math.round(r.area_m2).toLocaleString()}㎡ · ${r.cause} · ${r.begin} ~ ${r.end}`))] }] : []),
       { key: "timeline", label: "사건 이력", fields: [] },
       { key: "sat", label: "위성영상", fields: [F("촬영일시(발생 전)", `${e.startDate} 이전 최근 촬영분`), F("촬영일시(발생 후)", `${e.startDate} ~ ${e.endDate ?? "진행중"} 중 최초 촬영분`), F("위성·센서", "SAR (구름 영향 없음) — 시연 예시"), F("촬영 범위", rec.floodTraces?.districts?.slice(0, 3).join(", ") || rec.sigungu)] },
     ],
     timeline: tl,
     related: [
       ...reps.map(r119Ref),
-      ...(ft?.records ?? []).slice(0, 10).map((f): EntityRef => ({ type: "damage", id: f.traceId, name: f.district, category: "침수흔적", lon: f.centroid.lon, lat: f.centroid.lat, summary: `침수면적 ${Math.round(f.area_m2).toLocaleString()}㎡ · ${f.cause}`, metric: `${Math.round(f.area_m2 / 1000).toLocaleString()}천㎡`, level: "mid" })),
+      ...(ft?.records ?? []).slice(0, 10).map((f): EntityRef => ({ type: "damage", id: f.traceId, name: f.district || `${f.cause || "침수"} 흔적`, category: "침수흔적", lon: f.centroid.lon, lat: f.centroid.lat, summary: `침수면적 ${Math.round(f.area_m2).toLocaleString()}㎡ · ${f.cause}`, metric: `${Math.round(f.area_m2 / 1000).toLocaleString()}천㎡`, level: "mid" })),
       ...(curRec && cur?.eventId === e.eventId ? (cur.similarCases?.[curRec.regionRecordId] ?? []).flatMap((c): EntityRef[] => { const x = EVENT_BY_ID.get(c.eventId); return x ? [{ ...eventRef(x, pr), metric: `유사도 ${Math.round(c.score)}` }] : []; }) : []),
     ],
     citations: a.cites,
@@ -157,7 +159,7 @@ function r119Detail(id: string): DR | null {
     id: r.reportId,
     title: `${r.ext.accidentType} · ${r.ext.locationDetail}`,
     category: "119신고",
-    badges: [{ text: r.ext.accidentType, tone: "danger" }, { text: r.관제상황구분, tone: "info" }, ...(r.ext.rescueeCount ? [{ text: `요구조자 ${r.ext.rescueeCount}명`, tone: "danger" as const }] : []), ...(r.synthetic ? [{ text: "재구성(시연) · 표준 스키마", tone: "warn" as const }] : [])],
+    badges: [{ text: r.ext.accidentType, tone: "danger" }, { text: r.관제상황구분, tone: "info" }, ...(r.ext.rescueeCount ? [{ text: `요구조자 ${r.ext.rescueeCount}명`, tone: "danger" as const }] : []), ...(r.synthetic ? [{ text: "재구성 기록", tone: "warn" as const }] : [])],
     w4: undefined,
     sections: [
       { key: "sum", label: "신고 요약", fields: [F("신고 내용(요약)", r.ext.callSummary), F("위치", `${r.신고지역명} · ${r.ext.locationDetail}`), F("출동", r.ext.dispatchUnit), F("처리 결과", r.ext.result), F("요구조자", `${r.ext.rescueeCount}명`), F("재난마스터", ev ? `${ev.eventId} ${ev.title}` : r.eventId), F("근거 지점", r.ext.groundedOn ?? "—")] },
@@ -213,16 +215,16 @@ function damageDetail(id: string, ctx: QueryContext): DR | null {
         return {
           type: "damage",
           id,
-          title: `${f.district} 침수흔적`,
+          title: `${f.district || f.cause || ""} 침수흔적`.trim(),
           category: "침수흔적",
           badges: [{ text: `침수면적 ${Math.round(f.area_m2).toLocaleString()}㎡`, tone: "warn" }, { text: f.disasterName, tone: "info" }],
           w4: {
             where: `${rec.sigungu} · ${f.district} (중심점 ${f.centroid.lat}, ${f.centroid.lon})`,
-            why: `${f.cause} — 면적 ${Math.round(f.area_m2).toLocaleString()}㎡가 잠겼던 곳 (침수심 원자료 ${f.avgDepth_m} · 단위 검증 필요)`,
+            why: `${f.cause} — 면적 ${Math.round(f.area_m2).toLocaleString()}㎡가 잠겼던 곳`,
             when: `${f.begin} ~ ${f.end} (${e.title}${e.weather.maxHourlyRain_mm != null ? `, 시간 최대 ${e.weather.maxHourlyRain_mm}mm` : ", 강우 ASOS 결합 필요"})`,
             what: ["같은 강도 강우 예보 시 우선 예찰·배수시설 점검", "저지대·지하공간 이용자 대피 안내", "침수 반복 시 상습침수지역·위험개선지구 지정 검토"],
           },
-          sections: [{ key: "info", label: "침수흔적 정보", fields: [F("흔적 ID", f.traceId), F("재난명", f.disasterName), F("기간", `${f.begin} ~ ${f.end}`), F("지구", f.district), F("원인", f.cause), F("평균 침수심", `${f.avgDepth_m}m`), F("면적", `${Math.round(f.area_m2).toLocaleString()}㎡`), F("재난마스터", e.eventId)] }],
+          sections: [{ key: "info", label: "침수흔적 정보", fields: [F("흔적 ID", f.traceId), F("재난명", f.disasterName), F("기간", `${f.begin} ~ ${f.end}`), F("지구", f.district), F("원인", f.cause), F("면적", `${Math.round(f.area_m2).toLocaleString()}㎡`), F("재난마스터", e.eventId)] }],
           related: [eventRef(e), ...nearbyRisks(f.centroid, 0.8).slice(0, 6).map((x) => riskRef(x))],
           citations: a.cites,
           geometry: f.centroid,
@@ -230,6 +232,79 @@ function damageDetail(id: string, ctx: QueryContext): DR | null {
         };
       }
     }
+  return null;
+}
+
+/* 재해대장 피해·복구 (피해시설 단위) — DP-11 disaster_ledger
+   상세항목 : 피해개요·피해물량(DQ-095-01) · 피해금액(DQ-096-01) · 복구유형·공정률(DQ-096-02) · 풍수해보험금(DQ-096-03)
+   원천에 없는 항목(피해물량·공정률·보험금)은 표시하지 않음 (미제공 영역 숨김 원칙) */
+const SIDO_RE = /^(부산광역시|경상북도|강원특별자치도|강원도)\s*/;
+function eventOfLedger(name: string, date: string, sigungu: string) {
+  const n = name.trim();
+  return EVENTS.find((e) => e.regions.some((r) => r.sigungu.includes(sigungu.replace(SIDO_RE, "")) && (r.damages.publicFacilityLedger?.ledgerDisasterNames ?? []).some((x) => x.trim() === n)))
+    ?? EVENTS.find((e) => e.startDate === date && e.regions.some((r) => r.sigungu.includes(sigungu)));
+}
+function ledgerDetail(id: string): DR | null {
+  const a = new Answer();
+  // ① 재해대장 레코드 (DL-xxxxxx)
+  const x = LEDGER.find((r) => r.id === id);
+  if (x) {
+    const rx = x as typeof x & { recovery?: { 복구유형?: string; 복구단계?: string }; facility: { 시설등급?: string; 소관부처?: string }; date_end?: string };
+    const e = eventOfLedger(x.disaster_name, x.date_start, x.region.sigungu);
+    if (e) citeEvent(a, e, "재해대장 피해·복구");
+    const rt = rx.recovery?.복구유형;
+    const ratio = x.damage_amount_krw_thousand && x.recovery_cost_krw_thousand ? (x.recovery_cost_krw_thousand / x.damage_amount_krw_thousand).toFixed(1) : null;
+    return {
+      type: "damage",
+      id,
+      title: x.facility?.시설명 || x.damage_summary.slice(0, 30),
+      category: `재해대장 · ${x.facility?.시설구분 ?? "공공시설"}`,
+      badges: [
+        { text: `피해 ${fmtKrwThousand(x.damage_amount_krw_thousand)}`, tone: "warn" },
+        ...(x.recovery_cost_krw_thousand ? [{ text: `복구비 ${fmtKrwThousand(x.recovery_cost_krw_thousand)}`, tone: "info" as const }] : []),
+        ...(rt ? [{ text: rt, tone: (rt === "개량복구" ? "ok" : "neutral") as "ok" | "neutral" }] : []),
+      ],
+      sections: [
+        { key: "damage", label: "피해 개요", fields: [F("피해개요", x.damage_summary), F("재난명", `${x.disaster_name.trim()} (${ymd(x.date_start)}${rx.date_end && rx.date_end !== x.date_start ? ` ~ ${ymd(rx.date_end)}` : ""})`), F("피해위치", `${x.region.sigungu} ${x.region.emd ?? ""} · ${x.location_detail.replace(/\s+/g, " ").trim()}`), F("시설", [x.facility?.시설구분, rx.facility?.시설등급, rx.facility?.소관부처].filter(Boolean).join(" · "))] },
+        { key: "amount", label: "피해금액 · 복구", fields: [F("피해금액 (공공)", fmtKrwThousand(x.damage_amount_krw_thousand)), F("복구비", x.recovery_cost_krw_thousand ? `${fmtKrwThousand(x.recovery_cost_krw_thousand)}${ratio ? ` (피해액의 ${ratio}배)` : ""}` : "미기재"), F("복구유형", rt ?? "미기재"), ...(rx.recovery?.복구단계 ? [F("복구단계", rx.recovery.복구단계)] : [])] },
+      ],
+      related: [...(e ? [eventRef(e)] : []), ...(x.lon != null ? nearbyRisks({ lon: x.lon, lat: x.lat }, 0.8).slice(0, 5).map((o) => riskRef(o)) : [])],
+      citations: a.cites,
+      geometry: x.lon != null ? { lon: x.lon, lat: x.lat } : undefined,
+      sources: [`재해대장 2010~2025${x.source.row ? ` (${x.source.row}행)` : ""}`, ...(rx.coordApprox ? ["위치는 읍면동 대표점(근사)"] : [])],
+    };
+  }
+  // ② 사건 단위 요약 레코드 (사건ID-LED-n · 사건ID-PFI-n)
+  const m = id.match(/^(.+)-(LED|PFI)-(\d+)$/);
+  const e = m && EVENT_BY_ID.get(m[1]);
+  if (!m || !e) return null;
+  const i = Number(m[3]);
+  for (const rec of e.regions) {
+    if (m[2] === "LED") {
+      const f = rec.damages.publicFacilityLedger?.topFacilities?.[i];
+      if (!f) continue;
+      citeEvent(a, e, "재해대장 피해·복구");
+      return {
+        type: "damage", id, title: f.facility, category: `재해대장 · ${f.type}`,
+        badges: [{ text: `피해 ${fmtKrwThousand(f.damage_krw_thousand)}`, tone: "warn" }, { text: `복구비 ${fmtKrwThousand(f.recovery_krw_thousand)}`, tone: "info" }, ...(f.recoveryType ? [{ text: f.recoveryType, tone: "neutral" as const }] : [])],
+        sections: [
+          { key: "damage", label: "피해 개요", fields: [F("시설", `${f.facility} (${f.type})`), F("재난", e.title.replace(/^\[시연\]\s*/, "")), F("피해위치", `${rec.sigungu} ${f.emd} · ${f.location}`), F("소관부처", f.ministry)] },
+          { key: "amount", label: "피해금액 · 복구", fields: [F("피해금액 (공공)", fmtKrwThousand(f.damage_krw_thousand)), F("복구비", fmtKrwThousand(f.recovery_krw_thousand)), F("복구유형", f.recoveryType ?? "미기재"), ...(f.stage ? [F("복구단계", f.stage)] : [])] },
+        ],
+        related: [eventRef(e)], citations: a.cites, sources: ["재해대장 2010~2025 (사건 연결 집계)"],
+      };
+    } else {
+      const it = rec.damages.publicFloodItems?.items?.[i];
+      if (!it) continue;
+      citeEvent(a, e, "공공시설 침수피해");
+      return {
+        type: "damage", id, title: `${it.address.replace(SIDO_RE, "")} ${it.facilityType}`, category: `공공시설 침수피해 · ${it.facilityType}`,
+        badges: [{ text: `피해 ${fmtKrwThousand(it.damage_krw_thousand)}`, tone: "warn" }, { text: it.damageCause, tone: "neutral" }],
+        sections: [{ key: "damage", label: "피해 개요", fields: [F("피해개요", it.summary), F("피해원인", it.damageCause), F("피해위치", it.address), F("시설·소관", `${it.facilityType} · ${it.ministry}`), F("피해금액 (공공)", fmtKrwThousand(it.damage_krw_thousand)), F("발생일", ymd(`${it.date.slice(0, 4)}-${it.date.slice(4, 6)}-${it.date.slice(6, 8)}`))] }],
+        related: [eventRef(e)], citations: a.cites, sources: [it.source ?? "공공시설 피해내역(침수 한정)"],
+      };
+    }
+  }
   return null;
 }
 
@@ -243,7 +318,7 @@ export function detail(type: string, id: string, ctx: QueryContext): DR | null {
     d = e ? eventDetail(e, ctx) : null;
   } else if (type === "report119") d = r119Detail(id);
   else if (type === "river") d = riverDetail(id, ctx);
-  else if (type === "damage") d = damageDetail(id, ctx);
-  return d ? DetailResponse.parse(d) : null;
+  else if (type === "damage") d = damageDetail(id, ctx) ?? ledgerDetail(id);
+  return d ? DetailResponse.parse(uxClean(d)) : null;
 }
 export { riverRef };

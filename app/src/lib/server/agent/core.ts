@@ -59,7 +59,7 @@ export const citeKMA = (a: Answer, live: boolean, text: string) =>
 const STAR: Record<string, string> = {
   급경사지: "재해위험지구 사업현황", 붕괴위험지역: "재해위험지구 사업현황", 위험저수지: "재해위험지구 사업현황", 풍수해개선지구: "재해위험지구 사업현황",
   상습침수지역: "상습침수지역·피해데이터", 지하차도: "지하차도 현황", 야영장: "전국 캠핑장", 산사태취약지역: "산사태 취약정보", 홍수취약지구: "홍수취약지구",
-  소하천: "소하천 전체 목록", 하천위험요소: "하천기본계획 위험요소", 건축물지하공간: "건축물 지하공간(샘플)",
+  소하천: "소하천 전체 목록", 하천위험요소: "하천기본계획 위험요소", 건축물지하공간: "건축물 지하공간",
 };
 export const starName = (cat: string) => STAR[cat] ?? cat;
 export const shortDataset = (s: string) => {

@@ -21,13 +21,35 @@ interface Props {
   mapPoints: EntityRef[];
   mapHighlight: string[];
   focusToken: number;
+  areaToken?: number;
   riverHighlight: string[];
 }
 
 export default function RightPanel(p: Props) {
   const tab = p.tabs.find((t) => t.key === p.active) ?? p.tabs[0];
+  const withMap = (tab?.kind === "detail" && (tab.entity?.lon != null || tab.entity?.type === "river" || tab.entity?.type === "event")) || tab?.kind === "list";
+  // 지도 ↔ 상세 분할 : both(함께) · map(상세 접기) · detail(상세 크게) + 지도 높이 % (브라우저별 기억)
+  const [view, setView] = useState<"both" | "map" | "detail">("both");
+  const [mapPct, setMapPct] = useState(40);
+  const [drag, setDrag] = useState(false);
+  useEffect(() => {
+    try {
+      const j = JSON.parse(localStorage.getItem("sa.rsplit") ?? "null");
+      if (j && ["both", "map", "detail"].includes(j.view)) setView(j.view);
+      if (j && j.pct >= 15 && j.pct <= 80) setMapPct(j.pct);
+    } catch {}
+  }, []);
+  const saveSplit = (v: "both" | "map" | "detail", pct: number) => {
+    setView(v);
+    setMapPct(pct);
+    try { localStorage.setItem("sa.rsplit", JSON.stringify({ view: v, pct: Math.round(pct) })); } catch {}
+  };
+  // 새 상세를 열면 접혀 있던 상세를 다시 보여줌
+  useEffect(() => {
+    if (tab?.kind !== "map") setView((v) => (v === "map" ? "both" : v));
+  }, [tab?.key]);
   return (
-    <aside className="rpanel" aria-label="상세 패널">
+    <aside className={`rpanel ${drag ? "dragging" : ""}`} aria-label="상세 패널">
       <div className="rtabs" role="tablist">
         {p.tabs.map((t) => (
           <div key={t.key} className={`rtab ${t.key === tab?.key ? "on" : ""}`} role="tab" aria-selected={t.key === tab?.key}>
@@ -41,10 +63,38 @@ export default function RightPanel(p: Props) {
         <button className="iconbtn" style={{ alignSelf: "center" }} title="패널 닫기" onClick={p.closeAll}><IcExpand size={15} /></button>
       </div>
       {/* 지도는 탭 전환 시에도 상태 유지 · 상세/목록일 때는 위쪽에 함께 표시 (상세 ↔ 지도 동기화) */}
-      <div className={`rbody map ${tab?.kind === "map" ? "" : (tab?.kind === "detail" && (tab.entity?.lon != null || tab.entity?.type === "river" || tab.entity?.type === "event")) || tab?.kind === "list" ? "mini" : "hide"}`}>
+      <div
+        className={`rbody map ${tab?.kind === "map" ? "" : withMap ? `mini ${view === "detail" ? "gone" : ""}` : "hide"}`}
+        style={withMap && view !== "detail" ? { flex: view === "map" ? "1 1 auto" : `0 0 ${mapPct}%` } : undefined}
+      >
         <MapPanel {...p} />
       </div>
-      {tab && tab.kind !== "map" && (
+      {withMap && (
+        <div className={`hsplit ${drag ? "on" : ""}`}>
+          <div
+            className="grab"
+            role="separator"
+            aria-orientation="horizontal"
+            aria-label="지도와 상세 높이 조절"
+            title="드래그해서 높이 조절 · 더블클릭하면 기본 높이"
+            onPointerDown={(ev) => { if (view !== "both") return; ev.preventDefault(); (ev.target as HTMLElement).setPointerCapture(ev.pointerId); setDrag(true); }}
+            onPointerMove={(ev) => {
+              if (!drag) return;
+              const box = (ev.currentTarget.closest(".rpanel") as HTMLElement).getBoundingClientRect();
+              const top = box.top + 46;
+              setMapPct(Math.min(80, Math.max(15, ((ev.clientY - top) / (box.bottom - top)) * 100)));
+            }}
+            onPointerUp={() => { if (drag) { setDrag(false); saveSplit(view, mapPct); } }}
+            onDoubleClick={() => saveSplit("both", 40)}
+          ><span /></div>
+          <div className="seg">
+            <button className={view === "map" ? "on" : ""} onClick={() => saveSplit(view === "map" ? "both" : "map", mapPct)} title="상세를 접고 지도를 크게">{view === "map" ? "상세 펼치기 ▲" : "상세 접기 ▼"}</button>
+            <button className={view === "both" ? "on" : ""} onClick={() => saveSplit("both", mapPct)}>함께 보기</button>
+            <button className={view === "detail" ? "on" : ""} onClick={() => saveSplit(view === "detail" ? "both" : "detail", mapPct)} title="지도를 접고 상세를 크게">{view === "detail" ? "지도 펼치기 ▼" : "상세 크게 ▲"}</button>
+          </div>
+        </div>
+      )}
+      {tab && tab.kind !== "map" && !(withMap && view === "map") && (
         <div className="rbody" key={tab.key}>
           {tab.kind === "detail" && tab.entity && <DetailPane e={tab.entity} sub={tab.sub} />}
           {tab.kind === "list" && tab.list && <ListPane list={tab.list} />}
@@ -72,10 +122,17 @@ function MapPanel(p: Props) {
     return [...m.entries()];
   }, [p.mapPoints]);
   const T = (k: keyof LayerState) => setLayers((l) => ({ ...l, [k]: !l[k] }));
+  // 읍면동을 고르면 읍면동 경계를 함께 켬
+  useEffect(() => {
+    if (cond.emd) setLayers((l) => (l.emd ? l : { ...l, emd: true }));
+  }, [cond.emd]);
   return (
     <div className="mapwrap">
       <MapView
         region={cond.region}
+        sigungu={cond.sigungu}
+        emd={cond.emd}
+        areaToken={p.areaToken}
         points={p.mapPoints}
         highlightIds={hl}
         selectedId={x.selectedId}
@@ -110,7 +167,6 @@ function MapPanel(p: Props) {
           <label><input type="checkbox" checked={layers.smallRiver} onChange={() => T("smallRiver")} /><span className="sw" style={{ background: "rgba(0,230,118,.3)", outline: "2px dotted #00c864", outlineOffset: -2 }} />소하천구역</label>
           <h4>조회결과 레이어</h4>
           <label><input type="checkbox" checked={layers.points} onChange={() => T("points")} /><span className="sw" style={{ background: "#256ef4" }} />조회결과 객체<span className="c">{p.mapPoints.length}</span></label>
-          <p className="xs mute2" style={{ margin: "8px 0 0" }}>※ 침수흔적도는 T3Q 제공 시 추가</p>
         </div>
       )}
       {sel && (
@@ -189,6 +245,7 @@ export function DetailPane({ e, sub }: { e: EntityRef; sub?: string }) {
   const [d, setD] = useState<DetailResponse | null>(null);
   const [err, setErr] = useState(false);
   const [st, setSt] = useState(sub ?? "");
+  const [retry, setRetry] = useState(0);
   useEffect(() => {
     let alive = true;
     fetch(`/api/agent/detail?type=${e.type}&id=${encodeURIComponent(e.id)}&region=${cond.region}&mode=${mode}`)
@@ -196,37 +253,55 @@ export function DetailPane({ e, sub }: { e: EntityRef; sub?: string }) {
       .then((j: DetailResponse) => {
         if (!alive) return;
         setD(j);
-        setSt((s) => s || j.sections[0]?.key || "");
+        setSt((s) => s || (j.w4 ? "w4" : j.sections[0]?.key) || "");
       })
       .catch(() => alive && setErr(true));
     return () => {
       alive = false;
     };
-  }, [e.type, e.id, cond.region, mode]);
+  }, [e.type, e.id, cond.region, mode, retry]);
 
-  if (err) return <div className="dpane"><div className="notice danger">상세정보를 불러오지 못했습니다. <button className="btn xs" onClick={() => location.reload()}><IcRefresh size={12} /> 다시 시도</button></div></div>;
+  if (err) return <div className="dpane"><div className="notice danger">상세정보를 불러오지 못했습니다. <button className="btn xs" onClick={() => { setErr(false); setD(null); setRetry((n) => n + 1); }}><IcRefresh size={12} /> 다시 시도</button></div></div>;
   if (!d) return <div className="dpane"><div className="typing"><i /><i /><i /></div></div>;
-  const sec = d.sections.find((s) => s.key === st) ?? d.sections[0];
   const cites = (ids?: string[]) => ids?.map((id) => { const c = d.citations.find((cc) => cc.id === id); return c ? <button key={id} className="cite" onClick={() => x.openCitation(c)}>{id.slice(1)}</button> : null; });
+  // 긴 상세를 한 줄로 늘어놓지 않고 보기 탭으로 나눔 : 요약(어디·왜·언제·무엇) · 정보 섹션들 · 연관 객체 · 근거
+  const views: { key: string; label: string }[] = [
+    ...(d.w4 ? [{ key: "w4", label: "요약" }] : []),
+    ...d.sections.map((s) => ({ key: s.key, label: s.label })),
+    ...(d.related.length ? [{ key: "rel", label: `연관 객체 ${d.related.length}` }] : []),
+    ...(d.citations.length ? [{ key: "cite", label: `근거 ${d.citations.length}` }] : []),
+  ];
+  const cur = views.find((v) => v.key === st)?.key ?? views[0]?.key;
+  const sec = d.sections.find((s) => s.key === cur);
+  const src = <div className="srcline">출처 데이터 : {d.sources.map((s) => <span key={s} className="badge star">★ {s}</span>)}</div>;
 
   return (
     <div className="dpane fadein">
-      <div className="dh">
-        <div style={{ minWidth: 0 }}>
-          <div className="xs b" style={{ color: catStyle(d.category).color }}>{d.category}</div>
-          <h2>{d.title}</h2>
+      <div className="dhead">
+        <div className="dh">
+          <div style={{ minWidth: 0 }}>
+            <div className="xs b" style={{ color: catStyle(d.category).color }}>{d.category}</div>
+            <h2>{d.title}</h2>
+          </div>
+          <div className="acts">
+            {d.geometry && <button className="btn sm" onClick={() => x.openMap([d.id], [{ ...e, lon: d.geometry!.lon, lat: d.geometry!.lat, category: d.category ?? e.category }])}><IcMap size={13} /> 지도에서 보기</button>}
+            <button className="btn sm line" onClick={() => x.ask(`${d.title}에 대해 지금 무엇을 해야 하나요?`, undefined, { ...e, name: d.title })}>이 객체로 질문</button>
+          </div>
         </div>
-        <div className="acts">
-          {d.geometry && <button className="btn sm" onClick={() => x.openMap([d.id], [{ ...e, lon: d.geometry!.lon, lat: d.geometry!.lat, category: d.category ?? e.category }])}><IcMap size={13} /> 지도에서 보기</button>}
-          <button className="btn sm line" onClick={() => x.ask(`${d.title}에 대해 지금 무엇을 해야 하나요?`, undefined, { ...e, name: d.title })}>이 객체로 질문</button>
+        <div className="bds">
+          {d.badges.map((b, i) => <span key={i} className={`badge ${b.tone}`}>{b.text}</span>)}
+          <span className="badge neutral">ID · {d.id}</span>
         </div>
-      </div>
-      <div className="bds">
-        {d.badges.map((b, i) => <span key={i} className={`badge ${b.tone}`}>{b.text}</span>)}
-        <span className="badge neutral">ID · {d.id}</span>
+        {views.length > 1 && (
+          <div className="subtabs" role="tablist">
+            {views.map((v) => (
+              <button key={v.key} role="tab" aria-selected={v.key === cur} className={v.key === cur ? "on" : ""} onClick={() => setSt(v.key)}>{v.label}</button>
+            ))}
+          </div>
+        )}
       </div>
 
-      {d.w4 && (
+      {cur === "w4" && d.w4 && (
         <div className="w4">
           {W4.map((w) => (
             <div key={w.k} className="c">
@@ -240,18 +315,9 @@ export function DetailPane({ e, sub }: { e: EntityRef; sub?: string }) {
           </div>
         </div>
       )}
-
-      {d.sections.length > 1 && (
-        <div className="subtabs" role="tablist">
-          {d.sections.map((s) => (
-            <button key={s.key} className={s.key === sec?.key ? "on" : ""} onClick={() => setSt(s.key)}>{s.label}</button>
-          ))}
-        </div>
-      )}
       {sec?.key === "sat" && <SatCompare />}
       {sec && sec.key !== "timeline" && (
-        <div className="sec" style={{ marginTop: d.sections.length > 1 ? 12 : 22 }}>
-          {d.sections.length === 1 && <h3>{sec.label}</h3>}
+        <div className="sec">
           <dl className="kv">
             {sec.fields.map((f, i) => (
               <div key={i} style={{ display: "contents" }}>
@@ -263,7 +329,7 @@ export function DetailPane({ e, sub }: { e: EntityRef; sub?: string }) {
         </div>
       )}
       {sec?.key === "timeline" && d.timeline && (
-        <div className="sec" style={{ marginTop: 14 }}>
+        <div className="sec">
           <ul className="tl">
             {d.timeline.map((t, i) => (
               <li key={i} style={{ ["--k" as string]: TL_COLOR[t.kind] ?? "#256ef4" }}>
@@ -274,12 +340,10 @@ export function DetailPane({ e, sub }: { e: EntityRef; sub?: string }) {
           </ul>
         </div>
       )}
-
-      {d.related.length > 0 && (
+      {cur === "rel" && (
         <div className="sec">
-          <h3>연관 객체 <span className="xs mute2" style={{ fontWeight: 400 }}>{d.related.length}</span></h3>
           <ul className="reslist">
-            {d.related.slice(0, 12).map((r) => (
+            {d.related.slice(0, 30).map((r) => (
               <li key={r.type + r.id} onClick={() => x.openDetail(r)} onMouseEnter={() => x.hover(r.id)} onMouseLeave={() => x.hover(null)}>
                 {r.level && <span className={`dot ${r.level}`} />}
                 <span className="col" style={{ minWidth: 0 }}>
@@ -293,9 +357,8 @@ export function DetailPane({ e, sub }: { e: EntityRef; sub?: string }) {
           </ul>
         </div>
       )}
-      {d.citations.length > 0 && (
+      {cur === "cite" && (
         <div className="sec">
-          <h3>근거</h3>
           <div className="cites">
             {d.citations.map((c) => (
               <button key={c.id} className="citechip" onClick={() => x.openCitation(c)}><span className="k">{c.id.slice(1)}</span><IcDoc size={12} /><b>{c.title}</b>{c.page ? `p.${c.page}` : c.locator ? `· ${c.locator}` : ""}</button>
@@ -303,7 +366,7 @@ export function DetailPane({ e, sub }: { e: EntityRef; sub?: string }) {
           </div>
         </div>
       )}
-      <div className="srcline">출처 데이터 : {d.sources.map((s) => <span key={s} className="badge star">★ {s}</span>)}</div>
+      {src}
     </div>
   );
 }

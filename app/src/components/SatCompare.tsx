@@ -42,7 +42,7 @@ export default function SatCompare() {
           <span style={{ position: "absolute", top: "50%", left: -14, width: 30, height: 30, borderRadius: "50%", background: "#fff", display: "grid", placeItems: "center", fontSize: 13, fontWeight: 800, color: "#063a74", transform: "translateY(-50%)" }}>⇔</span>
         </div>
       </div>
-      <p className="xs mute2" style={{ marginTop: 6 }}>※ 시연용 예시 영상(SAR, POC 산출물)으로 사건 위치와 무관합니다. 위성데이터 제공 시 사건별 영상으로 교체됩니다.</p>
+      <p className="xs mute2" style={{ marginTop: 6 }}>※ 이 사건의 위성영상은 제공되지 않아 예시 영상(SAR)을 표시합니다.</p>
     </div>
   );
 }

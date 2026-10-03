@@ -679,7 +679,22 @@ label.chk input { width: 18px; height: 18px; accent-color: var(--c-primary); }
 .qitem { display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; padding: 10px 12px; border: 1px solid var(--c-line); border-radius: var(--r-l); background: #fff; margin-bottom: 6px; font-size: var(--fs-xs); }
 .qitem:hover { border-color: var(--c-primary); background: #f5f8ff; }
 .qitem .cq { margin-left: auto; font-size: 10px; color: var(--c-dis); white-space: nowrap; }
-.rbody.map.mini { flex: 0 0 40%; border-bottom: 1px solid var(--c-line); }
+.rbody.map.mini { flex: 0 0 40%; min-height: 0; }
+.rbody.map.mini.gone { display: none; }
+/* 지도 ↔ 상세 분할 바 */
+.hsplit { flex: none; display: flex; align-items: center; gap: 8px; padding: 4px 10px; border-top: 1px solid var(--c-line); border-bottom: 1px solid var(--c-line); background: #f8f9fb; }
+.hsplit .grab { flex: 1; height: 18px; display: flex; align-items: center; justify-content: center; cursor: row-resize; touch-action: none; }
+.hsplit .grab span { width: 44px; height: 4px; border-radius: 2px; background: var(--c-bd); transition: background .15s, width .15s; }
+.hsplit .grab:hover span, .hsplit.on .grab span { background: var(--c-navy); width: 72px; }
+.hsplit .seg { display: flex; gap: 2px; padding: 2px; border-radius: var(--r-m); background: #eceef2; }
+.hsplit .seg button { border: 0; background: transparent; padding: 3px 9px; font-size: var(--fs-2xs); border-radius: var(--r-s); color: #464c53; cursor: pointer; white-space: nowrap; }
+.hsplit .seg button.on { background: #fff; color: var(--c-navy); font-weight: 700; box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+.rpanel.dragging { user-select: none; cursor: row-resize; }
+.rpanel.dragging .rbody { pointer-events: none; }
+/* 상세 : 제목·배지·보기 탭은 고정, 내용만 바뀜 */
+.dpane .dhead { position: sticky; top: -22px; z-index: 2; background: #fff; margin: -22px -24px 0; padding: 18px 24px 0; border-bottom: 1px solid var(--c-line); }
+.dpane .dhead .subtabs { margin: 12px 0 0; border-bottom: 0; }
+.dpane .dhead + * { margin-top: 16px; }
 .rbody.map.mini .layerpanel, .rbody.map.mini .mapsel, .rbody.map.mini .maplegend { display: none; }
 
 .composer .tools { flex-wrap: nowrap; }

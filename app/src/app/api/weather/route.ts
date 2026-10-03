@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { uxClean } from "@/lib/server/ux";
+const J = (b: unknown, init?: ResponseInit) => NextResponse.json(uxClean(b), init);
 import { RegionId, WeatherResponse } from "@/lib/contract/agent";
 import { fetchLiveAdvisories } from "@/lib/server/kma";
 import { SCENARIO, SCENARIO_LABEL, scenarioAdvisories } from "@/lib/server/events";
@@ -18,7 +20,7 @@ export async function GET(req: Request) {
       advisories: live.advisories,
       preliminary: live.preliminary,
     };
-    return NextResponse.json(WeatherResponse.parse(body));
+    return J(WeatherResponse.parse(body));
   }
 
   const sc = SCENARIO[region === "national" ? "busan" : region];
@@ -29,5 +31,5 @@ export async function GET(req: Request) {
     advisories: scenarioAdvisories("national"),
     preliminary: [],
   };
-  return NextResponse.json(WeatherResponse.parse(body));
+  return J(WeatherResponse.parse(body));
 }

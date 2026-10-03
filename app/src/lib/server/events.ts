@@ -17,8 +17,8 @@ export interface WeatherLocal {
   tide?: { highTideAt: string; note: string };
 }
 export interface FloodTrace { traceId: string; emd: string | null; disasterName: string; begin: string; end: string; district: string; cause: string; avgDepth_m: number; area_m2: number; centroid: { lat: number; lon: number } }
-export interface PublicFloodItem { date: string; address: string; facilityType: string; damageCause: string; summary: string; damage_krw_thousand: number }
-export interface LedgerFacility { facility: string; type: string; emd: string; location: string; damage_krw_thousand: number; recovery_krw_thousand: number; recoveryType: string }
+export interface PublicFloodItem { date: string; address: string; facilityType: string; damageCause: string; summary: string; damage_krw_thousand: number; ministry?: string; source?: string }
+export interface LedgerFacility { facility: string; type: string; emd: string; location: string; damage_krw_thousand: number; recovery_krw_thousand: number; recoveryType: string; ministry?: string; stage?: string }
 export interface RegionRecord {
   regionRecordId: string;
   sido: string;
@@ -131,7 +131,7 @@ export const SCENARIO: Record<Exclude<RegionId, "national">, { eventId: string; 
   yeongcheon: { eventId: "1001-20261002-01", baseTime: "2026-10-03T09:00:00+09:00" },
   inje: { eventId: "1001-20261002-02", baseTime: "2026-10-03T09:00:00+09:00" },
 };
-export const SCENARIO_LABEL = "훈련 시나리오 · 10.2~3 호우 (가상)";
+export const SCENARIO_LABEL = "훈련 시나리오 · 10.2~3 호우";
 
 export function scenarioAdvisories(region: RegionId): Advisory[] {
   const regs = region === "national" ? (["busan", "yeongcheon", "inje"] as const) : [region];
@@ -154,7 +154,7 @@ export function scenarioAdvisories(region: RegionId): Advisory[] {
         regionId: rid ?? (/앞바다/.test(a.area) && a.area.includes("부산") ? "busan" : undefined),
         issuedAt: a.issuedAt.length <= 16 ? a.issuedAt + ":00+09:00" : a.issuedAt.replace(/(T\d\d:\d\d)\+/, "$1:00+"),
         status: replaced ? "변경" : "발효",
-        text: `${a.area}에 ${a.type}${a.level} ${replaced ? "(" + a.status + ")" : "발효 중"}. 사건 ${ev.eventId} 기준 시연 데이터.`,
+        text: `${a.area}에 ${a.type}${a.level} ${replaced ? "(" + a.status + ")" : "발효 중"}. 훈련 시나리오 특보입니다.`,
         isNew: a.level === "경보" && !replaced,
       });
     }
@@ -192,7 +192,7 @@ export function r119Ref(r: Report119): EntityRef {
     id: r.reportId,
     name: `${r.ext.locationDetail}`,
     category: "119신고",
-    summary: `${r.synthetic ? "재구성(시연) · " : ""}${r.신고일시.slice(5, 16)} · ${r.ext.accidentType} · ${r.ext.callSummary}`,
+    summary: `${r.synthetic ? "재구성 기록 · " : ""}${r.신고일시.slice(5, 16)} · ${r.ext.accidentType} · ${r.ext.callSummary}`,
     metric: r.ext.accidentType,
     lon: r.ext.coord?.lon,
     lat: r.ext.coord?.lat,

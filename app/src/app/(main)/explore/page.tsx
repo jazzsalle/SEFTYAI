@@ -48,6 +48,7 @@ function Explore() {
   const [mapExtra, setMapExtra] = useState<EntityRef[]>([]);
   const [mapHl, setMapHl] = useState<string[]>([]);
   const [focusToken, setFocusToken] = useState(0);
+  const [areaToken, setAreaToken] = useState(0);
   const [editTitle, setEditTitle] = useState(false);
   const [aimCollapsed, setAimCollapsed] = useState(false);
   const [lib, setLib] = useState(false);
@@ -83,6 +84,18 @@ function Explore() {
     if (sp.get("new")) newChat();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sp]);
+  // 기준지역(시도·시군구·읍면동) 변경 → 지도를 열고 해당 행정경계로 이동
+  const areaRef = useRef<string | null>(null);
+  useEffect(() => {
+    const k = `${s.cond.region}|${s.cond.sigungu ?? ""}|${s.cond.emd ?? ""}`;
+    if (areaRef.current === null) { areaRef.current = k; return; }
+    if (areaRef.current === k) return;
+    areaRef.current = k;
+    setAreaToken((t) => t + 1);
+    setSelectedId(null);
+    openTab({ key: "map", kind: "map", title: "지도" });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [s.cond.region, s.cond.sigungu, s.cond.emd]);
   const askedQ = useRef<string | null>(null);
   useEffect(() => {
     const q = sp.get("q");
@@ -368,6 +381,7 @@ function Explore() {
             mapPoints={mapPoints}
             mapHighlight={mapHl}
             focusToken={focusToken}
+            areaToken={areaToken}
             riverHighlight={riverHighlight}
           />
         )}

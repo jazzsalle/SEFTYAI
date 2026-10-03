@@ -128,7 +128,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
               <Link href="/settings/me" onClick={() => setMenu(false)}>내 권한 정보</Link>
               {account.role === "운영자" && <Link href="/admin" onClick={() => setMenu(false)}>운영관리</Link>}
               <div className="mh" style={{ borderTop: "1px solid var(--c-line)", borderBottom: 0, marginTop: 4 }}>
-                <div className="xs muted" style={{ marginBottom: 6 }}>기상특보 (시연 설정)</div>
+                <div className="xs muted" style={{ marginBottom: 6 }}>기상특보 데이터</div>
                 <div className="modeSw">
                   <button className={mode === "scenario" ? "on" : ""} onClick={() => setMode("scenario")}>훈련 시나리오</button>
                   <button className={mode === "live" ? "on" : ""} onClick={() => setMode("live")}>실시간(기상청)</button>

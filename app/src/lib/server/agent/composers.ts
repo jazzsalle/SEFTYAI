@@ -292,7 +292,7 @@ export function composeSimilar(a: Answer, ctx: QueryContext) {
   const wf = whereFlooded(a, t.e, rec);
   a.push({
     kind: "headline",
-    text: `${cur} 가장 비슷한 과거 사례는 ${a.e(eventRef(t.e, pr))}(유사도 ${t.score})입니다. 당시 ${tRain}의 비로 ${wf || "피해가 발생했습니다"}.${/※/.test(tRain + wf) ? " ※ 공개자료 기반 수치(기상청·NDMS 검증 필요)" : ""}`,
+    text: `${cur} 가장 비슷한 과거 사례는 ${a.e(eventRef(t.e, pr))}(유사도 ${t.score})입니다. 당시 ${tRain}의 비로 ${wf || "피해가 발생했습니다"}.${/※/.test(tRain + wf) ? " ※ 공개자료 기준 수치로, 공식 집계와 다를 수 있습니다." : ""}`,
   });
 
   // 핵심 수치: 1순위 사건
@@ -303,7 +303,7 @@ export function composeSimilar(a: Answer, ctx: QueryContext) {
   if (rec?.floodTraces?.count) facts.push({ label: "침수흔적", value: String(rec.floodTraces.count), unit: "개소", note: `침수면적 ${Math.round(rec.floodTraces.totalArea_m2 / 10000)}ha` });
   const pl = rec?.damages.publicFacilityLedger;
   if (pl) facts.push({ label: "공공시설 피해·복구", value: fmtKrwThousand(pl.damage_krw_thousand), note: `복구비 ${fmtKrwThousand(pl.recovery_krw_thousand)} · ${pl.facilityCount}건` });
-  if (rec?.damages.human?.dead) facts.push({ label: "인명피해", value: String(rec.damages.human.dead), unit: "명", tone: "danger" as const, note: "사망 · 공개자료 기반(검증필요)" });
+  if (rec?.damages.human?.dead) facts.push({ label: "인명피해", value: String(rec.damages.human.dead), unit: "명", tone: "danger" as const, note: "사망 · 공개자료 기준" });
   if (facts.length) a.push({ kind: "facts", title: `${t.e.title} — 그때 무슨 일이`, items: facts });
 
   // 사건별 어디가 어떻게
@@ -324,7 +324,7 @@ export function composeSimilar(a: Answer, ctx: QueryContext) {
 
   // 1순위 사건 침수흔적을 지도에
   const ft = rec?.floodTraces?.records ?? [];
-  const pts: EntityRef[] = ft.slice(0, 12).map((f) => ({ type: "damage", id: f.traceId, name: f.district, category: "침수흔적", lon: f.centroid.lon, lat: f.centroid.lat, summary: `${f.disasterName} · 침수면적 ${Math.round(f.area_m2).toLocaleString()}㎡ · ${f.cause}`, metric: `${Math.round(f.area_m2 / 1000).toLocaleString()}천㎡`, level: "mid" }));
+  const pts: EntityRef[] = ft.slice(0, 12).map((f) => ({ type: "damage", id: f.traceId, name: f.district || `${f.cause || "침수"} 흔적`, category: "침수흔적", lon: f.centroid.lon, lat: f.centroid.lat, summary: `${f.disasterName} · 침수면적 ${Math.round(f.area_m2).toLocaleString()}㎡ · ${f.cause}`, metric: `${Math.round(f.area_m2 / 1000).toLocaleString()}천㎡`, level: "mid" }));
   if (pts.length) {
     a.push({ kind: "results", groups: [{ key: `trace:${t.e.eventId}`, label: `${ymd(t.e.startDate)} 침수흔적`, total: rec?.floodTraces?.count ?? pts.length, items: pts }] });
     pts.forEach((p) => a.ents.set(p.id, p));
@@ -338,7 +338,7 @@ export function composeSimilar(a: Answer, ctx: QueryContext) {
   }
   a.focusRef = eventRef(t.e, pr);
   if (sims.some((x) => x.e.weather.maxHourlyRain_mm == null))
-    a.push({ kind: "notice", tone: "info", text: `수신 데이터(재해대장·피해내역)에는 강우량이 없어 ${sims.filter((x) => x.e.weather.maxHourlyRain_mm == null).length}개 사건은 강우를 비교하지 못했습니다. T3Q가 사건 기간·시군구로 기상청 ASOS/AWS 강우를 결합하면 "몇 mm에서 어디가 잠겼는지"가 사건마다 채워집니다.` });
+    a.push({ kind: "notice", tone: "info", text: `${sims.filter((x) => x.e.weather.maxHourlyRain_mm == null).length}개 사건은 당시 강우 기록이 제공되지 않아 강우 비교에서 제외했습니다.` });
   a.followUps = ["그때 피해가 난 곳은 지금 어떻게 관리되나요?", "그때 복구는 어떻게 됐나요?", "그때 어떤 통제·대피 조치를 했나요?", "1·2순위 사례를 비교해 주세요"];
 }
 
@@ -425,7 +425,7 @@ export function composeWeather(a: Answer, ctx: QueryContext) {
     return;
   }
   if (!s.active && !s.wx) {
-    a.push({ kind: "headline", text: `${s.rname}에는 현재 발효 중인 기상특보가 없습니다${citeKMA(a, ctx.mode === "live", "현재 발효 특보 없음")}. 실시간 강우·수위 관측값은 v1.71 요구사항에서 제외되어, 강우는 [조건 변경]에서 직접 입력하면 과거 피해 임계치와 비교해 드립니다.` });
+    a.push({ kind: "headline", text: `${s.rname}에는 현재 발효 중인 기상특보가 없습니다${citeKMA(a, ctx.mode === "live", "현재 발효 특보 없음")}. 실시간 강우·수위 관측값은 제공하지 않습니다. 강우량을 [조건 변경]에 입력하시면 과거 피해가 났던 강우와 비교해 드립니다.` });
     a.push({ kind: "rainChart", title: "과거 피해 발생 강우 수준 (참고)", current: { label: "입력 강우", series: ctx.hydro?.rain1h ? [{ t: "입력", mm: ctx.hydro.rain1h }] : [] }, thresholds: rainThresholds(s.region).map(({ mm, label, basis }) => ({ mm, label, basis })) });
     a.followUps = ["시간당 50mm가 오면 어디가 위험한가요?", "우리 지역 위험·취약지역은?"];
     return;
@@ -449,7 +449,7 @@ export function composeWeather(a: Answer, ctx: QueryContext) {
     ],
   });
   a.push({ kind: "rainChart", title: "시간당 강우 vs 매뉴얼 통제 기준·과거 피해 강우", current: { label: "시간당 강우", series: hourlySeries(s.wx) }, thresholds: th.map(({ mm, label, basis }) => ({ mm, label, basis })) });
-  if (ctx.mode === "scenario") a.push({ kind: "notice", tone: "info", text: "시연 사건의 강우·수위 값은 가상 데이터입니다. 운영 시 강우는 담당자 입력값 또는 T3Q가 결합한 기상청 관측값을 사용합니다." });
+  if (ctx.mode === "scenario") a.push({ kind: "notice", tone: "info", text: "훈련 시나리오의 강우·수위 값입니다. 실시간 관측값은 제공하지 않으며, 강우량은 [조건 변경]에서 입력할 수 있습니다." });
   a.followUps = ["지금 강우에서 먼저 볼 위험·취약지역은?", "비슷한 강우 때 과거에 어디가 침수됐나요?", "지금 매뉴얼상 해야 할 일은?"];
 }
 function o0cite(a: Answer, m: Manual, over: { page?: number }[]) {
@@ -552,10 +552,10 @@ export function composeEvent(a: Answer, ctx: QueryContext, e: DisasterEvent) {
   e.weather.advisories.forEach((ad) => tl.push({ at: (ad.issuedAt ?? "").replace("T", " ").slice(0, 16), label: "특보", kind: "특보", text: `${ad.area} ${ad.type}${ad.level}${ad.status ? ` (${ad.status})` : ""}` }));
   rec.actions.forEach((ac) => tl.push({ at: ac.time.replace("T", " ").slice(0, 16), label: "대응", kind: "대응", text: ac.action }));
   rec.situationReports.map((id) => SR_BY_ID.get(id)).forEach((sr) => sr && tl.push({ at: sr.submittedAt.replace("T", " ").slice(0, 16), label: `상황보고 ${sr.reportNo}`, kind: "보고", text: `${sr.overview.slice(0, 90)}${citeSR(a, sr)}` }));
-  rec.facts.forEach((f) => tl.push({ at: e.startDate, label: "사실", kind: "피해", text: `${f.fact}${/검증/.test(f.source) ? " (공개자료·검증필요)" : ""}` }));
+  rec.facts.forEach((f) => tl.push({ at: e.startDate, label: "사실", kind: "피해", text: `${f.fact}${/검증/.test(f.source) ? " (공개자료 기준)" : ""}` }));
   if (tl.length) a.push({ kind: "timeline", title: "사건 경과 (특보 → 대응 → 보고)", items: tl.sort((x, y) => x.at.localeCompare(y.at)).slice(0, 16) });
 
-  const pts: EntityRef[] = (rec.floodTraces?.records ?? []).slice(0, 12).map((f) => ({ type: "damage", id: f.traceId, name: f.district, category: "침수흔적", lon: f.centroid.lon, lat: f.centroid.lat, summary: `침수면적 ${Math.round(f.area_m2).toLocaleString()}㎡ · ${f.cause}`, metric: `${Math.round(f.area_m2 / 1000).toLocaleString()}천㎡`, level: "mid" }));
+  const pts: EntityRef[] = (rec.floodTraces?.records ?? []).slice(0, 12).map((f) => ({ type: "damage", id: f.traceId, name: f.district || `${f.cause || "침수"} 흔적`, category: "침수흔적", lon: f.centroid.lon, lat: f.centroid.lat, summary: `침수면적 ${Math.round(f.area_m2).toLocaleString()}㎡ · ${f.cause}`, metric: `${Math.round(f.area_m2 / 1000).toLocaleString()}천㎡`, level: "mid" }));
   const groups = [];
   if (pts.length) groups.push({ key: `trace:${e.eventId}`, label: "침수흔적", total: rec.floodTraces!.count, items: pts });
   const pfi = rec.damages.publicFloodItems?.items ?? [];
@@ -590,7 +590,7 @@ export function riverRelated(r: RiverIdx) {
 }
 interface RiverPlan { name: string; region: string; planYear: number; planTitle: string; designFreq: string; designFlood_cms: number; requiredFreeboard_m: number; page: number; sections: { station: string; location: string; designFloodLevel_m: number; currentLevee_m: number | null; planLevee_m: number; freeboard_m: number | null; status: string; note: string }[]; riskFactors: { factor: string; detail: string; source: string }[] }
 const PLANS = (riverPlans as unknown as { rivers: RiverPlan[] }).rivers;
-const citePlan = (a: Answer, p: RiverPlan) => a.c({ docId: `PLAN:${p.name}`, title: p.planTitle, kind: "계획문서", page: p.page, dataset: "하천기본계획(T3Q 지식)" });
+const citePlan = (a: Answer, p: RiverPlan) => a.c({ docId: `PLAN:${p.name}`, title: p.planTitle, kind: "계획문서", page: p.page, dataset: "하천기본계획" });
 
 /** 하천기본계획 — 계획홍수위·제방고·여유고 비교 (데모 질의 "적정 제방고 대비 실제 제방고") */
 function composeRiverPlan(a: Answer, r: RiverIdx, p: RiverPlan) {

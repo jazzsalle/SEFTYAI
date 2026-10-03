@@ -42,7 +42,6 @@ export default function BriefingSettings() {
           <span className="sp" />
           <button className="btn pri" onClick={save}>저장</button>
         </div>
-        <p className="xs mute2" style={{ marginTop: 16 }}>※ 요구사항 v1.71에서 ‘질의 세트 저장’ → ‘프리셋’으로 변경, 계정별 관리는 발주처 협의 중(변경 협의)입니다.</p>
       </div>
     </div>
   );

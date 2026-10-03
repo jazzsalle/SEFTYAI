@@ -31,7 +31,7 @@ export default function AdminPage() {
   useEffect(() => setTrace([...readTrace(), ...SAMPLE_TRACE]), [tab]);
   const stats = useMemo(() => ({ ok: trace.filter((t) => t.status === "ok").length, fail: trace.filter((t) => t.status !== "ok" && t.status !== "clarify").length, avg: trace.length ? Math.round(trace.reduce((n, t) => n + t.ms, 0) / trace.length) : 0 }), [trace]);
 
-  if (account?.role !== "운영자") return <div className="page"><div className="page-in"><div className="notice danger">운영관리는 시스템 운영자만 이용할 수 있습니다. (메뉴·기능 접근제어 FUN-UNE-703002)</div></div></div>;
+  if (account?.role !== "운영자") return <div className="page"><div className="page-in"><div className="notice danger">운영관리는 시스템 운영자만 이용할 수 있습니다.</div></div></div>;
 
   const apply = () => {
     if (!act || !why.trim()) return;
@@ -109,13 +109,13 @@ export default function AdminPage() {
                   <div className="row"><h3 style={{ fontSize: 16 }}>추적로그 상세</h3><span className="sp" /><button className="btn xs ghost" onClick={() => setTsel(null)}>닫기</button></div>
                   <dl className="kv" style={{ marginTop: 10 }}>
                     <dt>요청 ID</dt><dd><code>{tsel.requestId}</code></dd><dt>시각</dt><dd>{new Date(tsel.at).toLocaleString("ko-KR")}</dd><dt>계정</dt><dd>{tsel.account}</dd><dt>API</dt><dd>{tsel.api}</dd>
-                    <dt>결과</dt><dd>{tsel.status}{tsel.status === "TIMEOUT" ? " — T3Q 공통규약 504, 사용자에게 [다시 시도] 안내" : ""}</dd><dt>응답 시간</dt><dd>{tsel.ms}ms</dd>
-                    <dt>질의 원문</dt><dd>{mask(tsel.q)} <span className="xs mute2">(FUN-UNE-803003 마스킹)</span></dd><dt>조회 데이터</dt><dd>{tsel.datasets.join(", ") || "—"}</dd>
+                    <dt>결과</dt><dd>{tsel.status}{tsel.status === "TIMEOUT" ? " — 응답 지연, 사용자에게 [다시 시도] 안내" : ""}</dd><dt>응답 시간</dt><dd>{tsel.ms}ms</dd>
+                    <dt>질의 원문</dt><dd>{mask(tsel.q)} <span className="xs mute2">(개인정보 마스킹)</span></dd><dt>조회 데이터</dt><dd>{tsel.datasets.join(", ") || "—"}</dd>
                   </dl>
                 </div>
               )}
             </div>
-            <p className="xs mute2" style={{ marginTop: 12 }}>※ 시연판은 이 브라우저에서 발생한 호출을 기록합니다. 운영 시 서버 로그(요청 ID 기준)로 대체.</p>
+            <p className="xs mute2" style={{ marginTop: 12 }}>※ 이 브라우저에서 발생한 호출 기록입니다. 요청 ID로 서버 로그와 대조할 수 있습니다.</p>
           </>
         )}
       </div>

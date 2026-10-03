@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { uxClean } from "@/lib/server/ux";
+const J = (b: unknown, init?: ResponseInit) => NextResponse.json(uxClean(b), init);
 import { RegionId, type Advisory } from "@/lib/contract/agent";
 import { EVENT_BY_ID, SCENARIO, regionRecord, scenarioAdvisories } from "@/lib/server/events";
 import { fetchLiveAdvisories } from "@/lib/server/kma";
@@ -76,7 +78,7 @@ export async function GET(req: Request) {
           return { at: c.at, label: c.label, state: lv === "경보" ? "red" : lv === "주의보" ? "yellow" : "green" };
         })
       : [{ at: baseTime, label: msg || "정기 점검", state }];
-  return NextResponse.json({
+  return J({
     mode, region, state, ok, message: msg,
     lastCheck: baseTime,
     nextCheck: new Date(new Date(baseTime).getTime() + 10 * 60e3).toISOString(),

@@ -10,6 +10,8 @@ import OSM from "ol/source/OSM";
 import GeoJSON from "ol/format/GeoJSON";
 import Feature from "ol/Feature";
 import Point from "ol/geom/Point";
+import MultiPolygon from "ol/geom/MultiPolygon";
+import Polygon from "ol/geom/Polygon";
 import Overlay from "ol/Overlay";
 import { fromLonLat, transformExtent } from "ol/proj";
 import { Circle as CircleStyle, Fill, Stroke, Style, Text, RegularShape } from "ol/style";
@@ -33,6 +35,11 @@ export const DEFAULT_LAYERS: LayerState = { admin: true, emd: false, rivers: tru
 
 interface Props {
   region: RegionId;
+  /** 기준지역 시군구·읍면동 (선택 시 해당 행정경계 bbox로 이동) */
+  sigungu?: string;
+  emd?: string;
+  /** 기준지역 변경 시 증가 → 행정경계 bbox 로 이동 (포인트 맞춤보다 우선) */
+  areaToken?: number;
   points: EntityRef[];
   highlightIds?: string[];
   selectedId?: string | null;
@@ -86,6 +93,34 @@ function pointStyle(f: FeatureLike, res: number, hl: Set<string>, sel: string | 
   return styles;
 }
 
+/** 멀티폴리곤(섬·해안 조각)은 가장 큰 조각 안쪽 한 곳에만 이름 표시 */
+const labelPt = (f: FeatureLike) => {
+  const ff = f as Feature;
+  const c = ff.get("_lbl") as Point | undefined;
+  if (c) return c;
+  const g = ff.getGeometry();
+  let pt: Point | undefined;
+  if (g instanceof MultiPolygon) {
+    const polys = g.getPolygons();
+    const big = polys.reduce((a, b) => (b.getArea() > a.getArea() ? b : a), polys[0]);
+    pt = big ? new Point(big.getInteriorPoint().getCoordinates().slice(0, 2)) : undefined;
+  } else if (g instanceof Polygon) pt = new Point(g.getInteriorPoint().getCoordinates().slice(0, 2));
+  if (pt) ff.set("_lbl", pt, true);
+  return pt ?? (g as Point);
+};
+const SIDO: Record<string, (f: Feature) => boolean> = {
+  national: () => true,
+  busan: (f) => f.get("sido") === "부산광역시",
+  yeongcheon: (f) => f.get("sigungu") === "영천시",
+  inje: (f) => f.get("sigungu") === "인제군",
+};
+const unionExtent = (fs: Feature[]) =>
+  fs.reduce<number[] | null>((ext, f) => {
+    const e = f.getGeometry()?.getExtent();
+    if (!e) return ext;
+    return ext ? [Math.min(ext[0], e[0]), Math.min(ext[1], e[1]), Math.max(ext[2], e[2]), Math.max(ext[3], e[3])] : e.slice();
+  }, null);
+
 export default function MapView(p: Props) {
   const el = useRef<HTMLDivElement>(null);
   const map = useRef<OlMap | null>(null);
@@ -138,6 +173,7 @@ export default function MapView(p: Props) {
       style: (f) => [
         ...adminLine,
         new Style({
+          geometry: labelPt,
           text: new Text({ text: f.get("sigungu"), font: "800 13px Pretendard, sans-serif", fill: new Fill({ color: "#a1008a" }), stroke: new Stroke({ color: "#fff", width: 4 }), overflow: true }),
         }),
       ],
@@ -153,7 +189,7 @@ export default function MapView(p: Props) {
       minZoom: 11.5,
       style: (f) => [
         ...emdLine,
-        new Style({ text: new Text({ text: f.get("emd"), font: "700 11px Pretendard, sans-serif", fill: new Fill({ color: "#2f5200" }), stroke: new Stroke({ color: "#fff", width: 3.5 }) }) }),
+        new Style({ geometry: labelPt, text: new Text({ text: f.get("emd"), font: "700 11px Pretendard, sans-serif", fill: new Fill({ color: "#2f5200" }), stroke: new Stroke({ color: "#fff", width: 3.5 }) }) }),
       ],
       zIndex: 2,
     });
@@ -357,12 +393,31 @@ export default function MapView(p: Props) {
       v.fit(ext, { padding: [80, 100, 80, 80], duration: 450, maxZoom: 14 });
     } else if (pts.length === 1) {
       v.animate({ center: fromLonLat([pts[0].lon!, pts[0].lat!]), zoom: 14, duration: 450 });
-    } else {
+    } else fitArea();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [p.focusToken, p.selectedId, ready]);
+
+  // 기준지역(시도·시군구·읍면동) 변경 → 해당 행정경계 bbox 로 이동
+  const fitArea = () => {
+    const m = map.current;
+    if (!m) return;
+    const v = m.getView();
+    const inSido = SIDO[p.region] ?? SIDO.national;
+    let fs: Feature[] = [];
+    if (p.emd && p.sigungu) fs = (L.current.emd?.getSource() as VectorSource | undefined)?.getFeatures().filter((f) => inSido(f) && f.get("sigungu") === p.sigungu && f.get("emd") === p.emd) ?? [];
+    if (!fs.length && p.sigungu) fs = (L.current.admin?.getSource() as VectorSource | undefined)?.getFeatures().filter((f) => inSido(f) && f.get("sigungu") === p.sigungu) ?? [];
+    if (!fs.length) fs = (L.current.admin?.getSource() as VectorSource | undefined)?.getFeatures().filter(inSido) ?? [];
+    const ext = unionExtent(fs);
+    if (ext) v.fit(ext, { padding: [40, 40, 40, 40], duration: 450, maxZoom: 16 });
+    else {
       const r = REGIONS[p.region];
       v.animate({ center: fromLonLat(r.center), zoom: r.zoom, duration: 450 });
     }
+  };
+  useEffect(() => {
+    if (ready && p.areaToken) fitArea();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [p.focusToken, p.selectedId, p.region, ready]);
+  }, [p.areaToken, ready]);
 
   return (
     <>
