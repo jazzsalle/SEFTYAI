@@ -11,6 +11,8 @@ export interface Turn {
   /** 이 질문에 참조로 건 특보 (말풍선 위 표시) */
   refAdv?: { type: string; level: string; area: string; issuedAt: string };
   res?: AgentResponse;
+  /** 보낸 질의 원본 (내부용 정합성 검증 ① : 받은 질의 echo 와 대조) */
+  req?: { question: string; presetKey?: string; context: QueryContext };
   pending?: boolean;
   failed?: string;
 }

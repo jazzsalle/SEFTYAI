@@ -26,6 +26,7 @@
 | 특보로 질문 | 특보를 입력창에 참조로 건다(`context.refAdvisory`). **AI 모드 중에는 비활성**. AI 모드가 꺼져 있으면 조건 + 특보 참조를 함께 쓸 수 있다 | D28 |
 | 재난상황 조건 브리핑 | 입력 조건(+참조 특보)으로 브리핑한다. 조건이 없으면 그 사실을 밝히고 평시 현황으로 정리한다 | D30 |
 | 지도 주제도 | 지자체를 고른 경우에만 그 지자체 범위로 표시한다. 전국이면 표시하지 않고, 고른 항목의 지자체만 켠다(읍면동 포함, 다른 지자체 항목을 고르면 전환) | D29 |
+| 공개용 / 내부용 | 공개용 = 대화 화면. 내부용 = 운영관리 > **응답 검증**(운영자 전용, T3Q 담당자용): ① 요청 정합 ② 응답 정답(정답셋) ③ 표출 정합 + 사람 판정·CSV. 정답셋 180문항은 `node scripts/build_gold.mjs`로 재생성(T3Q 정답셋 수신 시 교체) | D31 |
 | 새 대화 | 기준지역의 전국↔시·도 단위가 바뀌면 새 대화로 시작하고 안내한다("다시 보지 않기" 있음). 시군구·읍면동만 바꾸면 대화를 이어간다 | — |
 | 사용자 문구 | 요구사항 번호, T3Q, 시연, 샘플, 검증필요 같은 내부 용어를 화면에 내보내지 않는다. 응답 직전에 `lib/server/ux.ts`의 `uxClean`으로 정리한다 | — |
 | Figma | 디자이너 작업본이다. **분석만 하고 원본은 절대 수정하지 않는다**. 참고 이미지는 저장소 이력에서 제거했다 | — |
@@ -45,6 +46,7 @@
 | `components/map/MapView.tsx` | OpenLayers + VWorld, 주제도 지자체 필터(`layerRegion`), 경계 맞춤 |
 | `components/AppShell.tsx` | 헤더(녹색 기상특보 데이터 전환·기준지역·AI 모드), 특보 바(특보로 질문) |
 | `lib/session.tsx` | 계정·조건·AI 모드·참조 특보·대화 저장(localStorage) |
+| `lib/verify.ts`, `lib/server/verify.ts`, `app/api/verify`, `components/admin/VerifyTab.tsx` | 내부용 응답 정합성 검증 (3단 비교 로직 · 정답셋 실행 API · 화면). 정답셋 `app/data/seed/gold_set.json` |
 | `lib/server/scenarios.ts`, `library.ts` | 조건 시나리오 13종, 추천 질문(CQ), 연속 질의 시연(특보 참조 흐름 포함) |
 
 ## 5. 점검 (수정 후 반드시)
@@ -53,6 +55,7 @@ cd app && npm run dev -- -p 3100
 node scripts/golden.mjs  http://localhost:3100        # 골든 22문항 (AI 모드 켜짐 기준)
 node scripts/wxref.mjs   http://localhost:3100        # 특보 참조 19문항
 node scripts/library.mjs http://localhost:3100 lib    # 추천 질문 (flow · check 도 각각)
+curl -s -X POST http://localhost:3100/api/verify -d '{}' -H 'content-type: application/json'   # 정답셋 180문항 3단 검증 (모두 ok 여야 함)
 npx tsc --noEmit                                       # .next/types TS6053 경고는 무시
 ```
 배포 후에는 같은 스크립트를 `https://safetyai-three.vercel.app`로 다시 돌린다.
@@ -76,7 +79,7 @@ npx tsc --noEmit                                       # .next/types TS6053 경�
 - 요구사항이 바뀌어 **개발(코드·분석 문서)을 고쳐야 하면 먼저 사용자 승인**을 받는다. 문서 작성은 바로 해도 된다.
 
 ## 7-2. 산출물 (`docs/deliverables`)
-- `SafetyAI_02-03시트_화면_API요청_가이드_v2.pptx` — 02·03 시트가 시범서비스 화면 어디에 나오는지(번호 박스 주석) + 0917 T3Q-15 개정 샘플 JSON + 작성 규칙 + API↔그룹↔묶음 대응표. 생성 스크립트는 남기지 않았다(필요 시 재작성).
+- `SafetyAI_02-03시트_화면_API요청_가이드_v3.pptx` — 02·03 시트가 시범서비스 화면 어디에 나오는지(번호 박스 주석) + 0917 T3Q-15 개정 샘플 JSON + 작성 규칙 + API↔그룹↔묶음 대응표. 생성 스크립트는 남기지 않았다(필요 시 재작성).
 - `DQ_ID_대조표_v1.71(이전→개정).csv`
 - 리스크: 0917 요청 목록에 **매뉴얼 프로세스(GR-17·18)·소방 신고(GR-08) API가 없음** → 신규 요청 필요. 유사도 요인 비교(DQ-04-003·004)는 필수 응답으로 T3Q-11 보강 필요.
 

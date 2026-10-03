@@ -29,7 +29,7 @@ const RULES: [RegExp, string][] = [
   [/_추출(?=[.\s)]|$)/g, ""],
   [/\bnull\b/g, "—"],
 ];
-const KEEP = new Set(["id", "eventId", "docId", "regionRecordId", "requestId", "riverId", "reportId", "traceId", "trace", "apis", "datasets", "entityIds", "url", "file"]);
+const KEEP = new Set(["requestEcho", "id", "eventId", "docId", "regionRecordId", "requestId", "riverId", "reportId", "traceId", "trace", "apis", "datasets", "entityIds", "url", "file"]);
 
 export function uxText(s: string): string {
   let t = s;

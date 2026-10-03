@@ -26,6 +26,7 @@ npm run dev            # http://localhost:3000
 node scripts/golden.mjs  http://localhost:3000        # 골든 질문 22개 (AI 모드 켜짐 기준)
 node scripts/wxref.mjs   http://localhost:3000        # 특보로 질문(참조 특보) 19개
 node scripts/library.mjs http://localhost:3000 lib    # 추천 질문 · flow(연속 질의) · check(AI 점검)
+node scripts/build_gold.mjs http://localhost:3000      # 내부용 응답 검증 정답셋(data/seed/gold_set.json) 재생성
 ```
 
 ## 환경변수 (선택 — 미설정 시 기본값/시연 응답 서버 사용)

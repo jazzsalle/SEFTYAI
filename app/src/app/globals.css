@@ -742,3 +742,21 @@ label.chk input { width: 18px; height: 18px; accent-color: var(--c-primary); }
 .demoLb { font-size: var(--fs-xs); color: #146c3e; font-weight: 700; margin-right: 8px; white-space: nowrap; }
 @media (max-width: 1180px) { .demoLb { display: none; } }
 @media (max-width: 900px) { .demoSw { margin-right: 6px; } .demoSw button { padding: 0 9px; } }
+
+/* =====================================================================
+   내부용 — 응답 정합성 검증 (운영관리 > 응답 검증)
+   ===================================================================== */
+.vf-sec { margin-top: 14px; padding: 16px 18px; }
+.vf-sec > h3, .vf-sec > .row > h3 { font-size: 16px; }
+.vf-sec > .row > h3 .muted { font-weight: 400; margin-left: 6px; }
+.vf-t { margin-top: 8px; }
+.vf-t td { word-break: break-word; }
+.vf-t td:first-child { white-space: nowrap; }
+.vf-t tr.bad td { background: var(--c-dang-sub); }
+.vf-two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: 16px; align-items: start; }
+.vf-pv { max-height: 520px; overflow: auto; border: 1px dashed var(--c-bd); border-radius: var(--r-l); padding: 10px 12px; background: var(--c-surface); }
+.vf-json { width: 100%; border: 1px solid var(--c-bd); border-radius: var(--r-m); padding: 8px 10px; font-family: Consolas, monospace; font-size: 12px; line-height: 1.5; resize: vertical; }
+.vf-pre { max-height: 360px; overflow: auto; background: #f7f8fa; border: 1px solid var(--c-line); border-radius: var(--r-m); padding: 10px 12px; font-family: Consolas, monospace; font-size: 12px; line-height: 1.45; white-space: pre-wrap; word-break: break-all; }
+.vf details { margin-top: 8px; }
+.vf details summary { cursor: pointer; font-size: var(--fs-xs); font-weight: 600; color: var(--c-primary-dk); }
+@media (max-width: 1100px) { .vf-two { grid-template-columns: 1fr; } }

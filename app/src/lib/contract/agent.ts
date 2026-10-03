@@ -184,6 +184,20 @@ export const AgentResponse = z.object({
   mapFocus: z.object({ entityIds: z.array(z.string()) }).optional(),
   /** 이어서 질문하기 기준 객체 (후속 질의 refEntity 로 전달) */
   focusEntity: EntityRef.optional(),
+  /** 정합성 검증 ① : Agent가 받은 질의를 그대로 되돌려 줌 (보낸 질의와 필드 단위 대조) */
+  requestEcho: z.object({ question: z.string(), presetKey: z.string().optional(), context: QueryContext }).optional(),
+  /** 정합성 검증 ① : Agent가 질의를 어떻게 해석했는지 (의도·지역·재난유형·판단 기준) */
+  interpretation: z
+    .object({
+      intent: z.string(),
+      region: RegionId,
+      disasterType: z.string().optional(),
+      /** 판단 기준 : AI 모드(현재 특보) · 참조 특보 · 입력 조건 · 조건 없음 */
+      basis: z.enum(["ai-mode", "ref-advisory", "conditions", "none"]),
+      refEntityId: z.string().optional(),
+      targetTypes: z.array(z.string()),
+    })
+    .optional(),
   error: z.object({ code: z.enum(["TIMEOUT", "UNAVAILABLE", "BAD_REQUEST", "NO_DATA"]), message: z.string() }).optional(),
   trace: z.object({ apis: z.array(z.string()), datasets: z.array(z.string()), elapsedMs: z.number() }),
 });

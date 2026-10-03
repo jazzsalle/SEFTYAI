@@ -2,6 +2,7 @@
 /** 운영관리 (SCR-UNE-603001~604002) — 시스템 운영자 전용 · 시연판 */
 import { useEffect, useMemo, useState } from "react";
 import { useSession, readTrace, type TraceRow } from "@/lib/session";
+import VerifyTab from "@/components/admin/VerifyTab";
 
 interface Acct { id: string; org: string; dept: string; role: string; status: "사용" | "잠금" | "중지" | "초기"; issued: string; last: string; hist: [string, string, string, string][] }
 const SEED: Acct[] = [
@@ -21,7 +22,7 @@ const mask = (q: string) => (q.length <= 6 ? "●●●" : q.slice(0, 4) + "●"
 
 export default function AdminPage() {
   const { account, toast } = useSession();
-  const [tab, setTab] = useState<"acct" | "trace">("acct");
+  const [tab, setTab] = useState<"acct" | "trace" | "verify">("acct");
   const [accts, setAccts] = useState(SEED);
   const [sel, setSel] = useState<Acct | null>(null);
   const [act, setAct] = useState<{ a: Acct; kind: string } | null>(null);
@@ -47,10 +48,11 @@ export default function AdminPage() {
   return (
     <div className="page">
       <div className="page-in">
-        <div className="ph"><div><h1>운영관리</h1><p>계정 발급·잠금 해제·사용중지, T3Q 연계 추적로그 (시스템 운영자 전용)</p></div></div>
-        <div className="subtabs" style={{ maxWidth: 420, marginTop: 0, marginBottom: 18 }}>
+        <div className="ph"><div><h1>운영관리</h1><p>계정 발급·잠금 해제·사용중지, T3Q 연계 추적로그, 응답 정합성 검증 (시스템 운영자 전용)</p></div></div>
+        <div className="subtabs" style={{ maxWidth: 600, marginTop: 0, marginBottom: 18 }}>
           <button className={tab === "acct" ? "on" : ""} onClick={() => setTab("acct")}>계정 관리</button>
           <button className={tab === "trace" ? "on" : ""} onClick={() => setTab("trace")}>연계 추적로그</button>
+          <button className={tab === "verify" ? "on" : ""} onClick={() => setTab("verify")}>응답 검증</button>
         </div>
 
         {tab === "acct" && (
@@ -84,6 +86,8 @@ export default function AdminPage() {
             )}
           </div>
         )}
+
+        {tab === "verify" && <VerifyTab />}
 
         {tab === "trace" && (
           <>

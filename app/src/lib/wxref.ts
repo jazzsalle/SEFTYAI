@@ -1,4 +1,3 @@
-import type { Advisory } from "./contract/agent";
 
 /** [특보로 질문] 빠른질의 (목업 QQ-01~03) — 참조 특보와 함께 전송, presetKey 로 의도 고정 */
 export const WX_QQ = [

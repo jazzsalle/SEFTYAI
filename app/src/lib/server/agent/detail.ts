@@ -130,7 +130,7 @@ function eventDetail(e: DisasterEvent, ctx: QueryContext): DR {
           ...(rec.recovery.recovery_krw_thousand ? [F("복구비", fmtKrwThousand(rec.recovery.recovery_krw_thousand))] : []),
         ],
       },
-      ...(ft ? [{ key: "trace", label: "침수흔적", fields: [F("침수흔적", `${ft.count}개소 · ${Math.round(ft.totalArea_m2).toLocaleString()}㎡`), F("원인", Object.entries(ft.causes).map(([k, v]) => `${k} ${v}`).join(", ")), ...ft.records.slice(0, 8).map((r) => F(r.district, `${Math.round(r.area_m2).toLocaleString()}㎡ · ${r.cause} · ${r.begin} ~ ${r.end}`))] }] : []),
+      ...(ft ? [{ key: "trace", label: "침수흔적", fields: [F("침수흔적", `${ft.count}개소 · ${Math.round(ft.totalArea_m2).toLocaleString()}㎡`), F("원인", Object.entries(ft.causes).map(([k, v]) => `${k} ${v}`).join(", ")), ...ft.records.slice(0, 8).map((r) => F(r.district || `${r.cause || "침수"} 흔적`, `${Math.round(r.area_m2).toLocaleString()}㎡ · ${r.cause} · ${r.begin} ~ ${r.end}`))] }] : []),
       { key: "timeline", label: "사건 이력", fields: [] },
       { key: "sat", label: "위성영상", fields: [F("촬영일시(발생 전)", `${e.startDate} 이전 최근 촬영분`), F("촬영일시(발생 후)", `${e.startDate} ~ ${e.endDate ?? "진행중"} 중 최초 촬영분`), F("위성·센서", "SAR (구름 영향 없음) — 시연 예시"), F("촬영 범위", rec.floodTraces?.districts?.slice(0, 3).join(", ") || rec.sigungu)] },
     ],
