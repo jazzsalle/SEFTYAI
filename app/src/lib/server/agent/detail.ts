@@ -235,8 +235,8 @@ function damageDetail(id: string, ctx: QueryContext): DR | null {
   return null;
 }
 
-/* 재해대장 피해·복구 (피해시설 단위) — DP-11 disaster_ledger
-   상세항목 : 피해개요·피해물량(DQ-095-01) · 피해금액(DQ-096-01) · 복구유형·공정률(DQ-096-02) · 풍수해보험금(DQ-096-03)
+/* 재해대장 피해·복구 (피해시설 단위) — GR-05 사건 타임라인·피해·대응·복구 (disaster_ledger)
+   상세항목 : 피해개요·피해물량(DQ-05-012) · 피해금액·복구유형·공정률·풍수해보험금(DQ-05-013)
    원천에 없는 항목(피해물량·공정률·보험금)은 표시하지 않음 (미제공 영역 숨김 원칙) */
 const SIDO_RE = /^(부산광역시|경상북도|강원특별자치도|강원도)\s*/;
 function eventOfLedger(name: string, date: string, sigungu: string) {

@@ -3,7 +3,7 @@
   "title": "T3Q Agent API 상세정보조회 항목 정의 (UNE 정리본)",
   "basedOn": [
    "T3Q_Agent_API_상세정보조회_2차검토회신표.xlsx (2차 검토회신표 417건 / 데이터 구축회신 / 03 변경대조 / 계획자료 항목대조 / NIA 주요항목 대조 / 매뉴얼 추출·응답요청)",
-   "재난안전AI_상세기능요구사항정의서_v1.71_상세조회반영.xlsx (02_목록-상세구조, 03_T3Q상세정보조회항목)",
+   "재난안전AI_상세기능요구사항정의서_v1.71_상세조회반영.xlsx (02_조회·연계구조, 03_상세정보 제공항목)",
    "상세정보조회_패널활용예시_v1.71 (이미지 6장/pptx 9장)",
    "1_1. T3Q_API 요청목록(전달자료)_0917.xlsx (예시값)"
   ],
@@ -19,14 +19,14 @@
   {
    "type": "similar_event",
    "label": "유사재난 사례(재난사건 기본·유사도)",
-   "dp": "DP-01",
+   "dp": "GR-04",
    "sourceLabel": "유사재난 사례",
    "source": "재난메타 v0.96 · 재해대장·상황보고·위기경보 발령이력(사건 연결) · T3Q 유사도 산정(TER-004)",
    "fieldCount": 23,
    "fields": [
     {
-     "reqId": "DQ-001-01",
-     "groupId": "DQ-001",
+     "reqId": "DQ-04-001-01",
+     "groupId": "DQ-04-001",
      "key": "event_name",
      "label": "사건명",
      "dtype": "string",
@@ -41,8 +41,8 @@
      "requirements": "UFR-002-001-01, UFR-002-001-03"
     },
     {
-     "reqId": "DQ-001-02",
-     "groupId": "DQ-001",
+     "reqId": "DQ-04-001-02",
+     "groupId": "DQ-04-001",
      "key": "disaster_types",
      "label": "재난유형",
      "dtype": "enum[] (호우",
@@ -57,8 +57,8 @@
      "requirements": "UFR-002-001-01, UFR-002-001-03"
     },
     {
-     "reqId": "DQ-001-03",
-     "groupId": "DQ-001",
+     "reqId": "DQ-04-001-03",
+     "groupId": "DQ-04-001",
      "key": "occurrence_period",
      "label": "발생기간",
      "dtype": "object{started_at,ended_at,source_timezone,source_time_raw} (ISO8601+offset)",
@@ -76,8 +76,8 @@
      "requirements": "UFR-002-001-01, UFR-002-001-03"
     },
     {
-     "reqId": "DQ-001-04",
-     "groupId": "DQ-001",
+     "reqId": "DQ-04-001-04",
+     "groupId": "DQ-04-001",
      "key": "representative_admin_area",
      "label": "대표 행정구역",
      "dtype": "object{admin_code,name}",
@@ -95,8 +95,8 @@
      "requirements": "UFR-002-001-01, UFR-002-001-03"
     },
     {
-     "reqId": "DQ-001-05",
-     "groupId": "DQ-001",
+     "reqId": "DQ-04-001-05",
+     "groupId": "DQ-04-001",
      "key": "affected_admin_areas",
      "label": "영향 행정구역",
      "dtype": "array<object{admin_code,name}>",
@@ -120,8 +120,8 @@
      "requirements": "UFR-002-001-01, UFR-002-001-03"
     },
     {
-     "reqId": "DQ-002-01",
-     "groupId": "DQ-002",
+     "reqId": "DQ-04-002-01",
+     "groupId": "DQ-04-002",
      "key": "similarity",
      "label": "유사도 점수·순위",
      "dtype": "object{score,rank,scale,algorithm_version}",
@@ -141,8 +141,8 @@
      "requirements": "UFR-002-001-01, UFR-002-001-03, UFR-002-002-01, UFR-005-001-01"
     },
     {
-     "reqId": "DQ-002-02",
-     "groupId": "DQ-002",
+     "reqId": "DQ-04-002-02",
+     "groupId": "DQ-04-002",
      "key": "selection_reasons",
      "label": "핵심 선정근거",
      "dtype": "string[]",
@@ -161,8 +161,8 @@
      "requirements": "UFR-002-001-01, UFR-002-001-03, UFR-002-002-01, UFR-005-001-01"
     },
     {
-     "reqId": "DQ-002-03",
-     "groupId": "DQ-002",
+     "reqId": "DQ-04-002-03",
+     "groupId": "DQ-04-002",
      "key": "factor_contributions",
      "label": "요인별 기여도",
      "dtype": "array<object{factor_group,factor,contribution}>",
@@ -194,8 +194,8 @@
      "requirements": "UFR-002-001-01, UFR-002-001-03, UFR-002-002-01, UFR-005-001-01"
     },
     {
-     "reqId": "DQ-003-01",
-     "groupId": "DQ-003",
+     "reqId": "DQ-04-005-01",
+     "groupId": "DQ-04-005",
      "key": "lifecycle_status",
      "label": "사건 생애주기 상태",
      "dtype": "enum (발생",
@@ -210,8 +210,8 @@
      "requirements": "UFR-002-001-01, UFR-002-001-03"
     },
     {
-     "reqId": "DQ-003-02",
-     "groupId": "DQ-003",
+     "reqId": "DQ-04-005-02",
+     "groupId": "DQ-04-005",
      "key": "crisis_alert_stage",
      "label": "위기경보·대응단계",
      "dtype": "object{level_path[],changed_at,cdb_stage}",
@@ -233,8 +233,8 @@
      "requirements": "UFR-002-001-01, UFR-002-001-03, UFR-003-001-01"
     },
     {
-     "reqId": "DQ-004-01",
-     "groupId": "DQ-004",
+     "reqId": "DQ-04-006-01",
+     "groupId": "DQ-04-006",
      "key": "damage_summary",
      "label": "피해 요약",
      "dtype": "object{dead,missing,injured,evacuee_households,evacuee_persons,facilities,flooding,damage_amount_krw_thousand,damage_amount_basis}",
@@ -256,8 +256,8 @@
      "requirements": "UFR-002-001-01, UFR-002-001-03, UFR-003-001-01"
     },
     {
-     "reqId": "DQ-005-01",
-     "groupId": "DQ-005",
+     "reqId": "DQ-04-007-01",
+     "groupId": "DQ-04-007",
      "key": "response_summary",
      "label": "대응 요약",
      "dtype": "string",
@@ -272,8 +272,8 @@
      "requirements": "UFR-002-001-01, UFR-002-001-03, UFR-003-001-01"
     },
     {
-     "reqId": "DQ-006-01",
-     "groupId": "DQ-006",
+     "reqId": "DQ-04-008-01",
+     "groupId": "DQ-04-008",
      "key": "linked_location_counts",
      "label": "관련 위치 수",
      "dtype": "object{damage_locations,risk_areas,rivers}",
@@ -292,8 +292,8 @@
      "requirements": "UFR-002-001-01, UFR-002-001-03, UFR-003-001-03"
     },
     {
-     "reqId": "DQ-006-02",
-     "groupId": "DQ-006",
+     "reqId": "DQ-04-008-02",
+     "groupId": "DQ-04-008",
      "key": "linked_evidence_count",
      "label": "근거문서 수",
      "dtype": "integer",
@@ -308,8 +308,8 @@
      "requirements": "UFR-002-001-01, UFR-002-001-03, UFR-003-001-03, UFR-005-001-01"
     },
     {
-     "reqId": "DQ-006-03",
-     "groupId": "DQ-006",
+     "reqId": "DQ-04-008-03",
+     "groupId": "DQ-04-008",
      "key": "event_master_id",
      "label": "재난사건 식별자",
      "dtype": "string (opaque, 파싱 금지)",
@@ -324,8 +324,8 @@
      "requirements": "UFR-002-001-01, UFR-002-001-03"
     },
     {
-     "reqId": "DQ-006-04",
-     "groupId": "DQ-006",
+     "reqId": "DQ-04-008-04",
+     "groupId": "DQ-04-008",
      "key": "source_quality_status",
      "label": "출처·품질상태",
      "dtype": "object{source,processing_status,quality_status}",
@@ -343,8 +343,8 @@
      "requirements": "UFR-002-001-01, UFR-002-001-03, UFR-005-001-01"
     },
     {
-     "reqId": "DQ-098-01",
-     "groupId": "DQ-098",
+     "reqId": "DQ-04-003-01",
+     "groupId": "DQ-04-003",
      "key": "factor_name_group",
      "label": "영향요인명·요인군",
      "dtype": "object{factor_group(기상·수문",
@@ -359,8 +359,8 @@
      "requirements": "UFR-002-002-01"
     },
     {
-     "reqId": "DQ-098-02",
-     "groupId": "DQ-098",
+     "reqId": "DQ-04-003-02",
+     "groupId": "DQ-04-003",
      "key": "current_condition_value",
      "label": "현재조건 입력값",
      "dtype": "object{condition_id,value,unit,reference_time,source_type}",
@@ -381,8 +381,8 @@
      "requirements": "UFR-002-002-01"
     },
     {
-     "reqId": "DQ-098-03",
-     "groupId": "DQ-098",
+     "reqId": "DQ-04-003-03",
+     "groupId": "DQ-04-003",
      "key": "past_case_value",
      "label": "과거사례 값",
      "dtype": "object{value,unit}",
@@ -400,8 +400,8 @@
      "requirements": "UFR-002-002-01"
     },
     {
-     "reqId": "DQ-098-04",
-     "groupId": "DQ-098",
+     "reqId": "DQ-04-003-04",
+     "groupId": "DQ-04-003",
      "key": "factor_unit",
      "label": "단위",
      "dtype": "string",
@@ -416,8 +416,8 @@
      "requirements": "UFR-002-002-01"
     },
     {
-     "reqId": "DQ-098-05",
-     "groupId": "DQ-098",
+     "reqId": "DQ-04-003-05",
+     "groupId": "DQ-04-003",
      "key": "factor_match",
      "label": "요인별 일치도",
      "dtype": "object{value,scale,match_class(일치",
@@ -432,8 +432,8 @@
      "requirements": "UFR-002-002-01"
     },
     {
-     "reqId": "DQ-098-06",
-     "groupId": "DQ-098",
+     "reqId": "DQ-04-003-06",
+     "groupId": "DQ-04-003",
      "key": "weight_scheme",
      "label": "재난유형별 가중치·산정버전",
      "dtype": "object{factor_weights{},score_scale,algorithm_version}",
@@ -457,8 +457,8 @@
      "requirements": "UFR-002-002-01"
     },
     {
-     "reqId": "DQ-099-01",
-     "groupId": "DQ-099",
+     "reqId": "DQ-04-004-01",
+     "groupId": "DQ-04-004",
      "key": "factor_evidence",
      "label": "요인 근거·출처",
      "dtype": "array<object{factor,evidence_ref,source_type(document",
@@ -477,14 +477,14 @@
   {
    "type": "risk_area_common",
    "label": "법정·계획상 위험·취약지역(공통)",
-   "dp": "DP-02",
+   "dp": "GR-10",
    "sourceLabel": "위험지역",
    "source": "20260930 취약지역: 지정·평가·정비계획 자료 (지역_재해위험·자연재해저감종합계획 위험지구 등)",
    "fieldCount": 21,
    "fields": [
     {
-     "reqId": "DQ-007-01",
-     "groupId": "DQ-007",
+     "reqId": "DQ-10-001-01",
+     "groupId": "DQ-10-001",
      "key": "risk_area_name",
      "label": "위험지역명",
      "dtype": "string",
@@ -499,8 +499,8 @@
      "requirements": "UFR-003-001-04, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-007-02",
-     "groupId": "DQ-007",
+     "reqId": "DQ-10-001-02",
+     "groupId": "DQ-10-001",
      "key": "risk_area_type",
      "label": "위험지역 유형",
      "dtype": "enum (자연재해저감계획 위험지구",
@@ -515,8 +515,8 @@
      "requirements": "UFR-003-001-04, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-007-03",
-     "groupId": "DQ-007",
+     "reqId": "DQ-10-001-03",
+     "groupId": "DQ-10-001",
      "key": "hazard_type",
      "label": "재해유형",
      "dtype": "enum (내수",
@@ -531,8 +531,8 @@
      "requirements": "UFR-003-001-04, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-007-04",
-     "groupId": "DQ-007",
+     "reqId": "DQ-10-001-04",
+     "groupId": "DQ-10-001",
      "key": "risk_grade",
      "label": "위험등급",
      "dtype": "object{value,grade_system,status(PROVIDED",
@@ -547,8 +547,8 @@
      "requirements": "UFR-003-001-04, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-007-05",
-     "groupId": "DQ-007",
+     "reqId": "DQ-10-001-05",
+     "groupId": "DQ-10-001",
      "key": "address_admin",
      "label": "주소·행정구역",
      "dtype": "object{address,admin_code}",
@@ -566,8 +566,8 @@
      "requirements": "UFR-003-001-04, UFR-003-001-06, UFR-004-001-02, UFR-004-002-01"
     },
     {
-     "reqId": "DQ-007-06",
-     "groupId": "DQ-007",
+     "reqId": "DQ-10-001-06",
+     "groupId": "DQ-10-001",
      "key": "spatial_boundary",
      "label": "공간경계",
      "dtype": "object{geometry_type(Point",
@@ -582,8 +582,8 @@
      "requirements": "UFR-003-001-04, UFR-003-001-06, UFR-004-001-02, UFR-004-002-01"
     },
     {
-     "reqId": "DQ-008-01",
-     "groupId": "DQ-008",
+     "reqId": "DQ-10-002-01",
+     "groupId": "DQ-10-002",
      "key": "designation_reason",
      "label": "지정사유",
      "dtype": "string",
@@ -598,8 +598,8 @@
      "requirements": "UFR-003-001-04, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-008-02",
-     "groupId": "DQ-008",
+     "reqId": "DQ-10-002-02",
+     "groupId": "DQ-10-002",
      "key": "designation_notice_no",
      "label": "지정번호·고시번호",
      "dtype": "object{designation_no,notice_no}",
@@ -617,8 +617,8 @@
      "requirements": "UFR-003-001-04, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-008-03",
-     "groupId": "DQ-008",
+     "reqId": "DQ-10-002-03",
+     "groupId": "DQ-10-002",
      "key": "designation_notice_date",
      "label": "지정일·고시일",
      "dtype": "object{designated_on,noticed_on} (date)",
@@ -636,8 +636,8 @@
      "requirements": "UFR-003-001-04, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-009-01",
-     "groupId": "DQ-009",
+     "reqId": "DQ-10-003-01",
+     "groupId": "DQ-10-003",
      "key": "area_length",
      "label": "면적·연장",
      "dtype": "object{value,unit}",
@@ -655,8 +655,8 @@
      "requirements": "UFR-003-001-04, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-009-02",
-     "groupId": "DQ-009",
+     "reqId": "DQ-10-003-02",
+     "groupId": "DQ-10-003",
      "key": "key_risk_condition",
      "label": "핵심 위험조건",
      "dtype": "object{text,as_of}",
@@ -674,8 +674,8 @@
      "requirements": "UFR-003-001-04, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-009-03",
-     "groupId": "DQ-009",
+     "reqId": "DQ-10-003-03",
+     "groupId": "DQ-10-003",
      "key": "expected_damage",
      "label": "예상 피해내용",
      "dtype": "string (원문 근거)",
@@ -690,8 +690,8 @@
      "requirements": "UFR-003-001-04, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-009-04",
-     "groupId": "DQ-009",
+     "reqId": "DQ-10-003-04",
+     "groupId": "DQ-10-003",
      "key": "risk_score_detail",
      "label": "위험도 세부점수",
      "dtype": "object{items[{name,score}],total,grade_basis}",
@@ -722,8 +722,8 @@
      "requirements": "UFR-003-001-04, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-010-01",
-     "groupId": "DQ-010",
+     "reqId": "DQ-10-004-01",
+     "groupId": "DQ-10-004",
      "key": "planned_project_info",
      "label": "계획상 정비사업 정보",
      "dtype": "object{content,source_status,base_date} (현재상태 아님)",
@@ -741,8 +741,8 @@
      "requirements": "UFR-003-001-04, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-010-02",
-     "groupId": "DQ-010",
+     "reqId": "DQ-10-004-02",
+     "groupId": "DQ-10-004",
      "key": "project_name_content",
      "label": "정비사업명·내용",
      "dtype": "object{name,content}",
@@ -760,8 +760,8 @@
      "requirements": "UFR-003-001-04, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-010-03",
-     "groupId": "DQ-010",
+     "reqId": "DQ-10-004-03",
+     "groupId": "DQ-10-004",
      "key": "project_period_cost",
      "label": "사업기간·사업비",
      "dtype": "object{period,cost{value,unit},breakdown[],basis(계획",
@@ -776,8 +776,8 @@
      "requirements": "UFR-003-001-04, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-010-04",
-     "groupId": "DQ-010",
+     "reqId": "DQ-10-004-04",
+     "groupId": "DQ-10-004",
      "key": "planned_priority_status",
      "label": "계획상 우선순위·원문 상태",
      "dtype": "object{priority,status_raw,as_of}",
@@ -796,8 +796,8 @@
      "requirements": "UFR-003-001-04, UFR-003-001-06, UFR-005-001-01"
     },
     {
-     "reqId": "DQ-011-01",
-     "groupId": "DQ-011",
+     "reqId": "DQ-10-005-01",
+     "groupId": "DQ-10-005",
      "key": "managing_agency",
      "label": "관리기관",
      "dtype": "object{agency,department}",
@@ -815,8 +815,8 @@
      "requirements": "UFR-003-001-04, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-011-02",
-     "groupId": "DQ-011",
+     "reqId": "DQ-10-005-02",
+     "groupId": "DQ-10-005",
      "key": "related_rivers_plans",
      "label": "관련 하천·계획",
      "dtype": "array<object{river_code,document_id,relation_basis}>",
@@ -837,8 +837,8 @@
      "requirements": "UFR-003-001-04, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-011-03",
-     "groupId": "DQ-011",
+     "reqId": "DQ-10-005-03",
+     "groupId": "DQ-10-005",
      "key": "related_past_events",
      "label": "과거 사건·피해위치",
      "dtype": "object{count,event_ids[]}",
@@ -858,8 +858,8 @@
      "requirements": "UFR-003-001-04, UFR-003-001-06, UFR-004-001-02, UFR-004-002-01"
     },
     {
-     "reqId": "DQ-011-04",
-     "groupId": "DQ-011",
+     "reqId": "DQ-10-005-04",
+     "groupId": "DQ-10-005",
      "key": "source_evidence",
      "label": "원문 근거",
      "dtype": "array<object{document_id,page,table,passage_id}>",
@@ -885,14 +885,14 @@
   {
    "type": "disaster_risk_reservoir",
    "label": "재해위험저수지(위험저수지)",
-   "dp": "DP-02",
+   "dp": "GR-10",
    "sourceLabel": "재해위험저수지",
    "source": "SRC-102 재해위험저수지_정비계획(tb_dstr_risk_rsrvr_mtnc_plan) · 위험저수지.geojson",
    "fieldCount": 8,
    "fields": [
     {
-     "reqId": "DQ-077-01",
-     "groupId": "DQ-077",
+     "reqId": "DQ-10-006-01",
+     "groupId": "DQ-10-006",
      "key": "reservoir_risk_grade",
      "label": "위험등급",
      "dtype": "string (정밀안전진단 등급)",
@@ -907,8 +907,8 @@
      "requirements": "UFR-003-001-04, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-077-02",
-     "groupId": "DQ-077",
+     "reqId": "DQ-10-006-02",
+     "groupId": "DQ-10-006",
      "key": "completion_year",
      "label": "준공연도",
      "dtype": "integer",
@@ -923,8 +923,8 @@
      "requirements": "UFR-003-001-04, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-077-03",
-     "groupId": "DQ-077",
+     "reqId": "DQ-10-006-03",
+     "groupId": "DQ-10-006",
      "key": "dam_specs",
      "label": "제당 길이·높이·저수량",
      "dtype": "object{length_m,height_m,storage_m3}",
@@ -943,8 +943,8 @@
      "requirements": "UFR-003-001-04, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-077-04",
-     "groupId": "DQ-077",
+     "reqId": "DQ-10-006-04",
+     "groupId": "DQ-10-006",
      "key": "residents_at_risk",
      "label": "인명피해 우려주민수",
      "dtype": "integer (명)",
@@ -959,8 +959,8 @@
      "requirements": "UFR-003-001-04, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-077-05",
-     "groupId": "DQ-077",
+     "reqId": "DQ-10-006-05",
+     "groupId": "DQ-10-006",
      "key": "house_distance_m",
      "label": "주택 이격거리",
      "dtype": "number (m)",
@@ -975,8 +975,8 @@
      "requirements": "UFR-003-001-04, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-077-06",
-     "groupId": "DQ-077",
+     "reqId": "DQ-10-006-06",
+     "groupId": "DQ-10-006",
      "key": "eap_established",
      "label": "EAP 수립 여부",
      "dtype": "boolean",
@@ -991,8 +991,8 @@
      "requirements": "UFR-003-001-04, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-078-01",
-     "groupId": "DQ-078",
+     "reqId": "DQ-10-007-01",
+     "groupId": "DQ-10-007",
      "key": "location",
      "label": "주소·행정구역·좌표",
      "dtype": "object{address,admin_code,coordinates,spatial_object_id,geometry_type}",
@@ -1011,8 +1011,8 @@
      "requirements": "UFR-003-001-04, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-079-01",
-     "groupId": "DQ-079",
+     "reqId": "DQ-10-008-01",
+     "groupId": "DQ-10-008",
      "key": "project_budget",
      "label": "총사업비·연차별 예산",
      "dtype": "object{total_cost{value,unit},annual_budgets[{year,value,unit}]}",
@@ -1043,14 +1043,14 @@
   {
    "type": "steep_slope_collapse_area",
    "label": "급경사지·붕괴위험지역",
-   "dp": "DP-02",
+   "dp": "GR-10",
    "sourceLabel": "급경사지·붕괴위험지역",
    "source": "SRC-074~081·105 급경사지정보/붕괴위험지역지정/안전점검/일제조사서/재해위험도평가/정비사업/준공도서 (NDMS) · 붕괴위험지역.geojson",
    "fieldCount": 13,
    "fields": [
     {
-     "reqId": "DQ-082-01",
-     "groupId": "DQ-082",
+     "reqId": "DQ-10-009-01",
+     "groupId": "DQ-10-009",
      "key": "hazard_assessment_grade_score",
      "label": "재해위험도 등급·점수",
      "dtype": "object{grade,score}",
@@ -1068,8 +1068,8 @@
      "requirements": "UFR-003-001-04, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-082-02",
-     "groupId": "DQ-082",
+     "reqId": "DQ-10-009-02",
+     "groupId": "DQ-10-009",
      "key": "latest_safety_inspection",
      "label": "안전점검일·결과",
      "dtype": "object{inspected_on,result,action_required}",
@@ -1087,8 +1087,8 @@
      "requirements": "UFR-003-001-04, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-082-03",
-     "groupId": "DQ-082",
+     "reqId": "DQ-10-009-03",
+     "groupId": "DQ-10-009",
      "key": "residents",
      "label": "거주가구·인구",
      "dtype": "object{households,population}",
@@ -1106,8 +1106,8 @@
      "requirements": "UFR-003-001-04, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-083-01",
-     "groupId": "DQ-083",
+     "reqId": "DQ-10-010-01",
+     "groupId": "DQ-10-010",
      "key": "location",
      "label": "주소·행정구역·좌표",
      "dtype": "object{address,admin_code,coordinates,spatial_object_id}",
@@ -1125,8 +1125,8 @@
      "requirements": "UFR-003-001-04, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-084-01",
-     "groupId": "DQ-084",
+     "reqId": "DQ-10-011-01",
+     "groupId": "DQ-10-011",
      "key": "reinforcement_method",
      "label": "보수보강 방법",
      "dtype": "string",
@@ -1141,8 +1141,8 @@
      "requirements": "UFR-003-001-04, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-084-02",
-     "groupId": "DQ-084",
+     "reqId": "DQ-10-011-02",
+     "groupId": "DQ-10-011",
      "key": "planned_progress_status",
      "label": "계획자료상 공정률·사업상태",
      "dtype": "object{progress_pct,status_raw,as_of} (현행화 확인 필요)",
@@ -1161,8 +1161,8 @@
      "requirements": "UFR-003-001-04, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-100-01",
-     "groupId": "DQ-100",
+     "reqId": "DQ-10-012-01",
+     "groupId": "DQ-10-012",
      "key": "management_no_history_ids",
      "label": "관리번호·세부이력 식별자",
      "dtype": "object{management_no,record_ids{designation[],assessment[],inspection[],project[],completion[]}}",
@@ -1184,8 +1184,8 @@
      "requirements": "UFR-003-001-04, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-101-01",
-     "groupId": "DQ-101",
+     "reqId": "DQ-10-013-01",
+     "groupId": "DQ-10-013",
      "key": "designation_history",
      "label": "지정·해제일자·지정사유",
      "dtype": "array<object{designated_on,released_on,reason,as_of}>",
@@ -1206,8 +1206,8 @@
      "requirements": "UFR-003-001-04, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-102-01",
-     "groupId": "DQ-102",
+     "reqId": "DQ-10-014-01",
+     "groupId": "DQ-10-014",
      "key": "inspection_history",
      "label": "점검일자·내용·조치사항",
      "dtype": "array<object{inspected_on,content,action}>",
@@ -1228,8 +1228,8 @@
      "requirements": "UFR-003-001-04, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-103-01",
-     "groupId": "DQ-103",
+     "reqId": "DQ-10-015-01",
+     "groupId": "DQ-10-015",
      "key": "survey_info",
      "label": "조사일자·비탈면 유형·높이·경사각",
      "dtype": "array<object{surveyed_on,slope_type,height_m,slope_angle_deg}>",
@@ -1251,8 +1251,8 @@
      "requirements": "UFR-003-001-04, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-103-02",
-     "groupId": "DQ-103",
+     "reqId": "DQ-10-015-02",
+     "groupId": "DQ-10-015",
      "key": "hazard_assessments",
      "label": "평가일자·평가유형·항목별 점수·평가등급",
      "dtype": "array<object{assessed_on,assessment_type,item_scores[],grade}>",
@@ -1273,8 +1273,8 @@
      "requirements": "UFR-003-001-04, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-104-01",
-     "groupId": "DQ-104",
+     "reqId": "DQ-10-016-01",
+     "groupId": "DQ-10-016",
      "key": "maintenance_projects",
      "label": "사업년도·사업유형·사업량·사업비",
      "dtype": "array<object{year,project_type,quantity,cost{value,unit}}>",
@@ -1298,8 +1298,8 @@
      "requirements": "UFR-003-001-04, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-104-02",
-     "groupId": "DQ-104",
+     "reqId": "DQ-10-016-02",
+     "groupId": "DQ-10-016",
      "key": "completion_documents",
      "label": "준공도서·사업명·사업기간·준공일자",
      "dtype": "array<object{doc_name,project_name,period,completed_on}>",
@@ -1323,14 +1323,14 @@
   {
    "type": "landslide_vulnerable_area",
    "label": "산사태·토석류 취약지역",
-   "dp": "DP-02",
+   "dp": "GR-10",
    "sourceLabel": "산사태·토석류 취약지역",
    "source": "SRC-084 산사태_취약지역_지정현황(tb_ldsl_vlnara_dsgn)",
    "fieldCount": 6,
    "fields": [
     {
-     "reqId": "DQ-085-01",
-     "groupId": "DQ-085",
+     "reqId": "DQ-10-017-01",
+     "groupId": "DQ-10-017",
      "key": "landslide_type_grade",
      "label": "종류·위험등급",
      "dtype": "object{type(산사태",
@@ -1345,8 +1345,8 @@
      "requirements": "UFR-003-001-04, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-085-02",
-     "groupId": "DQ-085",
+     "reqId": "DQ-10-017-02",
+     "groupId": "DQ-10-017",
      "key": "designation_reason",
      "label": "지정사유",
      "dtype": "string",
@@ -1361,8 +1361,8 @@
      "requirements": "UFR-003-001-04, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-085-03",
-     "groupId": "DQ-085",
+     "reqId": "DQ-10-017-03",
+     "groupId": "DQ-10-017",
      "key": "expected_damage_houses_population",
      "label": "예상피해 가옥·인구",
      "dtype": "object{buildings,households,population}",
@@ -1381,8 +1381,8 @@
      "requirements": "UFR-003-001-04, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-086-01",
-     "groupId": "DQ-086",
+     "reqId": "DQ-10-018-01",
+     "groupId": "DQ-10-018",
      "key": "location",
      "label": "주소·행정구역·좌표",
      "dtype": "object{address,admin_code,coordinates,spatial_object_id}",
@@ -1400,8 +1400,8 @@
      "requirements": "UFR-003-001-04, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-087-01",
-     "groupId": "DQ-087",
+     "reqId": "DQ-10-019-01",
+     "groupId": "DQ-10-019",
      "key": "evacuation_sites",
      "label": "대피장소",
      "dtype": "array<object{name,address,shelter_id}>",
@@ -1421,8 +1421,8 @@
      "requirements": "UFR-003-001-04, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-088-01",
-     "groupId": "DQ-088",
+     "reqId": "DQ-10-020-01",
+     "groupId": "DQ-10-020",
      "key": "expected_rainfall_threshold",
      "label": "시간당·일 예상강우",
      "dtype": "object{hourly_mm,daily_mm,basis}",
@@ -1444,14 +1444,14 @@
   {
    "type": "flood_vulnerable_district",
    "label": "홍수취약지구",
-   "dp": "DP-02",
+   "dp": "GR-10",
    "sourceLabel": "홍수취약지구",
    "source": "SRC-099·100 26년_홍수취약지구_리스트/지정 · SRC-101 홍수취약지구_관리카드",
    "fieldCount": 10,
    "fields": [
     {
-     "reqId": "DQ-089-01",
-     "groupId": "DQ-089",
+     "reqId": "DQ-10-021-01",
+     "groupId": "DQ-10-021",
      "key": "vulnerability_type",
      "label": "취약유형",
      "dtype": "enum (축제",
@@ -1466,8 +1466,8 @@
      "requirements": "UFR-003-001-04, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-089-02",
-     "groupId": "DQ-089",
+     "reqId": "DQ-10-021-02",
+     "groupId": "DQ-10-021",
      "key": "river_name_grade",
      "label": "하천명·등급",
      "dtype": "object{river_name,river_grade(국가",
@@ -1482,8 +1482,8 @@
      "requirements": "UFR-003-001-04, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-089-03",
-     "groupId": "DQ-089",
+     "reqId": "DQ-10-021-03",
+     "groupId": "DQ-10-021",
      "key": "vulnerable_section",
      "label": "취약구간 연장·원인",
      "dtype": "object{length{value,unit},cause,source}",
@@ -1505,8 +1505,8 @@
      "requirements": "UFR-003-001-04, UFR-003-001-06, UFR-004-001-02, UFR-004-002-01"
     },
     {
-     "reqId": "DQ-089-04",
-     "groupId": "DQ-089",
+     "reqId": "DQ-10-021-04",
+     "groupId": "DQ-10-021",
      "key": "response_level_station",
      "label": "대응수위·연계 관측소",
      "dtype": "object{level_m,station_code,station_name}",
@@ -1525,8 +1525,8 @@
      "requirements": "UFR-003-001-04, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-089-05",
-     "groupId": "DQ-089",
+     "reqId": "DQ-10-021-05",
+     "groupId": "DQ-10-021",
      "key": "flood_warning_point",
      "label": "특보지점",
      "dtype": "string",
@@ -1541,8 +1541,8 @@
      "requirements": "UFR-003-001-04, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-089-06",
-     "groupId": "DQ-089",
+     "reqId": "DQ-10-021-06",
+     "groupId": "DQ-10-021",
      "key": "risk_communication_system",
      "label": "위험전달체계",
      "dtype": "string (요약)",
@@ -1557,8 +1557,8 @@
      "requirements": "UFR-003-001-04, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-090-01",
-     "groupId": "DQ-090",
+     "reqId": "DQ-10-022-01",
+     "groupId": "DQ-10-022",
      "key": "river_authority_management",
      "label": "하천관리청·관리구분",
      "dtype": "object{authority,management_class(구조적 개선",
@@ -1573,8 +1573,8 @@
      "requirements": "UFR-003-001-04, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-091-01",
-     "groupId": "DQ-091",
+     "reqId": "DQ-10-023-01",
+     "groupId": "DQ-10-023",
      "key": "location",
      "label": "주소·행정구역·좌표",
      "dtype": "object{address,admin_code,coordinates,spatial_object_id}",
@@ -1592,8 +1592,8 @@
      "requirements": "UFR-003-001-04, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-105-01",
-     "groupId": "DQ-105",
+     "reqId": "DQ-10-024-01",
+     "groupId": "DQ-10-024",
      "key": "source_serial_nos",
      "label": "원천 지구 일련번호·지정이력 일련번호",
      "dtype": "object{district_serial_no,designation_serial_no}",
@@ -1611,8 +1611,8 @@
      "requirements": "UFR-003-001-04, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-105-02",
-     "groupId": "DQ-105",
+     "reqId": "DQ-10-024-02",
+     "groupId": "DQ-10-024",
      "key": "designation_status",
      "label": "지정시점·관리번호·지정상태",
      "dtype": "object{designated_at,management_no,status}",
@@ -1635,14 +1635,14 @@
   {
    "type": "disaster_improvement_district",
    "label": "자연재해위험개선지구·풍수해생활권(풍수해개선지구)",
-   "dp": "DP-02",
+   "dp": "GR-10",
    "sourceLabel": "자연재해위험개선지구·풍수해생활권",
    "source": "SRC-103·104 자연재해위험개선지구 중기계획('26~'30)·풍수해생활권종합정비 · 풍수해개선지구.geojson",
    "fieldCount": 3,
    "fields": [
     {
-     "reqId": "DQ-106-01",
-     "groupId": "DQ-106",
+     "reqId": "DQ-10-025-01",
+     "groupId": "DQ-10-025",
      "key": "district_basic",
      "label": "원천 식별번호·지구명·유형·등급",
      "dtype": "object{source_id,name,type,grade}",
@@ -1662,8 +1662,8 @@
      "requirements": "UFR-003-001-04, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-106-02",
-     "groupId": "DQ-106",
+     "reqId": "DQ-10-025-02",
+     "groupId": "DQ-10-025",
      "key": "designation_area_dates",
      "label": "지정면적·지정/해제일자",
      "dtype": "object{area_m2,designated_on,released_on}",
@@ -1682,8 +1682,8 @@
      "requirements": "UFR-003-001-04, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-106-03",
-     "groupId": "DQ-106",
+     "reqId": "DQ-10-025-03",
+     "groupId": "DQ-10-025",
      "key": "facility_project",
      "label": "시설명·등급·사업내용·시작/종료연도",
      "dtype": "object{facility_name,grade,content,start_year,end_year}",
@@ -1706,14 +1706,14 @@
   {
    "type": "casualty_risk_area",
    "label": "인명피해우려지역",
-   "dp": "DP-02",
+   "dp": "GR-10",
    "sourceLabel": "인명피해우려지역",
    "source": "SRC-110 지역_인명피해우려 · SRC-325 인명피해우려지역(별도)",
    "fieldCount": 2,
    "fields": [
     {
-     "reqId": "DQ-107-01",
-     "groupId": "DQ-107",
+     "reqId": "DQ-10-026-01",
+     "groupId": "DQ-10-026",
      "key": "area_id_type_location",
      "label": "지역 식별자·지역유형·위치",
      "dtype": "object{area_id,area_type,location}",
@@ -1732,8 +1732,8 @@
      "requirements": "UFR-003-001-04, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-107-02",
-     "groupId": "DQ-107",
+     "reqId": "DQ-10-026-02",
+     "groupId": "DQ-10-026",
      "key": "evacuation_capacity",
      "label": "대피인원·대피시설·수용인원",
      "dtype": "object{evacuees,shelter_name,capacity}",
@@ -1756,14 +1756,14 @@
   {
    "type": "isolation_expected_area",
    "label": "고립예상지역",
-   "dp": "DP-02",
+   "dp": "GR-10",
    "sourceLabel": "고립예상지역",
    "source": "SRC-112·113 지역_고립예상_지정/대책",
    "fieldCount": 4,
    "fields": [
     {
-     "reqId": "DQ-108-01",
-     "groupId": "DQ-108",
+     "reqId": "DQ-10-027-01",
+     "groupId": "DQ-10-027",
      "key": "identifiers",
      "label": "지역코드·연도·지정/대책 식별자",
      "dtype": "object{region_code,year,designation_id,measure_id}",
@@ -1783,8 +1783,8 @@
      "requirements": "UFR-003-001-04, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-108-02",
-     "groupId": "DQ-108",
+     "reqId": "DQ-10-027-02",
+     "groupId": "DQ-10-027",
      "key": "isolation_risk",
      "label": "고립위험사유·예상세대수·예상인원수",
      "dtype": "object{reason,expected_households,expected_persons}",
@@ -1803,8 +1803,8 @@
      "requirements": "UFR-003-001-04, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-108-03",
-     "groupId": "DQ-108",
+     "reqId": "DQ-10-027-03",
+     "groupId": "DQ-10-027",
      "key": "access_options",
      "label": "우회도로·헬기구조·고지대대피 가능여부",
      "dtype": "object{detour_road,helicopter_rescue,highland_evacuation} (boolean)",
@@ -1823,8 +1823,8 @@
      "requirements": "UFR-003-001-04, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-108-04",
-     "groupId": "DQ-108",
+     "reqId": "DQ-10-027-04",
+     "groupId": "DQ-10-027",
      "key": "evacuation_refs",
      "label": "대피지역코드·수용시설 식별자",
      "dtype": "object{evacuation_area_code,shelter_id}",
@@ -1846,14 +1846,14 @@
   {
    "type": "habitual_flood_area",
    "label": "상습침수지역",
-   "dp": "DP-02",
+   "dp": "GR-10",
    "sourceLabel": "상습침수지역",
    "source": "SRC-132·133 상습침수지역_전체주소_필지기준 / 위험지구지정_예방사업_취합(tb_chflar_dsrprjt_prst)",
    "fieldCount": 4,
    "fields": [
     {
-     "reqId": "DQ-109-01",
-     "groupId": "DQ-109",
+     "reqId": "DQ-10-028-01",
+     "groupId": "DQ-10-028",
      "key": "parcel_address",
      "label": "필지 ID·주소·행정코드",
      "dtype": "object{parcel_id,address,admin_code}",
@@ -1872,8 +1872,8 @@
      "requirements": "UFR-003-001-04, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-109-02",
-     "groupId": "DQ-109",
+     "reqId": "DQ-10-028-02",
+     "groupId": "DQ-10-028",
      "key": "flood_history",
      "label": "피해일자·침수건수·상습침수 판정",
      "dtype": "object{damage_dates[],flood_count,is_habitual}",
@@ -1896,8 +1896,8 @@
      "requirements": "UFR-003-001-04, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-109-03",
-     "groupId": "DQ-109",
+     "reqId": "DQ-10-028-03",
+     "groupId": "DQ-10-028",
      "key": "risk_district_designation",
      "label": "위험지구 지정여부·유형·등급·지정/해제일",
      "dtype": "object{designated,type,grade,designated_on,released_on}",
@@ -1917,8 +1917,8 @@
      "requirements": "UFR-003-001-04, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-109-04",
-     "groupId": "DQ-109",
+     "reqId": "DQ-10-028-04",
+     "groupId": "DQ-10-028",
      "key": "prevention_projects",
      "label": "사업명·사업비·시작/종료일·사업내용",
      "dtype": "array<object{name,cost{value,unit},started_on,ended_on,content}>",
@@ -1945,14 +1945,14 @@
   {
    "type": "local_disaster_risk_district",
    "label": "지역 재해위험지구",
-   "dp": "DP-02",
+   "dp": "GR-10",
    "sourceLabel": "지역 재해위험지구",
    "source": "SRC-108·109 지역_재해위험지구 / 지역_재해위험지구_안전점검",
    "fieldCount": 3,
    "fields": [
     {
-     "reqId": "DQ-110-01",
-     "groupId": "DQ-110",
+     "reqId": "DQ-10-029-01",
+     "groupId": "DQ-10-029",
      "key": "district_basic",
      "label": "관리번호·지구명·유형·등급",
      "dtype": "object{management_no,name,type,grade}",
@@ -1972,8 +1972,8 @@
      "requirements": "UFR-003-001-04, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-110-02",
-     "groupId": "DQ-110",
+     "reqId": "DQ-10-029-02",
+     "groupId": "DQ-10-029",
      "key": "designation_detail",
      "label": "지정/해제일·사유·거주세대/인원",
      "dtype": "object{designated_on,released_on,reason,households,persons}",
@@ -1993,8 +1993,8 @@
      "requirements": "UFR-003-001-04, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-110-03",
-     "groupId": "DQ-110",
+     "reqId": "DQ-10-029-03",
+     "groupId": "DQ-10-029",
      "key": "inspection_history",
      "label": "점검일시·점검내용·조치사항",
      "dtype": "array<object{inspected_at,content,action}>",
@@ -2019,14 +2019,14 @@
   {
    "type": "vulnerable_facility_common",
    "label": "잠재 위험요소·취약시설(공통)",
-   "dp": "DP-03",
+   "dp": "GR-11",
    "sourceLabel": "지하차도·지하공간·캠핑장·산지숙박시설 등 취약시설",
    "source": "20260930 원시데이터목록: 지하차도·건축물·야영장·대피시설",
    "fieldCount": 17,
    "fields": [
     {
-     "reqId": "DQ-012-01",
-     "groupId": "DQ-012",
+     "reqId": "DQ-11-001-01",
+     "groupId": "DQ-11-001",
      "key": "facility_name",
      "label": "시설명",
      "dtype": "string",
@@ -2041,8 +2041,8 @@
      "requirements": "UFR-003-001-05, UFR-003-001-06, UFR-004-001-02, UFR-004-002-01"
     },
     {
-     "reqId": "DQ-012-02",
-     "groupId": "DQ-012",
+     "reqId": "DQ-11-001-02",
+     "groupId": "DQ-11-001",
      "key": "facility_type",
      "label": "시설유형",
      "dtype": "enum (지하차도",
@@ -2057,8 +2057,8 @@
      "requirements": "UFR-003-001-05, UFR-003-001-06, UFR-004-001-02, UFR-004-002-01"
     },
     {
-     "reqId": "DQ-012-03",
-     "groupId": "DQ-012",
+     "reqId": "DQ-11-001-03",
+     "groupId": "DQ-11-001",
      "key": "address_admin_location",
      "label": "주소·행정구역·위치·경계",
      "dtype": "object{address,admin_code}",
@@ -2076,8 +2076,8 @@
      "requirements": "UFR-003-001-05, UFR-003-001-06, UFR-004-001-02, UFR-004-002-01"
     },
     {
-     "reqId": "DQ-012-04",
-     "groupId": "DQ-012",
+     "reqId": "DQ-11-001-04",
+     "groupId": "DQ-11-001",
      "key": "geometry_ref",
      "label": "좌표·형상",
      "dtype": "object{geometry_type,crs,spatial_object_id}",
@@ -2096,8 +2096,8 @@
      "requirements": "UFR-003-001-05, UFR-003-001-06, UFR-004-001-02, UFR-004-002-01"
     },
     {
-     "reqId": "DQ-013-01",
-     "groupId": "DQ-013",
+     "reqId": "DQ-11-002-01",
+     "groupId": "DQ-11-002",
      "key": "key_risk_factors",
      "label": "핵심 위험요소",
      "dtype": "string[] (침수",
@@ -2112,8 +2112,8 @@
      "requirements": "UFR-003-001-05, UFR-003-001-06, UFR-004-001-02, UFR-004-002-01"
     },
     {
-     "reqId": "DQ-013-02",
-     "groupId": "DQ-013",
+     "reqId": "DQ-11-002-02",
+     "groupId": "DQ-11-002",
      "key": "related_risk_areas",
      "label": "연관 위험지역",
      "dtype": "array<object{relation_type,risk_area_id,name}>",
@@ -2134,8 +2134,8 @@
      "requirements": "UFR-003-001-05, UFR-003-001-06, UFR-004-001-02, UFR-004-002-01"
     },
     {
-     "reqId": "DQ-013-03",
-     "groupId": "DQ-013",
+     "reqId": "DQ-11-002-03",
+     "groupId": "DQ-11-002",
      "key": "related_river_distance",
      "label": "연관 하천·이격정보",
      "dtype": "object{river_name,distance_m,as_of}",
@@ -2154,8 +2154,8 @@
      "requirements": "UFR-003-001-05, UFR-003-001-06, UFR-004-001-02, UFR-004-002-01"
     },
     {
-     "reqId": "DQ-013-04",
-     "groupId": "DQ-013",
+     "reqId": "DQ-11-002-04",
+     "groupId": "DQ-11-002",
      "key": "usage_characteristics",
      "label": "용도·이용특성",
      "dtype": "string (거주·교통·다중이용 등)",
@@ -2170,8 +2170,8 @@
      "requirements": "UFR-003-001-05, UFR-003-001-06, UFR-004-001-02, UFR-004-002-01"
     },
     {
-     "reqId": "DQ-013-05",
-     "groupId": "DQ-013",
+     "reqId": "DQ-11-002-05",
+     "groupId": "DQ-11-002",
      "key": "underground_capacity",
      "label": "지하층·수용/이용 규모",
      "dtype": "object{basement_floors,capacity}",
@@ -2189,8 +2189,8 @@
      "requirements": "UFR-003-001-05, UFR-003-001-06, UFR-004-001-02, UFR-004-002-01"
     },
     {
-     "reqId": "DQ-013-06",
-     "groupId": "DQ-013",
+     "reqId": "DQ-11-002-06",
+     "groupId": "DQ-11-002",
      "key": "structure_scale",
      "label": "구조·규모",
      "dtype": "object{length_m,height_m,storage_m3,area_m2}",
@@ -2208,8 +2208,8 @@
      "requirements": "UFR-003-001-05, UFR-003-001-06, UFR-004-001-02, UFR-004-002-01"
     },
     {
-     "reqId": "DQ-014-01",
-     "groupId": "DQ-014",
+     "reqId": "DQ-11-003-01",
+     "groupId": "DQ-11-003",
      "key": "managing_agency",
      "label": "관리기관",
      "dtype": "object{owner,manager}",
@@ -2227,8 +2227,8 @@
      "requirements": "UFR-003-001-05, UFR-003-001-06, UFR-004-001-02, UFR-004-002-01"
     },
     {
-     "reqId": "DQ-014-02",
-     "groupId": "DQ-014",
+     "reqId": "DQ-11-003-02",
+     "groupId": "DQ-11-003",
      "key": "inspection_management_status",
      "label": "점검·관리상태",
      "dtype": "string (정상",
@@ -2243,8 +2243,8 @@
      "requirements": "UFR-003-001-05, UFR-003-001-06, UFR-004-001-02, UFR-004-002-01"
     },
     {
-     "reqId": "DQ-014-03",
-     "groupId": "DQ-014",
+     "reqId": "DQ-11-003-03",
+     "groupId": "DQ-11-003",
      "key": "blocking_drainage_alarm_equipment",
      "label": "차단·배수·경보 설비",
      "dtype": "object{blocking,drainage,alarm,operating_status}",
@@ -2263,8 +2263,8 @@
      "requirements": "UFR-003-001-05, UFR-003-001-06, UFR-004-001-02, UFR-004-002-01"
     },
     {
-     "reqId": "DQ-014-04",
-     "groupId": "DQ-014",
+     "reqId": "DQ-11-003-04",
+     "groupId": "DQ-11-003",
      "key": "source_base_date",
      "label": "출처·기준일",
      "dtype": "object{source_org,updated_on}",
@@ -2282,8 +2282,8 @@
      "requirements": "UFR-003-001-05, UFR-003-001-06, UFR-004-001-02, UFR-004-002-01, UFR-005-001-01"
     },
     {
-     "reqId": "DQ-014-05",
-     "groupId": "DQ-014",
+     "reqId": "DQ-11-003-05",
+     "groupId": "DQ-11-003",
      "key": "object_id_disclosure",
      "label": "객체 식별자·원천 공개등급",
      "dtype": "object{object_id,source_disclosure_level}",
@@ -2301,8 +2301,8 @@
      "requirements": "UFR-003-001-05, UFR-003-001-06, UFR-004-001-02, UFR-004-002-01"
     },
     {
-     "reqId": "DQ-015-01",
-     "groupId": "DQ-015",
+     "reqId": "DQ-11-004-01",
+     "groupId": "DQ-11-004",
      "key": "evacuation_targets_facilities",
      "label": "대피대상·대피시설",
      "dtype": "object{targets,shelters[]}",
@@ -2320,8 +2320,8 @@
      "requirements": "UFR-003-001-05, UFR-003-001-06, UFR-004-001-02, UFR-004-002-01"
     },
     {
-     "reqId": "DQ-016-01",
-     "groupId": "DQ-016",
+     "reqId": "DQ-11-005-01",
+     "groupId": "DQ-11-005",
      "key": "damage_inspection_history",
      "label": "과거 피해·점검이력",
      "dtype": "array<object{date,type(피해",
@@ -2340,14 +2340,14 @@
   {
    "type": "underpass",
    "label": "지하차도",
-   "dp": "DP-03",
+   "dp": "GR-11",
    "sourceLabel": "지하차도",
    "source": "SRC-135~138 지하차도 차단시설/대피시설/담당자/관리제외현황(별도·비공개)",
    "fieldCount": 14,
    "fields": [
     {
-     "reqId": "DQ-072-01",
-     "groupId": "DQ-072",
+     "reqId": "DQ-11-006-01",
+     "groupId": "DQ-11-006",
      "key": "blocking_mandatory",
      "label": "차단시설 의무대상 여부",
      "dtype": "boolean",
@@ -2362,8 +2362,8 @@
      "requirements": "UFR-003-001-05, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-072-02",
-     "groupId": "DQ-072",
+     "reqId": "DQ-11-006-02",
+     "groupId": "DQ-11-006",
      "key": "mandatory_basis",
      "label": "의무대상 판정근거",
      "dtype": "string[] (U자형·하천 500m·수방기준 지역 등)",
@@ -2381,8 +2381,8 @@
      "requirements": "UFR-003-001-05, UFR-003-001-06, UFR-005-001-01"
     },
     {
-     "reqId": "DQ-072-03",
-     "groupId": "DQ-072",
+     "reqId": "DQ-11-006-03",
+     "groupId": "DQ-11-006",
      "key": "entry_blocking_installed",
      "label": "진입차단시설 설치현황",
      "dtype": "enum (설치",
@@ -2397,8 +2397,8 @@
      "requirements": "UFR-003-001-05, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-072-04",
-     "groupId": "DQ-072",
+     "reqId": "DQ-11-006-04",
+     "groupId": "DQ-11-006",
      "key": "blocking_method",
      "label": "차단방식",
      "dtype": "enum (자동",
@@ -2413,8 +2413,8 @@
      "requirements": "UFR-003-001-05, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-072-05",
-     "groupId": "DQ-072",
+     "reqId": "DQ-11-006-05",
+     "groupId": "DQ-11-006",
      "key": "evacuation_facility",
      "label": "대피시설 설치대상·현황",
      "dtype": "object{required,status}",
@@ -2432,8 +2432,8 @@
      "requirements": "UFR-003-001-05, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-073-01",
-     "groupId": "DQ-073",
+     "reqId": "DQ-11-007-01",
+     "groupId": "DQ-11-007",
      "key": "location",
      "label": "주소·행정구역·좌표",
      "dtype": "object{address,admin_code,coordinates,spatial_object_id}",
@@ -2452,8 +2452,8 @@
      "requirements": "UFR-003-001-05, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-074-01",
-     "groupId": "DQ-074",
+     "reqId": "DQ-11-008-01",
+     "groupId": "DQ-11-008",
      "key": "annual_install_plan",
      "label": "연도별 설치계획",
      "dtype": "array<object{year,facility}>",
@@ -2473,8 +2473,8 @@
      "requirements": "UFR-003-001-05, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-074-02",
-     "groupId": "DQ-074",
+     "reqId": "DQ-11-008-02",
+     "groupId": "DQ-11-008",
      "key": "inspection_findings",
      "label": "점검·지적사항",
      "dtype": "array<object{date,finding}>",
@@ -2494,8 +2494,8 @@
      "requirements": "UFR-003-001-05, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-074-03",
-     "groupId": "DQ-074",
+     "reqId": "DQ-11-008-03",
+     "groupId": "DQ-11-008",
      "key": "department_contact",
      "label": "담당부서·연락처",
      "dtype": "object{agency,department,phone}",
@@ -2514,8 +2514,8 @@
      "requirements": "UFR-003-001-05, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-111-01",
-     "groupId": "DQ-111",
+     "reqId": "DQ-11-009-01",
+     "groupId": "DQ-11-009",
      "key": "control_flood_depth",
      "label": "통제기준 침수심·자료 기준일",
      "dtype": "object{depth_cm,data_as_of}",
@@ -2533,8 +2533,8 @@
      "requirements": "UFR-003-001-05, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-111-02",
-     "groupId": "DQ-111",
+     "reqId": "DQ-11-009-02",
+     "groupId": "DQ-11-009",
      "key": "monitoring_equipment",
      "label": "CCTV·전광판·스피커·수위계·배수시설 설치여부",
      "dtype": "object{cctv,display_board,speaker,water_gauge,drainage} (boolean)",
@@ -2555,8 +2555,8 @@
      "requirements": "UFR-003-001-05, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-111-03",
-     "groupId": "DQ-111",
+     "reqId": "DQ-11-009-03",
+     "groupId": "DQ-11-009",
      "key": "operation_check",
      "label": "차단시설·배수펌프 정상작동여부·최근 점검연월",
      "dtype": "object{blocking_ok,pump_ok,last_inspected_ym} (자료 기준일 값)",
@@ -2575,8 +2575,8 @@
      "requirements": "UFR-003-001-05, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-111-04",
-     "groupId": "DQ-111",
+     "reqId": "DQ-11-009-04",
+     "groupId": "DQ-11-009",
      "key": "evacuation_facility_status",
      "label": "대피시설 설치대상·설치현황",
      "dtype": "object{required,installed}",
@@ -2594,8 +2594,8 @@
      "requirements": "UFR-003-001-05, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-111-05",
-     "groupId": "DQ-111",
+     "reqId": "DQ-11-009-05",
+     "groupId": "DQ-11-009",
      "key": "management_exclusion",
      "label": "관리 제외 사유·자료 기준정보",
      "dtype": "object{reason,data_basis}",
@@ -2617,14 +2617,14 @@
   {
    "type": "building_underground_space",
    "label": "건축물 지하공간(반지하 포함)",
-   "dp": "DP-03",
+   "dp": "GR-11",
    "sourceLabel": "건축물 지하공간",
    "source": "건축물대장 · GIS건물일반집합정보 (아이타이쿤 9월 적재 예정)",
    "fieldCount": 8,
    "fields": [
     {
-     "reqId": "DQ-075-01",
-     "groupId": "DQ-075",
+     "reqId": "DQ-11-010-01",
+     "groupId": "DQ-11-010",
      "key": "has_basement",
      "label": "지하층 보유 여부",
      "dtype": "boolean",
@@ -2639,8 +2639,8 @@
      "requirements": "UFR-003-001-05, UFR-003-001-06, UFR-004-001-02, UFR-004-002-01"
     },
     {
-     "reqId": "DQ-075-02",
-     "groupId": "DQ-075",
+     "reqId": "DQ-11-010-02",
+     "groupId": "DQ-11-010",
      "key": "basement_floors_usage",
      "label": "지하층 수·용도",
      "dtype": "object{floors,usage[]}",
@@ -2660,8 +2660,8 @@
      "requirements": "UFR-003-001-05, UFR-003-001-06, UFR-004-001-02, UFR-004-002-01"
     },
     {
-     "reqId": "DQ-075-03",
-     "groupId": "DQ-075",
+     "reqId": "DQ-11-010-03",
+     "groupId": "DQ-11-010",
      "key": "flood_history",
      "label": "침수이력",
      "dtype": "array<object{year,area,grade}>",
@@ -2682,8 +2682,8 @@
      "requirements": "UFR-003-001-05, UFR-003-001-06, UFR-004-001-02, UFR-004-002-01"
     },
     {
-     "reqId": "DQ-075-04",
-     "groupId": "DQ-075",
+     "reqId": "DQ-11-010-04",
+     "groupId": "DQ-11-010",
      "key": "semi_basement_households_grid",
      "label": "격자별 반지하 가구수",
      "dtype": "object{grid_id,households}",
@@ -2701,8 +2701,8 @@
      "requirements": "UFR-003-001-05, UFR-003-001-06, UFR-004-001-02, UFR-004-002-01"
     },
     {
-     "reqId": "DQ-075-05",
-     "groupId": "DQ-075",
+     "reqId": "DQ-11-010-05",
+     "groupId": "DQ-11-010",
      "key": "flood_prevention_zone",
      "label": "수방기준 적용지역 여부",
      "dtype": "boolean",
@@ -2717,8 +2717,8 @@
      "requirements": "UFR-003-001-05, UFR-003-001-06, UFR-004-001-02, UFR-004-002-01"
     },
     {
-     "reqId": "DQ-076-01",
-     "groupId": "DQ-076",
+     "reqId": "DQ-11-011-01",
+     "groupId": "DQ-11-011",
      "key": "location",
      "label": "주소·행정구역·좌표",
      "dtype": "object{address,admin_code,coordinates,spatial_object_id}",
@@ -2736,8 +2736,8 @@
      "requirements": "UFR-003-001-05, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-112-01",
-     "groupId": "DQ-112",
+     "reqId": "DQ-11-012-01",
+     "groupId": "DQ-11-012",
      "key": "building_ids",
      "label": "건축물대장 고유번호·GIS건물 통합식별번호·필지 ID",
      "dtype": "object{bldg_register_no,gis_bldg_id,parcel_id}",
@@ -2756,8 +2756,8 @@
      "requirements": "UFR-003-001-05, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-112-02",
-     "groupId": "DQ-112",
+     "reqId": "DQ-11-012-02",
+     "groupId": "DQ-11-012",
      "key": "building_specs",
      "label": "건물 용도·구조·지상/지하층수·가구/세대수·기준일",
      "dtype": "object{usage,structure,floors_above,floors_below,households,base_date}",
@@ -2783,14 +2783,14 @@
   {
    "type": "campsite_mountain_lodging",
    "label": "캠핑장/야영장·산지인접 숙박시설",
-   "dp": "DP-03",
+   "dp": "GR-11",
    "sourceLabel": "캠핑장·산지숙박",
    "source": "SRC-139 문화_일반야영장업(tb_gnrl_ldg_fclt)",
    "fieldCount": 5,
    "fields": [
     {
-     "reqId": "DQ-080-01",
-     "groupId": "DQ-080",
+     "reqId": "DQ-11-013-01",
+     "groupId": "DQ-11-013",
      "key": "facility_type_sites",
      "label": "시설유형·사이트 수",
      "dtype": "object{type(일반",
@@ -2805,8 +2805,8 @@
      "requirements": "UFR-003-001-05, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-080-02",
-     "groupId": "DQ-080",
+     "reqId": "DQ-11-013-02",
+     "groupId": "DQ-11-013",
      "key": "fire_facilities",
      "label": "소방시설",
      "dtype": "object{extinguishers,water_tanks,detectors}",
@@ -2825,8 +2825,8 @@
      "requirements": "UFR-003-001-05, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-080-03",
-     "groupId": "DQ-080",
+     "reqId": "DQ-11-013-03",
+     "groupId": "DQ-11-013",
      "key": "stream_distance_m",
      "label": "하천·계곡 이격거리",
      "dtype": "number (m, 공간정보 제공측 값)",
@@ -2841,8 +2841,8 @@
      "requirements": "UFR-003-001-05, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-080-04",
-     "groupId": "DQ-080",
+     "reqId": "DQ-11-013-04",
+     "groupId": "DQ-11-013",
      "key": "adjacent_risk_districts",
      "label": "인접 위험지구",
      "dtype": "string[]",
@@ -2859,8 +2859,8 @@
      "requirements": "UFR-003-001-05, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-081-01",
-     "groupId": "DQ-081",
+     "reqId": "DQ-11-014-01",
+     "groupId": "DQ-11-014",
      "key": "location",
      "label": "주소·행정구역·좌표",
      "dtype": "object{address,admin_code,coordinates,spatial_object_id}",
@@ -2882,14 +2882,14 @@
   {
    "type": "riverside_parking",
    "label": "둔치주차장",
-   "dp": "DP-03",
+   "dp": "GR-11",
    "sourceLabel": "둔치주차장",
    "source": "20260930 둔치주차장",
    "fieldCount": 1,
    "fields": [
     {
-     "reqId": "DQ-113-01",
-     "groupId": "DQ-113",
+     "reqId": "DQ-11-015-01",
+     "groupId": "DQ-11-015",
      "key": "basic_location",
      "label": "객체관리번호·주소·행정구역·좌표",
      "dtype": "object{object_mgmt_no,address,admin_code,coordinates}",
@@ -2912,14 +2912,14 @@
   {
    "type": "risk_factor",
    "label": "잠재 위험요소·위험구간",
-   "dp": "DP-04",
+   "dp": "GR-12",
    "sourceLabel": "위험요소",
    "source": "20260930 취약지역 / 하천·시설 원천 및 T3Q 판단기준",
    "fieldCount": 15,
    "fields": [
     {
-     "reqId": "DQ-017-01",
-     "groupId": "DQ-017",
+     "reqId": "DQ-12-001-01",
+     "groupId": "DQ-12-001",
      "key": "risk_factor_name",
      "label": "위험요소명",
      "dtype": "string",
@@ -2934,8 +2934,8 @@
      "requirements": "UFR-003-001-05, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-017-02",
-     "groupId": "DQ-017",
+     "reqId": "DQ-12-001-02",
+     "groupId": "DQ-12-001",
      "key": "risk_factor_type",
      "label": "위험요소 유형",
      "dtype": "enum (기상수문",
@@ -2950,8 +2950,8 @@
      "requirements": "UFR-003-001-05, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-017-03",
-     "groupId": "DQ-017",
+     "reqId": "DQ-12-001-03",
+     "groupId": "DQ-12-001",
      "key": "target_location_extent",
      "label": "대상 위치·범위",
      "dtype": "object{geometry_type,admin_code,spatial_object_id}",
@@ -2970,8 +2970,8 @@
      "requirements": "UFR-003-001-05, UFR-003-001-06, UFR-004-001-02, UFR-004-002-01"
     },
     {
-     "reqId": "DQ-018-01",
-     "groupId": "DQ-018",
+     "reqId": "DQ-12-002-01",
+     "groupId": "DQ-12-002",
      "key": "risk_description",
      "label": "위험 설명",
      "dtype": "string",
@@ -2986,8 +2986,8 @@
      "requirements": "UFR-003-001-05, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-018-02",
-     "groupId": "DQ-018",
+     "reqId": "DQ-12-002-02",
+     "groupId": "DQ-12-002",
      "key": "criteria_threshold",
      "label": "판단기준·임계값",
      "dtype": "object{variable,operator,threshold,unit,criteria_version}",
@@ -3008,8 +3008,8 @@
      "requirements": "UFR-003-001-05, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-018-03",
-     "groupId": "DQ-018",
+     "reqId": "DQ-12-002-03",
+     "groupId": "DQ-12-002",
      "key": "judgement_inputs",
      "label": "판단에 사용한 입력값",
      "dtype": "array<object{condition_id,value,unit,reference_time}>",
@@ -3031,8 +3031,8 @@
      "requirements": "UFR-003-001-05, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-018-04",
-     "groupId": "DQ-018",
+     "reqId": "DQ-12-002-04",
+     "groupId": "DQ-12-002",
      "key": "fulfillment_status",
      "label": "충족 상태",
      "dtype": "enum (MATCHED",
@@ -3047,8 +3047,8 @@
      "requirements": "UFR-003-001-05, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-019-01",
-     "groupId": "DQ-019",
+     "reqId": "DQ-12-003-01",
+     "groupId": "DQ-12-003",
      "key": "related_risk_areas",
      "label": "연관 위험지역",
      "dtype": "array<object{risk_area_id,relation_basis}> (N:N)",
@@ -3068,8 +3068,8 @@
      "requirements": "UFR-003-001-05, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-019-02",
-     "groupId": "DQ-019",
+     "reqId": "DQ-12-003-02",
+     "groupId": "DQ-12-003",
      "key": "related_facilities",
      "label": "연관 취약시설",
      "dtype": "array<object{facility_id,name,type,distance_or_containment}>",
@@ -3090,8 +3090,8 @@
      "requirements": "UFR-003-001-05, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-019-03",
-     "groupId": "DQ-019",
+     "reqId": "DQ-12-003-03",
+     "groupId": "DQ-12-003",
      "key": "related_events",
      "label": "관련 사건",
      "dtype": "array<object{event_master_id,occurred_on}>",
@@ -3111,8 +3111,8 @@
      "requirements": "UFR-003-001-05, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-019-04",
-     "groupId": "DQ-019",
+     "reqId": "DQ-12-003-04",
+     "groupId": "DQ-12-003",
      "key": "evidence_type",
      "label": "근거유형",
      "dtype": "enum (관측",
@@ -3127,8 +3127,8 @@
      "requirements": "UFR-003-001-05, UFR-003-001-06, UFR-005-001-01"
     },
     {
-     "reqId": "DQ-019-05",
-     "groupId": "DQ-019",
+     "reqId": "DQ-12-003-05",
+     "groupId": "DQ-12-003",
      "key": "evidence_citations",
      "label": "근거문서·인용위치",
      "dtype": "array<object{document_id,page,passage_id}>",
@@ -3149,8 +3149,8 @@
      "requirements": "UFR-003-001-05, UFR-003-001-06, UFR-004-001-02, UFR-004-002-01, UFR-005-001-01"
     },
     {
-     "reqId": "DQ-019-06",
-     "groupId": "DQ-019",
+     "reqId": "DQ-12-003-06",
+     "groupId": "DQ-12-003",
      "key": "reference_time_source",
      "label": "기준시각·출처",
      "dtype": "object{as_of,source_org}",
@@ -3168,8 +3168,8 @@
      "requirements": "UFR-003-001-05, UFR-003-001-06, UFR-005-001-01"
     },
     {
-     "reqId": "DQ-020-01",
-     "groupId": "DQ-020",
+     "reqId": "DQ-12-004-01",
+     "groupId": "DQ-12-004",
      "key": "verification_status",
      "label": "검증상태",
      "dtype": "enum (확정",
@@ -3184,8 +3184,8 @@
      "requirements": "UFR-003-001-05, UFR-003-001-06"
     },
     {
-     "reqId": "DQ-020-02",
-     "groupId": "DQ-020",
+     "reqId": "DQ-12-004-02",
+     "groupId": "DQ-12-004",
      "key": "object_id_disclosure",
      "label": "객체 식별자·원천 공개등급",
      "dtype": "object{object_id,source_disclosure_level}",
@@ -3207,14 +3207,14 @@
   {
    "type": "river",
    "label": "하천·소하천(기본/공간정보)",
-   "dp": "DP-05",
+   "dp": "GR-13",
    "sourceLabel": "하천",
    "source": "SRC-127·128·129·310·311·313~315 하천망도·국가기본도 하천·권역/유역 · SRC-106 소하천구역 · 하천기본계획",
    "fieldCount": 18,
    "fields": [
     {
-     "reqId": "DQ-021-01",
-     "groupId": "DQ-021",
+     "reqId": "DQ-13-001-01",
+     "groupId": "DQ-13-001",
      "key": "river_name",
      "label": "하천명",
      "dtype": "string",
@@ -3229,8 +3229,8 @@
      "requirements": "UFR-003-001-03, UFR-003-001-07, UFR-003-001-08, UFR-004-001-02, UFR-004-002-01"
     },
     {
-     "reqId": "DQ-021-02",
-     "groupId": "DQ-021",
+     "reqId": "DQ-13-001-02",
+     "groupId": "DQ-13-001",
      "key": "river_class",
      "label": "하천구분",
      "dtype": "enum (국가하천",
@@ -3245,8 +3245,8 @@
      "requirements": "UFR-003-001-03, UFR-003-001-07, UFR-003-001-08, UFR-004-001-02, UFR-004-002-01"
     },
     {
-     "reqId": "DQ-021-03",
-     "groupId": "DQ-021",
+     "reqId": "DQ-13-001-03",
+     "groupId": "DQ-13-001",
      "key": "river_code",
      "label": "하천코드·관리번호",
      "dtype": "string (하천코드·관리번호)",
@@ -3261,8 +3261,8 @@
      "requirements": "UFR-003-001-03, UFR-003-001-07, UFR-003-001-08, UFR-004-001-02, UFR-004-002-01"
     },
     {
-     "reqId": "DQ-021-04",
-     "groupId": "DQ-021",
+     "reqId": "DQ-13-001-04",
+     "groupId": "DQ-13-001",
      "key": "river_geometry_section",
      "label": "하천 형상·구간",
      "dtype": "object{geometry_type,start,end,spatial_object_id}",
@@ -3280,8 +3280,8 @@
      "requirements": "UFR-003-001-03, UFR-003-001-07, UFR-003-001-08, UFR-004-001-02, UFR-004-002-01"
     },
     {
-     "reqId": "DQ-021-05",
-     "groupId": "DQ-021",
+     "reqId": "DQ-13-001-05",
+     "groupId": "DQ-13-001",
      "key": "crossing_admin_areas",
      "label": "통과 행정구역",
      "dtype": "array<object{admin_code,name}>",
@@ -3305,8 +3305,8 @@
      "requirements": "UFR-003-001-03, UFR-003-001-07, UFR-003-001-08, UFR-004-001-02, UFR-004-002-01"
     },
     {
-     "reqId": "DQ-021-06",
-     "groupId": "DQ-021",
+     "reqId": "DQ-13-001-06",
+     "groupId": "DQ-13-001",
      "key": "basin",
      "label": "수계·유역",
      "dtype": "object{water_system,basin_code}",
@@ -3324,8 +3324,8 @@
      "requirements": "UFR-003-001-03, UFR-003-001-07, UFR-003-001-08, UFR-004-001-02, UFR-004-002-01"
     },
     {
-     "reqId": "DQ-022-01",
-     "groupId": "DQ-022",
+     "reqId": "DQ-13-002-01",
+     "groupId": "DQ-13-002",
      "key": "managing_authority",
      "label": "관리기관",
      "dtype": "object{legal_authority,field_agency,as_of}",
@@ -3344,8 +3344,8 @@
      "requirements": "UFR-003-001-03, UFR-003-001-07, UFR-003-001-08, UFR-004-001-02, UFR-004-002-01"
     },
     {
-     "reqId": "DQ-022-02",
-     "groupId": "DQ-022",
+     "reqId": "DQ-13-002-02",
+     "groupId": "DQ-13-002",
      "key": "related_risk_areas",
      "label": "관련 위험지역",
      "dtype": "array<object{risk_area_id,name,type,relation_basis}>",
@@ -3366,8 +3366,8 @@
      "requirements": "UFR-003-001-03, UFR-003-001-07, UFR-003-001-08, UFR-004-001-02, UFR-004-002-01"
     },
     {
-     "reqId": "DQ-022-03",
-     "groupId": "DQ-022",
+     "reqId": "DQ-13-002-03",
+     "groupId": "DQ-13-002",
      "key": "related_plan_documents",
      "label": "관련 계획문서",
      "dtype": "array<object{document_id,plan_type,base_year}>",
@@ -3388,8 +3388,8 @@
      "requirements": "UFR-003-001-03, UFR-003-001-07, UFR-003-001-08, UFR-004-001-02, UFR-004-002-01"
     },
     {
-     "reqId": "DQ-022-04",
-     "groupId": "DQ-022",
+     "reqId": "DQ-13-002-04",
+     "groupId": "DQ-13-002",
      "key": "source_base_date",
      "label": "출처·기준일",
      "dtype": "object{source_org,as_of}",
@@ -3407,8 +3407,8 @@
      "requirements": "UFR-003-001-03, UFR-003-001-07, UFR-003-001-08, UFR-004-001-02, UFR-004-002-01, UFR-005-001-01"
     },
     {
-     "reqId": "DQ-022-05",
-     "groupId": "DQ-022",
+     "reqId": "DQ-13-002-05",
+     "groupId": "DQ-13-002",
      "key": "crs_spatial_quality",
      "label": "CRS·공간품질",
      "dtype": "object{crs,accuracy,update_status,as_of}",
@@ -3426,8 +3426,8 @@
      "requirements": "UFR-003-001-03, UFR-003-001-07, UFR-003-001-08, UFR-004-001-02, UFR-004-002-01"
     },
     {
-     "reqId": "DQ-023-01",
-     "groupId": "DQ-023",
+     "reqId": "DQ-13-003-01",
+     "groupId": "DQ-13-003",
      "key": "length_basin_area",
      "label": "하천연장·유역면적",
      "dtype": "object{length_km,basin_area_km2}",
@@ -3445,8 +3445,8 @@
      "requirements": "UFR-003-001-03, UFR-003-001-07, UFR-003-001-08, UFR-004-001-02, UFR-004-002-01"
     },
     {
-     "reqId": "DQ-023-02",
-     "groupId": "DQ-023",
+     "reqId": "DQ-13-003-02",
+     "groupId": "DQ-13-003",
      "key": "start_end_points",
      "label": "기점·종점",
      "dtype": "object{start{address,coordinates},end{address,coordinates},basis}",
@@ -3468,8 +3468,8 @@
      "requirements": "UFR-003-001-03, UFR-003-001-07, UFR-003-001-08, UFR-004-001-02, UFR-004-002-01"
     },
     {
-     "reqId": "DQ-023-03",
-     "groupId": "DQ-023",
+     "reqId": "DQ-13-003-03",
+     "groupId": "DQ-13-003",
      "key": "levee_freeboard",
      "label": "제방고·여유고",
      "dtype": "array<object{station,side,levee_el_m,freeboard_m,as_of}>",
@@ -3492,8 +3492,8 @@
      "requirements": "UFR-003-001-03, UFR-003-001-07, UFR-003-001-08, UFR-004-001-02, UFR-004-002-01"
     },
     {
-     "reqId": "DQ-023-04",
-     "groupId": "DQ-023",
+     "reqId": "DQ-13-003-04",
+     "groupId": "DQ-13-003",
      "key": "structures",
      "label": "교량·보·수문·암거",
      "dtype": "array<object{type,name,specs,condition,as_of}>",
@@ -3514,8 +3514,8 @@
      "requirements": "UFR-003-001-03, UFR-003-001-07, UFR-003-001-08, UFR-004-001-02, UFR-004-002-01"
     },
     {
-     "reqId": "DQ-023-05",
-     "groupId": "DQ-023",
+     "reqId": "DQ-13-003-05",
+     "groupId": "DQ-13-003",
      "key": "vulnerable_sections",
      "label": "협착·저형고·취약구간",
      "dtype": "array<object{section,reason}>",
@@ -3535,8 +3535,8 @@
      "requirements": "UFR-003-001-03, UFR-003-001-07, UFR-003-001-08, UFR-004-001-02, UFR-004-002-01"
     },
     {
-     "reqId": "DQ-024-01",
-     "groupId": "DQ-024",
+     "reqId": "DQ-13-004-01",
+     "groupId": "DQ-13-004",
      "key": "design_flood",
      "label": "계획홍수량",
      "dtype": "object{value_cms,station_no,return_period_yr}",
@@ -3555,8 +3555,8 @@
      "requirements": "UFR-003-001-03, UFR-003-001-07, UFR-003-001-08, UFR-004-001-02, UFR-004-002-01"
     },
     {
-     "reqId": "DQ-024-02",
-     "groupId": "DQ-024",
+     "reqId": "DQ-13-004-02",
+     "groupId": "DQ-13-004",
      "key": "design_flood_level",
      "label": "계획홍수위",
      "dtype": "object{value_el_m,station_no,vertical_datum}",
@@ -3579,14 +3579,14 @@
   {
    "type": "plan_disaster_reduction",
    "label": "계획지식: 자연재해저감종합계획(위험지구·저감대책)",
-   "dp": "DP-06",
+   "dp": "GR-14",
    "sourceLabel": "계획 위험지구·저감대책",
    "source": "SRC-064·065 자연재해저감종합계획(광역·시군구 보고서) · (참고)문서형태 이미지1~6 · NIA 이미지(3)(4)",
    "fieldCount": 32,
    "fields": [
     {
-     "reqId": "DQ-025-01",
-     "groupId": "DQ-025",
+     "reqId": "DQ-14-001-01",
+     "groupId": "DQ-14-001",
      "key": "plan_name",
      "label": "계획명",
      "dtype": "string",
@@ -3601,8 +3601,8 @@
      "requirements": "UFR-003-001-07, UFR-003-001-08"
     },
     {
-     "reqId": "DQ-025-02",
-     "groupId": "DQ-025",
+     "reqId": "DQ-14-001-02",
+     "groupId": "DQ-14-001",
      "key": "agency_target_area",
      "label": "수립기관·대상지역",
      "dtype": "object{agency,target_area,target_admin_codes[]}",
@@ -3623,8 +3623,8 @@
      "requirements": "UFR-003-001-07, UFR-003-001-08"
     },
     {
-     "reqId": "DQ-025-03",
-     "groupId": "DQ-025",
+     "reqId": "DQ-14-001-03",
+     "groupId": "DQ-14-001",
      "key": "plan_period_base_year",
      "label": "계획기간·기준연도",
      "dtype": "object{from,to,base_year}",
@@ -3643,8 +3643,8 @@
      "requirements": "UFR-003-001-07, UFR-003-001-08"
     },
     {
-     "reqId": "DQ-025-04",
-     "groupId": "DQ-025",
+     "reqId": "DQ-14-001-04",
+     "groupId": "DQ-14-001",
      "key": "approval_notice",
      "label": "승인·고시 정보",
      "dtype": "object{date,text,version,other_versions[]}",
@@ -3666,8 +3666,8 @@
      "requirements": "UFR-003-001-07, UFR-003-001-08"
     },
     {
-     "reqId": "DQ-026-01",
-     "groupId": "DQ-026",
+     "reqId": "DQ-14-002-01",
+     "groupId": "DQ-14-002",
      "key": "district_name_hazard",
      "label": "지구명·재해유형",
      "dtype": "object{name,hazard_type}",
@@ -3685,8 +3685,8 @@
      "requirements": "UFR-003-001-07, UFR-003-001-08"
     },
     {
-     "reqId": "DQ-026-02",
-     "groupId": "DQ-026",
+     "reqId": "DQ-14-002-02",
+     "groupId": "DQ-14-002",
      "key": "district_location_boundary",
      "label": "위치·경계",
      "dtype": "object{address,admin_code,spatial_object_id}",
@@ -3704,8 +3704,8 @@
      "requirements": "UFR-003-001-07, UFR-003-001-08"
     },
     {
-     "reqId": "DQ-026-03",
-     "groupId": "DQ-026",
+     "reqId": "DQ-14-002-03",
+     "groupId": "DQ-14-002",
      "key": "risk_grade_priority",
      "label": "위험등급·우선순위",
      "dtype": "object{risk_grade,priority}",
@@ -3723,8 +3723,8 @@
      "requirements": "UFR-003-001-07, UFR-003-001-08"
     },
     {
-     "reqId": "DQ-026-04",
-     "groupId": "DQ-026",
+     "reqId": "DQ-14-002-04",
+     "groupId": "DQ-14-002",
      "key": "risk_factors_causes",
      "label": "위험요인·발생원인",
      "dtype": "string[]",
@@ -3741,8 +3741,8 @@
      "requirements": "UFR-003-001-07, UFR-003-001-08"
     },
     {
-     "reqId": "DQ-026-05",
-     "groupId": "DQ-026",
+     "reqId": "DQ-14-002-05",
+     "groupId": "DQ-14-002",
      "key": "expected_damage",
      "label": "예상 피해",
      "dtype": "object{persons,facilities,flood_area,isolation}",
@@ -3761,8 +3761,8 @@
      "requirements": "UFR-003-001-07, UFR-003-001-08"
     },
     {
-     "reqId": "DQ-027-01",
-     "groupId": "DQ-027",
+     "reqId": "DQ-14-006-01",
+     "groupId": "DQ-14-006",
      "key": "risk_score_detail",
      "label": "위험도 세부점수",
      "dtype": "array<object{item,points,score}>",
@@ -3783,8 +3783,8 @@
      "requirements": "UFR-003-001-07, UFR-003-001-08"
     },
     {
-     "reqId": "DQ-027-02",
-     "groupId": "DQ-027",
+     "reqId": "DQ-14-006-02",
+     "groupId": "DQ-14-006",
      "key": "performance_target_threshold_rain",
      "label": "방재성능목표·임계강우",
      "dtype": "object{durations[{duration,value_mm}],base_year}",
@@ -3815,8 +3815,8 @@
      "requirements": "UFR-003-001-07, UFR-003-001-08"
     },
     {
-     "reqId": "DQ-028-01",
-     "groupId": "DQ-028",
+     "reqId": "DQ-14-011-01",
+     "groupId": "DQ-14-011",
      "key": "mitigation_measures",
      "label": "저감대책",
      "dtype": "array<object{type(구조적",
@@ -3831,8 +3831,8 @@
      "requirements": "UFR-003-001-07, UFR-003-001-08"
     },
     {
-     "reqId": "DQ-028-02",
-     "groupId": "DQ-028",
+     "reqId": "DQ-14-011-02",
+     "groupId": "DQ-14-011",
      "key": "alternatives_selection",
      "label": "대안 비교·선정사유",
      "dtype": "array<object{alternative,criteria,selected,reason}>",
@@ -3853,8 +3853,8 @@
      "requirements": "UFR-003-001-07, UFR-003-001-08"
     },
     {
-     "reqId": "DQ-028-03",
-     "groupId": "DQ-028",
+     "reqId": "DQ-14-011-03",
+     "groupId": "DQ-14-011",
      "key": "project_name_content",
      "label": "정비사업명·내용",
      "dtype": "object{name,content,as_of}",
@@ -3873,8 +3873,8 @@
      "requirements": "UFR-003-001-07, UFR-003-001-08"
     },
     {
-     "reqId": "DQ-028-04",
-     "groupId": "DQ-028",
+     "reqId": "DQ-14-011-04",
+     "groupId": "DQ-14-011",
      "key": "project_period_cost",
      "label": "사업기간·사업비",
      "dtype": "object{period,cost{value,unit},basis(계획",
@@ -3889,8 +3889,8 @@
      "requirements": "UFR-003-001-07, UFR-003-001-08"
     },
     {
-     "reqId": "DQ-028-05",
-     "groupId": "DQ-028",
+     "reqId": "DQ-14-011-05",
+     "groupId": "DQ-14-011",
      "key": "planned_status_as_of",
      "label": "계획상 사업상태·기준시점",
      "dtype": "object{status_raw,survey_or_plan_date,currency_check}",
@@ -3909,8 +3909,8 @@
      "requirements": "UFR-003-001-07, UFR-003-001-08"
     },
     {
-     "reqId": "DQ-029-01",
-     "groupId": "DQ-029",
+     "reqId": "DQ-14-015-01",
+     "groupId": "DQ-14-015",
      "key": "related_objects",
      "label": "관련 하천·취약시설·사건",
      "dtype": "array<object{entity_type,entity_id,relation_basis}>",
@@ -3931,8 +3931,8 @@
      "requirements": "UFR-003-001-07, UFR-003-001-08"
     },
     {
-     "reqId": "DQ-029-02",
-     "groupId": "DQ-029",
+     "reqId": "DQ-14-015-02",
+     "groupId": "DQ-14-015",
      "key": "source_location",
      "label": "원문 위치",
      "dtype": "object{chapter,section,page,table,passage_id}",
@@ -3951,8 +3951,8 @@
      "requirements": "UFR-003-001-07, UFR-003-001-08, UFR-003-001-09, UFR-005-001-01"
     },
     {
-     "reqId": "DQ-029-03",
-     "groupId": "DQ-029",
+     "reqId": "DQ-14-015-03",
+     "groupId": "DQ-14-015",
      "key": "document_meta",
      "label": "문서ID·품질·공개등급",
      "dtype": "object{document_id,quality_status,disclosure_level,as_of}",
@@ -3971,8 +3971,8 @@
      "requirements": "UFR-003-001-07, UFR-003-001-08"
     },
     {
-     "reqId": "DQ-126-01",
-     "groupId": "DQ-126",
+     "reqId": "DQ-14-003-01",
+     "groupId": "DQ-14-003",
      "key": "candidate_site_basic",
      "label": "후보지 관리번호·하천등급·선정사유",
      "dtype": "object{management_no,name,hazard_type,district_type,water_system,river_name,river_grade,candidate_no,selection_reason,address_raw,coordinates_raw,crs,station_start,station_end,side,area}",
@@ -3992,8 +3992,8 @@
      "requirements": "UFR-003-001-07~09"
     },
     {
-     "reqId": "DQ-127-01",
-     "groupId": "DQ-127",
+     "reqId": "DQ-14-004-01",
+     "groupId": "DQ-14-004",
      "key": "risk_population_facilities",
      "label": "위험인구·재해약자·주변시설·수용능력",
      "dtype": "object{risk_population,vulnerable_persons,nearby_facilities[],shelters[{name,distance,capacity}],survey_as_of,unit}",
@@ -4011,8 +4011,8 @@
      "requirements": "UFR-003-001-07~09"
     },
     {
-     "reqId": "DQ-128-01",
-     "groupId": "DQ-128",
+     "reqId": "DQ-14-007-01",
+     "groupId": "DQ-14-007",
      "key": "levee_bridge_review",
      "label": "제방고·여유고 및 교량능력 검토",
      "dtype": "object{levee_rows[{station,cum_distance_m,design_flood_cms,design_flood_level_el_m,width_current_m,width_plan_m,side,levee_el_m,freeboard_std_m,shortfall_m}],bridge_rows[{facility_id,name,station,design_flood_level_el_m,clearance_current_el_m,clearance_required_el_m,freeboard_m,span_existing_m,span_required_m,span_diff_m}],method,criteria,conclusion,evidence}",
@@ -4047,8 +4047,8 @@
      "requirements": "UFR-003-001-07~09"
     },
     {
-     "reqId": "DQ-129-01",
-     "groupId": "DQ-129",
+     "reqId": "DQ-14-008-01",
+     "groupId": "DQ-14-008",
      "key": "flood_area_by_depth",
      "label": "빈도별 취약지역 총면적·침수심별 면적",
      "dtype": "array<object{scenario(빈도",
@@ -4063,8 +4063,8 @@
      "requirements": "UFR-003-001-07~09"
     },
     {
-     "reqId": "DQ-130-01",
-     "groupId": "DQ-130",
+     "reqId": "DQ-14-010-01",
+     "groupId": "DQ-14-010",
      "key": "land_use_damage",
      "label": "토지이용현황·용도지역별 피해규모",
      "dtype": "object{land_use_rows[{class,subclass,area_ha,population,buildings}],zoning_rows[{zone,subzone,area_ha}],totals,population_density,is_expected(계획 예상피해)}",
@@ -4088,8 +4088,8 @@
      "requirements": "UFR-003-001-07~09"
     },
     {
-     "reqId": "DQ-131-01",
-     "groupId": "DQ-131",
+     "reqId": "DQ-14-012-01",
+     "groupId": "DQ-14-012",
      "key": "mitigation_effects",
      "label": "관리·도시계획·구조적 대책과 사업기대효과",
      "dtype": "array<object{type(관리",
@@ -4104,8 +4104,8 @@
      "requirements": "UFR-003-001-07~09"
     },
     {
-     "reqId": "DQ-132-01",
-     "groupId": "DQ-132",
+     "reqId": "DQ-14-013-01",
+     "groupId": "DQ-14-013",
      "key": "investment_priority",
      "label": "투자우선순위 평가항목·점수·순위",
      "dtype": "object{basic_scores{bc_ratio,damage_history,risk,inconvenience,elapsed_years},additional_scores{urgency,policy,planning},total,rank}",
@@ -4122,8 +4122,8 @@
      "requirements": "UFR-003-001-07~09"
     },
     {
-     "reqId": "DQ-133-01",
-     "groupId": "DQ-133",
+     "reqId": "DQ-14-014-01",
+     "groupId": "DQ-14-014",
      "key": "common_measures_evacuation_criteria",
      "label": "시설유형별 침수방지대책·강우량별 대피기준",
      "dtype": "object{facility_measures[{facility_type,main_risk,measures}],evacuation_rules[{rain_type(연속",
@@ -4138,8 +4138,8 @@
      "requirements": "UFR-003-001-07~09"
     },
     {
-     "reqId": "DQ-145-01",
-     "groupId": "DQ-145",
+     "reqId": "DQ-14-005-01",
+     "groupId": "DQ-14-005",
      "key": "risk_assessment_rows",
      "label": "간략·상세 평가 구분 및 평가행",
      "dtype": "array<object{id,type(간략",
@@ -4154,8 +4154,8 @@
      "requirements": "UFR-003-001-07~09"
     },
     {
-     "reqId": "DQ-145-02",
-     "groupId": "DQ-145",
+     "reqId": "DQ-14-005-02",
+     "groupId": "DQ-14-005",
      "key": "risk_assessment_items",
      "label": "평가항목·점수·산정근거",
      "dtype": "array<object{code(A",
@@ -4170,8 +4170,8 @@
      "requirements": "UFR-003-001-07~09"
     },
     {
-     "reqId": "DQ-145-03",
-     "groupId": "DQ-145",
+     "reqId": "DQ-14-005-03",
+     "groupId": "DQ-14-005",
      "key": "risk_formula_index_grade",
      "label": "원문 산식·가중치·위험도지수·등급",
      "dtype": "object{formula_raw,coefficients,index,grade,selection_basis} (UNE 재계산 금지)",
@@ -4190,8 +4190,8 @@
      "requirements": "UFR-003-001-07~09"
     },
     {
-     "reqId": "DQ-146-01",
-     "groupId": "DQ-146",
+     "reqId": "DQ-14-009-01",
+     "groupId": "DQ-14-009",
      "key": "flood_cause_review",
      "label": "배수시설 능력·침수원인 검토",
      "dtype": "object{scenario,method,facilities[],capacity_rows[],causes[],conclusion,evidence}",
@@ -4212,8 +4212,8 @@
      "requirements": "UFR-003-001-07~09"
     },
     {
-     "reqId": "DQ-146-02",
-     "groupId": "DQ-146",
+     "reqId": "DQ-14-009-02",
+     "groupId": "DQ-14-009",
      "key": "source_assets",
      "label": "위치도·현장사진·침수도·시설능력 그래프",
      "dtype": "array<object{id,type(위치도",
@@ -4232,14 +4232,14 @@
   {
    "type": "plan_river_basic",
    "label": "계획지식: 하천기본계획",
-   "dp": "DP-07",
+   "dp": "GR-15",
    "sourceLabel": "하천·계획정보",
    "source": "SRC-067 RIMGIS_하천정비기본계획보고서 · (참고)문서형태 이미지7~11",
    "fieldCount": 24,
    "fields": [
     {
-     "reqId": "DQ-030-01",
-     "groupId": "DQ-030",
+     "reqId": "DQ-15-001-01",
+     "groupId": "DQ-15-001",
      "key": "plan_river_name",
      "label": "계획명·하천명",
      "dtype": "object{plan_name,river_name}",
@@ -4257,8 +4257,8 @@
      "requirements": "UFR-003-001-07, UFR-003-001-08"
     },
     {
-     "reqId": "DQ-030-02",
-     "groupId": "DQ-030",
+     "reqId": "DQ-15-001-02",
+     "groupId": "DQ-15-001",
      "key": "agency_notice",
      "label": "수립기관·고시",
      "dtype": "object{agency,notice_no,notice_date}",
@@ -4277,8 +4277,8 @@
      "requirements": "UFR-003-001-07, UFR-003-001-08"
     },
     {
-     "reqId": "DQ-030-03",
-     "groupId": "DQ-030",
+     "reqId": "DQ-15-001-03",
+     "groupId": "DQ-15-001",
      "key": "plan_target_year",
      "label": "계획연도·목표연도",
      "dtype": "object{plan_year,target_year}",
@@ -4296,8 +4296,8 @@
      "requirements": "UFR-003-001-07, UFR-003-001-08"
     },
     {
-     "reqId": "DQ-030-04",
-     "groupId": "DQ-030",
+     "reqId": "DQ-15-001-04",
+     "groupId": "DQ-15-001",
      "key": "plan_section",
      "label": "계획 대상구간 정보",
      "dtype": "object{start,end,stations,length_km}",
@@ -4316,8 +4316,8 @@
      "requirements": "UFR-003-001-07, UFR-003-001-08"
     },
     {
-     "reqId": "DQ-030-05",
-     "groupId": "DQ-030",
+     "reqId": "DQ-15-001-05",
+     "groupId": "DQ-15-001",
      "key": "basin_area",
      "label": "수계·유역면적",
      "dtype": "object{water_system,basin_code,area_km2}",
@@ -4335,8 +4335,8 @@
      "requirements": "UFR-003-001-07, UFR-003-001-08"
     },
     {
-     "reqId": "DQ-031-01",
-     "groupId": "DQ-031",
+     "reqId": "DQ-15-003-01",
+     "groupId": "DQ-15-003",
      "key": "probable_rainfall",
      "label": "확률강우량",
      "dtype": "array<object{duration,return_period_yr,value_mm}>",
@@ -4362,8 +4362,8 @@
      "requirements": "UFR-003-001-07, UFR-003-001-08"
     },
     {
-     "reqId": "DQ-031-02",
-     "groupId": "DQ-031",
+     "reqId": "DQ-15-003-02",
+     "groupId": "DQ-15-003",
      "key": "design_flood",
      "label": "계획홍수량",
      "dtype": "array<object{station_no,return_period_yr,value_cms}>",
@@ -4384,8 +4384,8 @@
      "requirements": "UFR-003-001-07, UFR-003-001-08"
     },
     {
-     "reqId": "DQ-031-03",
-     "groupId": "DQ-031",
+     "reqId": "DQ-15-003-03",
+     "groupId": "DQ-15-003",
      "key": "design_flood_level",
      "label": "계획홍수위",
      "dtype": "array<object{station_no,value_el_m,vertical_datum}>",
@@ -4406,8 +4406,8 @@
      "requirements": "UFR-003-001-07, UFR-003-001-08"
     },
     {
-     "reqId": "DQ-031-04",
-     "groupId": "DQ-031",
+     "reqId": "DQ-15-003-04",
+     "groupId": "DQ-15-003",
      "key": "design_width_bed",
      "label": "계획하폭·하상고",
      "dtype": "array<object{station_no,width_m,bed_el_m}>",
@@ -4428,8 +4428,8 @@
      "requirements": "UFR-003-001-07, UFR-003-001-08"
     },
     {
-     "reqId": "DQ-031-05",
-     "groupId": "DQ-031",
+     "reqId": "DQ-15-003-05",
+     "groupId": "DQ-15-003",
      "key": "capacity_freeboard",
      "label": "통수능·여유고",
      "dtype": "array<object{station_no,current,plan}>",
@@ -4454,8 +4454,8 @@
      "requirements": "UFR-003-001-07, UFR-003-001-08"
     },
     {
-     "reqId": "DQ-031-06",
-     "groupId": "DQ-031",
+     "reqId": "DQ-15-003-06",
+     "groupId": "DQ-15-003",
      "key": "levee_height_type",
      "label": "제방고·제방형식",
      "dtype": "array<object{station_no,side,height_el_m,type}>",
@@ -4477,8 +4477,8 @@
      "requirements": "UFR-003-001-07, UFR-003-001-08"
     },
     {
-     "reqId": "DQ-032-01",
-     "groupId": "DQ-032",
+     "reqId": "DQ-15-006-01",
+     "groupId": "DQ-15-006",
      "key": "structures",
      "label": "교량·보·수문·배수시설",
      "dtype": "array<object{type,name,location,specs,as_of}>",
@@ -4501,8 +4501,8 @@
      "requirements": "UFR-003-001-07, UFR-003-001-08"
     },
     {
-     "reqId": "DQ-032-02",
-     "groupId": "DQ-032",
+     "reqId": "DQ-15-006-02",
+     "groupId": "DQ-15-006",
      "key": "structure_condition",
      "label": "시설 관리상태",
      "dtype": "array<object{name,condition,as_of}>",
@@ -4523,8 +4523,8 @@
      "requirements": "UFR-003-001-07, UFR-003-001-08"
     },
     {
-     "reqId": "DQ-032-03",
-     "groupId": "DQ-032",
+     "reqId": "DQ-15-006-03",
+     "groupId": "DQ-15-006",
      "key": "vulnerable_constricted_sections",
      "label": "홍수취약·협착구간",
      "dtype": "array<object{location,reason}>",
@@ -4544,8 +4544,8 @@
      "requirements": "UFR-003-001-07, UFR-003-001-08"
     },
     {
-     "reqId": "DQ-033-01",
-     "groupId": "DQ-033",
+     "reqId": "DQ-15-010-01",
+     "groupId": "DQ-15-010",
      "key": "improvement_plan",
      "label": "하도·제방·시설 정비계획",
      "dtype": "array<object{content,priority}>",
@@ -4568,8 +4568,8 @@
      "requirements": "UFR-003-001-07, UFR-003-001-08"
     },
     {
-     "reqId": "DQ-034-01",
-     "groupId": "DQ-034",
+     "reqId": "DQ-15-011-01",
+     "groupId": "DQ-15-011",
      "key": "related_risk_events",
      "label": "관련 위험지구·피해사례",
      "dtype": "array<object{entity_type,entity_id,relation_basis}>",
@@ -4590,8 +4590,8 @@
      "requirements": "UFR-003-001-07, UFR-003-001-08"
     },
     {
-     "reqId": "DQ-034-02",
-     "groupId": "DQ-034",
+     "reqId": "DQ-15-011-02",
+     "groupId": "DQ-15-011",
      "key": "source_locations",
      "label": "도면·표·원문 위치",
      "dtype": "array<object{drawing_no,table,page,passage_id}>",
@@ -4611,8 +4611,8 @@
      "requirements": "UFR-003-001-07, UFR-003-001-08, UFR-003-001-09, UFR-005-001-01"
     },
     {
-     "reqId": "DQ-034-03",
-     "groupId": "DQ-034",
+     "reqId": "DQ-15-011-03",
+     "groupId": "DQ-15-011",
      "key": "river_code_document_id",
      "label": "하천코드·문서ID",
      "dtype": "object{river_code,document_id,as_of}",
@@ -4630,8 +4630,8 @@
      "requirements": "UFR-003-001-07, UFR-003-001-08"
     },
     {
-     "reqId": "DQ-034-04",
-     "groupId": "DQ-034",
+     "reqId": "DQ-15-011-04",
+     "groupId": "DQ-15-011",
      "key": "crs_datum_units",
      "label": "좌표계·기준면·단위",
      "dtype": "object{crs,vertical_datum,units}",
@@ -4649,8 +4649,8 @@
      "requirements": "UFR-003-001-07, UFR-003-001-08"
     },
     {
-     "reqId": "DQ-134-01",
-     "groupId": "DQ-134",
+     "reqId": "DQ-15-002-01",
+     "groupId": "DQ-15-002",
      "key": "improvement_district",
      "label": "정비지구명·측점구간·좌우안·연장·현황",
      "dtype": "object{district_id,name,station_start,station_end,side,length_m,status_text,direction,assets[]}",
@@ -4671,8 +4671,8 @@
      "requirements": "UFR-003-001-07~09"
     },
     {
-     "reqId": "DQ-135-01",
-     "groupId": "DQ-135",
+     "reqId": "DQ-15-004-01",
+     "groupId": "DQ-15-004",
      "key": "station_hydraulics_table",
      "label": "측점별 계획홍수량·홍수위·하폭·좌우 제방고 표",
      "dtype": "array<object{station_no,cum_distance_m,design_flood_cms,design_flood_level_el_m,width_current_m,width_plan_m,levee_left_el_m,levee_right_el_m,freeboard_std_m,shortfall_m,facility,remark}>",
@@ -4689,14 +4689,14 @@
      "t3qStatus": "미회신(회신대기)",
      "assumedProvided": true,
      "requestBasis": "원천값 요청",
-     "note": "측점(No.)·누가거리(m), 계획홍수량(m³/s), 계획홍수위(EL.m), 현재/계획 하폭(m), 기설제방고 좌안/우안(EL.m), 시설명/비고. 측점 단위 배열과 연결키·기준면 회신 안별 여유고 기준(m)·부족량(m)은 원문에 있는 경우 함께 제공하고 부호 보존. DP-06 위험지구 검토표와 동일 측점인 경우 연결 식별관계 회신",
+     "note": "측점(No.)·누가거리(m), 계획홍수량(m³/s), 계획홍수위(EL.m), 현재/계획 하폭(m), 기설제방고 좌안/우안(EL.m), 시설명/비고. 측점 단위 배열과 연결키·기준면 회신 안별 여유고 기준(m)·부족량(m)은 원문에 있는 경우 함께 제공하고 부호 보존. GR-14 위험지구 검토표와 동일 측점인 경우 연결 식별관계 회신",
      "linkKey": "문서 ID + 하천코드 + 구간/측점/시설 ID",
      "legacyApiRef": "T3Q 상세조회 API·응답 구조 회신",
      "requirements": "UFR-003-001-07~09"
     },
     {
-     "reqId": "DQ-136-01",
-     "groupId": "DQ-136",
+     "reqId": "DQ-15-005-01",
+     "groupId": "DQ-15-005",
      "key": "district_levee_specs",
      "label": "둑마루폭·유속·소류력·비탈경사",
      "dtype": "object{crest_width_m,velocity_ms,tractive_force{value,unit},slope_outer,slope_inner,freeboard_m,reinforcement_plan,value_kind(계획",
@@ -4711,8 +4711,8 @@
      "requirements": "UFR-003-001-07~09"
     },
     {
-     "reqId": "DQ-137-01",
-     "groupId": "DQ-137",
+     "reqId": "DQ-15-009-01",
+     "groupId": "DQ-15-009",
      "key": "alternatives_review",
      "label": "대안별 정비방향·계획하폭·검토결과·선정근거",
      "dtype": "array<object{alternative,flood_cms,direction,design_width_m,detail,result,selected,reason}>",
@@ -4733,8 +4733,8 @@
      "requirements": "UFR-003-001-07~09"
     },
     {
-     "reqId": "DQ-138-01",
-     "groupId": "DQ-138",
+     "reqId": "DQ-15-008-01",
+     "groupId": "DQ-15-008",
      "key": "expected_damage_by_frequency",
      "label": "빈도별 인명·이재민·자산별 피해액 표",
      "dtype": "array<object{river,district,return_period_yr,casualties,displaced,damage_by_asset{building,contents,farmland,crops,industry,public},total,unit}>",
@@ -4761,14 +4761,14 @@
   {
    "type": "river_risk_section",
    "label": "하천 위험요소·위험구간(하천기본계획)",
-   "dp": "DP-07",
+   "dp": "GR-15",
    "sourceLabel": "하천 위험요소·위험구간",
    "source": "하천기본계획 (20260930 취약지역!3행)",
    "fieldCount": 5,
    "fields": [
     {
-     "reqId": "DQ-092-01",
-     "groupId": "DQ-092",
+     "reqId": "DQ-15-007-01",
+     "groupId": "DQ-15-007",
      "key": "river_risk_factor_code",
      "label": "위험요소 코드",
      "dtype": "string",
@@ -4783,8 +4783,8 @@
      "requirements": "UFR-003-001-07, UFR-003-001-08"
     },
     {
-     "reqId": "DQ-092-02",
-     "groupId": "DQ-092",
+     "reqId": "DQ-15-007-02",
+     "groupId": "DQ-15-007",
      "key": "river_risk_factor_name_grade",
      "label": "위험요소명·위험등급",
      "dtype": "object{name,grade}",
@@ -4802,8 +4802,8 @@
      "requirements": "UFR-003-001-07, UFR-003-001-08"
     },
     {
-     "reqId": "DQ-092-03",
-     "groupId": "DQ-092",
+     "reqId": "DQ-15-007-03",
+     "groupId": "DQ-15-007",
      "key": "target_facility_section",
      "label": "대상시설·구간",
      "dtype": "object{facility,stations,length_m}",
@@ -4821,8 +4821,8 @@
      "requirements": "UFR-003-001-07, UFR-003-001-08"
     },
     {
-     "reqId": "DQ-092-04",
-     "groupId": "DQ-092",
+     "reqId": "DQ-15-007-04",
+     "groupId": "DQ-15-007",
      "key": "response_points",
      "label": "대응 착안점",
      "dtype": "string (근거 기반 요약)",
@@ -4837,8 +4837,8 @@
      "requirements": "UFR-003-001-07, UFR-003-001-08"
     },
     {
-     "reqId": "DQ-092-05",
-     "groupId": "DQ-092",
+     "reqId": "DQ-15-007-05",
+     "groupId": "DQ-15-007",
      "key": "source_excerpt",
      "label": "원문발췌",
      "dtype": "object{table,page,text}",
@@ -4861,14 +4861,14 @@
   {
    "type": "plan_small_river",
    "label": "계획지식: 소하천정비종합계획",
-   "dp": "DP-08",
+   "dp": "GR-16",
    "sourceLabel": "소하천·정비계획",
    "source": "SRC-068 소하천정비 종합계획(시군구, HWP→MD 정형화) · (참고)문서형태 이미지12~15",
    "fieldCount": 20,
    "fields": [
     {
-     "reqId": "DQ-035-01",
-     "groupId": "DQ-035",
+     "reqId": "DQ-16-001-01",
+     "groupId": "DQ-16-001",
      "key": "plan_name_target_area",
      "label": "계획명·대상지역",
      "dtype": "object{plan_name,target_area}",
@@ -4886,8 +4886,8 @@
      "requirements": "UFR-003-001-07, UFR-003-001-08"
     },
     {
-     "reqId": "DQ-035-02",
-     "groupId": "DQ-035",
+     "reqId": "DQ-16-001-02",
+     "groupId": "DQ-16-001",
      "key": "small_river_name",
      "label": "소하천명",
      "dtype": "string",
@@ -4902,8 +4902,8 @@
      "requirements": "UFR-003-001-07, UFR-003-001-08"
     },
     {
-     "reqId": "DQ-035-03",
-     "groupId": "DQ-035",
+     "reqId": "DQ-16-001-03",
+     "groupId": "DQ-16-001",
      "key": "small_river_mgmt_no",
      "label": "관리번호",
      "dtype": "string (소하천 식별자)",
@@ -4918,8 +4918,8 @@
      "requirements": "UFR-003-001-07, UFR-003-001-08"
     },
     {
-     "reqId": "DQ-035-04",
-     "groupId": "DQ-035",
+     "reqId": "DQ-16-001-04",
+     "groupId": "DQ-16-001",
      "key": "notice_info",
      "label": "고시번호·고시일",
      "dtype": "object{notice_no,notice_date}",
@@ -4937,8 +4937,8 @@
      "requirements": "UFR-003-001-07, UFR-003-001-08"
     },
     {
-     "reqId": "DQ-035-05",
-     "groupId": "DQ-035",
+     "reqId": "DQ-16-001-05",
+     "groupId": "DQ-16-001",
      "key": "plan_section",
      "label": "계획 대상구간 정보",
      "dtype": "object{start,end,length_m}",
@@ -4957,8 +4957,8 @@
      "requirements": "UFR-003-001-07, UFR-003-001-08"
     },
     {
-     "reqId": "DQ-035-06",
-     "groupId": "DQ-035",
+     "reqId": "DQ-16-001-06",
+     "groupId": "DQ-16-001",
      "key": "small_river_zone_geometry",
      "label": "소하천구역 형상",
      "dtype": "object{geometry_type,crs,spatial_object_id}",
@@ -4977,8 +4977,8 @@
      "requirements": "UFR-003-001-07, UFR-003-001-08"
     },
     {
-     "reqId": "DQ-036-01",
-     "groupId": "DQ-036",
+     "reqId": "DQ-16-003-01",
+     "groupId": "DQ-16-003",
      "key": "design_frequency_flood",
      "label": "계획빈도·계획홍수량",
      "dtype": "object{return_period_yr,value_cms}",
@@ -4996,8 +4996,8 @@
      "requirements": "UFR-003-001-07, UFR-003-001-08"
     },
     {
-     "reqId": "DQ-036-02",
-     "groupId": "DQ-036",
+     "reqId": "DQ-16-003-02",
+     "groupId": "DQ-16-003",
      "key": "design_flood_level_width",
      "label": "계획홍수위·하폭",
      "dtype": "array<object{station_no,level_el_m,width_m}>",
@@ -5018,8 +5018,8 @@
      "requirements": "UFR-003-001-07, UFR-003-001-08"
     },
     {
-     "reqId": "DQ-036-03",
-     "groupId": "DQ-036",
+     "reqId": "DQ-16-003-03",
+     "groupId": "DQ-16-003",
      "key": "structures",
      "label": "교량·암거·보·제방",
      "dtype": "array<object{type(교량",
@@ -5034,8 +5034,8 @@
      "requirements": "UFR-003-001-07, UFR-003-001-08"
     },
     {
-     "reqId": "DQ-036-04",
-     "groupId": "DQ-036",
+     "reqId": "DQ-16-003-04",
+     "groupId": "DQ-16-003",
      "key": "vulnerable_sections",
      "label": "취약·협착구간",
      "dtype": "array<object{location,reason}>",
@@ -5055,8 +5055,8 @@
      "requirements": "UFR-003-001-07, UFR-003-001-08"
     },
     {
-     "reqId": "DQ-037-01",
-     "groupId": "DQ-037",
+     "reqId": "DQ-16-007-01",
+     "groupId": "DQ-16-007",
      "key": "improvement_plan_methods",
      "label": "정비계획·주요공법",
      "dtype": "array<object{section,content,method}>",
@@ -5077,8 +5077,8 @@
      "requirements": "UFR-003-001-07, UFR-003-001-08"
     },
     {
-     "reqId": "DQ-037-02",
-     "groupId": "DQ-037",
+     "reqId": "DQ-16-007-02",
+     "groupId": "DQ-16-007",
      "key": "planned_priority_status",
      "label": "계획상 우선순위·사업상태",
      "dtype": "object{priority,status_raw,as_of}",
@@ -5097,8 +5097,8 @@
      "requirements": "UFR-003-001-07, UFR-003-001-08"
     },
     {
-     "reqId": "DQ-038-01",
-     "groupId": "DQ-038",
+     "reqId": "DQ-16-009-01",
+     "groupId": "DQ-16-009",
      "key": "related_risk_damage",
      "label": "위험지구·과거피해",
      "dtype": "array<object{entity_type,entity_id,relation_basis}>",
@@ -5119,8 +5119,8 @@
      "requirements": "UFR-003-001-07, UFR-003-001-08"
     },
     {
-     "reqId": "DQ-038-02",
-     "groupId": "DQ-038",
+     "reqId": "DQ-16-009-02",
+     "groupId": "DQ-16-009",
      "key": "source_locations",
      "label": "원문·도면·표 위치",
      "dtype": "array<object{page,drawing_no,table,passage_id}>",
@@ -5140,8 +5140,8 @@
      "requirements": "UFR-003-001-07, UFR-003-001-08, UFR-003-001-09, UFR-005-001-01"
     },
     {
-     "reqId": "DQ-038-03",
-     "groupId": "DQ-038",
+     "reqId": "DQ-16-009-03",
+     "groupId": "DQ-16-009",
      "key": "document_meta",
      "label": "문서ID·출처·품질",
      "dtype": "object{document_id,source,quality_status,as_of}",
@@ -5159,8 +5159,8 @@
      "requirements": "UFR-003-001-07, UFR-003-001-08, UFR-003-001-09, UFR-005-001-01"
     },
     {
-     "reqId": "DQ-139-01",
-     "groupId": "DQ-139",
+     "reqId": "DQ-16-002-01",
+     "groupId": "DQ-16-002",
      "key": "zone_environment",
      "label": "구역구분·해당구간·현황사유·환경특성",
      "dtype": "array<object{zone_class(복원",
@@ -5175,8 +5175,8 @@
      "requirements": "UFR-003-001-07~09"
     },
     {
-     "reqId": "DQ-140-01",
-     "groupId": "DQ-140",
+     "reqId": "DQ-16-008-01",
+     "groupId": "DQ-16-008",
      "key": "improvement_quantities",
      "label": "구간별 축제·보축·호안 연장 및 시설별 개수",
      "dtype": "array<object{section,levee_new_m,levee_reinforce_m,revetment_m,facility_counts{drainage,culvert,bridge,weir}}>",
@@ -5200,8 +5200,8 @@
      "requirements": "UFR-003-001-07~09"
     },
     {
-     "reqId": "DQ-141-01",
-     "groupId": "DQ-141",
+     "reqId": "DQ-16-004-01",
+     "groupId": "DQ-16-004",
      "key": "design_width_calc",
      "label": "유역면적·유로연장·하상경사·산정방법별 계획하폭 표",
      "dtype": "array<object{section,basin_area_km2,channel_length_km,design_flood_cms,bed_slope,width_by_method{},width_current_m,width_applied_m}>",
@@ -5223,8 +5223,8 @@
      "requirements": "UFR-003-001-07~09"
     },
     {
-     "reqId": "DQ-142-01",
-     "groupId": "DQ-142",
+     "reqId": "DQ-16-005-01",
+     "groupId": "DQ-16-005",
      "key": "flood_level_before_after",
      "label": "측점·빈도별 개수 전·후 홍수위 비교표",
      "dtype": "array<object{station_no,cum_distance_m,return_period_yr,level_before_el_m,level_after_el_m,facility}>",
@@ -5246,8 +5246,8 @@
      "requirements": "UFR-003-001-07~09"
     },
     {
-     "reqId": "DQ-143-01",
-     "groupId": "DQ-143",
+     "reqId": "DQ-16-006-01",
+     "groupId": "DQ-16-006",
      "key": "station_hydraulics_table",
      "label": "측점별 계획홍수량·홍수위·기존/계획하폭·좌우제방고 표",
      "dtype": "array<object{station_no,cum_distance_m,design_flood_cms,design_flood_level_el_m,width_existing_m,width_plan_m,levee_left_el_m,levee_right_el_m,remark}>",
@@ -5277,14 +5277,14 @@
   {
    "type": "event_damage_response",
    "label": "재난사건 이력: 피해·대응·복구·보고",
-   "dp": "DP-11",
+   "dp": "GR-05",
    "sourceLabel": "피해·대응·복구",
    "source": "20260930 원시데이터목록: 상황보고·재해대장·피해/복구 (SRC-026~059 등)",
    "fieldCount": 21,
    "fields": [
     {
-     "reqId": "DQ-039-01",
-     "groupId": "DQ-039",
+     "reqId": "DQ-05-001-01",
+     "groupId": "DQ-05-001",
      "key": "related_event_type",
      "label": "관련 사건·재난유형",
      "dtype": "object{event_master_id,disaster_type}",
@@ -5302,8 +5302,8 @@
      "requirements": "UFR-003-001-01, UFR-003-001-02"
     },
     {
-     "reqId": "DQ-040-01",
-     "groupId": "DQ-040",
+     "reqId": "DQ-05-002-01",
+     "groupId": "DQ-05-002",
      "key": "damage_location_admin",
      "label": "피해위치·행정구역",
      "dtype": "object{address,admin_code,spatial_object_id,extent}",
@@ -5322,8 +5322,8 @@
      "requirements": "UFR-003-001-01, UFR-003-001-02"
     },
     {
-     "reqId": "DQ-041-01",
-     "groupId": "DQ-041",
+     "reqId": "DQ-05-003-01",
+     "groupId": "DQ-05-003",
      "key": "occurred_received_reported_at",
      "label": "발생·접수·보고시각",
      "dtype": "object{occurred_at,received_at,reported_at}",
@@ -5341,8 +5341,8 @@
      "requirements": "UFR-003-001-01, UFR-003-001-02"
     },
     {
-     "reqId": "DQ-042-01",
-     "groupId": "DQ-042",
+     "reqId": "DQ-05-004-01",
+     "groupId": "DQ-05-004",
      "key": "damage_type",
      "label": "피해유형",
      "dtype": "enum (침수",
@@ -5357,8 +5357,8 @@
      "requirements": "UFR-003-001-01, UFR-003-001-02"
     },
     {
-     "reqId": "DQ-042-02",
-     "groupId": "DQ-042",
+     "reqId": "DQ-05-004-02",
+     "groupId": "DQ-05-004",
      "key": "casualties",
      "label": "사망·실종·부상",
      "dtype": "object{dead,missing,injured,basis}",
@@ -5377,8 +5377,8 @@
      "requirements": "UFR-003-001-01, UFR-003-001-02"
     },
     {
-     "reqId": "DQ-042-03",
-     "groupId": "DQ-042",
+     "reqId": "DQ-05-004-03",
+     "groupId": "DQ-05-004",
      "key": "evacuees",
      "label": "이재민·대피인원",
      "dtype": "object{households,persons}",
@@ -5396,8 +5396,8 @@
      "requirements": "UFR-003-001-01, UFR-003-001-02"
     },
     {
-     "reqId": "DQ-042-04",
-     "groupId": "DQ-042",
+     "reqId": "DQ-05-004-04",
+     "groupId": "DQ-05-004",
      "key": "facility_damage",
      "label": "시설피해",
      "dtype": "object{public,private,by_type[{type,count}]}",
@@ -5415,8 +5415,8 @@
      "requirements": "UFR-003-001-01, UFR-003-001-02"
     },
     {
-     "reqId": "DQ-042-05",
-     "groupId": "DQ-042",
+     "reqId": "DQ-05-004-05",
+     "groupId": "DQ-05-004",
      "key": "flooding",
      "label": "침수면적·침수심·기간",
      "dtype": "object{area{value,unit},depth_m,duration,extent_ref}",
@@ -5437,8 +5437,8 @@
      "requirements": "UFR-003-001-01, UFR-003-001-02"
     },
     {
-     "reqId": "DQ-042-06",
-     "groupId": "DQ-042",
+     "reqId": "DQ-05-004-06",
+     "groupId": "DQ-05-004",
      "key": "property_damage_amount",
      "label": "재산피해액",
      "dtype": "object{amount_krw_thousand,status(CONFIRMED",
@@ -5453,8 +5453,8 @@
      "requirements": "UFR-003-001-01, UFR-003-001-02"
     },
     {
-     "reqId": "DQ-043-01",
-     "groupId": "DQ-043",
+     "reqId": "DQ-05-005-01",
+     "groupId": "DQ-05-005",
      "key": "traffic_control",
      "label": "교통·도로통제",
      "dtype": "array<object{section,direction,from,to}>",
@@ -5475,8 +5475,8 @@
      "requirements": "UFR-003-001-01, UFR-003-001-02"
     },
     {
-     "reqId": "DQ-044-01",
-     "groupId": "DQ-044",
+     "reqId": "DQ-05-006-01",
+     "groupId": "DQ-05-006",
      "key": "key_actions",
      "label": "주요 조치",
      "dtype": "array<object{type,content,agency,at}>",
@@ -5498,8 +5498,8 @@
      "requirements": "UFR-003-001-01, UFR-003-001-02"
     },
     {
-     "reqId": "DQ-044-02",
-     "groupId": "DQ-044",
+     "reqId": "DQ-05-006-02",
+     "groupId": "DQ-05-006",
      "key": "evacuation_actions",
      "label": "대피조치",
      "dtype": "array<object{target,persons,shelter,at}>",
@@ -5520,8 +5520,8 @@
      "requirements": "UFR-003-001-01, UFR-003-001-02"
     },
     {
-     "reqId": "DQ-044-03",
-     "groupId": "DQ-044",
+     "reqId": "DQ-05-006-03",
+     "groupId": "DQ-05-006",
      "key": "control_actions",
      "label": "통제조치",
      "dtype": "array<object{target_type(도로",
@@ -5536,8 +5536,8 @@
      "requirements": "UFR-003-001-01, UFR-003-001-02"
     },
     {
-     "reqId": "DQ-044-04",
-     "groupId": "DQ-044",
+     "reqId": "DQ-05-006-04",
+     "groupId": "DQ-05-006",
      "key": "cdb_stage",
      "label": "중대본·지대본 단계",
      "dtype": "object{stage,activated_at,released_at}",
@@ -5555,8 +5555,8 @@
      "requirements": "UFR-003-001-01, UFR-003-001-02"
     },
     {
-     "reqId": "DQ-044-05",
-     "groupId": "DQ-044",
+     "reqId": "DQ-05-006-05",
+     "groupId": "DQ-05-006",
      "key": "mobilized_resources",
      "label": "동원 인력·장비·자원",
      "dtype": "array<object{type,quantity,agency}>",
@@ -5577,8 +5577,8 @@
      "requirements": "UFR-003-001-01, UFR-003-001-02"
     },
     {
-     "reqId": "DQ-045-01",
-     "groupId": "DQ-045",
+     "reqId": "DQ-05-007-01",
+     "groupId": "DQ-05-007",
      "key": "emergency_recovery",
      "label": "응급복구 내용·상태",
      "dtype": "object{content,progress_pct,completed,as_of}",
@@ -5597,8 +5597,8 @@
      "requirements": "UFR-003-001-01, UFR-003-001-02"
     },
     {
-     "reqId": "DQ-045-02",
-     "groupId": "DQ-045",
+     "reqId": "DQ-05-007-02",
+     "groupId": "DQ-05-007",
      "key": "recovery_cost",
      "label": "복구비",
      "dtype": "object{total_krw_thousand,national_krw_thousand,local_krw_thousand,other_krw_thousand,basis,as_of}",
@@ -5618,8 +5618,8 @@
      "requirements": "UFR-003-001-01, UFR-003-001-02"
     },
     {
-     "reqId": "DQ-045-03",
-     "groupId": "DQ-045",
+     "reqId": "DQ-05-007-03",
+     "groupId": "DQ-05-007",
      "key": "linked_projects",
      "label": "정비사업 연계",
      "dtype": "array<object{name,status_at_event,as_of}>",
@@ -5639,8 +5639,8 @@
      "requirements": "UFR-003-001-01, UFR-003-001-02"
     },
     {
-     "reqId": "DQ-046-01",
-     "groupId": "DQ-046",
+     "reqId": "DQ-05-008-01",
+     "groupId": "DQ-05-008",
      "key": "report_ref",
      "label": "보고서·차수·페이지",
      "dtype": "object{report_name,report_seq,page,evidence_ref}",
@@ -5659,8 +5659,8 @@
      "requirements": "UFR-003-001-01, UFR-003-001-02, UFR-005-001-01"
     },
     {
-     "reqId": "DQ-046-02",
-     "groupId": "DQ-046",
+     "reqId": "DQ-05-008-02",
+     "groupId": "DQ-05-008",
      "key": "reporting_agency_role",
      "label": "보고기관·작성자 역할",
      "dtype": "object{agency,department,role} (개인명 제한)",
@@ -5679,8 +5679,8 @@
      "requirements": "UFR-003-001-01, UFR-003-001-02"
     },
     {
-     "reqId": "DQ-047-01",
-     "groupId": "DQ-047",
+     "reqId": "DQ-05-009-01",
+     "groupId": "DQ-05-009",
      "key": "summary_report",
      "label": "중대본·상황보고서 요약",
      "dtype": "object{report_id,title,format(markdown",
@@ -5699,14 +5699,14 @@
   {
    "type": "event_crisis_alert",
    "label": "재난사건 이력: 위기경보 발령·해제",
-   "dp": "DP-11",
+   "dp": "GR-05",
    "sourceLabel": "위기경보",
    "source": "SRC-009~013 재난유형별_위기경보(대국민_통합발령·산사태예보발령 등)",
    "fieldCount": 4,
    "fields": [
     {
-     "reqId": "DQ-093-01",
-     "groupId": "DQ-093",
+     "reqId": "DQ-05-010-01",
+     "groupId": "DQ-05-010",
      "key": "crisis_alert_stage_issued",
      "label": "위기경보 단계·발령일자",
      "dtype": "object{level(관심",
@@ -5721,8 +5721,8 @@
      "requirements": "UFR-003-001-01~03"
     },
     {
-     "reqId": "DQ-093-02",
-     "groupId": "DQ-093",
+     "reqId": "DQ-05-010-02",
+     "groupId": "DQ-05-010",
      "key": "crisis_alert_released_at",
      "label": "위기경보 해제일시",
      "dtype": "datetime (결측을 현재 발효로 추정 금지)",
@@ -5737,8 +5737,8 @@
      "requirements": "UFR-003-001-01~03"
     },
     {
-     "reqId": "DQ-093-03",
-     "groupId": "DQ-093",
+     "reqId": "DQ-05-010-03",
+     "groupId": "DQ-05-010",
      "key": "alert_managing_department",
      "label": "관리부서",
      "dtype": "string",
@@ -5753,8 +5753,8 @@
      "requirements": "UFR-003-001-01~03"
     },
     {
-     "reqId": "DQ-093-04",
-     "groupId": "DQ-093",
+     "reqId": "DQ-05-010-04",
+     "groupId": "DQ-05-010",
      "key": "stage_actions_summary",
      "label": "단계별 조치요약",
      "dtype": "string (매뉴얼·보도자료 근거)",
@@ -5773,14 +5773,14 @@
   {
    "type": "event_emergency_message",
    "label": "재난사건 이력: 긴급재난문자 송출",
-   "dp": "DP-11",
+   "dp": "GR-05",
    "sourceLabel": "송출 이력",
    "source": "SRC-001·002 긴급재난문자·재난문자(과거 송출이력)",
    "fieldCount": 4,
    "fields": [
     {
-     "reqId": "DQ-094-01",
-     "groupId": "DQ-094",
+     "reqId": "DQ-05-011-01",
+     "groupId": "DQ-05-011",
      "key": "message_content_area",
      "label": "메시지 내용·수신지역",
      "dtype": "object{content,target_area}",
@@ -5798,8 +5798,8 @@
      "requirements": "UFR-003-001-01~03"
     },
     {
-     "reqId": "DQ-094-02",
-     "groupId": "DQ-094",
+     "reqId": "DQ-05-011-02",
+     "groupId": "DQ-05-011",
      "key": "emergency_level_hazard",
      "label": "긴급단계·재해구분",
      "dtype": "object{level(위급",
@@ -5814,8 +5814,8 @@
      "requirements": "UFR-003-001-01~03"
     },
     {
-     "reqId": "DQ-094-03",
-     "groupId": "DQ-094",
+     "reqId": "DQ-05-011-03",
+     "groupId": "DQ-05-011",
      "key": "message_created_at",
      "label": "생성일시",
      "dtype": "datetime",
@@ -5830,8 +5830,8 @@
      "requirements": "UFR-003-001-01~03"
     },
     {
-     "reqId": "DQ-094-04",
-     "groupId": "DQ-094",
+     "reqId": "DQ-05-011-04",
+     "groupId": "DQ-05-011",
      "key": "sending_agency",
      "label": "발송기관",
      "dtype": "string",
@@ -5850,14 +5850,14 @@
   {
    "type": "disaster_ledger",
    "label": "재해대장/피해·복구(피해시설 단위)",
-   "dp": "DP-11",
+   "dp": "GR-05",
    "sourceLabel": "피해·복구",
    "source": "SRC-035·040~044·056~063 재해대장(복구/응급복구/피해산출)·복구확정 피해내역·풍수해보험금",
    "fieldCount": 4,
    "fields": [
     {
-     "reqId": "DQ-095-01",
-     "groupId": "DQ-095",
+     "reqId": "DQ-05-012-01",
+     "groupId": "DQ-05-012",
      "key": "damage_overview_quantity",
      "label": "피해개요·피해물량",
      "dtype": "object{summary,quantity{value,unit}}",
@@ -5878,8 +5878,8 @@
      "requirements": "UFR-003-001-01"
     },
     {
-     "reqId": "DQ-096-01",
-     "groupId": "DQ-096",
+     "reqId": "DQ-05-013-01",
+     "groupId": "DQ-05-013",
      "key": "damage_amount",
      "label": "피해금액",
      "dtype": "object{amount_krw_thousand,category(공공",
@@ -5894,8 +5894,8 @@
      "requirements": "UFR-003-001-01"
     },
     {
-     "reqId": "DQ-096-02",
-     "groupId": "DQ-096",
+     "reqId": "DQ-05-013-02",
+     "groupId": "DQ-05-013",
      "key": "recovery_type_progress",
      "label": "복구유형·공정률",
      "dtype": "object{type(원상복구",
@@ -5910,8 +5910,8 @@
      "requirements": "UFR-003-001-01"
     },
     {
-     "reqId": "DQ-096-03",
-     "groupId": "DQ-096",
+     "reqId": "DQ-05-013-03",
+     "groupId": "DQ-05-013",
      "key": "disaster_insurance_payout",
      "label": "풍수해보험금",
      "dtype": "object{claims,amount_krw_thousand,basis} (지역·유형별 집계, 비식별)",
@@ -5934,14 +5934,14 @@
   {
    "type": "civil_report_history",
    "label": "민원·안전신고 처리이력",
-   "dp": "DP-11",
+   "dp": "GR-05",
    "sourceLabel": "신고·처리 이력",
    "source": "20260930 원시데이터목록: 민원·안전신고(소방 신고와 구분)",
    "fieldCount": 5,
    "fields": [
     {
-     "reqId": "DQ-097-01",
-     "groupId": "DQ-097",
+     "reqId": "DQ-05-014-01",
+     "groupId": "DQ-05-014",
      "key": "report_location",
      "label": "신고장소",
      "dtype": "object{address,coordinates}",
@@ -5958,8 +5958,8 @@
      "requirements": "UFR-003-001-01"
     },
     {
-     "reqId": "DQ-097-02",
-     "groupId": "DQ-097",
+     "reqId": "DQ-05-014-02",
+     "groupId": "DQ-05-014",
      "key": "report_type_content",
      "label": "신고유형·신고내용",
      "dtype": "object{type(침수",
@@ -5974,8 +5974,8 @@
      "requirements": "UFR-003-001-01"
     },
     {
-     "reqId": "DQ-097-03",
-     "groupId": "DQ-097",
+     "reqId": "DQ-05-014-03",
+     "groupId": "DQ-05-014",
      "key": "handling_status",
      "label": "처리내용·상태",
      "dtype": "object{action,status(접수",
@@ -5990,8 +5990,8 @@
      "requirements": "UFR-003-001-01"
     },
     {
-     "reqId": "DQ-097-04",
-     "groupId": "DQ-097",
+     "reqId": "DQ-05-014-04",
+     "groupId": "DQ-05-014",
      "key": "before_after_photos",
      "label": "전·후 사진",
      "dtype": "array<object{asset_id,phase(전",
@@ -6006,8 +6006,8 @@
      "requirements": "UFR-003-001-01"
     },
     {
-     "reqId": "DQ-097-05",
-     "groupId": "DQ-097",
+     "reqId": "DQ-05-014-05",
+     "groupId": "DQ-05-014",
      "key": "repeat_report_count",
      "label": "반복 신고건수",
      "dtype": "integer",
@@ -6026,14 +6026,14 @@
   {
    "type": "event_observations",
    "label": "과거 사건 당시 기상·수문 관측",
-   "dp": "DP-11",
+   "dp": "GR-05",
    "sourceLabel": "과거 사건 기상·수문",
    "source": "20260930 원시데이터목록: 06. 기상수문환경 (기상청·홍수통제소·댐 등)",
    "fieldCount": 3,
    "fields": [
     {
-     "reqId": "DQ-115-01",
-     "groupId": "DQ-115",
+     "reqId": "DQ-05-015-01",
+     "groupId": "DQ-05-015",
      "key": "observation_point_time_source",
      "label": "관측지점·자료시각·원천",
      "dtype": "object{station{code,name,agency},period{from,to},source}",
@@ -6058,8 +6058,8 @@
      "requirements": "UFR-003-001-01~03"
     },
     {
-     "reqId": "DQ-115-02",
-     "groupId": "DQ-115",
+     "reqId": "DQ-05-015-02",
+     "groupId": "DQ-05-015",
      "key": "rain_wind_humidity",
      "label": "시간/누적 강우·풍속·습도",
      "dtype": "object{max_1h,max_3h,max_12h,max_24h,max_1h_at,wind_ms,humidity_pct,unit,calculation_basis}",
@@ -6080,8 +6080,8 @@
      "requirements": "UFR-003-001-01~03"
     },
     {
-     "reqId": "DQ-115-03",
-     "groupId": "DQ-115",
+     "reqId": "DQ-05-015-03",
+     "groupId": "DQ-05-015",
      "key": "water_level_flow_dam",
      "label": "수위·유량·댐수위·방류량",
      "dtype": "object{station{code,name},max_level_m,max_level_at,flow_cms,dam_level_m,discharge_cms}",
@@ -6107,14 +6107,14 @@
   {
    "type": "shelter_evacuation",
    "label": "대피시설·대피/행동절차",
-   "dp": "DP-12",
+   "dp": "GR-17·18",
    "sourceLabel": "대피·행동절차",
    "source": "SRC-141·143·146~151 통합대피소·민방위대피소·수용시설·임시주거시설 · 위기관리/풍수해 매뉴얼",
    "fieldCount": 16,
    "fields": [
     {
-     "reqId": "DQ-048-01",
-     "groupId": "DQ-048",
+     "reqId": "DQ-17-001-01",
+     "groupId": "DQ-17-001",
      "key": "shelter_name_type",
      "label": "시설명·유형",
      "dtype": "object{name,type}",
@@ -6132,8 +6132,8 @@
      "requirements": "UFR-003-001-03"
     },
     {
-     "reqId": "DQ-048-02",
-     "groupId": "DQ-048",
+     "reqId": "DQ-17-001-02",
+     "groupId": "DQ-17-001",
      "key": "shelter_address_coord",
      "label": "주소·좌표",
      "dtype": "object{address,admin_code,spatial_object_id}",
@@ -6152,8 +6152,8 @@
      "requirements": "UFR-003-001-03"
     },
     {
-     "reqId": "DQ-048-03",
-     "groupId": "DQ-048",
+     "reqId": "DQ-17-001-03",
+     "groupId": "DQ-17-001",
      "key": "shelter_capacity",
      "label": "수용가능 인원",
      "dtype": "object{persons,as_of}",
@@ -6171,8 +6171,8 @@
      "requirements": "UFR-003-001-03"
     },
     {
-     "reqId": "DQ-048-04",
-     "groupId": "DQ-048",
+     "reqId": "DQ-17-001-04",
+     "groupId": "DQ-17-001",
      "key": "shelter_operation_status_as_of",
      "label": "자료 기준 운영상태",
      "dtype": "object{status_raw,as_of} (현재 개방 여부 아님)",
@@ -6190,8 +6190,8 @@
      "requirements": "UFR-003-001-03"
     },
     {
-     "reqId": "DQ-048-05",
-     "groupId": "DQ-048",
+     "reqId": "DQ-17-001-05",
+     "groupId": "DQ-17-001",
      "key": "accessibility_support",
      "label": "접근성·취약계층 지원",
      "dtype": "object{wheelchair_access,assistive_facilities}",
@@ -6209,8 +6209,8 @@
      "requirements": "UFR-003-001-03"
     },
     {
-     "reqId": "DQ-048-06",
-     "groupId": "DQ-048",
+     "reqId": "DQ-17-001-06",
+     "groupId": "DQ-17-001",
      "key": "shelter_contact_agency",
      "label": "연락처·관리기관",
      "dtype": "object{agency,department,phone}",
@@ -6229,8 +6229,8 @@
      "requirements": "UFR-003-001-03"
     },
     {
-     "reqId": "DQ-049-01",
-     "groupId": "DQ-049",
+     "reqId": "DQ-17-002-01",
+     "groupId": "DQ-17-002",
      "key": "evacuation_targets",
      "label": "대피대상·대피인원",
      "dtype": "object{households,persons,vulnerable_groups}",
@@ -6249,8 +6249,8 @@
      "requirements": "UFR-003-001-03"
     },
     {
-     "reqId": "DQ-049-02",
-     "groupId": "DQ-049",
+     "reqId": "DQ-17-002-02",
+     "groupId": "DQ-17-002",
      "key": "evacuation_route_control",
      "label": "대피경로·통제구간",
      "dtype": "object{route,control_sections[],notes}",
@@ -6270,8 +6270,8 @@
      "requirements": "UFR-003-001-03"
     },
     {
-     "reqId": "DQ-049-03",
-     "groupId": "DQ-049",
+     "reqId": "DQ-17-002-03",
+     "groupId": "DQ-17-002",
      "key": "disaster_crisis_stage",
      "label": "재난유형·위기단계",
      "dtype": "object{disaster_type,crisis_level,process_phase,duty_stage} (별도 필드)",
@@ -6291,8 +6291,8 @@
      "requirements": "UFR-006-002-01"
     },
     {
-     "reqId": "DQ-049-04",
-     "groupId": "DQ-049",
+     "reqId": "DQ-17-002-04",
+     "groupId": "DQ-17-002",
      "key": "trigger_criteria",
      "label": "판단기준·발동조건",
      "dtype": "array<object{text_raw,metric,operator,value,unit}>",
@@ -6315,11 +6315,11 @@
      "requirements": "UFR-006-002-01"
     },
     {
-     "reqId": "DQ-049-05",
-     "groupId": "DQ-049",
+     "reqId": "DQ-17-002-05",
+     "groupId": "DQ-17-002",
      "key": "stage_procedures",
      "label": "단계별 행동절차",
-     "dtype": "array<object{task_id,phase_id,title}> (DQ-147~155 연결)",
+     "dtype": "array<object{task_id,phase_id,title}> (DQ-18-001~009 연결)",
      "example": [
       {
        "task_id": "(업무 ID)",
@@ -6331,14 +6331,14 @@
      "t3qStatus": "미회신(회신대기)",
      "assumedProvided": true,
      "requestBasis": "원천값 요청",
-     "note": "예찰·통제·대피·구호·복구 절차를 단계별 업무 엔터티 배열로 제공. 업무 ID·원문번호·담당/협조/보고 관계·조건·근거 위치를 DQ-147~155의 구조화 항목으로 연결. 목록 순서만으로 선후관계를 추정하지 않음",
+     "note": "예찰·통제·대피·구호·복구 절차를 단계별 업무 엔터티 배열로 제공. 업무 ID·원문번호·담당/협조/보고 관계·조건·근거 위치를 DQ-18-001~009의 구조화 항목으로 연결. 목록 순서만으로 선후관계를 추정하지 않음",
      "linkKey": "시설/매뉴얼 ID + 사건/위기단계 연결",
      "legacyApiRef": "OB-03",
      "requirements": "UFR-006-002-01"
     },
     {
-     "reqId": "DQ-049-06",
-     "groupId": "DQ-049",
+     "reqId": "DQ-17-002-06",
+     "groupId": "DQ-17-002",
      "key": "responsible_agencies",
      "label": "담당기관·부서",
      "dtype": "array<object{agency,role}>",
@@ -6358,8 +6358,8 @@
      "requirements": "UFR-006-002-01"
     },
     {
-     "reqId": "DQ-050-01",
-     "groupId": "DQ-050",
+     "reqId": "DQ-17-003-01",
+     "groupId": "DQ-17-003",
      "key": "resources_as_of",
      "label": "자료 기준 인력·장비",
      "dtype": "array<object{type,quantity,unit,as_of}> (현재 가용상태 아님)",
@@ -6381,8 +6381,8 @@
      "requirements": "UFR-006-002-01"
     },
     {
-     "reqId": "DQ-050-02",
-     "groupId": "DQ-050",
+     "reqId": "DQ-17-003-02",
+     "groupId": "DQ-17-003",
      "key": "contact_system",
      "label": "연락체계",
      "dtype": "array<object{agency,channel}> (개인정보 보호)",
@@ -6402,8 +6402,8 @@
      "requirements": "UFR-006-002-01"
     },
     {
-     "reqId": "DQ-051-01",
-     "groupId": "DQ-051",
+     "reqId": "DQ-17-004-01",
+     "groupId": "DQ-17-004",
      "key": "manual_citation",
      "label": "매뉴얼명·버전·페이지",
      "dtype": "object{manual_name,document_id,region,owner,version,doc_date,pdf_page,printed_page,chapter,table,row_col,quote,verification}",
@@ -6423,8 +6423,8 @@
      "requirements": "UFR-006-002-01"
     },
     {
-     "reqId": "DQ-051-02",
-     "groupId": "DQ-051",
+     "reqId": "DQ-17-004-02",
+     "groupId": "DQ-17-004",
      "key": "action_vs_recommendation",
      "label": "실제조치/권고 구분",
      "dtype": "enum (ACTUAL",
@@ -6443,14 +6443,14 @@
   {
    "type": "response_manual_process",
    "label": "풍수해 현장조치 행동매뉴얼 대응 프로세스",
-   "dp": "DP-12",
+   "dp": "GR-17·18",
    "sourceLabel": "대피·풍수해 대응 매뉴얼",
    "source": "(부산) 풍수해 재난 현장조치 행동매뉴얼(26.7.6.) PDF28~29·39·40~44·266~282",
    "fieldCount": 23,
    "fields": [
     {
-     "reqId": "DQ-147-01",
-     "groupId": "DQ-147",
+     "reqId": "DQ-18-001-01",
+     "groupId": "DQ-18-001",
      "key": "manual",
      "label": "매뉴얼 식별·지역·버전",
      "dtype": "object{id,title,disaster_types,jurisdiction,owner,version,table_as_of,verification_status}",
@@ -6470,8 +6470,8 @@
      "requirements": "UFR-006-001-08 / 기존 단계별 행동절차·매뉴얼 상세조회 보완"
     },
     {
-     "reqId": "DQ-147-02",
-     "groupId": "DQ-147",
+     "reqId": "DQ-18-001-02",
+     "groupId": "DQ-18-001",
      "key": "process",
      "label": "프로세스 식별·원천 표",
      "dtype": "object{id,name,source_table_id,manual_id}",
@@ -6490,8 +6490,8 @@
      "requirements": "UFR-006-001-08 / 기존 단계별 행동절차·매뉴얼 상세조회 보완"
     },
     {
-     "reqId": "DQ-148-01",
-     "groupId": "DQ-148",
+     "reqId": "DQ-18-002-01",
+     "groupId": "DQ-18-002",
      "key": "phases",
      "label": "단계 ID·순서·명칭",
      "dtype": "array<object{id,order,name,objectives,entry_condition,exit_condition}>",
@@ -6523,8 +6523,8 @@
      "requirements": "UFR-006-001-08 / 기존 단계별 행동절차·매뉴얼 상세조회 보완"
     },
     {
-     "reqId": "DQ-148-02",
-     "groupId": "DQ-148",
+     "reqId": "DQ-18-002-02",
+     "groupId": "DQ-18-002",
      "key": "crisis_levels_duty_stages",
      "label": "위기수준·비상근무 단계의 별도 대응",
      "dtype": "object{phase_crisis_levels[{phase_id,levels[]}],duty_rules[{alert,duty_stage}]}",
@@ -6554,8 +6554,8 @@
      "requirements": "UFR-006-001-08 / 기존 단계별 행동절차·매뉴얼 상세조회 보완"
     },
     {
-     "reqId": "DQ-149-01",
-     "groupId": "DQ-149",
+     "reqId": "DQ-18-003-01",
+     "groupId": "DQ-18-003",
      "key": "task_ids",
      "label": "업무 ID·원문번호·소속 단계",
      "dtype": "array<object{id,source_number,phase_id,source_table_id,actor_row,parent_id}>",
@@ -6576,8 +6576,8 @@
      "requirements": "UFR-006-001-08 / 기존 단계별 행동절차·매뉴얼 상세조회 보완"
     },
     {
-     "reqId": "DQ-149-02",
-     "groupId": "DQ-149",
+     "reqId": "DQ-18-003-02",
+     "groupId": "DQ-18-003",
      "key": "task_content",
      "label": "업무명·행동내용·대상·장소",
      "dtype": "array<object{task_id,title,action_type,action_text,targets,locations}>",
@@ -6597,8 +6597,8 @@
      "requirements": "UFR-006-001-08 / 기존 단계별 행동절차·매뉴얼 상세조회 보완"
     },
     {
-     "reqId": "DQ-149-03",
-     "groupId": "DQ-149",
+     "reqId": "DQ-18-003-03",
+     "groupId": "DQ-18-003",
      "key": "task_hierarchy",
      "label": "하위업무·원문 표시 순서",
      "dtype": "array<object{task_id,parent_id,child_ids[],display_order}>",
@@ -6619,8 +6619,8 @@
      "requirements": "UFR-006-001-08 / 기존 단계별 행동절차·매뉴얼 상세조회 보완"
     },
     {
-     "reqId": "DQ-150-01",
-     "groupId": "DQ-150",
+     "reqId": "DQ-18-005-01",
+     "groupId": "DQ-18-005",
      "key": "task_roles",
      "label": "주관부서·실행기관·결정권자",
      "dtype": "array<object{task_id,actor_id,actor_name,actor_type,role(주관",
@@ -6635,8 +6635,8 @@
      "requirements": "UFR-006-001-08 / 기존 단계별 행동절차·매뉴얼 상세조회 보완"
     },
     {
-     "reqId": "DQ-150-02",
-     "groupId": "DQ-150",
+     "reqId": "DQ-18-005-02",
+     "groupId": "DQ-18-005",
      "key": "collaboration_functions",
      "label": "협업기능·지원기관·협조 업무",
      "dtype": "array<object{function_id,name,lead_dept,support_agencies[],task_ids[]}>",
@@ -6656,8 +6656,8 @@
      "requirements": "UFR-006-001-08 / 기존 단계별 행동절차·매뉴얼 상세조회 보완"
     },
     {
-     "reqId": "DQ-150-03",
-     "groupId": "DQ-150",
+     "reqId": "DQ-18-005-03",
+     "groupId": "DQ-18-005",
      "key": "task_relations",
      "label": "보고·지시·요청·수신 관계",
      "dtype": "array<object{id,type(REPORT_TO",
@@ -6672,8 +6672,8 @@
      "requirements": "UFR-006-001-08 / 기존 단계별 행동절차·매뉴얼 상세조회 보완"
     },
     {
-     "reqId": "DQ-151-01",
-     "groupId": "DQ-151",
+     "reqId": "DQ-18-004-01",
+     "groupId": "DQ-18-004",
      "key": "conditions_raw",
      "label": "조건 원문·판단 입력값",
      "dtype": "array<object{id,text_raw,input_refs,evidence_refs}>",
@@ -6695,8 +6695,8 @@
      "requirements": "UFR-006-001-08 / 기존 단계별 행동절차·매뉴얼 상세조회 보완"
     },
     {
-     "reqId": "DQ-151-02",
-     "groupId": "DQ-151",
+     "reqId": "DQ-18-004-02",
+     "groupId": "DQ-18-004",
      "key": "conditions_parsed",
      "label": "수치조건·단위·논리·예외",
      "dtype": "array<object{metric,operator,value,unit,logic,exceptions,parse_status}>",
@@ -6719,8 +6719,8 @@
      "requirements": "UFR-006-001-08 / 기존 단계별 행동절차·매뉴얼 상세조회 보완"
     },
     {
-     "reqId": "DQ-151-03",
-     "groupId": "DQ-151",
+     "reqId": "DQ-18-004-03",
+     "groupId": "DQ-18-004",
      "key": "decision_rules",
      "label": "상황판단회의·승인·대체 보고",
      "dtype": "array<object{trigger,chair,attendees,location,method,substitute,exception,evidence}>",
@@ -6741,8 +6741,8 @@
      "requirements": "UFR-006-001-08 / 기존 단계별 행동절차·매뉴얼 상세조회 보완"
     },
     {
-     "reqId": "DQ-152-01",
-     "groupId": "DQ-152",
+     "reqId": "DQ-18-006-01",
+     "groupId": "DQ-18-006",
      "key": "task_links",
      "label": "선행·후속·동시·조건부 업무 관계",
      "dtype": "array<object{from_task_id,to_task_id,relation(before",
@@ -6757,8 +6757,8 @@
      "requirements": "UFR-006-001-08 / 기존 단계별 행동절차·매뉴얼 상세조회 보완"
     },
     {
-     "reqId": "DQ-152-02",
-     "groupId": "DQ-152",
+     "reqId": "DQ-18-006-02",
+     "groupId": "DQ-18-006",
      "key": "task_io_timing",
      "label": "업무별 입력·산출물·수행시점",
      "dtype": "array<object{task_id,required_inputs[],outputs[],timing_raw}>",
@@ -6783,8 +6783,8 @@
      "requirements": "UFR-006-001-08 / 기존 단계별 행동절차·매뉴얼 상세조회 보완"
     },
     {
-     "reqId": "DQ-153-01",
-     "groupId": "DQ-153",
+     "reqId": "DQ-18-007-01",
+     "groupId": "DQ-18-007",
      "key": "evacuation_control_targets",
      "label": "대피·통제 업무와 대상 연결",
      "dtype": "array<object{task_id,target_type,target_id,target_name,route,shelter,notes,unlinked_reason}>",
@@ -6805,8 +6805,8 @@
      "requirements": "UFR-006-001-08 / 기존 단계별 행동절차·매뉴얼 상세조회 보완"
     },
     {
-     "reqId": "DQ-153-02",
-     "groupId": "DQ-153",
+     "reqId": "DQ-18-007-02",
+     "groupId": "DQ-18-007",
      "key": "resource_requirements",
      "label": "인력·장비·물자·시설의 원문 요구",
      "dtype": "array<object{task_id,resource,quantity,unit}> (원문 요구량)",
@@ -6827,8 +6827,8 @@
      "requirements": "UFR-006-001-08 / 기존 단계별 행동절차·매뉴얼 상세조회 보완"
     },
     {
-     "reqId": "DQ-154-01",
-     "groupId": "DQ-154",
+     "reqId": "DQ-18-008-01",
+     "groupId": "DQ-18-008",
      "key": "evidence_locations",
      "label": "업무·조건·관계별 원문 근거",
      "dtype": "array<object{id,manual_id,pdf_page,printed_page,section,table_id,row,col,source_number,quote,access_ref}>",
@@ -6849,8 +6849,8 @@
      "requirements": "UFR-006-001-08 / 기존 단계별 행동절차·매뉴얼 상세조회 보완"
     },
     {
-     "reqId": "DQ-154-02",
-     "groupId": "DQ-154",
+     "reqId": "DQ-18-008-02",
+     "groupId": "DQ-18-008",
      "key": "extraction_quality",
      "label": "미기재·미구축·추출실패·불일치 상태",
      "dtype": "object{status(미기재",
@@ -6865,8 +6865,8 @@
      "requirements": "UFR-006-001-08 / 기존 단계별 행동절차·매뉴얼 상세조회 보완"
     },
     {
-     "reqId": "DQ-154-03",
-     "groupId": "DQ-154",
+     "reqId": "DQ-18-008-03",
+     "groupId": "DQ-18-008",
      "key": "instruction_kind",
      "label": "매뉴얼 지시·Agent 권고·실제 조치 구분",
      "dtype": "enum (normative",
@@ -6881,8 +6881,8 @@
      "requirements": "UFR-006-001-08 / 기존 단계별 행동절차·매뉴얼 상세조회 보완"
     },
     {
-     "reqId": "DQ-155-01",
-     "groupId": "DQ-155",
+     "reqId": "DQ-18-009-01",
+     "groupId": "DQ-18-009",
      "key": "procedure_entities",
      "label": "대화 엔터티→프로세스 상세조회 연결",
      "dtype": "array<object{type(process",
@@ -6897,8 +6897,8 @@
      "requirements": "UFR-006-001-08 / 기존 단계별 행동절차·매뉴얼 상세조회 보완"
     },
     {
-     "reqId": "DQ-155-02",
-     "groupId": "DQ-155",
+     "reqId": "DQ-18-009-02",
+     "groupId": "DQ-18-009",
      "key": "condition_selection",
      "label": "조회 조건과 조건 충족 판단",
      "dtype": "object{context,task_ids[],condition_results[{task_id,result(applicable",
@@ -6913,8 +6913,8 @@
      "requirements": "UFR-006-001-08 / 기존 단계별 행동절차·매뉴얼 상세조회 보완"
     },
     {
-     "reqId": "DQ-155-03",
-     "groupId": "DQ-155",
+     "reqId": "DQ-18-009-03",
+     "groupId": "DQ-18-009",
      "key": "procedure_detail_response",
      "label": "프로세스·업무 배열·출처 응답 구조",
      "dtype": "object{manual,process,phases,tasks,actors,conditions,task_relations,task_links,evidence,quality}",
@@ -6939,14 +6939,14 @@
   {
    "type": "evidence_document",
    "label": "근거문서·원문(Passage)",
-   "dp": "DP-13",
+   "dp": "GR-06",
    "sourceLabel": "근거문서",
    "source": "재난메타 v0.96 · 계획·보고·매뉴얼 원문(정형화 MD, 페이지/표 주석)",
    "fieldCount": 14,
    "fields": [
     {
-     "reqId": "DQ-052-01",
-     "groupId": "DQ-052",
+     "reqId": "DQ-06-001-01",
+     "groupId": "DQ-06-001",
      "key": "document_title",
      "label": "문서명",
      "dtype": "string",
@@ -6961,8 +6961,8 @@
      "requirements": "UFR-005-001-01"
     },
     {
-     "reqId": "DQ-052-02",
-     "groupId": "DQ-052",
+     "reqId": "DQ-06-001-02",
+     "groupId": "DQ-06-001",
      "key": "document_type",
      "label": "문서유형",
      "dtype": "enum (계획",
@@ -6977,8 +6977,8 @@
      "requirements": "UFR-005-001-01"
     },
     {
-     "reqId": "DQ-052-03",
-     "groupId": "DQ-052",
+     "reqId": "DQ-06-001-03",
+     "groupId": "DQ-06-001",
      "key": "publisher_date",
      "label": "발행기관·작성일",
      "dtype": "object{agency,published_at}",
@@ -6996,8 +6996,8 @@
      "requirements": "UFR-005-001-01"
     },
     {
-     "reqId": "DQ-052-04",
-     "groupId": "DQ-052",
+     "reqId": "DQ-06-001-04",
+     "groupId": "DQ-06-001",
      "key": "version_seq",
      "label": "버전·차수",
      "dtype": "string",
@@ -7012,8 +7012,8 @@
      "requirements": "UFR-005-001-01"
     },
     {
-     "reqId": "DQ-053-01",
-     "groupId": "DQ-053",
+     "reqId": "DQ-06-002-01",
+     "groupId": "DQ-06-002",
      "key": "citation_location",
      "label": "인용 페이지·표·문단",
      "dtype": "object{page,table,paragraph}",
@@ -7031,8 +7031,8 @@
      "requirements": "UFR-005-001-01"
     },
     {
-     "reqId": "DQ-053-02",
-     "groupId": "DQ-053",
+     "reqId": "DQ-06-002-02",
+     "groupId": "DQ-06-002",
      "key": "passage",
      "label": "Passage·발췌",
      "dtype": "string",
@@ -7047,8 +7047,8 @@
      "requirements": "UFR-005-001-01"
     },
     {
-     "reqId": "DQ-053-03",
-     "groupId": "DQ-053",
+     "reqId": "DQ-06-002-03",
+     "groupId": "DQ-06-002",
      "key": "quote_type",
      "label": "요약/직접인용 구분",
      "dtype": "enum (DIRECT_QUOTE",
@@ -7063,8 +7063,8 @@
      "requirements": "UFR-005-001-01"
     },
     {
-     "reqId": "DQ-054-01",
-     "groupId": "DQ-054",
+     "reqId": "DQ-06-003-01",
+     "groupId": "DQ-06-003",
      "key": "related_objects",
      "label": "관련 사건·객체",
      "dtype": "array<object{entity_type,entity_id,relation_type}>",
@@ -7084,8 +7084,8 @@
      "requirements": "UFR-005-001-01"
     },
     {
-     "reqId": "DQ-054-02",
-     "groupId": "DQ-054",
+     "reqId": "DQ-06-003-02",
+     "groupId": "DQ-06-003",
      "key": "document_passage_ids",
      "label": "문서ID·Passage ID",
      "dtype": "object{document_id,passage_id}",
@@ -7103,8 +7103,8 @@
      "requirements": "UFR-005-001-01"
     },
     {
-     "reqId": "DQ-054-03",
-     "groupId": "DQ-054",
+     "reqId": "DQ-06-003-03",
+     "groupId": "DQ-06-003",
      "key": "source_path_collected_on",
      "label": "원천 경로·수집일",
      "dtype": "object{source_path(내부 메타, 직접경로 비노출),collected_on}",
@@ -7121,8 +7121,8 @@
      "requirements": "UFR-005-001-01"
     },
     {
-     "reqId": "DQ-054-04",
-     "groupId": "DQ-054",
+     "reqId": "DQ-06-003-04",
+     "groupId": "DQ-06-003",
      "key": "processing_history",
      "label": "수정·처리 이력",
      "dtype": "array<object{step,process,tool,version,processed_at}>",
@@ -7143,8 +7143,8 @@
      "requirements": "UFR-005-001-01"
     },
     {
-     "reqId": "DQ-055-01",
-     "groupId": "DQ-055",
+     "reqId": "DQ-06-004-01",
+     "groupId": "DQ-06-004",
      "key": "ocr_quality_status",
      "label": "추출·OCR 품질상태",
      "dtype": "enum (VERIFIED",
@@ -7159,8 +7159,8 @@
      "requirements": "UFR-005-001-01"
     },
     {
-     "reqId": "DQ-056-01",
-     "groupId": "DQ-056",
+     "reqId": "DQ-06-005-01",
+     "groupId": "DQ-06-005",
      "key": "disclosure_level",
      "label": "공개등급",
      "dtype": "enum (공개",
@@ -7175,8 +7175,8 @@
      "requirements": "UFR-005-001-01"
     },
     {
-     "reqId": "DQ-056-02",
-     "groupId": "DQ-056",
+     "reqId": "DQ-06-005-02",
+     "groupId": "DQ-06-005",
      "key": "original_access",
      "label": "원문 열람·다운로드 제공정보",
      "dtype": "object{download_allowed,file_ref,format,access_url,expires_at}",
@@ -7199,14 +7199,14 @@
   {
    "type": "satellite_imagery",
    "label": "위성영상(재난 전·중·후)",
-   "dp": "DP-14",
+   "dp": "GR-07",
    "sourceLabel": "재난 전·후 위성영상",
    "source": "SRC-234~239 Sentinel-1(SAR)/Sentinel-2(광학) PRE·EVENT·POST (구축: 쓰리디랩스)",
    "fieldCount": 13,
    "fields": [
     {
-     "reqId": "DQ-057-01",
-     "groupId": "DQ-057",
+     "reqId": "DQ-07-001-01",
+     "groupId": "DQ-07-001",
      "key": "related_event",
      "label": "관련 사건",
      "dtype": "object{event_master_id,disaster_type}",
@@ -7224,8 +7224,8 @@
      "requirements": "UFR-005-002-01"
     },
     {
-     "reqId": "DQ-057-02",
-     "groupId": "DQ-057",
+     "reqId": "DQ-07-001-02",
+     "groupId": "DQ-07-001",
      "key": "image_id_format_access",
      "label": "영상 식별자·형식·접근정보",
      "dtype": "object{image_id,format(래스터",
@@ -7240,8 +7240,8 @@
      "requirements": "UFR-005-002-01"
     },
     {
-     "reqId": "DQ-058-01",
-     "groupId": "DQ-058",
+     "reqId": "DQ-07-002-01",
+     "groupId": "DQ-07-002",
      "key": "image_phase",
      "label": "재난 전·중·후 구분",
      "dtype": "enum (PRE",
@@ -7256,8 +7256,8 @@
      "requirements": "UFR-005-002-01"
     },
     {
-     "reqId": "DQ-058-02",
-     "groupId": "DQ-058",
+     "reqId": "DQ-07-002-02",
+     "groupId": "DQ-07-002",
      "key": "acquisition_time",
      "label": "촬영일시 또는 촬영기간",
      "dtype": "object{acquired_at",
@@ -7272,8 +7272,8 @@
      "requirements": "UFR-005-002-01"
     },
     {
-     "reqId": "DQ-058-03",
-     "groupId": "DQ-058",
+     "reqId": "DQ-07-002-03",
+     "groupId": "DQ-07-002",
      "key": "satellite_sensor",
      "label": "위성·센서",
      "dtype": "object{platform,sensor}",
@@ -7291,8 +7291,8 @@
      "requirements": "UFR-005-002-01"
     },
     {
-     "reqId": "DQ-058-04",
-     "groupId": "DQ-058",
+     "reqId": "DQ-07-002-04",
+     "groupId": "DQ-07-002",
      "key": "product_type",
      "label": "제품유형",
      "dtype": "enum (광학",
@@ -7307,8 +7307,8 @@
      "requirements": "UFR-005-002-01"
     },
     {
-     "reqId": "DQ-058-05",
-     "groupId": "DQ-058",
+     "reqId": "DQ-07-002-05",
+     "groupId": "DQ-07-002",
      "key": "spatial_resolution_m",
      "label": "공간해상도",
      "dtype": "number (m/pixel)",
@@ -7323,8 +7323,8 @@
      "requirements": "UFR-005-002-01"
     },
     {
-     "reqId": "DQ-059-01",
-     "groupId": "DQ-059",
+     "reqId": "DQ-07-003-01",
+     "groupId": "DQ-07-003",
      "key": "footprint",
      "label": "촬영위치·범위",
      "dtype": "object{geometry",
@@ -7339,8 +7339,8 @@
      "requirements": "UFR-005-002-01"
     },
     {
-     "reqId": "DQ-059-02",
-     "groupId": "DQ-059",
+     "reqId": "DQ-07-003-02",
+     "groupId": "DQ-07-003",
      "key": "crs",
      "label": "좌표계",
      "dtype": "string",
@@ -7355,8 +7355,8 @@
      "requirements": "UFR-005-002-01"
     },
     {
-     "reqId": "DQ-060-01",
-     "groupId": "DQ-060",
+     "reqId": "DQ-07-004-01",
+     "groupId": "DQ-07-004",
      "key": "preprocessing_status",
      "label": "전처리 상태",
      "dtype": "string",
@@ -7371,8 +7371,8 @@
      "requirements": "UFR-005-002-01"
     },
     {
-     "reqId": "DQ-061-01",
-     "groupId": "DQ-061",
+     "reqId": "DQ-07-005-01",
+     "groupId": "DQ-07-005",
      "key": "labels_detections",
      "label": "라벨·탐지결과",
      "dtype": "object{label(홍수",
@@ -7387,8 +7387,8 @@
      "requirements": "UFR-005-002-01"
     },
     {
-     "reqId": "DQ-062-01",
-     "groupId": "DQ-062",
+     "reqId": "DQ-07-006-01",
+     "groupId": "DQ-07-006",
      "key": "comparability",
      "label": "비교 가능여부",
      "dtype": "object{comparable,reason}",
@@ -7406,8 +7406,8 @@
      "requirements": "UFR-005-002-01"
     },
     {
-     "reqId": "DQ-063-01",
-     "groupId": "DQ-063",
+     "reqId": "DQ-07-007-01",
+     "groupId": "DQ-07-007",
      "key": "availability_reason",
      "label": "보유·미보유 사유",
      "dtype": "object{available,reason}",
@@ -7429,14 +7429,14 @@
   {
    "type": "flood_trace",
    "label": "침수흔적도(과거 침수기록)",
-   "dp": "DP-15",
+   "dp": "GR-09",
    "sourceLabel": "과거 침수기록",
    "source": "SRC-069~073 침수흔적도(tb_indtmp)·심선·위선·보고서",
    "fieldCount": 9,
    "fields": [
     {
-     "reqId": "DQ-064-01",
-     "groupId": "DQ-064",
+     "reqId": "DQ-09-001-01",
+     "groupId": "DQ-09-001",
      "key": "flood_district_name",
      "label": "침수지구명",
      "dtype": "string",
@@ -7451,8 +7451,8 @@
      "requirements": "UFR-003-001-03, UFR-004-002-01"
     },
     {
-     "reqId": "DQ-064-02",
-     "groupId": "DQ-064",
+     "reqId": "DQ-09-001-02",
+     "groupId": "DQ-09-001",
      "key": "flood_boundary",
      "label": "침수경계",
      "dtype": "object{geometry_type,spatial_object_id}",
@@ -7470,8 +7470,8 @@
      "requirements": "UFR-003-001-03, UFR-004-002-01"
     },
     {
-     "reqId": "DQ-065-01",
-     "groupId": "DQ-065",
+     "reqId": "DQ-09-002-01",
+     "groupId": "DQ-09-002",
      "key": "flood_grade",
      "label": "침수등급",
      "dtype": "string",
@@ -7486,8 +7486,8 @@
      "requirements": "UFR-003-001-03, UFR-004-002-01"
     },
     {
-     "reqId": "DQ-065-02",
-     "groupId": "DQ-065",
+     "reqId": "DQ-09-002-02",
+     "groupId": "DQ-09-002",
      "key": "flood_depth_m",
      "label": "침수심",
      "dtype": "number (m)",
@@ -7502,8 +7502,8 @@
      "requirements": "UFR-003-001-03, UFR-004-002-01"
     },
     {
-     "reqId": "DQ-065-03",
-     "groupId": "DQ-065",
+     "reqId": "DQ-09-002-03",
+     "groupId": "DQ-09-002",
      "key": "flood_area_m2",
      "label": "침수면적",
      "dtype": "number (㎡)",
@@ -7518,8 +7518,8 @@
      "requirements": "UFR-003-001-03, UFR-004-002-01"
     },
     {
-     "reqId": "DQ-065-04",
-     "groupId": "DQ-065",
+     "reqId": "DQ-09-002-04",
+     "groupId": "DQ-09-002",
      "key": "avg_flood_level",
      "label": "평균침수위",
      "dtype": "number",
@@ -7534,8 +7534,8 @@
      "requirements": "UFR-003-001-03, UFR-004-002-01"
     },
     {
-     "reqId": "DQ-066-01",
-     "groupId": "DQ-066",
+     "reqId": "DQ-09-003-01",
+     "groupId": "DQ-09-003",
      "key": "flood_started_on",
      "label": "침수 시작일",
      "dtype": "date",
@@ -7550,8 +7550,8 @@
      "requirements": "UFR-003-001-03, UFR-004-002-01"
     },
     {
-     "reqId": "DQ-066-02",
-     "groupId": "DQ-066",
+     "reqId": "DQ-09-003-02",
+     "groupId": "DQ-09-003",
      "key": "flood_ended_on",
      "label": "침수 종료일",
      "dtype": "date",
@@ -7566,8 +7566,8 @@
      "requirements": "UFR-003-001-03, UFR-004-002-01"
     },
     {
-     "reqId": "DQ-067-01",
-     "groupId": "DQ-067",
+     "reqId": "DQ-09-004-01",
+     "groupId": "DQ-09-004",
      "key": "survey_report_page",
      "label": "근거 보고서·페이지",
      "dtype": "object{report_name,page}",
@@ -7589,14 +7589,14 @@
   {
    "type": "flood_hazard_map",
    "label": "하천범람지도·도시침수지도",
-   "dp": "DP-15",
+   "dp": "GR-09",
    "sourceLabel": "하천범람·도시침수지도",
    "source": "SRC-089~096 홍수위험지도정보제공포털 하천범람·도시침수지도",
    "fieldCount": 3,
    "fields": [
     {
-     "reqId": "DQ-114-01",
-     "groupId": "DQ-114",
+     "reqId": "DQ-09-005-01",
+     "groupId": "DQ-09-005",
      "key": "map_kind_frequency",
      "label": "지도종류·분할축·홍수빈도",
      "dtype": "object{map_kind(하천범람",
@@ -7611,8 +7611,8 @@
      "requirements": "UFR-004-002-01"
     },
     {
-     "reqId": "DQ-114-02",
-     "groupId": "DQ-114",
+     "reqId": "DQ-09-005-02",
+     "groupId": "DQ-09-005",
      "key": "admin_basin_depth_grade",
      "label": "시군구/유역코드·침수심 등급코드",
      "dtype": "object{sgg_code,basin_code,depth_grade_code}",
@@ -7630,8 +7630,8 @@
      "requirements": "UFR-004-002-01"
     },
     {
-     "reqId": "DQ-114-03",
-     "groupId": "DQ-114",
+     "reqId": "DQ-09-005-03",
+     "groupId": "DQ-09-005",
      "key": "source_file_spatial_ids",
      "label": "원천 파일 식별자·공간객체 ID·좌표계",
      "dtype": "object{file_id,spatial_object_id,crs}",
@@ -7653,14 +7653,14 @@
   {
    "type": "spatial_object_common",
    "label": "공간객체 공통메타(모든 지도 객체)",
-   "dp": "DP-16",
+   "dp": "GR-20",
    "sourceLabel": "모든 지도 객체",
    "source": "20260930 공간자료 및 각 유형별 원천의 객체·좌표 메타 (아이타이쿤 적재)",
    "fieldCount": 9,
    "fields": [
     {
-     "reqId": "DQ-068-01",
-     "groupId": "DQ-068",
+     "reqId": "DQ-20-001-01",
+     "groupId": "DQ-20-001",
      "key": "object_name",
      "label": "객체명",
      "dtype": "string",
@@ -7675,8 +7675,8 @@
      "requirements": "UFR-004-001-02, UFR-004-002-01, UFR-004-002-02, UFR-006-001-02"
     },
     {
-     "reqId": "DQ-068-02",
-     "groupId": "DQ-068",
+     "reqId": "DQ-20-001-02",
+     "groupId": "DQ-20-001",
      "key": "object_type_layer",
      "label": "객체유형·레이어",
      "dtype": "object{entity_type,layer_id}",
@@ -7694,8 +7694,8 @@
      "requirements": "UFR-004-001-02, UFR-004-002-01, UFR-004-002-02, UFR-006-001-02"
     },
     {
-     "reqId": "DQ-068-03",
-     "groupId": "DQ-068",
+     "reqId": "DQ-20-001-03",
+     "groupId": "DQ-20-001",
      "key": "source_base_date",
      "label": "출처·기준일",
      "dtype": "object{source_org,updated_on}",
@@ -7713,8 +7713,8 @@
      "requirements": "UFR-004-001-02, UFR-004-002-01, UFR-004-002-02, UFR-006-001-02"
     },
     {
-     "reqId": "DQ-068-04",
-     "groupId": "DQ-068",
+     "reqId": "DQ-20-001-04",
+     "groupId": "DQ-20-001",
      "key": "quality_provision_status",
      "label": "품질·제공상태",
      "dtype": "enum (확정",
@@ -7729,8 +7729,8 @@
      "requirements": "UFR-004-001-02, UFR-004-002-01, UFR-004-002-02, UFR-006-001-02"
     },
     {
-     "reqId": "DQ-069-01",
-     "groupId": "DQ-069",
+     "reqId": "DQ-20-002-01",
+     "groupId": "DQ-20-002",
      "key": "admin_address",
      "label": "행정구역·주소",
      "dtype": "object{admin_code,address}",
@@ -7748,8 +7748,8 @@
      "requirements": "UFR-004-001-02, UFR-004-002-01, UFR-004-002-02, UFR-006-001-02"
     },
     {
-     "reqId": "DQ-069-02",
-     "groupId": "DQ-069",
+     "reqId": "DQ-20-002-02",
+     "groupId": "DQ-20-002",
      "key": "coordinates_geometry_type",
      "label": "좌표·geometry 유형",
      "dtype": "object{geometry_type,coordinates",
@@ -7764,8 +7764,8 @@
      "requirements": "UFR-004-001-02, UFR-004-002-01, UFR-004-002-02, UFR-006-001-02"
     },
     {
-     "reqId": "DQ-070-01",
-     "groupId": "DQ-070",
+     "reqId": "DQ-20-003-01",
+     "groupId": "DQ-20-003",
      "key": "disclosure_level",
      "label": "공개등급",
      "dtype": "enum (공개",
@@ -7780,8 +7780,8 @@
      "requirements": "UFR-004-001-02, UFR-004-002-01, UFR-004-002-02, UFR-006-001-02"
     },
     {
-     "reqId": "DQ-071-01",
-     "groupId": "DQ-071",
+     "reqId": "DQ-20-004-01",
+     "groupId": "DQ-20-004",
      "key": "detail_target",
      "label": "연계 상세 조회 대상",
      "dtype": "object{entity_type,entity_id}",
@@ -7799,8 +7799,8 @@
      "requirements": "UFR-004-001-02, UFR-004-002-01, UFR-004-002-02, UFR-006-001-02"
     },
     {
-     "reqId": "DQ-071-02",
-     "groupId": "DQ-071",
+     "reqId": "DQ-20-004-02",
+     "groupId": "DQ-20-004",
      "key": "spatial_object_id",
      "label": "spatial_object_id",
      "dtype": "string",
@@ -7825,8 +7825,8 @@
    "fieldCount": 24,
    "fields": [
     {
-     "reqId": "DQ-116-01",
-     "groupId": "DQ-116",
+     "reqId": "DQ-08-001-01",
+     "groupId": "DQ-08-001",
      "key": "reported_at",
      "label": "신고 일시",
      "dtype": "datetime",
@@ -7841,8 +7841,8 @@
      "requirements": "UFR-003-001-01~03"
     },
     {
-     "reqId": "DQ-116-02",
-     "groupId": "DQ-116",
+     "reqId": "DQ-08-001-02",
+     "groupId": "DQ-08-001",
      "key": "situation_ended_at",
      "label": "상황 종료 일시",
      "dtype": "datetime",
@@ -7857,8 +7857,8 @@
      "requirements": "UFR-003-001-01~03"
     },
     {
-     "reqId": "DQ-117-01",
-     "groupId": "DQ-117",
+     "reqId": "DQ-08-002-01",
+     "groupId": "DQ-08-002",
      "key": "agency_code",
      "label": "기관 코드",
      "dtype": "object{code,name}",
@@ -7876,8 +7876,8 @@
      "requirements": "UFR-003-001-01~03"
     },
     {
-     "reqId": "DQ-117-02",
-     "groupId": "DQ-117",
+     "reqId": "DQ-08-002-02",
+     "groupId": "DQ-08-002",
      "key": "report_area_name",
      "label": "신고 지역 명",
      "dtype": "string",
@@ -7892,8 +7892,8 @@
      "requirements": "UFR-003-001-01~03"
     },
     {
-     "reqId": "DQ-117-03",
-     "groupId": "DQ-117",
+     "reqId": "DQ-08-002-03",
+     "groupId": "DQ-08-002",
      "key": "rescue_location_1",
      "label": "긴급 구조 위치 1",
      "dtype": "string",
@@ -7908,8 +7908,8 @@
      "requirements": "UFR-003-001-01~03"
     },
     {
-     "reqId": "DQ-118-01",
-     "groupId": "DQ-118",
+     "reqId": "DQ-08-003-01",
+     "groupId": "DQ-08-003",
      "key": "report_content",
      "label": "신고 내용",
      "dtype": "string",
@@ -7924,8 +7924,8 @@
      "requirements": "UFR-003-001-01~03"
     },
     {
-     "reqId": "DQ-118-02",
-     "groupId": "DQ-118",
+     "reqId": "DQ-08-003-02",
+     "groupId": "DQ-08-003",
      "key": "detail_description",
      "label": "상세 내역",
      "dtype": "string",
@@ -7940,8 +7940,8 @@
      "requirements": "UFR-003-001-01~03"
     },
     {
-     "reqId": "DQ-118-03",
-     "groupId": "DQ-118",
+     "reqId": "DQ-08-003-03",
+     "groupId": "DQ-08-003",
      "key": "cause_name",
      "label": "원인 명",
      "dtype": "string",
@@ -7956,8 +7956,8 @@
      "requirements": "UFR-003-001-01~03"
     },
     {
-     "reqId": "DQ-119-01",
-     "groupId": "DQ-119",
+     "reqId": "DQ-08-004-01",
+     "groupId": "DQ-08-004",
      "key": "rescue_type_1",
      "label": "긴급 구조 유형 1 명칭",
      "dtype": "string",
@@ -7972,8 +7972,8 @@
      "requirements": "UFR-003-001-01~03"
     },
     {
-     "reqId": "DQ-119-02",
-     "groupId": "DQ-119",
+     "reqId": "DQ-08-004-02",
+     "groupId": "DQ-08-004",
      "key": "rescue_type_2",
      "label": "긴급 구조 유형 2 명칭",
      "dtype": "string",
@@ -7988,8 +7988,8 @@
      "requirements": "UFR-003-001-01~03"
     },
     {
-     "reqId": "DQ-119-03",
-     "groupId": "DQ-119",
+     "reqId": "DQ-08-004-03",
+     "groupId": "DQ-08-004",
      "key": "rescue_type_3",
      "label": "긴급 구조 유형 3 명칭",
      "dtype": "string",
@@ -8004,8 +8004,8 @@
      "requirements": "UFR-003-001-01~03"
     },
     {
-     "reqId": "DQ-119-04",
-     "groupId": "DQ-119",
+     "reqId": "DQ-08-004-04",
+     "groupId": "DQ-08-004",
      "key": "disaster_scale_code",
      "label": "재난 규모 코드",
      "dtype": "string",
@@ -8020,8 +8020,8 @@
      "requirements": "UFR-003-001-01~03"
     },
     {
-     "reqId": "DQ-119-05",
-     "groupId": "DQ-119",
+     "reqId": "DQ-08-004-05",
+     "groupId": "DQ-08-004",
      "key": "disaster_scale",
      "label": "재난 규모",
      "dtype": "string",
@@ -8036,8 +8036,8 @@
      "requirements": "UFR-003-001-01~03"
     },
     {
-     "reqId": "DQ-120-01",
-     "groupId": "DQ-120",
+     "reqId": "DQ-08-005-01",
+     "groupId": "DQ-08-005",
      "key": "progress_class_code",
      "label": "진행 상황 구분 코드",
      "dtype": "string",
@@ -8052,8 +8052,8 @@
      "requirements": "UFR-003-001-01~03"
     },
     {
-     "reqId": "DQ-120-02",
-     "groupId": "DQ-120",
+     "reqId": "DQ-08-005-02",
+     "groupId": "DQ-08-005",
      "key": "progress_code",
      "label": "진행 상황 코드",
      "dtype": "string",
@@ -8068,8 +8068,8 @@
      "requirements": "UFR-003-001-01~03"
     },
     {
-     "reqId": "DQ-120-03",
-     "groupId": "DQ-120",
+     "reqId": "DQ-08-005-03",
+     "groupId": "DQ-08-005",
      "key": "control_situation_class",
      "label": "관제 상황 구분",
      "dtype": "string",
@@ -8084,8 +8084,8 @@
      "requirements": "UFR-003-001-01~03"
     },
     {
-     "reqId": "DQ-120-04",
-     "groupId": "DQ-120",
+     "reqId": "DQ-08-005-04",
+     "groupId": "DQ-08-005",
      "key": "progressed_at",
      "label": "진행 일시",
      "dtype": "datetime",
@@ -8100,8 +8100,8 @@
      "requirements": "UFR-003-001-01~03"
     },
     {
-     "reqId": "DQ-121-01",
-     "groupId": "DQ-121",
+     "reqId": "DQ-08-006-01",
+     "groupId": "DQ-08-006",
      "key": "officer_name",
      "label": "담당자",
      "dtype": "string (개인정보, 비식별 처리 필요)",
@@ -8116,8 +8116,8 @@
      "requirements": "UFR-003-001-01~03"
     },
     {
-     "reqId": "DQ-121-02",
-     "groupId": "DQ-121",
+     "reqId": "DQ-08-006-02",
+     "groupId": "DQ-08-006",
      "key": "officer_phone",
      "label": "담당자 전화번호",
      "dtype": "string (개인정보, 비식별 처리 필요)",
@@ -8132,8 +8132,8 @@
      "requirements": "UFR-003-001-01~03"
     },
     {
-     "reqId": "DQ-122-01",
-     "groupId": "DQ-122",
+     "reqId": "DQ-08-007-01",
+     "groupId": "DQ-08-007",
      "key": "source_record_no",
      "label": "번호",
      "dtype": "string",
@@ -8148,8 +8148,8 @@
      "requirements": "UFR-003-001-01~03"
     },
     {
-     "reqId": "DQ-122-02",
-     "groupId": "DQ-122",
+     "reqId": "DQ-08-007-02",
+     "groupId": "DQ-08-007",
      "key": "dt_regt",
      "label": "DT REGT",
      "dtype": "datetime (원천 등록일시)",
@@ -8164,8 +8164,8 @@
      "requirements": "UFR-003-001-01~03"
     },
     {
-     "reqId": "DQ-122-03",
-     "groupId": "DQ-122",
+     "reqId": "DQ-08-007-03",
+     "groupId": "DQ-08-007",
      "key": "link_ids",
      "label": "재난사건 ID·신고기록 ID·진행이력 ID",
      "dtype": "object{event_master_id,report_record_id,progress_id}",
@@ -8184,8 +8184,8 @@
      "requirements": "UFR-003-001-01~03"
     },
     {
-     "reqId": "DQ-122-04",
-     "groupId": "DQ-122",
+     "reqId": "DQ-08-007-04",
+     "groupId": "DQ-08-007",
      "key": "event_link",
      "label": "사건 연관 유형·연결 근거·연결 상태",
      "dtype": "object{relation_type,basis,status}",
@@ -8204,8 +8204,8 @@
      "requirements": "UFR-003-001-01~03"
     },
     {
-     "reqId": "DQ-122-05",
-     "groupId": "DQ-122",
+     "reqId": "DQ-08-007-05",
+     "groupId": "DQ-08-007",
      "key": "selection_criteria_time",
      "label": "자연재난 관련 선별기준·원천 기준시각",
      "dtype": "object{criteria,source_time}",
@@ -8233,8 +8233,8 @@
    "fieldCount": 5,
    "fields": [
     {
-     "reqId": "DQ-123-01",
-     "groupId": "DQ-123",
+     "reqId": "DQ-03-001-01",
+     "groupId": "DQ-03-001",
      "key": "check_context",
      "label": "점검 기준지역·기준시각·요청 식별자",
      "dtype": "object{request_id,region{admin_code,name},reference_time,alerts[]}",
@@ -8256,8 +8256,8 @@
      "requirements": "UFR-001-001-04~07"
     },
     {
-     "reqId": "DQ-123-02",
-     "groupId": "DQ-123",
+     "reqId": "DQ-03-001-02",
+     "groupId": "DQ-03-001",
      "key": "priority_review_judgement",
      "label": "상황확인/대응착수 우선검토 판단",
      "dtype": "object{needs_review(boolean),review_type(상황확인",
@@ -8272,8 +8272,8 @@
      "requirements": "UFR-001-001-04~07"
     },
     {
-     "reqId": "DQ-123-03",
-     "groupId": "DQ-123",
+     "reqId": "DQ-03-001-03",
+     "groupId": "DQ-03-001",
      "key": "judgement_evidence",
      "label": "판단 근거·참조 사건/문서/Passage",
      "dtype": "array<object{entity_type,entity_id,evidence_ref,passage_id}>",
@@ -8294,8 +8294,8 @@
      "requirements": "UFR-001-001-04~07"
     },
     {
-     "reqId": "DQ-123-04",
-     "groupId": "DQ-123",
+     "reqId": "DQ-03-001-04",
+     "groupId": "DQ-03-001",
      "key": "check_items_missing_info",
      "label": "우선 확인사항·추가 확인이 필요한 정보",
      "dtype": "object{priority_checks[],missing_info[]}",
@@ -8317,8 +8317,8 @@
      "requirements": "UFR-001-001-04~07"
     },
     {
-     "reqId": "DQ-124-01",
-     "groupId": "DQ-124",
+     "reqId": "DQ-03-002-01",
+     "groupId": "DQ-03-002",
      "key": "per_alert_guidance",
      "label": "특보별 안내",
      "dtype": "array<object{alert_type,alert_level,target_area,guidance}> (2문장·80자 내외)",
@@ -8349,8 +8349,8 @@
    "fieldCount": 1,
    "fields": [
     {
-     "reqId": "DQ-144-01",
-     "groupId": "DQ-144",
+     "reqId": "DQ-21-001-01",
+     "groupId": "DQ-21-001",
      "key": "follow_up_questions",
      "label": "일반대화 후속 추천질문 목록",
      "dtype": "array<object{question,entity_type?,entity_id?}> (없으면 빈 목록)",
@@ -8381,8 +8381,8 @@
    "fieldCount": 3,
    "fields": [
     {
-     "reqId": "DQ-125-01",
-     "groupId": "DQ-125",
+     "reqId": "DQ-19-001-01",
+     "groupId": "DQ-19-001",
      "key": "target_ids",
      "label": "대상유형·대상 ID·관련 ID 목록",
      "dtype": "object{target_type,target_id,related_ids[]}",
@@ -8403,8 +8403,8 @@
      "requirements": "UFR-008-001-01, UFR-005-001-01"
     },
     {
-     "reqId": "DQ-125-02",
-     "groupId": "DQ-125",
+     "reqId": "DQ-19-001-02",
+     "groupId": "DQ-19-001",
      "key": "result_status",
      "label": "조회결과 상태·빈값/미구축 사유",
      "dtype": "object{status(SUCCESS",
@@ -8419,8 +8419,8 @@
      "requirements": "UFR-008-001-01, UFR-005-001-01"
     },
     {
-     "reqId": "DQ-125-03",
-     "groupId": "DQ-125",
+     "reqId": "DQ-19-001-03",
+     "groupId": "DQ-19-001",
      "key": "source_meta",
      "label": "출처·자료 기준시점·원천/가공 구분",
      "dtype": "object{source,as_of,raw_or_derived(원천",
@@ -8439,7 +8439,7 @@
   {
    "type": "weather_alert_current",
    "label": "기상특보 현황(현재, 기준지역)",
-   "dp": "DP-09 / AI-01",
+   "dp": "GR-01·02 / GR-03",
    "sourceLabel": "기상특보(UNE 직접 연계)",
    "source": "기상청 기상특보 조회서비스·특보구역정보 조회서비스·특보 조회 서비스(공공데이터포털) — UNE 직접 호출(기본 1분 주기, 운영설정)",
    "fieldCount": 9,
@@ -8589,7 +8589,7 @@
   "T3Q 2차 검토회신표(155개 조회묶음/417개 세부요청)의 T3Q 회신 열(N~S: 제공여부·확정 API/필드·자료형/단위/빈값·연결키·제공시점·의견)은 현재 전부 공란 — 모든 항목 t3qStatus='미회신(회신대기)'. 본 문서는 프로젝트 지시에 따라 전 항목 제공(assumedProvided=true)을 가정한다.",
   "응답 요청 기준: '필수 응답'(T3Q 필수 제공, 미제공 시 연계 미이행으로 관리) / '원천값 요청'(원천에 있는 값 그대로) / '추가 협의'(제공 방식 미정).",
   "key·dtype·example은 UNE 설계용 제안값이다. 신규 응답 필드명은 협의안이며 확정 API 명세가 아니다(회신표 A4). 예시값은 1차 API 요청서(부산 seed)·패널활용예시·원문 이미지 기반으로 인용 금지.",
-  "모든 상세조회 응답은 공통으로 대상유형·대상 ID·관련 ID 목록, 조회결과 상태·빈값/미구축 사유, 출처·자료 기준시점·원천/가공 구분을 포함한다(DQ-125).",
+  "모든 상세조회 응답은 공통으로 대상유형·대상 ID·관련 ID 목록, 조회결과 상태·빈값/미구축 사유, 출처·자료 기준시점·원천/가공 구분을 포함한다(DQ-19-001).",
   "조회 0건·미수집·미구축·연계실패를 구분한다. 값 누락을 0으로 대체하지 않는다(null=미제공/미수집, 0=실제 0).",
   "시각은 ISO 8601 + offset. 원천에 timezone이 없으면 임의 변환하지 않고 source_time_raw를 함께 제공한다.",
   "event_master_id·object_id 등은 opaque 연결키. UNE는 ID 문자열을 재난유형·날짜·지역으로 파싱하지 않는다(재난 마스터 ID에서 지역코드 삭제 확정, T-24/T-25).",
@@ -8599,10 +8599,10 @@
   "공간정보: 제공된 Point/Line/Polygon/GeoJSON(EPSG:4326, [경도,위도])만 사용. 지오코딩·대표점 산정·Geometry 생성·좌표변환 금지. 위치 미제공 객체는 상세만 표시하고 '위치정보 미제공' 안내.",
   "관계: 명시적 관계(relation_basis=DOCUMENT_STATED|DATA_LINKED)만 연결. 좌표 근접·명칭 일치로 관계를 만들지 않는다.",
   "공개등급: T3Q 재난메타 PRV-05 4종(공개/제한공개/내부전용/비공개) vs 1차 공통규약 3종(PUBLIC/INTERNAL/RESTRICTED) 코드 대응 미확정. v1.71 기준 두 사용자 유형(지자체 공무원·시스템 운영자) 모두 지역·자료 조회 제한 없음. 비공개는 목록에도 미노출, 열람 제한 시 Passage만 표시.",
-  "개인정보: 담당자 성명·전화번호(소방 DQ-121, 지하차도 담당자 등)는 비식별/마스킹 처리 협의 대상. 민원 신고 사진은 비식별.",
-  "현재 기상·수문 관측값 자동 조회·반영은 제외(v1.71: 주관기관이 실시간 기상수문 API 미제공 결정). 기상·수문 조건은 사용자 수동 입력, 기상특보만 UNE가 기상청 API로 직접 조회. 과거 사건 관측값(DQ-115)은 사건 근거자료로 별도.",
+  "개인정보: 담당자 성명·전화번호(소방 DQ-08-006, 지하차도 담당자 등)는 비식별/마스킹 처리 협의 대상. 민원 신고 사진은 비식별.",
+  "현재 기상·수문 관측값 자동 조회·반영은 제외(v1.71: 주관기관이 실시간 기상수문 API 미제공 결정). 기상·수문 조건은 사용자 수동 입력, 기상특보만 UNE가 기상청 API로 직접 조회. 과거 사건 관측값(DQ-05-015)은 사건 근거자료로 별도.",
   "매뉴얼 절차: 프로세스 단계·위기수준·비상근무 단계를 별도 필드로 보존. 매뉴얼 지시(normative)/Agent 권고(recommended)/실제 조치(observed) 구분. 원문번호는 유일키가 아님. 자동 발동규칙·자동 명령 생성 금지.",
   "소방 신고정보(FIRE): 활용 확정, T3Q 재난사건 연결 구축 예정 — 연결 기준·1:N 관계 회신 대기. UNE 임의 연결 금지.",
-  "DP-09/10(기상관측·수문)은 조건입력 보조로 독립 결과목록을 만들지 않는다. 현재 기상특보는 UNE 직접 연계(weather_alert_current)."
+  "GR-01·02(기상관측·수문)은 조건입력 보조로 독립 결과목록을 만들지 않는다. 현재 기상특보는 UNE 직접 연계(weather_alert_current)."
  ]
 }
