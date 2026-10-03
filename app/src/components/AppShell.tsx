@@ -131,8 +131,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         </Link>
         <span className="sp" />
         {/* 시연 데이터 전환 — 배포 주소를 받은 사람도 바로 알아보고 바꿀 수 있게 헤더에 노출 */}
+        <span className="demoLb">기상특보 데이터</span>
         <div className="demoSw" role="group" aria-label="기상특보 데이터 (시연 모드)" title="훈련 시나리오 = 가상의 호우 상황(특보·강우·119 신고) · 실시간 = 기상청 실제 특보">
-          <span className="lb">기상특보 데이터</span>
           <button className={mode === "scenario" ? "on" : ""} onClick={() => setMode("scenario")} aria-pressed={mode === "scenario"}>훈련 시나리오</button>
           <button className={mode === "live" ? "on" : ""} onClick={() => setMode("live")} aria-pressed={mode === "live"}>실시간(기상청)</button>
         </div>

@@ -739,5 +739,6 @@ label.chk input { width: 18px; height: 18px; accent-color: var(--c-primary); }
 .demoSw button { height: 30px; padding: 0 14px; border: 0; border-radius: 999px; background: transparent; color: #146c3e; font-size: var(--fs-xs); font-weight: 600; cursor: pointer; white-space: nowrap; }
 .demoSw button:hover { background: rgba(31,146,84,.12); }
 .demoSw button.on { background: #1f9254; color: #fff; font-weight: 800; box-shadow: 0 1px 3px rgba(20,108,62,.35); }
-@media (max-width: 1180px) { .demoSw .lb { display: none; } }
+.demoLb { font-size: var(--fs-xs); color: #146c3e; font-weight: 700; margin-right: 8px; white-space: nowrap; }
+@media (max-width: 1180px) { .demoLb { display: none; } }
 @media (max-width: 900px) { .demoSw { margin-right: 6px; } .demoSw button { padding: 0 9px; } }
