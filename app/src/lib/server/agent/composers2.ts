@@ -7,7 +7,7 @@ import type { EntityRef, QueryContext, RegionId } from "../../contract/agent";
 import { EVENT_BY_ID, R119_BY_ID, SCENARIO, SR_BY_ID, eventRef, fmtKrwThousand, r119Ref, regionRecord, type DisasterEvent, type Report119 } from "../events";
 import { MANUAL_BY_REGION, type Manual } from "../manual";
 import { LEDGER, type LedgerRec } from "../ledger";
-import { RISKS, dist, rankRisks, relevant119, riskRef, risksIn, type RiskObject } from "../risk";
+import { RISKS, dist, displayName, rankRisks, relevant119, riskRef, risksIn, type RiskObject } from "../risk";
 import { Answer, cite119, citeEvent, citeKMA, citeManual, citeRisk, citeSR, hourlySeries, mdhm, rainThresholds, rname, rshort, situation, ymd, type Situation } from "./core";
 
 const PILOTS: Exclude<RegionId, "national">[] = ["busan", "yeongcheon", "inje"];
@@ -348,7 +348,26 @@ export function composeMessage(a: Answer, ctx: QueryContext) {
   a.title = `${rshort(s.region)} 주민 안내 메시지 초안`;
   const top = rankRisks(risksIn(s.region).filter((o) => /지하차도|상습침수|급경사|붕괴|산사태|야영장/.test(o.category)), s.region, { active: s.active }).slice(0, 3);
   const t = m.stages.flatMap((st) => st.tasks).find((x) => /재난문자|CBS|문자|방송|전파/.test(x.task));
-  const place = top.map((x) => x.o.name.replace(/\s*\(.*\)/, "").replace(/붕괴위험지역|급경사지/, "").trim()).slice(0, 2).join("·");
+  // 장소는 주민이 알아볼 이름으로 (원천 관리번호 대신 지번·지구명)
+  const place = top.map((x) => displayName(x.o).replace(/\s*\(.*\)$/, "").replace(/\s*(산사태취약지역|붕괴위험지역|급경사지|상습침수지역)$/, "").trim()).filter((n) => n && !/[A-Z]-[가-힣]+\d{5,}/.test(n)).slice(0, 2).join("·");
+  // 참조 특보가 바다·산사태 특보면 그 특보에 맞는 문안
+  const ra = ctx.refAdvisory;
+  if (ra && /풍랑|해일|산사태/.test(ra.type)) {
+    const coast = /풍랑|해일/.test(ra.type);
+    const slopes = coast ? [] : rankRisks(risksIn(s.region).filter((o) => /산사태|급경사|붕괴/.test(o.category)), s.region, { active: s.active }).slice(0, 2).map((x) => displayName(x.o).replace(/\s*\(.*\)$/, "").replace(/\s*(산사태취약지역|붕괴위험지역|급경사지)$/, "").trim());
+    const sms = coast
+      ? `[${rshort(s.region)}] ${ra.area} ${ra.type}${ra.level} 발효 중. 높은 파도로 해안도로·방파제·갯바위 출입을 삼가고, 선박은 안전한 곳으로 피항·결박해 주시기 바랍니다.`
+      : `[${rshort(s.region)}] 산사태${ra.level} 발령. ${slopes.length ? slopes.join("·") + " 등 " : ""}산 아래·급경사지 주민은 땅 갈라짐·물 솟음·나무 기울어짐을 보면 즉시 마을회관 등으로 대피하시기 바랍니다.`;
+    const cast = coast
+      ? `"${ra.area}에 ${ra.type}${ra.level}가 발효되었습니다. 해안도로와 방파제, 갯바위에 가지 마시고, 어선은 항구에 단단히 묶어 두십시오. 파도가 도로로 넘치면 즉시 높은 곳으로 이동해 주십시오."`
+      : `"${rshort(s.region)}에 산사태${ra.level}가 발령되었습니다. 비가 그쳐도 산사태가 날 수 있습니다. 산 아래와 급경사지 주변 주민께서는 이상 징후가 보이면 바로 마을회관으로 대피하시고 119로 신고해 주십시오."`;
+    a.push({ kind: "headline", text: `${ra.type}${ra.level}에 맞춘 재난문자(CBS) 초안입니다 — 위치·행동을 구체적으로 넣었습니다. 발송 결정·승인은 매뉴얼상 ${t?.owner?.split(" (")[0] ?? "재난부서"}${citeManual(a, m, t?.page)} 소관입니다.` });
+    a.push({ kind: "narrative", title: "① 재난문자 (CBS)", paragraphs: [`「${sms}」 (${sms.length}자)`] });
+    a.push({ kind: "narrative", title: "② 마을방송·전광판", paragraphs: [cast] });
+    if (t) a.push({ kind: "notice", tone: "info", text: `매뉴얼 근거: ${t.task.slice(0, 90)}${citeManual(a, m, t.page, t.task.slice(0, 120))}` });
+    a.followUps = ["상황보고는 누구에게 언제 해야 하나요?", coast ? "어디가 제일 위험해?" : "주민 대피가 필요할까?"];
+    return;
+  }
   const msg = s.level === "경보"
     ? `[${rshort(s.region)}] ${s.advisoryText} 발효 중. 시간당 ${s.rain1hMax ?? "많은"}mm 강한 비. ${place} 등 하천변·지하차도·급경사지 접근 금지, 저지대·반지하 주민은 높은 곳으로 대피 준비 바랍니다.`
     : s.level ? `[${rshort(s.region)}] ${s.advisoryText} 발효. 하천변 산책로·계곡 출입을 자제하고 배수구 주변 물건을 치워 주시기 바랍니다.` : `[${rshort(s.region)}] 비 예보에 대비해 하천변·계곡 이용을 자제하고 기상정보를 확인해 주시기 바랍니다.`;

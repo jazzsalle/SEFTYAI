@@ -3,6 +3,7 @@
 import { useSession } from "@/lib/session";
 import { useExplore } from "./ExploreCtx";
 import { IcChevR } from "../Icons";
+import { WX_INFO_Q, WX_QQ, advLabel } from "@/lib/wxref";
 
 const ALERT_Q = [
   { k: "상황 판단", q: "지금 상황에서 비상 몇 단계이고, 대책본부 가동·중앙 보고가 필요한가요?" },
@@ -18,10 +19,10 @@ const CALM_Q = [
 ];
 
 export default function StartScreen({ onBriefing, onLibrary }: { onBriefing: () => void; onLibrary: () => void }) {
-  const { weather, cond } = useSession();
+  const { weather, cond, wxRef } = useSession();
   const x = useExplore();
   const active = (weather?.advisories ?? []).some((a) => a.status === "발효" && (cond.region === "national" || a.regionId === cond.region));
-  const qs = active ? ALERT_Q : CALM_Q;
+  const qs: { k: string; q: string; p?: string }[] = wxRef ? [...WX_QQ.map((x) => ({ k: x.nm, q: x.q, p: x.k })), { k: WX_INFO_Q.nm, q: WX_INFO_Q.q, p: WX_INFO_Q.k }] : active ? ALERT_Q : CALM_Q;
   return (
     <div className="start" style={{ maxWidth: 760, margin: "0 auto" }}>
       <div className="hero" style={{ margin: "40px 0 34px" }}>
@@ -39,10 +40,10 @@ export default function StartScreen({ onBriefing, onLibrary }: { onBriefing: () 
         <div className="ft">포함 항목<b>현재 기상상황 · 위험·취약지역 · 과거 유사사례 · 행동매뉴얼 대응절차</b></div>
       </section>
       <div className="sugg">
-        <div className="row"><h3 style={{ fontSize: "var(--fs-s)" }}>추천 질문</h3><span className="sp" /><button className="btn xs ghost" onClick={onLibrary}>더보기 ›</button></div>
+        <div className="row"><h3 style={{ fontSize: "var(--fs-s)" }}>{wxRef ? `${advLabel(wxRef)} 빠른질의` : "추천 질문"}</h3><span className="sp" /><button className="btn xs ghost" onClick={onLibrary}>더보기 ›</button></div>
         <div className="sugg-grid" style={{ marginTop: 10 }}>
           {qs.map((s) => (
-            <button key={s.q} className="sugg-card" onClick={() => x.ask(s.q)}>
+            <button key={s.q} className="sugg-card" onClick={() => x.ask(s.q, s.p)}>
               <span className="col"><span className="k">{s.k}</span><span className="q">{s.q}</span></span>
               <span className="arr"><IcChevR /></span>
             </button>

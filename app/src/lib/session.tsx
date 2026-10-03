@@ -1,6 +1,6 @@
 "use client";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import type { AgentResponse, QueryContext, RegionId, WeatherMode, WeatherResponse, DisasterType } from "./contract/agent";
+import type { Advisory, AgentResponse, QueryContext, RegionId, WeatherMode, WeatherResponse, DisasterType } from "./contract/agent";
 import { ACCOUNTS, type Account } from "./config";
 
 export interface Turn {
@@ -8,6 +8,8 @@ export interface Turn {
   q: string;
   at: string;
   presetKey?: string;
+  /** 이 질문에 참조로 건 특보 (말풍선 위 표시) */
+  refAdv?: { type: string; level: string; area: string; issuedAt: string };
   res?: AgentResponse;
   pending?: boolean;
   failed?: string;
@@ -57,6 +59,9 @@ interface SessionState {
   toastMsg: string | null;
   aimOn: boolean;
   setAimOn: (v: boolean) => void;
+  /** [특보로 질문] 참조 특보 — 해제(×)하기 전까지 이후 질문에 함께 전달 */
+  wxRef: Advisory | null;
+  setWxRef: (a: Advisory | null) => void;
 }
 
 const Ctx = createContext<SessionState | null>(null);
@@ -89,6 +94,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   const [toastMsg, setToast] = useState<string | null>(null);
   const [wxTick, setWxTick] = useState(0);
   const [aimOn, setAimOnS] = useState(false);
+  const [wxRef, setWxRef] = useState<Advisory | null>(null);
   const setAimOn = useCallback((v: boolean) => {
     LS.set("sa.aim", v);
     setAimOnS(v);
@@ -155,6 +161,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     LS.set("sa.account", null);
     setAccount(null);
     setWeather(null);
+    setWxRef(null);
   }, []);
 
   const setMode = useCallback((m: WeatherMode) => {
@@ -200,9 +207,9 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     () => ({
       ready, account, login, logout, mode, setMode, cond, setCond, weather,
       reloadWeather: () => setWxTick((t) => t + 1),
-      convs, saveConv, deleteConvs, checks, toggleCheck, toast, toastMsg, aimOn, setAimOn,
+      convs, saveConv, deleteConvs, checks, toggleCheck, toast, toastMsg, aimOn, setAimOn, wxRef, setWxRef,
     }),
-    [ready, account, login, logout, mode, setMode, cond, setCond, weather, convs, saveConv, deleteConvs, checks, toggleCheck, toast, toastMsg, aimOn, setAimOn],
+    [ready, account, login, logout, mode, setMode, cond, setCond, weather, convs, saveConv, deleteConvs, checks, toggleCheck, toast, toastMsg, aimOn, setAimOn, wxRef, setWxRef],
   );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

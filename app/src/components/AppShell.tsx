@@ -6,6 +6,8 @@ import { useSession } from "@/lib/session";
 import { REGIONS } from "@/lib/config";
 import type { RegionId } from "@/lib/contract/agent";
 import { GovLogo, IcChevR, IcSiren } from "./Icons";
+import type { Advisory } from "@/lib/contract/agent";
+import { advLabel, advTime, advTone } from "@/lib/wxref";
 
 const fmtT = (iso?: string) => {
   if (!iso) return "";
@@ -15,8 +17,9 @@ const fmtT = (iso?: string) => {
 
 /** 특보 바 (목업 SCR-UNE-101001 : 긴급 · 지역 특보 발효 중 · 발표/갱신 · 특보로 질문) */
 export function WxBar() {
-  const { weather, account, cond } = useSession();
+  const { weather, account, cond, wxRef, setWxRef } = useSession();
   const router = useRouter();
+  const [pick, setPick] = useState(false);
   if (!account) return null;
   const region = cond.region;
   const mine = (weather?.advisories ?? []).filter((a) => a.status !== "해제" && a.status !== "변경" && (region === "national" || a.regionId === region));
@@ -39,6 +42,19 @@ export function WxBar() {
     title = region === "national" ? "발효 중인 기상특보가 없습니다" : `${REGIONS[region].name}에 발효 중인 기상특보가 없습니다`;
     meta = `${weather.status.message} · 조회 ${fmtT(weather.status.fetchedAt)}`;
   }
+  // [특보로 질문] = 특보를 채팅 입력창에 참조로 건다 (1건이면 바로, 여러 건이면 고르기 · 한 번에 하나)
+  const cands = [...mine].sort((a, b) => (b.level === "경보" ? 1 : 0) - (a.level === "경보" ? 1 : 0) || b.issuedAt.localeCompare(a.issuedAt));
+  const attach = (a: Advisory) => {
+    setWxRef(a);
+    setPick(false);
+    if (!location.pathname.startsWith("/explore")) router.push("/explore");
+    setTimeout(() => (document.querySelector(".composer textarea") as HTMLTextAreaElement | null)?.focus(), 80);
+  };
+  const onAsk = () => {
+    if (!cands.length) return router.push("/explore?panel=wx");
+    if (cands.length === 1) return attach(cands[0]);
+    setPick((v) => !v);
+  };
   return (
     <div className={`wxbar ${top && top.level === "경보" ? "danger" : ""}`}>
       {tag}
@@ -46,7 +62,23 @@ export function WxBar() {
       {others > 0 && <span className="more">외 {others}건</span>}
       <span className="meta">{meta}</span>
       <span className="sp" />
-      <button className="btn ghost sm" onClick={() => router.push("/explore?panel=wx")}>특보로 질문 <IcChevR size={14} /></button>
+      <div className="wxask">
+        <button className={`btn ghost sm ${wxRef ? "on" : ""}`} onClick={onAsk} aria-haspopup={cands.length > 1} aria-expanded={pick}>
+          {wxRef ? `참조 중 · ${advLabel(wxRef)}` : "특보로 질문"} <IcChevR size={14} />
+        </button>
+        {pick && (
+          <div className="wxpick" role="menu">
+            <div className="hd">질문에 참조할 특보를 고르세요</div>
+            {cands.map((a) => (
+              <button key={a.id} role="menuitem" className={wxRef?.id === a.id ? "on" : ""} onClick={() => attach(a)}>
+                <span className={`lvb ${advTone(a)}`}>{advLabel(a)}</span>
+                <span className="ar">{a.area}</span>
+                <span className="t">{advTime(a.issuedAt)} 발표</span>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

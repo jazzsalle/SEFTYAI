@@ -701,3 +701,29 @@ label.chk input { width: 18px; height: 18px; accent-color: var(--c-primary); }
 .composer .tool-chips { display: flex; gap: 6px; align-items: center; overflow-x: auto; scrollbar-width: thin; min-width: 0; flex: 1; }
 .composer .tools .btn.pri { flex: none; }
 .work.split .composer .tools .cnt { display: none; }
+
+/* =====================================================================
+   [특보로 질문] 참조 특보 (UFR-001-001-04)
+   ===================================================================== */
+.lvb { display: inline-flex; align-items: center; padding: 1px 7px; border-radius: var(--r-s); font-size: var(--fs-2xs); font-weight: 800; color: #fff; background: #575d66; flex: none; }
+.lvb.w { background: #de3412; }
+.lvb.a { background: #e08700; }
+.lvb.p { background: #256ef4; }
+.wxask { position: relative; }
+.wxask .btn.on { color: var(--c-navy); font-weight: 700; }
+.wxpick { position: absolute; right: 0; top: calc(100% + 6px); z-index: 60; min-width: 320px; background: #fff; border: 1px solid var(--c-bd); border-radius: var(--r-l); box-shadow: var(--shadow-2, 0 8px 24px rgba(0,0,0,.14)); padding: 6px; }
+.wxpick .hd { font-size: var(--fs-2xs); color: #6d7882; padding: 6px 8px 4px; }
+.wxpick button { display: flex; align-items: center; gap: 8px; width: 100%; border: 0; background: transparent; padding: 8px; border-radius: var(--r-m); cursor: pointer; text-align: left; font-size: var(--fs-xs); }
+.wxpick button:hover, .wxpick button.on { background: #f1f5fd; }
+.wxpick .ar { flex: 1; color: #1e2124; font-weight: 600; }
+.wxpick .t { color: #6d7882; font-size: var(--fs-2xs); }
+.composer .attrow { display: flex; align-items: center; gap: 8px; margin: 10px 14px 0; padding: 6px 8px 6px 10px; background: #fff7f5; border: 1px solid #f6d3c9; border-radius: var(--r-m); font-size: var(--fs-xs); }
+.composer .attrow .rl { font-size: var(--fs-2xs); font-weight: 700; color: #b0290e; }
+.composer .attrow .nm { font-weight: 600; color: #1e2124; }
+.composer .attrow .hint { color: #8a949e; font-size: var(--fs-2xs); }
+.composer .attrow .x { margin-left: auto; border: 0; background: transparent; cursor: pointer; color: #6d7882; display: flex; padding: 2px; border-radius: var(--r-s); }
+.composer .attrow .x:hover { background: #fde8e2; color: #b0290e; }
+.tool-chips .chip.wx { border-color: #f1b8a8; color: #b0290e; background: #fffaf8; }
+.turn-q { flex-direction: column; align-items: flex-end; gap: 6px; }
+.qref { display: inline-flex; align-items: center; gap: 6px; border: 1px solid #f6d3c9; background: #fff7f5; border-radius: 999px; padding: 3px 10px 3px 6px; font-size: var(--fs-2xs); color: #464c53; cursor: pointer; }
+.qref .rl { font-weight: 700; color: #b0290e; }

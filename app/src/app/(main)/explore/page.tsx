@@ -1,12 +1,13 @@
 "use client";
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import type { AgentResponse, Citation, EntityRef, QueryContext, RegionId } from "@/lib/contract/agent";
+import type { Advisory, AgentResponse, Citation, EntityRef, QueryContext, RegionId } from "@/lib/contract/agent";
 import { useSession, uid, logTrace, type Conversation, type Turn } from "@/lib/session";
 import { ExploreContext, type ExploreApi, type PanelTab } from "@/components/explore/ExploreCtx";
 import AnswerView from "@/components/explore/AnswerView";
 import Composer, { type ScenarioItem } from "@/components/explore/Composer";
 import StartScreen from "@/components/explore/StartScreen";
+import { advLabel, advTone } from "@/lib/wxref";
 import RightPanel from "@/components/explore/RightPanel";
 import AimOverlay from "@/components/explore/AimOverlay";
 import LibraryDrawer from "@/components/explore/LibraryDrawer";
@@ -31,7 +32,7 @@ function Loading() {
   );
 }
 
-interface AskOpts { region?: RegionId; baseTime?: string; prev?: string; scenario?: ScenarioItem; ref?: EntityRef | null }
+interface AskOpts { region?: RegionId; baseTime?: string; prev?: string; scenario?: ScenarioItem; ref?: EntityRef | null; wx?: Advisory | null }
 
 function Explore() {
   const s = useSession();
@@ -201,7 +202,10 @@ function Explore() {
     if (cur?.turns.some((t) => t.pending)) return null;
     if (s.aimOn) setAimCollapsed(true);
     const now = new Date().toISOString();
-    const turn: Turn = { id: uid("t"), q: presetKey === "check" ? `AI 상황 점검 · ${fmt(o.baseTime ?? now)}` : q, at: now, presetKey, pending: true };
+    // 참조 특보 : 객체를 직접 참조한 질문(이 객체로 질문)·AI 점검에는 싣지 않음
+    const wxSel = o.wx !== undefined ? o.wx : s.wxRef;
+    const wxr = wxSel && !o.ref && presetKey !== "check" ? wxSel : null;
+    const turn: Turn = { id: uid("t"), q: presetKey === "check" ? `AI 상황 점검 · ${fmt(o.baseTime ?? now)}` : q, at: now, presetKey, pending: true, refAdv: wxr ? { type: wxr.type, level: wxr.level, area: wxr.area, issuedAt: wxr.issuedAt } : undefined };
     const sc = o.scenario;
     const region = o.region ?? (sc && sc.region !== "national" ? sc.region : s.cond.region);
     const explicitRef = o.ref ?? undefined;
@@ -210,7 +214,7 @@ function Explore() {
     setConv(working);
     setTimeout(() => document.getElementById(`turn-${turn.id}`)?.scrollIntoView({ behavior: "smooth", block: "start" }), 60);
     const top = s.weather?.advisories.find((a) => a.status === "발효" && (region === "national" || a.regionId === region));
-    const refE = explicitRef ?? (working.refEntity ? (working.refEntity as EntityRef) : lastFocus.current);
+    const refE = explicitRef ?? (wxr ? lastFocus.current : working.refEntity ? (working.refEntity as EntityRef) : lastFocus.current);
     const context: QueryContext = {
       region,
       sigungu: sc ? undefined : s.cond.sigungu,
@@ -226,6 +230,7 @@ function Explore() {
       situationKind: sc ? (sc.advisory ? { type: sc.advisory.type, level: sc.advisory.level } : undefined) : s.cond.situationKind,
       scenarioId: sc?.id ?? s.cond.scenarioId,
       prevCheckAt: o.prev,
+      refAdvisory: wxr ? { id: wxr.id, type: wxr.type, level: wxr.level, area: wxr.area, issuedAt: wxr.issuedAt, regionId: wxr.regionId } : undefined,
     };
     let res: AgentResponse | null = null;
     try {
@@ -263,11 +268,19 @@ function Explore() {
     });
     return sc;
   };
-  const runFlow = async (steps: string[], sc?: ScenarioItem) => {
+  const runFlow = async (steps: string[], sc?: ScenarioItem, wx?: { type: string; level: string; regionId: RegionId }) => {
     if (sc) applyScenario(sc);
+    // 특보 참조 흐름 : 발효 중인 해당 특보를 참조로 걸고 시작 (새 대화)
+    const adv = wx ? s.weather?.advisories.find((a) => a.type === wx.type && a.level === wx.level && a.regionId === wx.regionId && a.status === "발효") ?? null : undefined;
+    if (wx) {
+      if (!adv) { s.toast(`${wx.type}${wx.level}가 현재 발효 중이 아닙니다`); return; }
+      newChat();
+      s.setWxRef(adv);
+      await new Promise((ok) => setTimeout(ok, 50));
+    }
     for (let i = 0; i < steps.length; i++) {
       setFlowRun({ i: i + 1, n: steps.length });
-      const r = await ask(steps[i], undefined, { scenario: sc });
+      const r = await ask(steps[i], undefined, { scenario: sc, ...(adv ? { wx: adv } : {}) });
       if (!r) break;
       await new Promise((ok) => setTimeout(ok, 1600));
     }
@@ -328,7 +341,10 @@ function Explore() {
               ) : (
                 conv.turns.map((t) => (
                   <div key={t.id} id={`turn-${t.id}`} style={{ scrollMarginTop: 12 }}>
-                    <div className="turn-q"><div className="bubble">{t.q}</div></div>
+                    <div className="turn-q">
+                      {t.refAdv && <button className="qref" onClick={() => api.openWx()} title="특보 상세 보기"><span className="rl">참조</span><span className={`lvb ${advTone(t.refAdv)}`}>{advLabel(t.refAdv)}</span>{t.refAdv.area}</button>}
+                      <div className="bubble">{t.q}</div>
+                    </div>
                     <div className="turn-a">
                       <div className="who">재난안전 AI</div>
                       {t.pending && <Loading />}
@@ -386,7 +402,7 @@ function Explore() {
           />
         )}
       </main>
-      {lib && <LibraryDrawer region={s.cond.region} onClose={() => setLib(false)} onAsk={(q, p) => ask(q, p)} onScenario={(sc) => ask(applyScenario(sc).question, undefined, { scenario: sc })} onFlow={(steps, sc) => runFlow(steps, sc)} />}
+      {lib && <LibraryDrawer region={s.cond.region} onClose={() => setLib(false)} onAsk={(q, p) => ask(q, p)} onScenario={(sc) => ask(applyScenario(sc).question, undefined, { scenario: sc })} onFlow={(steps, sc, wx) => runFlow(steps, sc, wx)} />}
     </ExploreContext.Provider>
   );
 }

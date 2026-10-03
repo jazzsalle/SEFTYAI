@@ -6,10 +6,10 @@ import type { ScenarioItem } from "./Composer";
 import { IcX } from "../Icons";
 
 interface LibItem { id: string; stage: string; q: string; cq: string[]; preset?: string }
-interface Flow { id: string; title: string; desc: string; steps: string[]; scenarioId?: string }
+interface Flow { id: string; title: string; desc: string; steps: string[]; scenarioId?: string; wx?: { type: string; level: string; regionId: RegionId } }
 const ORDER = ["평시 점검", "사전대비(예비특보)", "초기대응(주의보)", "비상대응(경보)", "피해·신고 대응", "수습·복구", "재발방지·계획", "과거 재난·유사사례", "위험·취약지역 지식"];
 
-export default function LibraryDrawer(p: { region: RegionId; onClose: () => void; onAsk: (q: string, preset?: string) => void; onScenario: (s: ScenarioItem) => void; onFlow: (steps: string[], scenario?: ScenarioItem) => void }) {
+export default function LibraryDrawer(p: { region: RegionId; onClose: () => void; onAsk: (q: string, preset?: string) => void; onScenario: (s: ScenarioItem) => void; onFlow: (steps: string[], scenario?: ScenarioItem, wx?: Flow["wx"]) => void }) {
   const [tab, setTab] = useState<"q" | "s" | "f">("q");
   const [d, setD] = useState<{ library: LibItem[]; conditions: ScenarioItem[]; flows: Flow[] } | null>(null);
   useEffect(() => {
@@ -68,7 +68,7 @@ export default function LibraryDrawer(p: { region: RegionId; onClose: () => void
             <>
               <p className="xs muted">이어서 질문하기 흐름을 자동으로 이어 질의합니다. 앞 답변의 사건·객체를 다음 질문이 이어받습니다.</p>
               {d.flows.map((f) => (
-                <button key={f.id} className="qitem" style={{ flexDirection: "column", alignItems: "flex-start" }} onClick={() => { p.onClose(); p.onFlow(f.steps, d.conditions.find((c) => c.id === f.scenarioId)); }}>
+                <button key={f.id} className="qitem" style={{ flexDirection: "column", alignItems: "flex-start" }} onClick={() => { p.onClose(); p.onFlow(f.steps, d.conditions.find((c) => c.id === f.scenarioId), f.wx); }}>
                   <b>{f.title}</b>
                   <span className="mute2">{f.desc}</span>
                   <ol style={{ listStyle: "decimal", paddingLeft: 16, color: "var(--c-sub)" }}>{f.steps.map((s) => <li key={s}>{s}</li>)}</ol>

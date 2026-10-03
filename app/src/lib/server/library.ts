@@ -7,7 +7,21 @@ import { CONDITION_SCENARIOS, type WorkflowStage } from "./scenarios";
  * 시범서비스 데이터로 답할 수 있는 질문을 업무 단계별로 재구성 (지역명 치환)
  */
 export interface LibItem { id: string; stage: WorkflowStage | "과거 재난·유사사례" | "위험·취약지역 지식"; q: string; cq: string[]; preset?: string }
-export interface DemoFlow { id: string; title: string; region: RegionId; desc: string; steps: string[]; scenarioId?: string }
+export interface DemoFlow { id: string; title: string; region: RegionId; desc: string; steps: string[]; scenarioId?: string; wx?: { type: string; level: string; regionId: RegionId } }
+
+/** [특보로 질문] 연속 질의 — 특보를 참조로 건 채 자연어로 이어 묻는 흐름 (훈련 시나리오 발효 특보 기준) */
+const WX_FLOWS: DemoFlow[] = [
+  { id: "F-WX-BS", title: "특보로 질문 · 부산 호우경보", region: "busan", wx: { type: "호우", level: "경보", regionId: "busan" }, desc: "특보 바 [특보로 질문] → 참조 특보와 함께 자연어로 이어 묻기",
+    steps: ["이 특보는 어떤 기준이고 언제 격상됐나요?", "현재 특보에서 우선 확인해야 할 위험·취약지역은?", "현재 상황과 유사한 과거 재난사례는?", "그때 피해가 난 곳은 지금 어떻게 관리되나요?", "이 상황에서 행동매뉴얼상 확인해야 할 대응절차는?"] },
+  { id: "F-WX-SEA", title: "특보로 질문 · 부산앞바다 풍랑주의보", region: "busan", wx: { type: "풍랑", level: "주의보", regionId: "busan" }, desc: "바다 특보 — 해안 월파·해일 위험지구와 태풍 피해 사례",
+    steps: ["이 특보 기준이 뭐야?", "어디가 제일 위험해?", "과거에도 이런 적 있었어?", "주민 대피가 필요할까?", "이 특보 언제 끝나?"] },
+  { id: "F-WX-SLIDE", title: "특보로 질문 · 인제 산사태주의보", region: "inje", wx: { type: "산사태", level: "주의보", regionId: "inje" }, desc: "산림청 산사태 위험예보 — 산사태·급경사지와 과거 산사태 피해",
+    steps: ["이 특보는 어떤 기준이고 언제 발표됐나요?", "현재 특보에서 우선 확인해야 할 위험·취약지역은?", "과거에도 산사태 피해가 있었나요?", "지금 뭐부터 해야 해?", "주민 대피가 필요할까?"] },
+  { id: "F-WX-IJ", title: "특보로 질문 · 인제 호우경보", region: "inje", wx: { type: "호우", level: "경보", regionId: "inje" }, desc: "계곡 야영장·산사태 위험이 큰 지역의 호우경보",
+    steps: ["이 특보 기준을 이미 넘었나요?", "어디가 제일 위험해?", "계곡 야영객 철수가 필요한가요?", "이 특보 언제 끝나?"] },
+  { id: "F-WX-YC", title: "특보로 질문 · 영천 호우경보", region: "yeongcheon", wx: { type: "호우", level: "경보", regionId: "yeongcheon" }, desc: "위험저수지·금호강 — 경보는 예상 강우 기준이라는 점까지",
+    steps: ["이 특보 기준을 이미 넘었나요?", "현재 특보에서 우선 확인해야 할 위험·취약지역은?", "주민 대피가 필요할까?", "재난문자 보내야 하나?"] },
+];
 
 const R: Record<Exclude<RegionId, "national">, { name: string; river: string; slope: string; extra: string[] }> = {
   busan: { name: "부산", river: "온천천", slope: "급경사지", extra: ["부산 지하차도 침수 이력과 통제 기준", "수영강 주변 위험 구간과 대응은?", "2020년 7월 23일 부산 호우 때 무슨 일이 있었나요?", "태풍 힌남노 때 부산 피해는?"] },
@@ -71,5 +85,6 @@ export function demoFlows(region: RegionId): DemoFlow[] {
     { id: "F-RECOVER", title: "특보 해제 → 복구 전환 → 피해 규모 → 재발 방지", region, desc: "수습·복구 단계 업무", steps: ["특보가 해제되면 응급 대응을 종료하고 복구로 전환해도 되나요? 우선 복구 대상은?", "과거 피해가 반복된 곳 중 아직 정비되지 않은 위험지구는?", "계획상 위험지구와 실제 피해지역이 다른 곳은?"] },
   ];
   const sc = CONDITION_SCENARIOS.filter((s) => s.region === region).slice(0, 2).map((s) => ({ id: `F-${s.id}`, title: s.title, region, desc: `조건 시나리오 + 연속 질의 · ${s.stage}`, steps: [s.question, ...s.chain], scenarioId: s.id }));
-  return [...base, ...sc];
+  const wx = WX_FLOWS.filter((f) => region === "national" || f.region === region);
+  return [...wx, ...base, ...sc];
 }

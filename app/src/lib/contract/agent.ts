@@ -50,6 +50,10 @@ export const QueryContext = z.object({
   scenarioId: z.string().optional(),
   /** AI 모드 상황점검 : 직전 점검 시각 (변화량 비교) */
   prevCheckAt: z.string().optional(),
+  /** [특보로 질문] 참조 특보 — 조건이 아닌 참조 정보로 질문과 함께 전달 (UFR-001-001-04) */
+  refAdvisory: z
+    .object({ id: z.string().optional(), type: z.string(), level: z.string(), area: z.string(), issuedAt: z.string(), regionId: RegionId.optional() })
+    .optional(),
 });
 export type QueryContext = z.infer<typeof QueryContext>;
 

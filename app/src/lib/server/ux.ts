@@ -23,6 +23,10 @@ const RULES: [RegExp, string][] = [
   [/\[샘플\]\s*/g, ""],
   [/\s*\(가상\)/g, ""],
   [/샘플\s*\(실데이터 미수신\)/g, "예시 자료"],
+  [/\s*\(T3Q(\s*추출)?\)/g, ""],
+  [/\s*\(\d+행\s*샘플 중 해당지역\)/g, ""],
+  [/원시데이터현황_취약지역_\d+\s*>\s*/g, "취약지역 현황 · "],
+  [/_추출(?=[.\s)]|$)/g, ""],
   [/\bnull\b/g, "—"],
 ];
 const KEEP = new Set(["id", "eventId", "docId", "regionRecordId", "requestId", "riverId", "reportId", "traceId", "trace", "apis", "datasets", "entityIds", "url", "file"]);

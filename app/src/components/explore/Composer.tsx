@@ -4,6 +4,7 @@ import { useSession, type Cond } from "@/lib/session";
 import { REGIONS, DISASTER_TYPES } from "@/lib/config";
 import type { DisasterType, RegionId } from "@/lib/contract/agent";
 import { IcDoc, IcPlus, IcX } from "../Icons";
+import { WX_QQ, advLabel, advTime, advTone } from "@/lib/wxref";
 
 export const PRESETS = [
   { key: "wx", label: "현재 기상상황", q: "지금 우리 지역 기상특보와 강우 상황은 어떤가요?" },
@@ -31,7 +32,7 @@ export function condChips(c: Cond): { k: string; t: string }[] {
 }
 
 export default function Composer({ onSend, busy, baseLabel, onLibrary, onScenario }: { onSend: (q: string, preset?: string) => void; busy: boolean; baseLabel: string; onLibrary: () => void; onScenario: (s: ScenarioItem) => void }) {
-  const { cond, setCond } = useSession();
+  const { cond, setCond, wxRef, setWxRef } = useSession();
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
   const ta = useRef<HTMLTextAreaElement>(null);
@@ -62,12 +63,21 @@ export default function Composer({ onSend, busy, baseLabel, onLibrary, onScenari
           {chips.length > 4 && <span className="pill">+{chips.length - 4}</span>}
           <button className="edit" onClick={() => setOpen(true)}>조건 변경 ›</button>
         </div>
+        {wxRef && (
+          <div className="attrow">
+            <span className="rl">참조</span>
+            <span className={`lvb ${advTone(wxRef)}`}>{advLabel(wxRef)}</span>
+            <span className="nm">{wxRef.area} · {advTime(wxRef.issuedAt)} 발표</span>
+            <span className="hint">이 특보를 질문과 함께 보냅니다</span>
+            <button className="x" onClick={() => setWxRef(null)} aria-label="특보 참조 해제" title="참조 해제"><IcX size={13} /></button>
+          </div>
+        )}
         <textarea
           ref={ta}
           value={q}
           rows={2}
           maxLength={2000}
-          placeholder="질문을 입력하세요. (Enter 전송 · Shift+Enter 줄바꿈)"
+          placeholder={wxRef ? `${advLabel(wxRef)}에 대해 물어보세요. 예) 지금 뭐부터 해야 하나요? · 이 특보 기준을 넘었나요?` : "질문을 입력하세요. (Enter 전송 · Shift+Enter 줄바꿈)"}
           onChange={(e) => setQ(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
@@ -80,7 +90,9 @@ export default function Composer({ onSend, busy, baseLabel, onLibrary, onScenari
           <div className="tool-chips">
             <button className="chip" onClick={() => onSend("현재 상황 브리핑", "briefing")} disabled={busy}><IcDoc size={13} /> 현재 상황 브리핑</button>
             <span style={{ width: 1, height: 20, background: "var(--c-line)", flex: "none" }} />
-            {PRESETS.map((p) => <button key={p.key} className="chip" onClick={() => onSend(p.q, p.key)} disabled={busy}>{p.label}</button>)}
+            {wxRef
+              ? WX_QQ.map((p) => <button key={p.k} className="chip wx" title={p.q} onClick={() => onSend(p.q, p.k)} disabled={busy}>{p.nm}</button>)
+              : PRESETS.map((p) => <button key={p.key} className="chip" onClick={() => onSend(p.q, p.key)} disabled={busy}>{p.label}</button>)}
             <button className="chip" onClick={onLibrary} title="추천 질문 · 조건 시나리오 · 연속 질의"><IcPlus size={13} /></button>
           </div>
           <span className="cnt">{q.length} / 2,000</span>
