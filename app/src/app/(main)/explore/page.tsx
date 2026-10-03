@@ -425,11 +425,8 @@ function Explore() {
           <div className="modal" style={{ width: "min(460px,100%)" }} onClick={(e) => e.stopPropagation()} role="alertdialog" aria-modal aria-label="새 대화 안내">
             <div className="modal-hd"><h2>새 대화로 시작합니다</h2></div>
             <div className="modal-bd">
-              <p style={{ margin: 0, lineHeight: 1.6 }}>
-                기준지역이 <b>{REGIONS[regionNotice.from].name}</b>에서 <b>{REGIONS[regionNotice.to].name}</b>(으)로 바뀌어 새 대화를 열었습니다.
-                지역 단위가 바뀌면 지도에 표시되는 행정경계·하천 주제도가 섞이지 않도록 대화를 나눕니다.
-              </p>
-              <p className="xs mute2" style={{ margin: "8px 0 0" }}>이전 대화는 [대화 목록]에서 다시 볼 수 있습니다. 같은 지역 안에서 시·군·구, 읍·면·동만 바꾸면 대화가 이어집니다.</p>
+              <p style={{ margin: 0, lineHeight: 1.6 }}>지역 단위가 바뀌면 새 대화창으로 시작합니다.</p>
+              <p className="xs mute2" style={{ margin: "8px 0 0" }}>이전 대화는 [대화 목록]에서 다시 볼 수 있습니다.</p>
               <label className="row xs" style={{ marginTop: 14, gap: 6, cursor: "pointer" }}>
                 <input type="checkbox" checked={noMore} onChange={(e) => setNoMore(e.target.checked)} /> 다시 보지 않기
               </label>
