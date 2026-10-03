@@ -52,6 +52,25 @@ function Explore() {
   const [aimCollapsed, setAimCollapsed] = useState(false);
   const [lib, setLib] = useState(false);
   const [flowRun, setFlowRun] = useState<{ i: number; n: number } | null>(null);
+  // 대화창 ↔ 지도 패널 폭 조절 (대화창 비율 %, 브라우저별 기억)
+  const [chatW, setChatW] = useState(46);
+  const [dragging, setDragging] = useState(false);
+  const workRef = useRef<HTMLElement>(null);
+  useEffect(() => {
+    try { const v = Number(localStorage.getItem("sa.chatW")); if (v >= 25 && v <= 75) setChatW(v); } catch {}
+  }, []);
+  const saveChatW = (v: number) => { setChatW(v); try { localStorage.setItem("sa.chatW", String(v)); } catch {} };
+  const onSplitDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+    setDragging(true);
+  };
+  const onSplitMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!dragging || !workRef.current) return;
+    const r = workRef.current.getBoundingClientRect();
+    setChatW(Math.min(75, Math.max(25, ((e.clientX - r.left) / r.width) * 100)));
+  };
+  const onSplitUp = () => { if (!dragging) return; setDragging(false); saveChatW(Math.round(chatW * 10) / 10); };
   const busy = !!conv?.turns.some((t) => t.pending);
 
   useEffect(() => {
@@ -251,7 +270,7 @@ function Explore() {
   const split = tabs.length > 0;
   return (
     <ExploreContext.Provider value={api}>
-      <main className={`work ${split ? "split" : ""} ${s.aimOn && aimCollapsed ? "aim-pad" : ""}`}>
+      <main ref={workRef} className={`work ${split ? "split" : ""} ${dragging ? "dragging" : ""} ${s.aimOn && aimCollapsed ? "aim-pad" : ""}`} style={{ ["--chat-w" as string]: `${chatW}%` }}>
         {s.aimOn && !aimCollapsed && (
           <AimOverlay
             region={s.cond.region}
@@ -315,6 +334,30 @@ function Explore() {
           </div>
           <Composer onSend={(q, p) => ask(q, p)} busy={busy} baseLabel={baseTimeLabel} onLibrary={() => setLib(true)} onScenario={(sc) => ask(applyScenario(sc).question, undefined, { scenario: sc })} />
         </section>
+        {split && (
+          <div
+            className="splitter"
+            role="separator"
+            aria-orientation="vertical"
+            aria-label="대화창과 지도 폭 조절"
+            aria-valuenow={Math.round(chatW)}
+            aria-valuemin={25}
+            aria-valuemax={75}
+            tabIndex={0}
+            title="드래그해서 폭 조절 · 더블클릭하면 기본 폭"
+            onPointerDown={onSplitDown}
+            onPointerMove={onSplitMove}
+            onPointerUp={onSplitUp}
+            onPointerCancel={onSplitUp}
+            onDoubleClick={() => saveChatW(46)}
+            onKeyDown={(e) => {
+              if (e.key === "ArrowLeft") saveChatW(Math.max(25, chatW - 3));
+              else if (e.key === "ArrowRight") saveChatW(Math.min(75, chatW + 3));
+            }}
+          >
+            <span className="grip" />
+          </div>
+        )}
         {split && (
           <RightPanel
             tabs={tabs}

@@ -241,10 +241,19 @@ label.chk input { width: 18px; height: 18px; accent-color: var(--c-primary); }
    ===================================================================== */
 .work { flex: 1; min-height: 0; display: flex; gap: 0; }
 .chatcol { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; }
-.work.split .chatcol { flex: 0 0 46%; max-width: 860px; }
+.work.split .chatcol { flex: 0 0 var(--chat-w, 46%); }
 .rpanel { flex: 1 1 auto; min-width: 0; margin: 16px 16px 16px 0; background: #fff; border: 1px solid var(--c-bd);
   border-radius: var(--r-xl); display: flex; flex-direction: column; overflow: hidden; box-shadow: var(--shadow-1); }
 .work:not(.split) .rpanel { display: none; }
+/* 분할 화면 : 대화창을 넓히면 본문도 함께 넓어지도록 (최대 1200px) */
+.work.split .chathd, .work.split .thread, .work.split .composer, .work.split .aim-strip { max-width: 1200px; }
+/* 대화창 ↔ 지도 폭 조절 바 */
+.splitter { flex: none; width: 12px; margin: 16px 0; cursor: col-resize; display: flex; align-items: center; justify-content: center;
+  touch-action: none; border-radius: var(--r-m); outline: none; }
+.splitter .grip { width: 4px; height: 44px; border-radius: 2px; background: var(--c-bd); transition: background .15s, height .15s; }
+.splitter:hover .grip, .splitter:focus-visible .grip, .work.dragging .splitter .grip { background: var(--c-navy); height: 72px; }
+.work.dragging { cursor: col-resize; user-select: none; }
+.work.dragging .rpanel, .work.dragging .chatcol { pointer-events: none; }
 
 .chathd { flex: none; display: flex; align-items: center; gap: 10px; padding: 14px 24px 12px; border-bottom: 1px solid var(--c-line);
   max-width: 900px; width: 100%; margin: 0 auto; }
@@ -527,12 +536,12 @@ label.chk input { width: 18px; height: 18px; accent-color: var(--c-primary); }
 }
 
 @media (max-width: 1180px) {
-  .work.split .chatcol { flex-basis: 50%; }
   .gnav a { padding: 0 10px; }
 }
 @media (max-width: 900px) {
   .work.split { flex-direction: column; }
   .work.split .chatcol { flex: 1 1 50%; max-width: none; }
+  .splitter { display: none; }
   .rpanel { margin: 0 12px 12px; min-height: 50vh; }
   .board-grid, .sugg-grid, .grid2, .grid3, .w4 { grid-template-columns: 1fr; }
   .board-cell { border-right: 0; }
