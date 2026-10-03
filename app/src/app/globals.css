@@ -732,3 +732,12 @@ label.chk input { width: 18px; height: 18px; accent-color: var(--c-primary); }
 .aim-drag { display: flex; align-items: center; gap: 10px; padding: 6px 16px; background: rgba(16,24,40,.04); border-bottom: 1px solid rgba(16,24,40,.06); cursor: grab; user-select: none; touch-action: none; color: #6d7882; }
 .aim-drag:active { cursor: grabbing; }
 .aim-drag .grip { width: 36px; height: 5px; border-radius: 3px; background: repeating-linear-gradient(90deg, #98a2b3 0 4px, transparent 4px 7px); flex: none; }
+
+/* 헤더 : 시연 데이터(기상특보) 전환 — 녹색으로 눈에 띄게 */
+.demoSw { display: inline-flex; align-items: center; gap: 0; margin-right: 14px; padding: 3px; border-radius: 999px; background: #e8f6ee; border: 1.5px solid #1f9254; box-shadow: 0 0 0 3px rgba(31,146,84,.12); }
+.demoSw .lb { font-size: var(--fs-2xs); font-weight: 700; color: #146c3e; padding: 0 8px 0 10px; white-space: nowrap; }
+.demoSw button { height: 30px; padding: 0 14px; border: 0; border-radius: 999px; background: transparent; color: #146c3e; font-size: var(--fs-xs); font-weight: 600; cursor: pointer; white-space: nowrap; }
+.demoSw button:hover { background: rgba(31,146,84,.12); }
+.demoSw button.on { background: #1f9254; color: #fff; font-weight: 800; box-shadow: 0 1px 3px rgba(20,108,62,.35); }
+@media (max-width: 1180px) { .demoSw .lb { display: none; } }
+@media (max-width: 900px) { .demoSw { margin-right: 6px; } .demoSw button { padding: 0 9px; } }

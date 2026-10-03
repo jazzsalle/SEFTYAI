@@ -130,6 +130,12 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           행정안전부
         </Link>
         <span className="sp" />
+        {/* 시연 데이터 전환 — 배포 주소를 받은 사람도 바로 알아보고 바꿀 수 있게 헤더에 노출 */}
+        <div className="demoSw" role="group" aria-label="기상특보 데이터 (시연 모드)" title="훈련 시나리오 = 가상의 호우 상황(특보·강우·119 신고) · 실시간 = 기상청 실제 특보">
+          <span className="lb">기상특보 데이터</span>
+          <button className={mode === "scenario" ? "on" : ""} onClick={() => setMode("scenario")} aria-pressed={mode === "scenario"}>훈련 시나리오</button>
+          <button className={mode === "live" ? "on" : ""} onClick={() => setMode("live")} aria-pressed={mode === "live"}>실시간(기상청)</button>
+        </div>
         <div className="scope">
           기준지역
           <select className="select sm" value={cond.region} onChange={(e) => setCond({ region: e.target.value as RegionId, sigungu: undefined, emd: undefined })} aria-label="기준지역">
@@ -167,13 +173,6 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
               <Link href="/settings/briefing" onClick={() => setMenu(false)}>내 브리핑 항목</Link>
               <Link href="/settings/me" onClick={() => setMenu(false)}>내 권한 정보</Link>
               {account.role === "운영자" && <Link href="/admin" onClick={() => setMenu(false)}>운영관리</Link>}
-              <div className="mh" style={{ borderTop: "1px solid var(--c-line)", borderBottom: 0, marginTop: 4 }}>
-                <div className="xs muted" style={{ marginBottom: 6 }}>기상특보 데이터</div>
-                <div className="modeSw">
-                  <button className={mode === "scenario" ? "on" : ""} onClick={() => setMode("scenario")}>훈련 시나리오</button>
-                  <button className={mode === "live" ? "on" : ""} onClick={() => setMode("live")}>실시간(기상청)</button>
-                </div>
-              </div>
               <button onClick={() => { logout(); router.push("/login"); }}>로그아웃</button>
             </div>
           )}
