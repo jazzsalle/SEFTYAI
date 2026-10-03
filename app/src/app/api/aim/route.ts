@@ -11,25 +11,9 @@ export const dynamic = "force-dynamic";
 
 /**
  * GET /api/aim?region=&mode= — AI 모드 (상황 점검 전광판)
- * ① 특보 수집 → ② 사전 정의 질의로 Agent 상황 점검 → ③ 신호등 판정 → ④ 정기(10분)·변경 재점검 이력
+ * ① 특보 수집 → ② Agent 상황 점검 (전광판의 「브리핑 질문」은 화면에서 내 브리핑 항목으로 구성) → ③ 신호등 판정 → ④ 정기(10분)·변경 재점검 이력
  * 신호등 : 적색(경보·즉시 상황확인) · 황색(주의보·주시) · 녹색(특보 없음·작동 중) · 회색(조회 실패·판단 불가)
  */
-const Q = {
-  경보: [
-    { t: "상황 요약", q: "현재 상황을 요약해줘", preset: "briefing" },
-    { t: "위험·취약지역", q: "우선 확인할 지역과 시설은?" },
-    { t: "유사재난 사례", q: "관련 과거 사례를 보여줘" },
-    { t: "행동매뉴얼", q: "대응 매뉴얼을 보여줘" },
-    { t: "대응 조치", q: "담당자가 먼저 검토할 조치는?" },
-  ],
-  주의보: [
-    { t: "상황 요약", q: "현재 상황을 요약해줘", preset: "briefing" },
-    { t: "특보 기준", q: "특보 기준과 입력한 기상 조건은?" },
-    { t: "위험·취약지역", q: "미리 살펴볼 취약지역은?" },
-    { t: "유사재난 사례", q: "관련 과거 사례를 보여줘" },
-    { t: "행동매뉴얼", q: "사전 대비 매뉴얼을 보여줘" },
-  ],
-};
 const PRI: Record<string, number> = { busan: 0, yeongcheon: 1, inje: 2 };
 
 function message(a: Advisory) {
@@ -65,7 +49,7 @@ export async function GET(req: Request) {
   const sorted = [...advs].sort((x, y) => Number(mine(y)) - Number(mine(x)) || (y.level === "경보" ? 1 : 0) - (x.level === "경보" ? 1 : 0) || (PRI[x.regionId ?? ""] ?? 9) - (PRI[y.regionId ?? ""] ?? 9));
   const own = sorted.filter(mine);
   const state = !ok ? "gray" : own.some((x) => x.level === "경보") ? "red" : own.length ? "yellow" : "green";
-  const alerts = sorted.map((a) => ({ ...a, mine: mine(a), message: message(a), questions: a.level === "경보" ? Q.경보 : Q.주의보 }));
+  const alerts = sorted.map((a) => ({ ...a, mine: mine(a), message: message(a) }));
   const pr = region === "national" ? "busan" : region;
   const baseTime = mode === "scenario" ? SCENARIO[pr].baseTime : new Date().toISOString();
   // 자동 점검 이력 (시나리오 : 사건 타임라인 · 라이브 : 현재 1건)

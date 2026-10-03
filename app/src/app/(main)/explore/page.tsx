@@ -8,7 +8,6 @@ import AnswerView from "@/components/explore/AnswerView";
 import Composer, { type ScenarioItem } from "@/components/explore/Composer";
 import StartScreen from "@/components/explore/StartScreen";
 import { advLabel, advTone } from "@/lib/wxref";
-import { REGIONS } from "@/lib/config";
 import RightPanel from "@/components/explore/RightPanel";
 import AimOverlay from "@/components/explore/AimOverlay";
 import LibraryDrawer from "@/components/explore/LibraryDrawer";

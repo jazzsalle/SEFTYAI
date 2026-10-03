@@ -6,8 +6,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Advisory, RegionId, WeatherMode } from "@/lib/contract/agent";
 import { REGIONS } from "@/lib/config";
+import { BRIEF_AIM_COUNT, useBriefItems } from "@/lib/briefing";
 
-interface AimAlert extends Advisory { mine: boolean; message: string; questions: { t: string; q: string; preset?: string }[] }
+interface AimAlert extends Advisory { mine: boolean; message: string }
 interface AimData { state: "red" | "yellow" | "green" | "gray"; ok: boolean; message: string; lastCheck: string; nextCheck: string; alerts: AimAlert[]; checks: { at: string; label: string; state: string }[] }
 
 const ST = {
@@ -16,13 +17,6 @@ const ST = {
   green: { t: "AI 모드 작동 중", lv: "녹색 · 평시" },
   gray: { t: "확인 중 · 판단 불가", lv: "회색 · 확인 중" },
 } as const;
-const CALM_Q = [
-  { t: "평시 점검", q: "평시에 점검해야 할 위험·취약지역은 어디인가요?" },
-  { t: "반복 피해", q: "과거 피해가 반복된 곳 중 아직 정비되지 않은 위험지구는?" },
-  { t: "복합 위험", q: "침수와 산사태 위험이 동시에 존재하는 지역은 어디인가요?" },
-  { t: "사전 대비", q: "호우 예비특보가 나왔습니다. 미리 점검해야 할 곳과 준비할 일은?" },
-  { t: "과거 사례", q: "관련 과거 사례를 보여줘" },
-];
 const kst = (iso: string) => new Date(iso).toLocaleString("ko-KR", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" });
 const hm = (iso: string) => new Date(iso).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", hour12: false });
 
@@ -44,6 +38,8 @@ export default function AimOverlay(p: {
   onClose: () => void;
 }) {
   const [d, setD] = useState<AimData | null>(null);
+  // 브리핑 질문 = 내 브리핑 항목 중 사용 중인 것을 위에서부터 5개
+  const qs = useBriefItems().slice(0, BRIEF_AIM_COUNT);
   const [pg, setPg] = useState(0);
   // 전광판 위치 이동 (끌어서 옮기고 대화는 그대로 이어감 · 더블클릭 = 원위치 · 브라우저별 기억)
   const [off, setOff] = useState({ x: 0, y: 0 });
@@ -78,7 +74,6 @@ export default function AimOverlay(p: {
   const a = d.alerts[pg];
   const lamp = d.state === "red" ? "red" : d.state === "yellow" ? "amber" : d.state === "gray" ? "gray" : "green";
   const tone = a ? (a.level === "경보" ? "red" : "yellow") : d.state === "gray" ? "gray" : "green";
-  const qs = a ? a.questions : CALM_Q;
   const rid = (a?.regionId && a.regionId !== "national" ? a.regionId : p.region) as RegionId;
 
   if (p.collapsed)
@@ -128,13 +123,13 @@ export default function AimOverlay(p: {
       </div>
       <div className="aim-q">
         <div className="row" style={{ marginBottom: 10 }}>
-          <b>추천 질문</b>
-          <span className="xs mute2">선택하면 {a ? `${a.area} ${a.type}${a.level}` : REGIONS[p.region].name} 기준으로 답변합니다.</span>
+          <b>브리핑 질문</b>
+          <span className="xs mute2">내 브리핑 항목 상위 {qs.length}개 · 선택하면 {a ? `${a.area} ${a.type}${a.level}` : REGIONS[p.region].name} 기준으로 답변합니다.</span>
         </div>
         <div className="aim-cards">
           {qs.map((x) => (
-            <button key={x.q} onClick={() => { p.setCollapsed(true); p.onAsk(x.q, (x as { preset?: string }).preset, rid); }}>
-              <span className="k">{x.t}</span>
+            <button key={x.key} onClick={() => { p.setCollapsed(true); p.onAsk(x.q, x.preset, rid); }}>
+              <span className="k">{x.label}</span>
               <span className="q">{x.q}</span>
               <span className="go">질문하기 <i>›</i></span>
             </button>
