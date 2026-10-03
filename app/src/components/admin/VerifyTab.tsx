@@ -4,15 +4,16 @@
  *  ① 요청 정합 : 보낸 질의 ↔ Agent가 받은 질의(echo)        (UNE·T3Q 연계)
  *  ② 응답 정답 : Agent 응답값 ↔ 정답셋 기대값               (T3Q)
  *  ③ 표출 정합 : Agent 응답값 ↔ 화면에 그려진 값            (UNE)
- * 자동 점검 결과 위에 사람 판정(정합/부정합/보류·메모)을 남기고 CSV로 내보낸다. 판정·로컬 정답값은 이 브라우저에 저장.
+ * ①②③ 결과로 문항 판정(정합/부정합/보류·조치 담당·사유)을 자동으로 내고, 뒤집어야 할 때만 사람이 수정한다. CSV 내보내기. 수정한 판정·정답값은 이 브라우저에 저장.
  */
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { AgentResponse, Citation, EntityRef } from "@/lib/contract/agent";
 import { REGIONS } from "@/lib/config";
 import { useSession, type Conversation, type Turn } from "@/lib/session";
-import { MARK_LABEL, checkRender, checkRequest, pct, visibleExpectations, type GoldItem, type Mark, type VerifyResult } from "@/lib/verify";
+import { MARK_LABEL, autoVerdict, checkRender, checkRequest, pct, visibleExpectations, type AutoVerdict, type GoldItem, type Mark, type VerifyResult } from "@/lib/verify";
 import AnswerView from "../explore/AnswerView";
 import { ExploreContext, type ExploreApi } from "../explore/ExploreCtx";
+import { openHelp } from "@/components/HelpCenter";
 
 interface Verdict { verdict: "정합" | "부정합" | "보류"; owner: "T3Q" | "UNE" | "공통"; memo: string; at: string; by: string }
 interface GoldSet { meta: { name: string; builtAt: string; source: string; count: number }; items: GoldItem[] }
@@ -26,6 +27,18 @@ const MarkBadge = ({ m, text }: { m: Mark; text?: string }) => <span className={
 const condOf = (c: GoldItem["context"]) => `${REGIONS[c.region].short} · ${c.aiMode ? "AI 모드" : c.refAdvisory ? `참조 ${c.refAdvisory.type}${c.refAdvisory.level}` : c.hydro || c.situationKind || c.scenarioId ? "입력 조건" : "조건 없음"}`;
 const BASIS: Record<string, string> = { "ai-mode": "AI 모드 (현재 발효 특보)", "ref-advisory": "참조 특보", conditions: "입력한 재난상황 조건", none: "조건 없음 (기준지역 일반 질의)" };
 const hm = (iso: string) => new Date(iso).toLocaleString("ko-KR", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" });
+/** 최종 판정 = 사람이 수정한 판정이 있으면 그것, 없으면 자동 판정 */
+interface Final { verdict: Verdict["verdict"]; owner: string; reason: string; manual: boolean }
+const finalOf = (auto: AutoVerdict | null, ov?: Verdict): Final | null =>
+  ov ? { verdict: ov.verdict, owner: ov.owner, reason: ov.memo, manual: true } : auto ? { verdict: auto.verdict, owner: auto.owner ?? "", reason: auto.reasons.join(" / "), manual: false } : null;
+const VerdictBadge = ({ f }: { f: Final | null }) =>
+  f ? (
+    <span className="row" style={{ gap: 4 }}>
+      <span className={`badge ${f.verdict === "정합" ? "ok" : f.verdict === "부정합" ? "danger" : "warn"}`}>{f.verdict}</span>
+      {f.verdict !== "정합" && f.owner && <span className="xs mute2">{f.owner}</span>}
+      {f.manual && <span className="badge info" title="사람이 수정한 판정">수정</span>}
+    </span>
+  ) : <span className="xs mute2">미실행</span>;
 const csvCell = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
 
 export default function VerifyTab() {
@@ -62,7 +75,8 @@ export default function VerifyTab() {
   /** 정답셋 문항 (로컬 등록분 포함, 화면에서 고친 정답값 반영) */
   const items = useMemo(() => [...(gold?.items ?? []), ...local].map((x) => (over[x.id] ? { ...x, expect: over[x.id], source: "화면에서 수정한 정답값" } : x)), [gold, local, over]);
   const groups = useMemo(() => [...new Set(items.map((x) => x.group ?? "기타"))], [items]);
-  const shown = items.filter((x) => (!group || (x.group ?? "기타") === group) && (!onlyBad || (results[x.id] && (results[x.id].req.mark === "fail" || results[x.id].ans?.mark === "fail" || results[x.id].render.mark === "fail" || results[x.id].error))));
+  const fin = (id: string) => finalOf(results[id] ? autoVerdict(results[id]) : null, verdicts[id]);
+  const shown = items.filter((x) => (!group || (x.group ?? "기타") === group) && (!onlyBad || fin(x.id)?.verdict === "부정합"));
   const keepResults = (next: Record<string, VerifyResult>) => {
     setResults(next);
     LS.set("sa.verifyRun", Object.fromEntries(Object.entries(next).map(([k, v]) => [k, { ...v, request: undefined, response: undefined }])));
@@ -106,7 +120,14 @@ export default function VerifyTab() {
     const next = { ...verdicts, [key]: { ...v, at: new Date().toISOString(), by: s.account?.id ?? "-" } };
     setVerdicts(next);
     LS.set("sa.verdict", next);
-    s.toast("판정을 저장했습니다");
+    s.toast("판정을 수정했습니다");
+  };
+  const clearVerdict = (key: string) => {
+    const next = { ...verdicts };
+    delete next[key];
+    setVerdicts(next);
+    LS.set("sa.verdict", next);
+    s.toast("자동 판정으로 되돌렸습니다");
   };
 
   /* ---------- 집계 ---------- */
@@ -114,21 +135,21 @@ export default function VerifyTab() {
   const okN = (f: (r: VerifyResult) => Mark | undefined) => ran.filter((r) => f(r) === "ok").length;
   const idExp = ran.reduce((n, r) => n + (r.ans?.ids.expected.length ?? 0), 0), idHit = ran.reduce((n, r) => n + (r.ans?.ids.matched.length ?? 0), 0);
   const valAll = ran.reduce((n, r) => n + (r.ans?.values.length ?? 0), 0), valOk = ran.reduce((n, r) => n + (r.ans?.values.filter((v) => v.mark === "ok").length ?? 0), 0);
-  const vd = shown.map((x) => verdicts[x.id]);
+  const fins = shown.map((x) => fin(x.id)).filter((f): f is Final => !!f);
   const cards: [string, string, string, Mark][] = [
     ["① 요청 정합", ran.length ? `${pct(okN((r) => r.req.mark), ran.length)}%` : "—", `보낸 질의 = 받은 질의 · 불일치 ${ran.filter((r) => r.req.mark === "fail").length}건`, ran.some((r) => r.req.mark === "fail") ? "fail" : "ok"],
     ["② 응답 정답", ran.length ? `${pct(okN((r) => r.ans?.mark), ran.length)}%` : "—", `대상 ID ${pct(idHit, idExp)}% · 항목값 ${pct(valOk, valAll)}% (${valOk}/${valAll})`, ran.some((r) => r.ans?.mark === "fail" || r.error) ? "fail" : "ok"],
     ["③ 표출 정합", ran.length ? `${pct(okN((r) => r.render.mark), ran.length)}%` : "—", `응답 값이 화면 모델로 빠짐없이 · 누락 ${ran.filter((r) => r.render.mark === "fail").length}건`, ran.some((r) => r.render.mark === "fail") ? "fail" : "ok"],
-    ["사람 판정", `${vd.filter(Boolean).length} / ${shown.length}`, `정합 ${vd.filter((v) => v?.verdict === "정합").length} · 부정합 ${vd.filter((v) => v?.verdict === "부정합").length} · 보류 ${vd.filter((v) => v?.verdict === "보류").length}`, "na"],
+    ["판정 (자동)", fins.length ? `정합 ${fins.filter((f) => f.verdict === "정합").length} · 부정합 ${fins.filter((f) => f.verdict === "부정합").length}` : "—", `보류 ${fins.filter((f) => f.verdict === "보류").length} · 사람이 수정 ${fins.filter((f) => f.manual).length}건 · 미실행 ${shown.length - fins.length}`, fins.some((f) => f.verdict === "부정합") ? "fail" : "na"],
   ];
 
   const exportCsv = () => {
-    const head = ["문항 ID", "역량질문", "구분", "질문", "조건", "① 요청 정합", "기대 의도", "응답 의도", "대상 ID 기대", "대상 ID 일치", "누락 ID", "항목값 일치", "항목값 전체", "불일치 항목", "근거 일치", "② 응답 정답", "③ 표출 정합", "오류", "사람 판정", "담당", "메모", "실행 시각"];
+    const head = ["문항 ID", "역량질문", "구분", "질문", "조건", "① 요청 정합", "기대 의도", "응답 의도", "대상 ID 기대", "대상 ID 일치", "누락 ID", "항목값 일치", "항목값 전체", "불일치 항목", "근거 일치", "② 응답 정답", "③ 표출 정합", "오류", "판정", "판정 방식", "조치 담당", "사유", "실행 시각"];
     const rows = shown.map((x) => {
-      const r = results[x.id], v = verdicts[x.id], a = r?.ans;
+      const r = results[x.id], v = fin(x.id), a = r?.ans;
       return [x.id, (x.cq ?? []).join(" "), x.group ?? "", x.question, condOf(x.context), r ? MARK_LABEL[r.req.mark] : "", a?.intent.expected ?? "", a?.intent.actual ?? "", a?.ids.expected.length ?? "", a?.ids.matched.length ?? "", a?.ids.missing.join(" ") ?? "",
         a?.values.filter((q) => q.mark === "ok").length ?? "", a?.values.length ?? "", a?.values.filter((q) => q.mark !== "ok").map((q) => `${q.dqId} ${q.entityId} ${q.field}: ${q.expected} → ${q.actual ?? "없음"}`).join(" / ") ?? "",
-        a ? `${a.cites.filter((c) => c.mark === "ok").length}/${a.cites.length}` : "", a ? MARK_LABEL[a.mark] : "", r ? MARK_LABEL[r.render.mark] : "", r?.error ?? "", v?.verdict ?? "", v?.owner ?? "", v?.memo ?? "", r ? r.ranAt : ""];
+        a ? `${a.cites.filter((c) => c.mark === "ok").length}/${a.cites.length}` : "", a ? MARK_LABEL[a.mark] : "", r ? MARK_LABEL[r.render.mark] : "", r?.error ?? "", v?.verdict ?? "", v ? (v.manual ? "사람 수정" : "자동") : "", v?.owner ?? "", v?.reason ?? "", r ? r.ranAt : ""];
     });
     const csv = "\uFEFF" + [head, ...rows].map((l) => l.map(csvCell).join(",")).join("\r\n");
     const a = document.createElement("a");
@@ -174,7 +195,8 @@ export default function VerifyTab() {
         <Detail
           id={row.key} title={row.turn.q} sub={`실사용 질의 · ${hm(row.at)} · ${row.account} · ${row.conv}`}
           req={checkRequest(row.turn.req, res)} ans={null} render={checkRender(res)} response={res} request={row.turn.req}
-          verdict={verdicts[row.key]} onVerdict={(v) => saveVerdict(row.key, v)} onBack={() => setSel(null)}
+          auto={autoVerdict({ req: checkRequest(row.turn.req, res), ans: null, render: checkRender(res) })}
+          verdict={verdicts[row.key]} onVerdict={(v) => saveVerdict(row.key, v)} onClearVerdict={() => clearVerdict(row.key)} onBack={() => setSel(null)}
           extra={<button className="btn sm line" onClick={() => promote(row)}>정답셋으로 등록</button>}
           note="정답셋에 없는 질문이라 ② 응답 정답은 자동 판정하지 않습니다. 정답셋으로 등록하면 기대값과 비교할 수 있습니다."
         />
@@ -197,7 +219,8 @@ export default function VerifyTab() {
           LS.set("sa.goldOverride", next);
           runOne({ ...it, expect: ex ?? (gold.items.find((g) => g.id === it.id) ?? local.find((g) => g.id === it.id) ?? it).expect });
         }}
-        verdict={verdicts[it.id]} onVerdict={(v) => saveVerdict(it.id, v)} onBack={() => setSel(null)}
+        auto={r ? autoVerdict(r) : null}
+        verdict={verdicts[it.id]} onVerdict={(v) => saveVerdict(it.id, v)} onClearVerdict={() => clearVerdict(it.id)} onBack={() => setSel(null)}
         onPrev={i > 0 ? () => setSel(shown[i - 1].id) : undefined} onNext={i >= 0 && i < shown.length - 1 ? () => setSel(shown[i + 1].id) : undefined}
       />
     );
@@ -206,9 +229,13 @@ export default function VerifyTab() {
   /* ---------- 목록 ---------- */
   return (
     <>
-      <div className="notice" style={{ marginBottom: 14 }}>
-        <b>무엇을 확인하나</b> — ① 우리가 보낸 질의를 Agent가 그대로 받았는지 · ② Agent 응답이 <b>정답셋의 기대값</b>과 같은지(T3Q) · ③ 응답 값이 화면에 빠짐없이 그려지는지(UNE).
-        자동 점검 뒤 문항별로 <b>정합/부정합</b>을 판정해 남깁니다.
+      <div className="notice row" style={{ marginBottom: 14, gap: 10 }}>
+        <span>
+          <b>무엇을 확인하나</b> — ① 우리가 보낸 질의를 Agent가 그대로 받았는지 · ② Agent 응답이 <b>정답셋의 기대값</b>과 같은지(T3Q) · ③ 응답 값이 화면에 빠짐없이 그려지는지(UNE).
+          결과에 따라 <b>정합/부정합이 자동으로 판정</b>되고, 뒤집어야 할 때만 수정합니다.
+        </span>
+        <span className="sp" />
+        <button className="btn sm line" style={{ flex: "none" }} onClick={() => openHelp("verify")}>도움말 · 사용 방법</button>
       </div>
       <div className="row w" style={{ marginBottom: 14, gap: 8 }}>
         <div className="subtabs" style={{ margin: 0, maxWidth: 360 }}>
@@ -222,7 +249,7 @@ export default function VerifyTab() {
               <option value="">전체 구분</option>
               {groups.map((g) => <option key={g}>{g}</option>)}
             </select>
-            <label className="row xs" style={{ gap: 4 }}><input type="checkbox" checked={onlyBad} onChange={(e) => setOnlyBad(e.target.checked)} /> 불일치만</label>
+            <label className="row xs" style={{ gap: 4 }}><input type="checkbox" checked={onlyBad} onChange={(e) => setOnlyBad(e.target.checked)} /> 부정합만</label>
             <button className="btn sm pri" onClick={runAll} disabled={!!running}>{running === "all" ? "실행 중…" : `▶ ${shown.length}문항 실행`}</button>
             <button className="btn sm" onClick={exportCsv} disabled={!ran.length}>CSV 내보내기</button>
           </>
@@ -245,7 +272,7 @@ export default function VerifyTab() {
             <thead><tr><th>문항</th><th>질문</th><th>조건</th><th>① 요청</th><th>② 응답 정답 (의도 · 대상 ID · 항목값 · 근거)</th><th>③ 표출</th><th>판정</th></tr></thead>
             <tbody>
               {shown.map((x) => {
-                const r = results[x.id], a = r?.ans, v = verdicts[x.id];
+                const r = results[x.id], a = r?.ans;
                 return (
                   <tr key={x.id} className="click" onClick={() => { setSel(x.id); if (!r?.response) runOne(x); }}>
                     <td className="xs"><code>{x.id}</code>{x.cq?.length ? <div className="mute2">{x.cq[0]}{x.cq.length > 1 ? ` 외 ${x.cq.length - 1}` : ""}</div> : null}{over[x.id] ? <div><span className="badge info">정답값 수정</span></div> : null}</td>
@@ -264,7 +291,7 @@ export default function VerifyTab() {
                       ) : null}
                     </td>
                     <td>{r ? <MarkBadge m={r.render.mark} /> : null}</td>
-                    <td>{v ? <span className={`badge ${v.verdict === "정합" ? "ok" : v.verdict === "부정합" ? "danger" : "warn"}`}>{v.verdict}</span> : <span className="xs mute2">대기</span>}</td>
+                    <td><VerdictBadge f={fin(x.id)} /></td>
                   </tr>
                 );
               })}
@@ -280,7 +307,7 @@ export default function VerifyTab() {
             <thead><tr><th>시각</th><th>계정</th><th>질문</th><th>의도 · 판단 기준</th><th>① 요청</th><th>③ 표출</th><th>판정</th></tr></thead>
             <tbody>
               {live.map((l) => {
-                const res = l.turn.res!, rq = checkRequest(l.turn.req, res), rd = checkRender(res), v = verdicts[l.key];
+                const res = l.turn.res!, rq = checkRequest(l.turn.req, res), rd = checkRender(res);
                 return (
                   <tr key={l.key} className="click" onClick={() => setSel(l.key)}>
                     <td className="num xs">{hm(l.at)}</td>
@@ -289,7 +316,7 @@ export default function VerifyTab() {
                     <td className="xs">{res.intent}{res.interpretation ? <div className="mute2">{BASIS[res.interpretation.basis]}</div> : null}</td>
                     <td>{l.turn.req ? <MarkBadge m={rq.mark} /> : <span className="xs mute2">기록 없음</span>}</td>
                     <td><MarkBadge m={rd.mark} /></td>
-                    <td>{v ? <span className={`badge ${v.verdict === "정합" ? "ok" : v.verdict === "부정합" ? "danger" : "warn"}`}>{v.verdict}</span> : <span className="xs mute2">대기</span>}</td>
+                    <td><VerdictBadge f={finalOf(autoVerdict({ req: rq, ans: null, render: rd }), verdicts[l.key])} /></td>
                   </tr>
                 );
               })}
@@ -311,18 +338,20 @@ function Detail(p: {
   request?: unknown; response?: AgentResponse; error?: string; ranAt?: string; busy?: boolean;
   item?: GoldItem; overridden?: boolean;
   onRun?: () => void; onExpect?: (ex: GoldItem["expect"] | null) => void;
-  verdict?: Verdict; onVerdict: (v: Omit<Verdict, "at" | "by">) => void;
+  auto: AutoVerdict | null;
+  verdict?: Verdict; onVerdict: (v: Omit<Verdict, "at" | "by">) => void; onClearVerdict: () => void;
   onBack: () => void; onPrev?: () => void; onNext?: () => void; extra?: React.ReactNode; note?: string;
 }) {
   const [vd, setVd] = useState<Verdict["verdict"]>(p.verdict?.verdict ?? "정합");
   const [owner, setOwner] = useState<Verdict["owner"]>(p.verdict?.owner ?? "T3Q");
   const [memo, setMemo] = useState(p.verdict?.memo ?? "");
+  const [fix, setFix] = useState(false);
   const [edit, setEdit] = useState<string | null>(null);
   const [editErr, setEditErr] = useState("");
   const [dom, setDom] = useState<{ kind: string; text: string; ok: boolean }[] | null>(null);
   const pv = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    setVd(p.verdict?.verdict ?? "정합"); setOwner(p.verdict?.owner ?? "T3Q"); setMemo(p.verdict?.memo ?? ""); setEdit(null); setEditErr(""); setDom(null);
+    setVd(p.verdict?.verdict ?? "정합"); setOwner(p.verdict?.owner ?? "T3Q"); setMemo(p.verdict?.memo ?? ""); setFix(false); setEdit(null); setEditErr(""); setDom(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [p.id]);
   // ③ 화면 대조 : 미리보기로 그린 답변 카드에 응답 값이 실제로 보이는지
@@ -468,20 +497,49 @@ function Detail(p: {
         </section>
       )}
 
-      {/* 사람 판정 */}
-      <section className="panel vf-sec">
-        <h3>사람 판정</h3>
-        <div className="row w" style={{ gap: 14, margin: "8px 0" }}>
-          {(["정합", "부정합", "보류"] as const).map((v) => <label key={v} className="row s" style={{ gap: 4 }}><input type="radio" name="vd" checked={vd === v} onChange={() => setVd(v)} /> {v}</label>)}
-          <span className="xs muted">조치 담당</span>
-          <select className="select sm" value={owner} onChange={(e) => setOwner(e.target.value as Verdict["owner"])} aria-label="조치 담당"><option>T3Q</option><option>UNE</option><option>공통</option></select>
-        </div>
-        <textarea className="vf-json" style={{ fontFamily: "inherit" }} rows={3} placeholder="판정 사유 · 조치 요청 내용 (예: DQ-10-011 사업상태가 계획자료 기준일 없이 '완료'로 응답)" value={memo} onChange={(e) => setMemo(e.target.value)} aria-label="판정 메모" />
-        <div className="row" style={{ gap: 8, marginTop: 8 }}>
-          <button className="btn sm pri" onClick={() => p.onVerdict({ verdict: vd, owner, memo })}>판정 저장</button>
-          {p.verdict && <span className="xs mute2">저장됨 · {hm(p.verdict.at)} · {p.verdict.by}</span>}
-        </div>
-      </section>
+      {/* 판정 : 자동 + (필요할 때만) 사람 수정 */}
+      {(p.auto || p.verdict) && (
+        <section className="panel vf-sec">
+          <div className="row">
+            <h3>판정 <span className="xs muted">①②③ 결과로 자동 판정 · 뒤집어야 할 때만 수정</span></h3>
+            <span className="sp" />
+            <VerdictBadge f={finalOf(p.auto, p.verdict)} />
+          </div>
+          {p.auto && (
+            <div className={`vf-auto ${p.auto.verdict === "정합" ? "ok" : p.auto.verdict === "부정합" ? "bad" : "hold"}`}>
+              <b>자동 판정 : {p.auto.verdict}</b>
+              {p.auto.owner && <span> · 조치 담당 {p.auto.owner}</span>}
+              {p.auto.reasons.length > 0 ? <ul>{p.auto.reasons.map((r, i) => <li key={i}>{r}</li>)}</ul> : <span> · 요청·응답·표출이 모두 일치합니다.</span>}
+            </div>
+          )}
+          {p.verdict && !fix && (
+            <div className="vf-auto fix">
+              <b>사람이 수정한 판정 : {p.verdict.verdict}</b> · 조치 담당 {p.verdict.owner} · {hm(p.verdict.at)} · {p.verdict.by}
+              {p.verdict.memo && <div style={{ marginTop: 4 }}>{p.verdict.memo}</div>}
+            </div>
+          )}
+          {!fix ? (
+            <div className="row w" style={{ gap: 6, marginTop: 10 }}>
+              <button className="btn xs" onClick={() => { setVd(p.verdict?.verdict ?? (p.auto?.verdict === "정합" ? "부정합" : "정합")); setFix(true); }}>{p.verdict ? "수정한 판정 고치기" : "판정 수정"}</button>
+              {p.verdict && <button className="btn xs ghost" onClick={p.onClearVerdict}>자동 판정으로 되돌리기</button>}
+              <span className="xs mute2">자동 판정이 맞으면 아무것도 하지 않아도 됩니다. 정답셋이 틀렸던 경우처럼 뒤집어야 할 때만 수정하세요.</span>
+            </div>
+          ) : (
+            <div style={{ marginTop: 10 }}>
+              <div className="row w" style={{ gap: 14, marginBottom: 8 }}>
+                {(["정합", "부정합", "보류"] as const).map((v) => <label key={v} className="row s" style={{ gap: 4 }}><input type="radio" name="vd" checked={vd === v} onChange={() => setVd(v)} /> {v}</label>)}
+                <span className="xs muted">조치 담당</span>
+                <select className="select sm" value={owner} onChange={(e) => setOwner(e.target.value as Verdict["owner"])} aria-label="조치 담당"><option>T3Q</option><option>UNE</option><option>공통</option></select>
+              </div>
+              <textarea className="vf-json" style={{ fontFamily: "inherit" }} rows={3} placeholder="수정 사유 (필수) — 예: 정답셋의 기대값이 옛 자료 기준이라 응답이 맞음" value={memo} onChange={(e) => setMemo(e.target.value)} aria-label="판정 수정 사유" />
+              <div className="row" style={{ gap: 8, marginTop: 8 }}>
+                <button className="btn sm pri" disabled={!memo.trim()} onClick={() => { p.onVerdict({ verdict: vd, owner, memo: memo.trim() }); setFix(false); }}>수정 저장</button>
+                <button className="btn sm ghost" onClick={() => setFix(false)}>취소</button>
+              </div>
+            </div>
+          )}
+        </section>
+      )}
 
       {/* 원문 */}
       {(p.request || p.response) && (

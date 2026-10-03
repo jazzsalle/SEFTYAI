@@ -182,5 +182,43 @@ export function visibleExpectations(res: AgentResponse): { kind: string; text: s
   return out;
 }
 
+/* ---------------- 자동 판정 ---------------- */
+export type Owner = "T3Q" | "UNE" | "공통";
+export interface AutoVerdict { verdict: "정합" | "부정합" | "보류"; owner: Owner | null; reasons: string[] }
+/**
+ * ①②③ 결과로 문항 판정을 자동으로 낸다 (사람은 뒤집어야 할 때만 수정).
+ *  · 불일치 단계로 조치 담당을 정함 : ① 요청 = 공통(연계) · ② 응답 정답 = T3Q · ③ 표출 = UNE (여러 단계면 공통)
+ *  · 정답값이 없는 질의는 응답 정답을 판정할 수 없어 '보류'
+ */
+export function autoVerdict(r: Pick<VerifyResult, "req" | "ans" | "render" | "error">): AutoVerdict {
+  const reasons: string[] = [];
+  const owners = new Set<Owner>();
+  if (r.error) {
+    reasons.push(r.error);
+    owners.add(/계약\(스키마\)/.test(r.error) ? "UNE" : "T3Q");
+    return { verdict: "부정합", owner: [...owners][0], reasons };
+  }
+  if (r.req.mark === "fail") {
+    owners.add("공통");
+    r.req.rows.filter((x) => x.mark === "fail").slice(0, 5).forEach((x) => reasons.push(`① ${x.path} : ${x.sent} → ${x.received} (${x.note ?? "불일치"})`));
+  }
+  if (r.ans?.mark === "fail") {
+    owners.add("T3Q");
+    const a = r.ans;
+    if (a.intent.mark === "fail") reasons.push(`② 의도 : 기대 ${a.intent.expected} → 응답 ${a.intent.actual}`);
+    if (a.ids.missing.length) reasons.push(`② 대상 ID 누락 : ${a.ids.missing.join(", ")}`);
+    a.values.filter((v) => v.mark === "fail").slice(0, 8).forEach((v) => reasons.push(`② ${v.dqId} ${v.entityId} ${v.field} : 기대 ${v.expected} → 응답 ${v.actual ?? "없음"}`));
+    a.cites.filter((c) => c.mark === "fail").forEach((c) => reasons.push(`② 근거 없음 : ${c.docId}${c.page ? ` p.${c.page}` : ""}`));
+  }
+  if (r.render.mark === "fail") {
+    owners.add("UNE");
+    r.render.rows.filter((x) => x.mark === "fail").forEach((x) => reasons.push(`③ ${x.label} : ${x.detail}`));
+  }
+  if (reasons.length) return { verdict: "부정합", owner: owners.size > 1 ? "공통" : [...owners][0], reasons };
+  if (r.req.mark === "warn") return { verdict: "보류", owner: "T3Q", reasons: ["Agent가 받은 질의(requestEcho)를 되돌려주지 않아 요청 정합을 확인할 수 없음"] };
+  if (!r.ans) return { verdict: "보류", owner: null, reasons: ["정답값이 없는 질의 — 응답 정답은 판정하지 않음 (정답셋에 등록하면 자동 판정)"] };
+  return { verdict: "정합", owner: null, reasons: [] };
+}
+
 export const MARK_LABEL: Record<Mark, string> = { ok: "일치", fail: "불일치", warn: "확인 필요", na: "해당 없음" };
 export const pct = (n: number, d: number) => (d ? Math.round((n / d) * 100) : 0);

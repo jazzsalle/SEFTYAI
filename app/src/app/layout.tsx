@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "ol/ol.css";
 import "./globals.css";
 import { SessionProvider } from "@/lib/session";
+import HelpCenter from "@/components/HelpCenter";
 
 export const metadata: Metadata = {
   title: "재난안전 AI 시범서비스 | 행정안전부",
@@ -12,7 +13,10 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="ko">
       <body>
-        <SessionProvider>{children}</SessionProvider>
+        <SessionProvider>
+          {children}
+          <HelpCenter />
+        </SessionProvider>
       </body>
     </html>
   );

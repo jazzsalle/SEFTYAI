@@ -48,6 +48,7 @@
 | `components/AppShell.tsx` | 헤더(녹색 기상특보 데이터 전환·기준지역·AI 모드), 특보 바(특보로 질문) |
 | `lib/session.tsx` | 계정·조건·AI 모드·참조 특보·대화 저장(localStorage) |
 | `lib/verify.ts`, `lib/server/verify.ts`, `app/api/verify`, `components/admin/VerifyTab.tsx` | 내부용 응답 정합성 검증 (3단 비교 로직 · 정답셋 실행 API · 화면). 정답셋 `app/data/seed/gold_set.json` |
+| `lib/help.ts`, `components/HelpCenter.tsx` | 온라인 도움말: 내용(항목·순서·예시 질문) / 전 화면 공통 버튼·서랍 (`app/layout.tsx`에 장착, `openHelp("verify")`로 특정 항목 열기) |
 | `lib/server/scenarios.ts`, `library.ts` | 조건 시나리오 13종, 추천 질문(CQ), 연속 질의 시연(특보 참조 흐름 포함) |
 
 ## 5. 점검 (수정 후 반드시)
@@ -88,6 +89,8 @@ npx tsc --noEmit                                       # .next/types TS6053 경�
 - [ ] 사내 메신저 공지 (아래 부록 문안)
 - [ ] 개발자에게 02·03 시트 가이드(pptx) 공유 → T3Q-15 개정안부터 T3Q와 구조 합의
 - [ ] 우측 상세 표시 항목 ↔ 요구사항 v1.71 상세조회 항목(`docs/analysis/02_t3q_detail_items.md`) 전수 대조 — 아직 하지 않음
+- [ ] 도움말 '문의' 항목에 실제 문의처(담당 부서·연락처) 넣기 — 지금은 연락처 없이 안내 문구만 있음 (`lib/help.ts`)
+- [ ] 화면 확정 후 도움말 문구 재점검 (필요하면 그림 추가)
 - [ ] 외부 공유 범위 결정 (사이트에 재해대장·상습침수 등 수신 데이터 요약 포함)
 - [x] Figma 참고 이미지 git 이력 제거·강제 푸시 완료. GitHub 캐시까지 완전히 지우려면 GitHub 지원 요청이 필요하다
 
