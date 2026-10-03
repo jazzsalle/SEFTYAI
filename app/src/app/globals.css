@@ -450,6 +450,7 @@ label.chk input { width: 18px; height: 18px; accent-color: var(--c-primary); }
 .layerpanel h4:first-child { margin-top: 0; }
 .layerpanel label { display: flex; align-items: center; gap: 8px; padding: 4px 0; font-size: var(--fs-xs); cursor: pointer; }
 .layerpanel label .sw { width: 12px; height: 12px; border-radius: 3px; flex: none; }
+.layerpanel label .sw.ln { width: 18px; height: 4px; border-radius: 1px; box-shadow: 0 0 0 1px rgba(15,20,30,.45); }
 .layerpanel label .c { margin-left: auto; font-size: var(--fs-2xs); color: var(--c-mute); }
 .mapsel { position: absolute; left: 12px; bottom: 44px; z-index: 5; width: 300px; background: #fff; border: 1px solid var(--c-bd); border-radius: var(--r-l); box-shadow: var(--shadow-2); padding: 14px 16px; }
 .mapsel .k { font-size: var(--fs-2xs); color: var(--c-primary-dk); font-weight: 700; display: flex; align-items: center; gap: 6px; }

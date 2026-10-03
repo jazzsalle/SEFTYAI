@@ -103,11 +103,11 @@ function MapPanel(p: Props) {
             ))}
           </div>
           <h4>공통 참조 레이어</h4>
-          <label><input type="checkbox" checked={layers.admin} onChange={() => T("admin")} /><span className="sw" style={{ border: "2px dashed #063a74" }} />시·군·구 경계</label>
-          <label><input type="checkbox" checked={layers.emd} onChange={() => T("emd")} /><span className="sw" style={{ border: "1px solid #464c53" }} />읍·면·동 경계</label>
-          <label><input type="checkbox" checked={layers.rivers} onChange={() => T("rivers")} /><span className="sw" style={{ background: "#2b83d6" }} />하천 중심선 (국가·지방)</label>
-          <label><input type="checkbox" checked={layers.riverArea} onChange={() => T("riverArea")} /><span className="sw" style={{ background: "rgba(64,150,230,.4)" }} />실폭하천</label>
-          <label><input type="checkbox" checked={layers.smallRiver} onChange={() => T("smallRiver")} /><span className="sw" style={{ background: "rgba(15,157,138,.4)" }} />소하천구역</label>
+          <label><input type="checkbox" checked={layers.admin} onChange={() => T("admin")} /><span className="sw ln" style={{ background: "repeating-linear-gradient(90deg,#ff1fd2 0 9px,transparent 9px 11px,#ff1fd2 11px 12px,transparent 12px 14px)" }} />시·군·구 경계 <span className="c">1점쇄선</span></label>
+          <label><input type="checkbox" checked={layers.emd} onChange={() => T("emd")} /><span className="sw ln" style={{ background: "repeating-linear-gradient(90deg,#b6ff00 0 7px,transparent 7px 9px,#b6ff00 9px 10px,transparent 10px 12px,#b6ff00 12px 13px,transparent 13px 15px)" }} />읍·면·동 경계 <span className="c">2점쇄선</span></label>
+          <label><input type="checkbox" checked={layers.rivers} onChange={() => T("rivers")} /><span className="sw ln" style={{ background: "#00d8ff" }} />하천 중심선 (국가·지방)</label>
+          <label><input type="checkbox" checked={layers.riverArea} onChange={() => T("riverArea")} /><span className="sw" style={{ background: "rgba(0,229,255,.35)", outline: "1.5px dashed #00b8d4", outlineOffset: -1.5 }} />실폭하천</label>
+          <label><input type="checkbox" checked={layers.smallRiver} onChange={() => T("smallRiver")} /><span className="sw" style={{ background: "rgba(0,230,118,.3)", outline: "2px dotted #00c864", outlineOffset: -2 }} />소하천구역</label>
           <h4>조회결과 레이어</h4>
           <label><input type="checkbox" checked={layers.points} onChange={() => T("points")} /><span className="sw" style={{ background: "#256ef4" }} />조회결과 객체<span className="c">{p.mapPoints.length}</span></label>
           <p className="xs mute2" style={{ margin: "8px 0 0" }}>※ 침수흔적도는 T3Q 제공 시 추가</p>
@@ -126,7 +126,7 @@ function MapPanel(p: Props) {
           <span key={c}><i style={{ background: catStyle(c).color }} />{c} {n}</span>
         )) : <span>질문하면 관련 객체가 지도에 표시됩니다 · 하천을 클릭하면 하천 상세</span>}
         <span className="sp" />
-        <span><i style={{ background: "#2b83d6", borderRadius: 2, height: 3 }} />하천</span>
+        <span><i style={{ background: "#00d8ff", borderRadius: 2, height: 3, boxShadow: "0 0 0 1px #003a5c" }} />하천</span>
       </div>
     </div>
   );

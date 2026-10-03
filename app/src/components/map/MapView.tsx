@@ -124,39 +124,59 @@ export default function MapView(p: Props) {
     base.getSource()!.on("tileloaderror", onErr);
     sat.getSource()!.on("tileloaderror", onErr);
 
+    // 참조 레이어 : 형광색 선 + 어두운 외곽(casing)으로 일반·영상 지도 모두에서 대비 확보
+    //  시군구 = 마젠타 1점쇄선 · 읍면동 = 라임 2점쇄선 · 하천중심선 = 시안 실선 · 실폭하천 = 시안 면+파선 · 소하천 = 녹색 면+점선
+    //  선 굵기는 최대 3px대로 제한해 조회 객체(점·흰 테두리, zIndex 10)를 가리지 않게 함
+    const CASE = "rgba(15,20,30,.55)";
+    const adminLine = [
+      new Style({ stroke: new Stroke({ color: "rgba(255,255,255,.85)", width: 5 }) }),
+      new Style({ stroke: new Stroke({ color: CASE, width: 4 }) }),
+      new Style({ stroke: new Stroke({ color: "#ff1fd2", width: 2.4, lineDash: [16, 5, 2, 5], lineCap: "butt" }) }),
+    ];
     const admin = new VectorLayer({
       source: new VectorSource(),
-      style: (f) =>
+      style: (f) => [
+        ...adminLine,
         new Style({
-          stroke: new Stroke({ color: "#063a74", width: 1.6, lineDash: [6, 4] }),
-          fill: new Fill({ color: "rgba(23,34,59,0.02)" }),
-          text: new Text({ text: f.get("sigungu"), font: "700 13px Pretendard, sans-serif", fill: new Fill({ color: "#063a74" }), stroke: new Stroke({ color: "#fff", width: 3.5 }), overflow: true }),
+          text: new Text({ text: f.get("sigungu"), font: "800 13px Pretendard, sans-serif", fill: new Fill({ color: "#a1008a" }), stroke: new Stroke({ color: "#fff", width: 4 }), overflow: true }),
         }),
+      ],
       zIndex: 3,
     });
+    const emdLine = [
+      new Style({ stroke: new Stroke({ color: CASE, width: 3 }) }),
+      new Style({ stroke: new Stroke({ color: "#b6ff00", width: 1.6, lineDash: [11, 4, 2, 4, 2, 4], lineCap: "butt" }) }),
+    ];
     const emd = new VectorLayer({
       source: new VectorSource(),
       visible: false,
       minZoom: 11.5,
-      style: (f) =>
-        new Style({
-          stroke: new Stroke({ color: "rgba(70,76,83,.55)", width: 0.8 }),
-          text: new Text({ text: f.get("emd"), font: "500 11px Pretendard, sans-serif", fill: new Fill({ color: "#464c53" }), stroke: new Stroke({ color: "#fff", width: 3 }) }),
-        }),
+      style: (f) => [
+        ...emdLine,
+        new Style({ text: new Text({ text: f.get("emd"), font: "700 11px Pretendard, sans-serif", fill: new Fill({ color: "#2f5200" }), stroke: new Stroke({ color: "#fff", width: 3.5 }) }) }),
+      ],
       zIndex: 2,
     });
+    const riverAreaStyle = [
+      new Style({ fill: new Fill({ color: "rgba(0,229,255,.30)" }), stroke: new Stroke({ color: CASE, width: 2.6 }) }),
+      new Style({ stroke: new Stroke({ color: "#00e5ff", width: 1.4, lineDash: [6, 4] }) }),
+    ];
+    const riverAreaHl = [
+      new Style({ fill: new Fill({ color: "rgba(37,110,244,.5)" }), stroke: new Stroke({ color: "#fff", width: 3.5 }) }),
+      new Style({ stroke: new Stroke({ color: "#0b50d0", width: 2 }) }),
+    ];
     const riverArea = new VectorLayer({
       source: new VectorSource(),
-      style: (f) => {
-        const hl = propsRef.current.riverHighlight?.includes(f.get("riverId"));
-        return new Style({ fill: new Fill({ color: hl ? "rgba(37,110,244,.55)" : "rgba(64,150,230,.32)" }), stroke: new Stroke({ color: hl ? "#0b50d0" : "rgba(30,120,210,.5)", width: hl ? 1.5 : 0.6 }) });
-      },
+      style: (f) => (propsRef.current.riverHighlight?.includes(f.get("riverId")) ? riverAreaHl : riverAreaStyle),
       zIndex: 4,
     });
     const smallRiver = new VectorLayer({
       source: new VectorSource(),
       visible: false,
-      style: new Style({ fill: new Fill({ color: "rgba(15,157,138,.25)" }), stroke: new Stroke({ color: "#0f9d8a", width: 0.8 }) }),
+      style: [
+        new Style({ fill: new Fill({ color: "rgba(0,230,118,.26)" }), stroke: new Stroke({ color: CASE, width: 3 }) }),
+        new Style({ stroke: new Stroke({ color: "#00f57a", width: 2, lineDash: [0.1, 5], lineCap: "round" }) }),
+      ],
       zIndex: 4,
     });
     const rivers = new VectorLayer({
@@ -164,14 +184,15 @@ export default function MapView(p: Props) {
       style: (f, res) => {
         const hl = propsRef.current.riverHighlight?.includes(f.get("riverId"));
         const g = f.get("grade") as string;
-        const w = hl ? 6 : g === "국가하천" ? 3 : g === "지방하천" ? 2 : 1.2;
+        const w = hl ? 5 : g === "국가하천" ? 3.2 : g === "지방하천" ? 2.2 : 1.4;
         return [
-          ...(hl ? [new Style({ stroke: new Stroke({ color: "rgba(37,110,244,.25)", width: 14 }) })] : []),
+          ...(hl ? [new Style({ stroke: new Stroke({ color: "rgba(37,110,244,.28)", width: 16 }) })] : []),
+          new Style({ stroke: new Stroke({ color: hl ? "#fff" : "#003a5c", width: w + 2 }) }),
           new Style({
-            stroke: new Stroke({ color: hl ? "#0b50d0" : "#2b83d6", width: w }),
+            stroke: new Stroke({ color: hl ? "#0b50d0" : "#00d8ff", width: w }),
             text:
               hl || res < (g === "국가하천" ? 120 : 45)
-                ? new Text({ text: f.get("label") || f.get("name"), placement: "line", font: `${hl ? 800 : 600} ${hl ? 14 : 12}px Pretendard, sans-serif`, fill: new Fill({ color: hl ? "#0b50d0" : "#0a5a9e" }), stroke: new Stroke({ color: "#fff", width: 4 }) })
+                ? new Text({ text: f.get("label") || f.get("name"), placement: "line", font: `${hl ? 800 : 700} ${hl ? 14 : 12}px Pretendard, sans-serif`, fill: new Fill({ color: hl ? "#0b50d0" : "#00527a" }), stroke: new Stroke({ color: "#fff", width: 4 }) })
                 : undefined,
           }),
         ];
