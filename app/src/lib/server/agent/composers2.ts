@@ -556,7 +556,7 @@ export function composeCheck(a: Answer, ctx: QueryContext) {
     const s = situation(ctx, pr);
     a.push({ kind: "headline", text: `[${kst(ctx.baseTime)} 자동 점검] 기상청 특보 조회 결과 ${s.level ? `**${s.advisoryText}** 발효 중 — 매뉴얼 '${s.stage?.name}' 단계 조치를 확인하십시오` : `${rname(pr)}에 발효 중인 특보가 없습니다. 다음 점검은 10분 뒤입니다`}${citeKMA(a, true, s.advisoryText || "특보 없음")}.` });
     a.push({ kind: "notice", tone: "info", text: "AI 모드는 기상특보 발표·변경·해제 시 또는 10분마다 자동으로 상황을 점검합니다. 수문 실시간 예측은 하지 않으며, 강우·수위는 조건 입력으로 반영합니다." });
-    a.followUps = ["현재 상황 브리핑", "평시 점검할 위험·취약지역은?"];
+    a.followUps = ["재난상황 조건 브리핑", "평시 점검할 위험·취약지역은?"];
     return;
   }
   const ev = EVENT_BY_ID.get(SCENARIO[pr].eventId)!;

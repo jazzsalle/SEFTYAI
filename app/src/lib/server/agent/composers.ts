@@ -8,7 +8,7 @@ import { ledgerMentioning } from "../ledger";
 import { risksLinkedToEvent } from "./composers2";
 import { relevant119, RISKS, categoriesFromText, dist, nearbyRisks, rankRisks, riskRef, risksIn, type RiskObject } from "../risk";
 import {
-  Answer, cite119, citeEvent, citeKMA, citeManual, citeRisk, citeSR, hhmm, hourlySeries, mdhm, rainThresholds, rname, rshort, situation, ymd, type Situation,
+  Answer, condSummary, cite119, citeEvent, citeKMA, citeManual, citeRisk, citeSR, hhmm, hourlySeries, mdhm, rainThresholds, rname, rshort, situation, ymd, type Situation,
 } from "./core";
 
 /* =========================================================
@@ -232,7 +232,7 @@ function similarFor(ctx: QueryContext, s: Situation): Sim[] {
   return eventsInRegion(s.region)
     .filter((e) => e.status !== "진행중" && !e.training)
     .map((e) => {
-      const typeS = ctx.disasterType === "전체" || e.typeName.includes(ctx.disasterType) ? 20 : e.typeName.match(/호우|태풍/) ? 12 : 4;
+      const typeS = !ctx.disasterType || ctx.disasterType === "전체" || e.typeName.includes(ctx.disasterType) ? 20 : e.typeName.match(/호우|태풍/) ? 12 : 4;
       const em = e.weather.maxHourlyRain_mm;
       const rainS = r1 && em ? Math.max(0, 30 * (1 - Math.abs(em - r1) / Math.max(em, r1))) : 12;
       const regS = pr && regionRecord(e, pr) ? 20 : 8;
@@ -287,7 +287,7 @@ export function composeSimilar(a: Answer, ctx: QueryContext) {
   }
   const t = sims[0];
   const rec = pr ? regionRecord(t.e, pr) : t.e.regions[0];
-  const cur = s.rain1hMax != null ? `시간당 **${s.rain1hMax}mm**${s.rainTotal ? ` · 누적 ${s.rainTotal}mm` : ""}인 지금과` : "현재 조건과";
+  const cur = s.rain1hMax != null ? `시간당 **${s.rain1hMax}mm**${s.rainTotal ? ` · 누적 ${s.rainTotal}mm` : ""}인 지금과` : s.active ? `${s.advisoryText} 상황과` : `입력된 강우 조건이 없어 ${rname(ctx.region)}의 지역·재난유형만으로 찾은`;
   const tRain = t.e.weather.maxHourlyRain_mm != null ? `시간 최대 **${t.e.weather.maxHourlyRain_mm}mm**${/검증/.test(t.e.weather.rainfallSource) ? "※" : ""}` : "강우자료 미확보";
   const wf = whereFlooded(a, t.e, rec);
   a.push({
@@ -377,7 +377,7 @@ export function composeManual(a: Answer, ctx: QueryContext, q: string) {
     kind: "headline",
     text: s.active && !damage && !recover
       ? `${s.rname}에 **${s.advisoryText}**가 ${mdhm(s.issuedAt)}부터 발효 중이므로, ${m.responsibleDept} 매뉴얼상 **${lvlShort}**(${stage.name.replace(/\s*\(.*\)/, "")} 시)입니다${citeManual(a, m, tasks[0]?.page)}. 가장 먼저 ① ${first3[0]} ② ${first3[1] ?? ""} ③ ${first3[2] ?? ""}부터 하십시오.`
-      : `${m.region} 매뉴얼 **${stage.name.replace(/\s*\(.*\)/, "")}** 단계 조치입니다${citeManual(a, m, tasks[0]?.page)}. ${s.active ? "" : "현재 발효 특보는 없으며, 특보가 발표되면 이 순서대로 진행합니다."}`,
+      : `${m.region} 매뉴얼 **${stage.name.replace(/\s*\(.*\)/, "")}** 단계 조치입니다${citeManual(a, m, tasks[0]?.page)}. ${s.active ? "" : (ctx.aiMode ? "현재 발효 특보는 없으며, 특보가 발표되면 이 순서대로 진행합니다." : "입력된 특보 조건이 없어 첫 단계(예비특보)부터 안내합니다. [조건 변경]에서 특보 단계를 입력하거나 [특보로 질문]으로 특보를 참조하면 그 단계 조치를 안내합니다.")}`,
   });
   const staffing = stage.emergencyLevel.match(/근무[:：]?\s*([^[]+)/)?.[1]?.trim();
   const reportRule = m.reporting.find((r) => /대처상황|상황보고/.test(r.what) && /\d+시/.test(r.when));
@@ -714,7 +714,9 @@ export function composeObject(a: Answer, ctx: QueryContext, o: RiskObject) {
 export function composeBriefing(a: Answer, ctx: QueryContext) {
   a.apis.add("T3Q-01 브리핑(프리셋 일괄)");
   const s = situation(ctx);
-  a.title = `현재 상황 브리핑 · ${rname(ctx.region)}`;
+  a.title = `재난상황 조건 브리핑 · ${rname(ctx.region)}`;
+  const conds = condSummary(ctx);
+  const basis = ctx.refAdvisory ? `참조 특보 ${ctx.refAdvisory.area} ${ctx.refAdvisory.type}${ctx.refAdvisory.level}${conds.length ? ` + 입력 조건(${conds.join(", ")})` : ""} 기준` : ctx.aiMode ? "AI 모드 · 현재 발효 특보 기준" : conds.length ? `입력하신 조건(${conds.join(", ")}) 기준` : "";
   const regs = ctx.region === "national" ? PILOTS : [ctx.region];
   const sits = regs.map((r) => situation(ctx, r));
   const allRisk = regs.flatMap((r) => risksIn(r, ctx.sigungu));
@@ -727,17 +729,20 @@ export function composeBriefing(a: Answer, ctx: QueryContext) {
     const st = s.stage;
     a.push({
       kind: "headline",
-      text: s.active
-        ? `${s.rname}에 **${s.advisoryText}** 발효 중(${mdhm(s.issuedAt)}~), 시간 최대 **${s.rain1hMax}mm**·누적 ${s.rainTotal}mm입니다. ${t1 ? `${a.e(riskRef(t1.o, { near: t1.near.length }))} 등 ${ranked.length}곳을 먼저 확인하고, ` : ""}${sim ? `가장 비슷한 과거 사례는 ${a.e(eventRef(sim.e, s.region))}(유사도 ${sim.score})입니다. ` : ""}매뉴얼상 **${st?.name.replace(/\s*\(.*\)/, "")}** 단계이며 '${st?.tasks[0]?.task.split(" — ")[0]}'부터 시작합니다${citeManual(a, s.manual, st?.tasks[0]?.page)}.${reps.length ? ` 119 신고 ${reps.length}건이 접수됐습니다.` : ""}`
-        : `${s.rname}에 발효 중인 특보는 없습니다. 위험·취약지역 ${allRisk.length.toLocaleString()}곳을 관리 중이며 ${t1 ? `${a.e(riskRef(t1.o))} 등이 우선 점검 대상입니다.` : ""} 특보가 발표되면 '${s.manual.stages[0].name}' 절차를 안내합니다.`,
+      text: (basis ? `[${basis}] ` : "") + (s.active
+        ? `${s.rname}에 **${s.advisoryText}**${s.event ? ` 발효 중(${mdhm(s.issuedAt)}~)` : " 상황을 가정하면"}${s.rain1hMax != null ? `, 시간 최대 **${s.rain1hMax}mm**${s.rainTotal != null ? `·누적 ${s.rainTotal}mm` : ""}` : ""}입니다. ${t1 ? `${a.e(riskRef(t1.o, { near: t1.near.length }))} 등 ${ranked.length}곳을 먼저 확인하고, ` : ""}${sim ? `가장 비슷한 과거 사례는 ${a.e(eventRef(sim.e, s.region))}(유사도 ${sim.score})입니다. ` : ""}매뉴얼상 **${st?.name.replace(/\s*\(.*\)/, "")}** 단계이며 '${st?.tasks[0]?.task.split(" — ")[0]}'부터 시작합니다${citeManual(a, s.manual, st?.tasks[0]?.page)}.${reps.length ? ` 119 신고 ${reps.length}건이 접수됐습니다.` : ""}`
+        : conds.length
+          ? `${s.rname}의 위험·취약지역 ${allRisk.length.toLocaleString()}곳 중 입력하신 조건에서 ${t1 ? `${a.e(riskRef(t1.o))} 등을 먼저 확인하십시오.` : "먼저 볼 곳을 찾지 못했습니다."}${s.rain1hMax != null ? ` 시간당 ${s.rain1hMax}mm는 아래 과거 피해 강우와 비교해 판단합니다.` : ""}`
+          : `입력된 재난상황 조건이 없어 ${s.rname}의 평시 현황으로 정리했습니다. 위험·취약지역 ${allRisk.length.toLocaleString()}곳을 관리 중이며 ${t1 ? `${a.e(riskRef(t1.o))} 등이 우선 점검 대상입니다.` : ""} 재난유형·강우량·특보 단계 등을 [조건 변경]에서 입력하거나 [특보로 질문]으로 특보를 참조하면 그 조건에 맞춰 브리핑합니다.`),
     });
   } else {
-    a.push({ kind: "headline", text: `시범 3개 지역 중 ${sits.filter((x) => x.active).map((x) => `${rshort(x.region)}(${x.advisoryText}, 시간최대 ${x.rain1hMax}mm)`).join(", ") || "특보 발효 지역 없음"}. 119 신고 ${reps.length}건, 위험·취약지역 ${allRisk.length.toLocaleString()}곳을 관리 중입니다.` });
+    const act = sits.filter((x) => x.active);
+    a.push({ kind: "headline", text: (basis ? `[${basis}] ` : "") + (act.length || basis ? `시범 3개 지역 중 ${act.map((x) => `${rshort(x.region)}(${x.advisoryText}${x.rain1hMax != null ? `, 시간최대 ${x.rain1hMax}mm` : ""})`).join(", ") || "특보 해당 지역 없음"}. 119 신고 ${reps.length}건, 위험·취약지역 ${allRisk.length.toLocaleString()}곳을 관리 중입니다.` : `입력된 재난상황 조건이 없어 전국(시범 3개 지역) 평시 현황으로 정리했습니다. 위험·취약지역 ${allRisk.length.toLocaleString()}곳을 관리 중입니다. 조건을 입력하거나 특보를 참조하면 그 조건에 맞춰 브리핑합니다.`) });
   }
   a.push({
     kind: "briefing",
     items: [
-      { key: "wx", label: "현재 기상상황", summary: sits.map((x) => (x.active ? `${rshort(x.region)} ${x.advisoryText} · 시간최대 ${x.rain1hMax}mm` : `${rshort(x.region)} 특보 없음`)).join(" / "), count: `${sits.filter((x) => x.active).length}건`, status: "ok", question: "지금 우리 지역 기상특보와 강우 상황은 어떤가요?" },
+      { key: "wx", label: "현재 기상상황", summary: sits.map((x) => (x.active ? `${rshort(x.region)} ${x.advisoryText}${x.rain1hMax != null ? ` · 시간최대 ${x.rain1hMax}mm` : ""}` : `${rshort(x.region)} 특보 조건 없음`)).join(" / "), count: `${sits.filter((x) => x.active).length}건`, status: "ok", question: "지금 우리 지역 기상특보와 강우 상황은 어떤가요?" },
       { key: "risk", label: "위험·취약지역", summary: t1 ? `1순위 {{e:${t1.o.id}}} 외 · ${t1.o.category}` : "—", count: `${allRisk.length.toLocaleString()}곳`, status: "ok", question: "지금 강우 조건에서 먼저 확인해야 할 위험·취약지역은 어디인가요?" },
       ctx.region === "national"
         ? { key: "similar", label: "과거 유사사례", summary: sits.map((x) => { const t = similarFor(ctx, x)[0]; if (t) a.ents.set(t.e.eventId, eventRef(t.e, x.region)); return t ? `${rshort(x.region)} {{e:${t.e.eventId}}}(${t.score})` : `${rshort(x.region)} —`; }).join(" / "), count: "3개 지역", status: "ok" as const, question: "부산에서 비슷한 강우 때 과거에 어디서 어떤 피해가 있었나요?" }
@@ -763,9 +768,9 @@ export function composeBriefing(a: Answer, ctx: QueryContext) {
 export function composeClarify(a: Answer, ctx: QueryContext, q: string) {
   a.status = "clarify";
   a.title = q.slice(0, 30);
-  a.push({ kind: "headline", text: `질문을 정확히 이해하지 못했습니다. 근거 없이 추측해 답하지 않도록, 아래 중 원하시는 것을 골라 주세요. (기준: ${rname(ctx.region)} · ${ctx.disasterType})` });
+  a.push({ kind: "headline", text: `질문을 정확히 이해하지 못했습니다. 근거 없이 추측해 답하지 않도록, 아래 중 원하시는 것을 골라 주세요. (기준: ${rname(ctx.region)}${ctx.disasterType ? ` · ${ctx.disasterType}` : ""})` });
   a.push({ kind: "notice", tone: "info", text: "이렇게 물어보면 정확합니다 — \"영천 급경사지는 어디고 왜 위험해?\", \"시간당 50mm면 부산 어디가 잠겼었어?\", \"호우경보인데 내가 지금 뭘 해야 해?\", \"온천천 통제 기준은?\", \"힌남노 때 피해는?\"" });
-  a.followUps = ["현재 상황 브리핑", "지금 먼저 볼 위험·취약지역은?", "비슷한 강우 때 과거 피해는?", "지금 매뉴얼상 해야 할 일은?", "119 신고 현황은?"];
+  a.followUps = ["재난상황 조건 브리핑", "지금 먼저 볼 위험·취약지역은?", "비슷한 강우 때 과거 피해는?", "지금 매뉴얼상 해야 할 일은?", "119 신고 현황은?"];
 }
 
 export { type RiverIdx };

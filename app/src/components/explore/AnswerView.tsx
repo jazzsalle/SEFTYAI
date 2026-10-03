@@ -12,7 +12,7 @@ import { IcChevR, IcDoc, IcMap, IcPrint } from "../Icons";
 
 /** 판단형 질의만 판단 요약 행을 보여 준다 */
 const DECISION_INTENTS = new Set(["assess", "control", "evacuation", "check", "recovery", "weather", "compare", "event-recovery", "event-risks", "event-response", "repeat", "river"]);
-const TITLE: Record<string, string> = { briefing: "현재 상황 브리핑", check: "AI 상황 점검", assess: "상황 판단", manual: "행동매뉴얼 대응절차", control: "통제 판단", evacuation: "대피 판단", message: "주민 안내 메시지" };
+const TITLE: Record<string, string> = { briefing: "재난상황 조건 브리핑", check: "AI 상황 점검", assess: "상황 판단", manual: "행동매뉴얼 대응절차", control: "통제 판단", evacuation: "대피 판단", message: "주민 안내 메시지" };
 
 type Tab = { key: string; label: string; items: EntityRef[]; total: number; similar?: Extract<AnswerBlock, { kind: "similar" }>["items"] };
 

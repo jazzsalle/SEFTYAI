@@ -31,7 +31,7 @@ for (const [region, q, want, preset] of CASES) {
   const r = await fetch(`${BASE}/api/agent/query`, {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ sessionId: "golden", question: q, presetKey: preset, context: { region, disasterType: "호우", baseTime: "2026-10-03T09:00:00+09:00", mode: "scenario" } }),
+    body: JSON.stringify({ sessionId: "golden", question: q, presetKey: preset, context: { region, disasterType: "호우", baseTime: "2026-10-03T09:00:00+09:00", mode: "scenario", aiMode: true } }),
   });
   const j = await r.json();
   const ok = r.ok && j.intent === want;

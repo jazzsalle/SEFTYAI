@@ -19,8 +19,11 @@ export const QueryContext = z.object({
   region: RegionId,
   sigungu: z.string().optional(),
   emd: z.string().optional(),
-  disasterType: DisasterType,
+  /** 재난유형 — 선택하지 않으면 생략 (조건 없는 일반 질의) */
+  disasterType: DisasterType.optional(),
   baseTime: z.string(), // ISO
+  /** AI 모드 : 켜져 있으면 현재 발효 특보를 기준으로 상황을 판단 (끄면 사용자 입력 조건만) */
+  aiMode: z.boolean().optional(),
   endTime: z.string().optional(),
   mode: WeatherMode,
   advisory: z

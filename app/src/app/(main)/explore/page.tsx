@@ -32,7 +32,7 @@ function Loading() {
   );
 }
 
-interface AskOpts { region?: RegionId; baseTime?: string; prev?: string; scenario?: ScenarioItem; ref?: EntityRef | null; wx?: Advisory | null }
+interface AskOpts { region?: RegionId; baseTime?: string; prev?: string; scenario?: ScenarioItem; ref?: EntityRef | null; wx?: Advisory | null; aim?: boolean }
 
 function Explore() {
   const s = useSession();
@@ -200,10 +200,12 @@ function Explore() {
   async function ask(q: string, presetKey?: string, o: AskOpts = {}): Promise<AgentResponse | null> {
     const cur = convRef.current;
     if (cur?.turns.some((t) => t.pending)) return null;
-    if (s.aimOn) setAimCollapsed(true);
+    // 전광판은 접지 않음 — 띄워 둔 채(필요하면 옮겨서) 대화를 이어감. 전광판 안의 질문·브리핑 버튼은 스스로 접음
     const now = new Date().toISOString();
     // 참조 특보 : 객체를 직접 참조한 질문(이 객체로 질문)·AI 점검에는 싣지 않음
-    const wxSel = o.wx !== undefined ? o.wx : s.wxRef;
+    // AI 모드 켜짐 = 현재 발효 특보를 함께 전달 · 꺼짐 = 사용자 입력 조건(+특보 참조)만
+    const aim = presetKey === "check" ? true : o.aim ?? s.aimOn;
+    const wxSel = aim ? null : o.wx !== undefined ? o.wx : s.wxRef;
     const wxr = wxSel && !o.ref && presetKey !== "check" ? wxSel : null;
     const turn: Turn = { id: uid("t"), q: presetKey === "check" ? `AI 상황 점검 · ${fmt(o.baseTime ?? now)}` : q, at: now, presetKey, pending: true, refAdv: wxr ? { type: wxr.type, level: wxr.level, area: wxr.area, issuedAt: wxr.issuedAt } : undefined };
     const sc = o.scenario;
@@ -213,7 +215,7 @@ function Explore() {
     const working: Conversation = { ...base, refEntity: explicitRef ? { type: explicitRef.type, id: explicitRef.id, name: explicitRef.name } : base.refEntity, turns: [...base.turns, turn], updatedAt: now };
     setConv(working);
     setTimeout(() => document.getElementById(`turn-${turn.id}`)?.scrollIntoView({ behavior: "smooth", block: "start" }), 60);
-    const top = s.weather?.advisories.find((a) => a.status === "발효" && (region === "national" || a.regionId === region));
+    const top = aim ? s.weather?.advisories.find((a) => a.status === "발효" && (region === "national" || a.regionId === region)) : undefined;
     const refE = explicitRef ?? (wxr ? lastFocus.current : working.refEntity ? (working.refEntity as EntityRef) : lastFocus.current);
     const context: QueryContext = {
       region,
@@ -224,6 +226,7 @@ function Explore() {
       endTime: s.cond.endTime ? new Date(s.cond.endTime).toISOString() : undefined,
       mode: s.mode,
       advisory: top ? { type: top.type, level: top.level, issuedAt: top.issuedAt, area: top.area } : undefined,
+      aiMode: aim || undefined,
       refEntity: refE ? { type: refE.type, id: refE.id, name: refE.name } : undefined,
       hydro: sc ? sc.hydro : s.cond.hydro,
       keywords: sc ? sc.keywords : s.cond.keywords,
@@ -274,13 +277,14 @@ function Explore() {
     const adv = wx ? s.weather?.advisories.find((a) => a.type === wx.type && a.level === wx.level && a.regionId === wx.regionId && a.status === "발효") ?? null : undefined;
     if (wx) {
       if (!adv) { s.toast(`${wx.type}${wx.level}가 현재 발효 중이 아닙니다`); return; }
+      if (s.aimOn) s.setAimOn(false);
       newChat();
       s.setWxRef(adv);
       await new Promise((ok) => setTimeout(ok, 50));
     }
     for (let i = 0; i < steps.length; i++) {
       setFlowRun({ i: i + 1, n: steps.length });
-      const r = await ask(steps[i], undefined, { scenario: sc, ...(adv ? { wx: adv } : {}) });
+      const r = await ask(steps[i], undefined, { scenario: sc, ...(adv ? { wx: adv, aim: false } : {}) });
       if (!r) break;
       await new Promise((ok) => setTimeout(ok, 1600));
     }
@@ -337,7 +341,7 @@ function Explore() {
           <div className="scroll">
             <div className="thread">
               {!conv ? (
-                <StartScreen onBriefing={() => ask("현재 상황 브리핑", "briefing")} onLibrary={() => setLib(true)} />
+                <StartScreen onBriefing={() => ask("재난상황 조건 브리핑", "briefing")} onLibrary={() => setLib(true)} />
               ) : (
                 conv.turns.map((t) => (
                   <div key={t.id} id={`turn-${t.id}`} style={{ scrollMarginTop: 12 }}>

@@ -17,7 +17,7 @@ const fmtT = (iso?: string) => {
 
 /** 특보 바 (목업 SCR-UNE-101001 : 긴급 · 지역 특보 발효 중 · 발표/갱신 · 특보로 질문) */
 export function WxBar() {
-  const { weather, account, cond, wxRef, setWxRef } = useSession();
+  const { weather, account, cond, wxRef, setWxRef, aimOn } = useSession();
   const router = useRouter();
   const [pick, setPick] = useState(false);
   if (!account) return null;
@@ -51,6 +51,7 @@ export function WxBar() {
     setTimeout(() => (document.querySelector(".composer textarea") as HTMLTextAreaElement | null)?.focus(), 80);
   };
   const onAsk = () => {
+    if (aimOn) return;
     if (!cands.length) return router.push("/explore?panel=wx");
     if (cands.length === 1) return attach(cands[0]);
     setPick((v) => !v);
@@ -63,8 +64,15 @@ export function WxBar() {
       <span className="meta">{meta}</span>
       <span className="sp" />
       <div className="wxask">
-        <button className={`btn ghost sm ${wxRef ? "on" : ""}`} onClick={onAsk} aria-haspopup={cands.length > 1} aria-expanded={pick}>
-          {wxRef ? `참조 중 · ${advLabel(wxRef)}` : "특보로 질문"} <IcChevR size={14} />
+        <button
+          className={`btn ghost sm ${wxRef ? "on" : ""}`}
+          onClick={onAsk}
+          disabled={aimOn}
+          title={aimOn ? "AI 모드에서는 현재 특보가 질문에 자동으로 반영됩니다. AI 모드를 끄면 특보를 참조로 걸어 질문할 수 있습니다." : undefined}
+          aria-haspopup={cands.length > 1}
+          aria-expanded={pick}
+        >
+          {aimOn ? "AI 모드 · 특보 자동 반영" : wxRef ? `참조 중 · ${advLabel(wxRef)}` : "특보로 질문"} {!aimOn && <IcChevR size={14} />}
         </button>
         {pick && (
           <div className="wxpick" role="menu">

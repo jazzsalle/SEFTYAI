@@ -727,3 +727,8 @@ label.chk input { width: 18px; height: 18px; accent-color: var(--c-primary); }
 .turn-q { flex-direction: column; align-items: flex-end; gap: 6px; }
 .qref { display: inline-flex; align-items: center; gap: 6px; border: 1px solid #f6d3c9; background: #fff7f5; border-radius: 999px; padding: 3px 10px 3px 6px; font-size: var(--fs-2xs); color: #464c53; cursor: pointer; }
 .qref .rl { font-weight: 700; color: #b0290e; }
+
+/* AI 모드 전광판 이동 손잡이 */
+.aim-drag { display: flex; align-items: center; gap: 10px; padding: 6px 16px; background: rgba(16,24,40,.04); border-bottom: 1px solid rgba(16,24,40,.06); cursor: grab; user-select: none; touch-action: none; color: #6d7882; }
+.aim-drag:active { cursor: grabbing; }
+.aim-drag .grip { width: 36px; height: 5px; border-radius: 3px; background: repeating-linear-gradient(90deg, #98a2b3 0 4px, transparent 4px 7px); flex: none; }

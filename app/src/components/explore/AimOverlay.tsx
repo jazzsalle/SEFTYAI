@@ -3,7 +3,7 @@
  * AI 모드 — 기상특보 기반 상황 점검 전광판 (목업 v165 special-alert 보드)
  * 모달이 아닌 오버레이 : 배경을 가리지 않고, 질문을 시작하면 상단 전광판 띠로 접혀 대화는 평소처럼 진행
  */
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { Advisory, RegionId, WeatherMode } from "@/lib/contract/agent";
 import { REGIONS } from "@/lib/config";
 
@@ -45,6 +45,26 @@ export default function AimOverlay(p: {
 }) {
   const [d, setD] = useState<AimData | null>(null);
   const [pg, setPg] = useState(0);
+  // 전광판 위치 이동 (끌어서 옮기고 대화는 그대로 이어감 · 더블클릭 = 원위치 · 브라우저별 기억)
+  const [off, setOff] = useState({ x: 0, y: 0 });
+  const drag = useRef<{ sx: number; sy: number; ox: number; oy: number } | null>(null);
+  useEffect(() => {
+    try { const j = JSON.parse(localStorage.getItem("sa.aimpos") ?? "null"); if (j && typeof j.x === "number") setOff(j); } catch {}
+  }, []);
+  const savePos = (v: { x: number; y: number }) => { setOff(v); try { localStorage.setItem("sa.aimpos", JSON.stringify(v)); } catch {} };
+  const onDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if ((e.target as HTMLElement).closest("button")) return;
+    e.preventDefault();
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    drag.current = { sx: e.clientX, sy: e.clientY, ox: off.x, oy: off.y };
+  };
+  const onMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    const g = drag.current;
+    if (!g) return;
+    const W = window.innerWidth, H = window.innerHeight;
+    setOff({ x: Math.max(-W * 0.7, Math.min(W * 0.7, g.ox + e.clientX - g.sx)), y: Math.max(-10, Math.min(H - 160, g.oy + e.clientY - g.sy)) });
+  };
+  const onUp = () => { if (drag.current) { drag.current = null; savePos(off); } };
   const load = useCallback(() => {
     fetch(`/api/aim?region=${p.region}&mode=${p.mode}`).then((r) => r.json()).then((j: AimData) => { setD(j); setPg(0); }).catch(() => setD(null));
   }, [p.region, p.mode]);
@@ -75,7 +95,11 @@ export default function AimOverlay(p: {
     );
 
   return (
-    <div className={`aim-board t-${tone}`} role="region" aria-label="AI 모드 상황 점검 전광판">
+    <div className={`aim-board t-${tone}`} role="region" aria-label="AI 모드 상황 점검 전광판" style={{ translate: `${off.x}px ${off.y}px` }}>
+      <div className="aim-drag" onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp} onDoubleClick={() => savePos({ x: 0, y: 0 })} title="끌어서 옮기기 · 더블클릭하면 제자리">
+        <span className="grip" />
+        <span className="xs">끌어서 옮길 수 있습니다 · 전광판을 띄운 채로 아래 입력창에서 일반 대화를 계속할 수 있습니다</span>
+      </div>
       <div className="aim-top">
         <Light c={a ? (a.level === "경보" ? "red" : "amber") : lamp} />
         <div className="aim-main">

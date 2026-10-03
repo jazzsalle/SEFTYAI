@@ -32,7 +32,8 @@ export function condChips(c: Cond): { k: string; t: string }[] {
 }
 
 export default function Composer({ onSend, busy, baseLabel, onLibrary, onScenario }: { onSend: (q: string, preset?: string) => void; busy: boolean; baseLabel: string; onLibrary: () => void; onScenario: (s: ScenarioItem) => void }) {
-  const { cond, setCond, wxRef, setWxRef } = useSession();
+  const { cond, setCond, wxRef, setWxRef, aimOn, weather } = useSession();
+  const aimAdv = aimOn ? weather?.advisories.find((a) => a.status === "발효" && (cond.region === "national" || a.regionId === cond.region)) : undefined;
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
   const ta = useRef<HTMLTextAreaElement>(null);
@@ -54,8 +55,9 @@ export default function Composer({ onSend, busy, baseLabel, onLibrary, onScenari
       <div className="composer">
         <div className="cond">
           <span className="l">재난상황 조건</span>
-          <span className="pill pri">{cond.disasterType}</span>
-          <span className="pill">{baseLabel}</span>
+          {aimOn && <span className="pill aim" title="AI 모드에서는 현재 발효 특보를 질의에 함께 보냅니다">AI 모드 · {aimAdv ? `${aimAdv.type}${aimAdv.level} 반영` : "발효 특보 없음"}</span>}
+          {cond.disasterType && <span className="pill pri">{cond.disasterType}<button className="pill-x" onClick={() => setCond({ disasterType: undefined })} aria-label="재난유형 해제">⊗</button></span>}
+          {(cond.disasterType || chips.length || cond.scenarioTitle || cond.baseTime) ? <span className="pill">{baseLabel}</span> : !aimOn && <span className="xs mute2">입력한 조건 없음 · 기준지역 일반 질의</span>}
           {cond.scenarioTitle && <span className="pill pri" title={cond.scenarioTitle}>시나리오 · {cond.scenarioTitle.split(" · ")[1] ?? cond.scenarioTitle}</span>}
           {chips.slice(0, 4).map((c) => (
             <span key={c.k} className="pill">{c.t}<button className="pill-x" onClick={() => removeChip(c.k)} aria-label={`${c.t} 해제`}>⊗</button></span>
@@ -88,7 +90,7 @@ export default function Composer({ onSend, busy, baseLabel, onLibrary, onScenari
         />
         <div className="tools">
           <div className="tool-chips">
-            <button className="chip" onClick={() => onSend("현재 상황 브리핑", "briefing")} disabled={busy}><IcDoc size={13} /> 현재 상황 브리핑</button>
+            <button className="chip" onClick={() => onSend("재난상황 조건 브리핑", "briefing")} disabled={busy} title="입력한 재난상황 조건(과 참조 특보)으로 브리핑"><IcDoc size={13} /> 조건 브리핑</button>
             <span style={{ width: 1, height: 20, background: "var(--c-line)", flex: "none" }} />
             {wxRef
               ? WX_QQ.map((p) => <button key={p.k} className="chip wx" title={p.q} onClick={() => onSend(p.q, p.k)} disabled={busy}>{p.nm}</button>)
@@ -119,12 +121,9 @@ const HYDRO_FIELDS: { k: keyof NonNullable<Cond["hydro"]>; l: string; u: string;
 
 function CondModal({ onClose, onApplyAsk, onScenario }: { onClose: () => void; onApplyAsk: (q?: string) => void; onScenario: (s: ScenarioItem) => void }) {
   const { cond, setCond, weather, mode } = useSession();
-  const [region, setRegion] = useState<RegionId>(cond.region);
-  const [sgg, setSgg] = useState(cond.sigungu ?? "");
-  const [emd, setEmd] = useState(cond.emd ?? "");
-  const [sggList, setSggList] = useState<string[]>([]);
-  const [emds, setEmds] = useState<Record<string, string[]>>({});
-  const [dt, setDt] = useState<DisasterType>(cond.disasterType);
+  // 기준지역은 화면 상단(헤더)에서만 고른다 — 모든 질의에 항상 함께 전달
+  const region: RegionId = cond.region;
+  const [dt, setDt] = useState<DisasterType | undefined>(cond.disasterType);
   const [start, setStart] = useState(cond.baseTime ?? "");
   const [end, setEnd] = useState(cond.endTime ?? "");
   const [det, setDet] = useState(!!(cond.hydro && Object.values(cond.hydro).some((v) => v != null)) || !!cond.situationKind);
@@ -136,10 +135,6 @@ function CondModal({ onClose, onApplyAsk, onScenario }: { onClose: () => void; o
   const [scenario, setScenario] = useState<ScenarioItem | null>(null);
 
   useEffect(() => {
-    fetch("/data/regions.json").then((r) => r.json()).then((j) => setSggList(j.regions.find((x: { id: string }) => x.id === region)?.sigungu.map((s: { name: string }) => s.name) ?? [])).catch(() => setSggList([]));
-  }, [region]);
-  useEffect(() => {
-    fetch("/data/emd_index.json").then((r) => r.json()).then(setEmds).catch(() => {});
     fetch(`/api/scenarios?region=national`).then((r) => r.json()).then((j) => setScs(j.conditions)).catch(() => {});
   }, []);
   // 특보에서 채워진 조건 (목업 : ⚠ 특보에서 채워진 조건입니다)
@@ -150,9 +145,7 @@ function CondModal({ onClose, onApplyAsk, onScenario }: { onClose: () => void; o
     const s = scs.find((x) => x.id === id) ?? null;
     setScenario(s);
     if (!s) return;
-    if (s.region !== "national") setRegion(s.region);
-    setSgg(""); setEmd("");
-    setDt(s.disasterType);
+    setDt(s.disasterType === "전체" ? undefined : s.disasterType);
     setDet(true);
     setKind(s.advisory?.type ?? ""); setLvl(s.advisory?.level ?? "");
     setKw(s.keywords?.join(", ") ?? "");
@@ -162,7 +155,7 @@ function CondModal({ onClose, onApplyAsk, onScenario }: { onClose: () => void; o
     if (scenario && ask) return onScenario(scenario);
     const num = (k: string) => (h[k] ? Number(h[k]) : undefined);
     setCond({
-      region, sigungu: sgg || undefined, emd: emd || undefined, disasterType: dt,
+      disasterType: dt,
       baseTime: start || undefined, endTime: end || undefined,
       situationKind: kind || lvl ? { type: kind || undefined, level: lvl || undefined } : undefined,
       keywords: kw ? kw.split(/[,\s]+/).filter(Boolean) : undefined,
@@ -171,7 +164,7 @@ function CondModal({ onClose, onApplyAsk, onScenario }: { onClose: () => void; o
     });
     onApplyAsk();
   };
-  const reset = () => { setDt("호우"); setStart(""); setEnd(""); setKind(""); setLvl(""); setKw(""); setH({}); setScenario(null); setSgg(""); setEmd(""); };
+  const reset = () => { setDt(undefined); setStart(""); setEnd(""); setKind(""); setLvl(""); setKw(""); setH({}); setScenario(null); };
   const groups = ["누적강우", "수문", "기상"];
 
   return (
@@ -196,26 +189,12 @@ function CondModal({ onClose, onApplyAsk, onScenario }: { onClose: () => void; o
           </div>
           {scenario && <p className="xs muted" style={{ margin: "-4px 0 8px 124px" }}>{scenario.summary} · 적용하면 “{scenario.question}”로 바로 질의합니다.</p>}
 
-          <div className="frow">
-            <span className="lb">기준지역 <span style={{ color: "var(--c-dang)" }}>*</span></span>
-            <div className="row w">
-              <select className="select sm" value={region} onChange={(e) => { setRegion(e.target.value as RegionId); setSgg(""); setEmd(""); }} aria-label="도·시">
-                {(["national", "busan", "yeongcheon", "inje"] as RegionId[]).map((r) => <option key={r} value={r}>{r === "national" ? "전국" : REGIONS[r].sido || REGIONS[r].name}{r === "yeongcheon" || r === "inje" ? ` ${REGIONS[r].short}` : ""}</option>)}
-              </select>
-              <select className="select sm" value={sgg} disabled={region === "national"} onChange={(e) => { setSgg(e.target.value); setEmd(""); }} aria-label="시·군·구">
-                <option value="">시·군·구 전체</option>
-                {sggList.map((s) => <option key={s}>{s}</option>)}
-              </select>
-              <select className="select sm" value={emd} disabled={!sgg} onChange={(e) => setEmd(e.target.value)} aria-label="읍·면·동">
-                <option value="">읍·면·동 전체</option>
-                {(emds[sgg] ?? []).map((s) => <option key={s}>{s}</option>)}
-              </select>
-            </div>
-          </div>
+          <p className="xs mute2" style={{ margin: "0 0 10px" }}>기준지역은 화면 상단에서 고릅니다 (현재 <b>{REGIONS[region].name}</b>). 아무 조건도 고르지 않으면 기준지역에 대한 일반 질의로 보냅니다.</p>
           <div className="frow">
             <span className="lb">재난유형</span>
             <div className="row w">
-              {DISASTER_TYPES.map((t) => <button key={t} className={`chip ${dt === t ? "on" : ""}`} onClick={() => setDt(t as DisasterType)}>{dt === t ? "✓ " : ""}{t}</button>)}
+              <button className={`chip ${!dt ? "on" : ""}`} onClick={() => setDt(undefined)}>{!dt ? "✓ " : ""}선택 안 함</button>
+              {DISASTER_TYPES.filter((t) => t !== "전체").map((t) => <button key={t} className={`chip ${dt === t ? "on" : ""}`} onClick={() => setDt(dt === t ? undefined : (t as DisasterType))}>{dt === t ? "✓ " : ""}{t}</button>)}
             </div>
           </div>
           <div className="frow">

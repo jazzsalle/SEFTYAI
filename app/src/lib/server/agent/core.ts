@@ -89,13 +89,27 @@ export interface Situation {
 }
 
 export const rname = (r: RegionId) => REGIONS[r].name;
+
+/** 사용자가 입력한 재난상황 조건 요약 (AI 모드 꺼짐 기준) — 없으면 빈 배열 */
+export function condSummary(ctx: QueryContext): string[] {
+  const h = ctx.hydro ?? {};
+  const out: string[] = [];
+  if (ctx.disasterType && ctx.disasterType !== "전체") out.push(`재난유형 ${ctx.disasterType}`);
+  if (ctx.situationKind?.level || ctx.situationKind?.type) out.push(`${ctx.situationKind.type ?? ""}${ctx.situationKind.level ?? ""}`);
+  const lab: [keyof typeof h, string, string][] = [["rain1h", "시간당", "mm"], ["rain3h", "3시간", "mm"], ["rain6h", "6시간", "mm"], ["rain12h", "12시간", "mm"], ["rain24h", "24시간", "mm"], ["rainTotal", "누적", "mm"], ["waterLevel", "수위", "m"], ["flow", "유량", "m³/s"], ["wind", "풍속", "m/s"], ["humidity", "습도", "%"]];
+  for (const [k, l, u] of lab) if (typeof h[k] === "number") out.push(`${l} ${h[k]}${u}`);
+  if (ctx.keywords?.length) out.push(`키워드 ${ctx.keywords.join("·")}`);
+  return out;
+}
 export const rshort = (r: RegionId) => REGIONS[r].short;
 
 export function situation(ctx: QueryContext, regionOverride?: RegionId): Situation {
   const region = regionOverride ?? ctx.region;
   const pr = region === "national" ? null : region;
   const preset = ctx.scenarioId ? SCENARIO_BY_ID.get(ctx.scenarioId) : undefined;
-  const scenario = ctx.mode === "scenario" && (!preset || preset.useEvent);
+  // 특보 기준 판단은 AI 모드(현재 특보 전달) 또는 [특보로 질문] 참조일 때만. AI 모드가 꺼져 있으면 사용자가 입력한 재난상황 조건만 쓴다.
+  const advisoryDriven = !!ctx.aiMode || !!ctx.refAdvisory;
+  const scenario = ctx.mode === "scenario" && (preset ? !!preset.useEvent : advisoryDriven);
   const event = scenario && pr ? EVENT_BY_ID.get(SCENARIO[pr].eventId) ?? null : null;
   const rec = event && pr ? regionRecord(event, pr) ?? null : null;
   const wx = scenario && pr ? scenarioWeather(pr) : null;
@@ -115,10 +129,15 @@ export function situation(ctx: QueryContext, regionOverride?: RegionId): Situati
     level = preset.advisory ? (preset.advisory.level as Situation["level"]) : null;
     advisoryText = preset.advisory ? `${preset.advisory.type}${preset.advisory.level}` : "";
     issuedAt = issuedAt ?? ctx.baseTime;
-  } else if (!(scenario && event && pr) && ctx.advisory && (region === "national" || !ctx.advisory.area || new RegExp(rshort(region)).test(ctx.advisory.area))) {
+  } else if (!(scenario && event && pr) && advisoryDriven && ctx.advisory && (region === "national" || !ctx.advisory.area || new RegExp(rshort(region)).test(ctx.advisory.area))) {
     level = ctx.advisory.level as Situation["level"];
     advisoryText = `${ctx.advisory.type}${ctx.advisory.level}`;
     issuedAt = ctx.advisory.issuedAt;
+  } else if (!level && ctx.situationKind?.level) {
+    // 사용자가 [조건 변경 › 상황 상세정보]에서 입력한 특보 종류·단계
+    level = (/경보/.test(ctx.situationKind.level) ? "경보" : /주의보/.test(ctx.situationKind.level) ? "주의보" : /예비/.test(ctx.situationKind.level) ? "예비특보" : null) as Situation["level"];
+    advisoryText = level ? `${ctx.situationKind.type ?? ctx.disasterType ?? "호우"}${level}` : "";
+    issuedAt = ctx.baseTime;
   }
   const hourly = wx?.hourly ?? [];
   const peak = hourly.reduce<{ t: string; mm: number } | null>((p, h) => (!p || h.mm > p.mm ? h : p), null);

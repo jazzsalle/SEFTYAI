@@ -1,7 +1,7 @@
 "use client";
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
-import type { Advisory, Citation, DetailResponse, EntityRef } from "@/lib/contract/agent";
+import type { Advisory, Citation, DetailResponse, EntityRef, RegionId } from "@/lib/contract/agent";
 import { useSession } from "@/lib/session";
 import { catStyle } from "@/lib/config";
 import { useExplore, type PanelTab } from "./ExploreCtx";
@@ -107,6 +107,13 @@ export default function RightPanel(p: Props) {
 }
 
 /* ---------------- 지도 ---------------- */
+/** 항목이 속한 시범 지자체 (하천 ID 접두어 · 좌표 위도로 판별) */
+function regionOfEntity(e: EntityRef): RegionId | null {
+  const m = e.id.match(/^RV-(BS|YC|IJ)-/);
+  if (m) return m[1] === "BS" ? "busan" : m[1] === "YC" ? "yeongcheon" : "inje";
+  if (e.lat == null) return null;
+  return e.lat < 35.6 ? "busan" : e.lat < 37 ? "yeongcheon" : "inje";
+}
 function MapPanel(p: Props) {
   const { cond } = useSession();
   const x = useExplore();
@@ -122,6 +129,10 @@ function MapPanel(p: Props) {
     return [...m.entries()];
   }, [p.mapPoints]);
   const T = (k: keyof LayerState) => setLayers((l) => ({ ...l, [k]: !l[k] }));
+  // 참조 주제도 지자체 : 지자체를 고른 경우 그 지자체, 전국이면 사용자가 고른 항목(지도 선택·열린 상세)의 지자체만
+  const tab = p.tabs.find((t) => t.key === p.active);
+  const focusEnt = sel ?? (tab?.kind === "detail" ? tab.entity : undefined);
+  const layerRegion: RegionId | null = cond.region !== "national" ? cond.region : focusEnt ? regionOfEntity(focusEnt) : null;
   // 읍면동을 고르면 읍면동 경계를 함께 켬
   useEffect(() => {
     if (cond.emd) setLayers((l) => (l.emd ? l : { ...l, emd: true }));
@@ -133,6 +144,8 @@ function MapPanel(p: Props) {
         sigungu={cond.sigungu}
         emd={cond.emd}
         areaToken={p.areaToken}
+        layerRegion={layerRegion}
+        emdOn={cond.region === "national" && !!layerRegion}
         points={p.mapPoints}
         highlightIds={hl}
         selectedId={x.selectedId}

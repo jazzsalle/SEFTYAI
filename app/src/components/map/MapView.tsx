@@ -40,6 +40,10 @@ interface Props {
   emd?: string;
   /** 기준지역 변경 시 증가 → 행정경계 bbox 로 이동 (포인트 맞춤보다 우선) */
   areaToken?: number;
+  /** 참조 주제도(행정경계·하천·소하천)를 그릴 지자체. null = 그리지 않음 (전국 상시 표출 안 함) */
+  layerRegion?: RegionId | null;
+  /** 읍면동 경계 강제 표시 (전국 질의에서 항목을 고른 경우) */
+  emdOn?: boolean;
   points: EntityRef[];
   highlightIds?: string[];
   selectedId?: string | null;
@@ -163,6 +167,13 @@ export default function MapView(p: Props) {
     //  시군구 = 마젠타 1점쇄선 · 읍면동 = 라임 2점쇄선 · 하천중심선 = 시안 실선 · 실폭하천 = 시안 면+파선 · 소하천 = 녹색 면+점선
     //  선 굵기는 최대 3px대로 제한해 조회 객체(점·흰 테두리, zIndex 10)를 가리지 않게 함
     const CASE = "rgba(15,20,30,.55)";
+    // 참조 주제도는 선택된 지자체(layerRegion) 피처만 그림 — 전국은 상시 표출하지 않음
+    const inArea = (f: FeatureLike) => {
+      const r = propsRef.current.layerRegion;
+      if (!r || r === "national") return false;
+      const fr = f.get("region");
+      return fr ? fr === r : (SIDO[r] ?? SIDO.national)(f as Feature);
+    };
     const adminLine = [
       new Style({ stroke: new Stroke({ color: "rgba(255,255,255,.85)", width: 5 }) }),
       new Style({ stroke: new Stroke({ color: CASE, width: 4 }) }),
@@ -170,7 +181,7 @@ export default function MapView(p: Props) {
     ];
     const admin = new VectorLayer({
       source: new VectorSource(),
-      style: (f) => [
+      style: (f) => !inArea(f) ? undefined : [
         ...adminLine,
         new Style({
           geometry: labelPt,
@@ -187,7 +198,7 @@ export default function MapView(p: Props) {
       source: new VectorSource(),
       visible: false,
       minZoom: 11.5,
-      style: (f) => [
+      style: (f) => !inArea(f) ? undefined : [
         ...emdLine,
         new Style({ geometry: labelPt, text: new Text({ text: f.get("emd"), font: "700 11px Pretendard, sans-serif", fill: new Fill({ color: "#2f5200" }), stroke: new Stroke({ color: "#fff", width: 3.5 }) }) }),
       ],
@@ -203,21 +214,22 @@ export default function MapView(p: Props) {
     ];
     const riverArea = new VectorLayer({
       source: new VectorSource(),
-      style: (f) => (propsRef.current.riverHighlight?.includes(f.get("riverId")) ? riverAreaHl : riverAreaStyle),
+      style: (f) => (!inArea(f) ? undefined : propsRef.current.riverHighlight?.includes(f.get("riverId")) ? riverAreaHl : riverAreaStyle),
       zIndex: 4,
     });
     const smallRiver = new VectorLayer({
       source: new VectorSource(),
       visible: false,
-      style: [
+      style: ((sr) => (f: FeatureLike) => (inArea(f) ? sr : undefined))([
         new Style({ fill: new Fill({ color: "rgba(0,230,118,.26)" }), stroke: new Stroke({ color: CASE, width: 3 }) }),
         new Style({ stroke: new Stroke({ color: "#00f57a", width: 2, lineDash: [0.1, 5], lineCap: "round" }) }),
-      ],
+      ]),
       zIndex: 4,
     });
     const rivers = new VectorLayer({
       source: new VectorSource(),
       style: (f, res) => {
+        if (!inArea(f)) return undefined;
         const hl = propsRef.current.riverHighlight?.includes(f.get("riverId"));
         const g = f.get("grade") as string;
         const w = hl ? 5 : g === "국가하천" ? 3.2 : g === "지방하천" ? 2.2 : 1.4;
@@ -281,15 +293,7 @@ export default function MapView(p: Props) {
       }
     });
 
-    Promise.all([
-      loadGeo("/data/admin_sigungu.geojson").then((fs) => (admin.getSource() as VectorSource).addFeatures(fs)),
-      loadGeo("/data/admin_emd.geojson").then((fs) => (emd.getSource() as VectorSource).addFeatures(fs)),
-      loadGeo("/data/rivers_area.geojson").then((fs) => (riverArea.getSource() as VectorSource).addFeatures(fs)),
-      loadGeo("/data/rivers_centerline.geojson").then((fs) => (rivers.getSource() as VectorSource).addFeatures(fs)),
-      loadGeo("/data/small_river_zones.geojson").then((fs) => (smallRiver.getSource() as VectorSource).addFeatures(fs)),
-    ])
-      .catch(() => {})
-      .finally(() => setReady(true));
+    setReady(true);
 
     const onZoom = (ev: Event) => {
       const v = m.getView();
@@ -307,6 +311,24 @@ export default function MapView(p: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // 참조 주제도 : 지자체가 정해졌을 때 처음 한 번만 불러오고, 바뀌면 다시 그림
+  const geoLoaded = useRef<Promise<unknown> | null>(null);
+  const [geoReady, setGeoReady] = useState(false);
+  useEffect(() => {
+    const l = L.current;
+    if (!l.admin) return;
+    if (p.layerRegion && p.layerRegion !== "national" && !geoLoaded.current) {
+      geoLoaded.current = Promise.all([
+        loadGeo("/data/admin_sigungu.geojson").then((fs) => (l.admin.getSource() as VectorSource).addFeatures(fs)),
+        loadGeo("/data/admin_emd.geojson").then((fs) => (l.emd.getSource() as VectorSource).addFeatures(fs)),
+        loadGeo("/data/rivers_area.geojson").then((fs) => (l.riverArea.getSource() as VectorSource).addFeatures(fs)),
+        loadGeo("/data/rivers_centerline.geojson").then((fs) => (l.rivers.getSource() as VectorSource).addFeatures(fs)),
+        loadGeo("/data/small_river_zones.geojson").then((fs) => (l.smallRiver.getSource() as VectorSource).addFeatures(fs)),
+      ]).catch(() => {}).finally(() => setGeoReady(true));
+    }
+    [l.admin, l.emd, l.riverArea, l.smallRiver, l.rivers].forEach((x) => x?.changed());
+  }, [p.layerRegion, ready]);
+
   // 베이스맵·레이어 표시
   useEffect(() => {
     const l = L.current;
@@ -319,12 +341,12 @@ export default function MapView(p: Props) {
     }
     (l.base as TileLayer<XYZ>).setOpacity(p.basemap === "gray" ? 0.55 : 1);
     l.admin.setVisible(p.layers.admin);
-    l.emd.setVisible(p.layers.emd);
+    l.emd.setVisible(p.layers.emd || !!p.emdOn);
     l.rivers.setVisible(p.layers.rivers);
     l.riverArea.setVisible(p.layers.riverArea);
     l.smallRiver.setVisible(p.layers.smallRiver);
     l.pts.setVisible(p.layers.points);
-  }, [p.basemap, p.layers]);
+  }, [p.basemap, p.layers, p.emdOn]);
 
   // 포인트 갱신
   useEffect(() => {
@@ -414,10 +436,21 @@ export default function MapView(p: Props) {
       v.animate({ center: fromLonLat(r.center), zoom: r.zoom, duration: 450 });
     }
   };
+  // 기준지역 변경 → 해당 경계로 이동 (경계 데이터가 아직 오는 중이면 도착 후 한 번만)
+  const fitAfterLoad = useRef(false);
   useEffect(() => {
-    if (ready && p.areaToken) fitArea();
+    if (!ready || !p.areaToken) return;
+    if (p.layerRegion && p.layerRegion !== "national" && !geoReady) fitAfterLoad.current = true;
+    else fitArea();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [p.areaToken, ready]);
+  useEffect(() => {
+    if (geoReady && fitAfterLoad.current) {
+      fitAfterLoad.current = false;
+      fitArea();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [geoReady]);
 
   return (
     <>

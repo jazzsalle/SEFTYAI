@@ -18,7 +18,7 @@ export interface Conversation {
   id: string;
   title: string;
   region: RegionId;
-  disasterType: DisasterType;
+  disasterType?: DisasterType;
   createdAt: string;
   updatedAt: string;
   turns: Turn[];
@@ -29,7 +29,8 @@ export interface Cond {
   region: RegionId;
   sigungu?: string;
   emd?: string;
-  disasterType: DisasterType;
+  /** 선택하지 않을 수 있음 (조건 없는 일반 질의) */
+  disasterType?: DisasterType;
   baseTime?: string; // 비우면 특보/시나리오 기준
   endTime?: string;
   hydro?: QueryContext["hydro"];
@@ -87,7 +88,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   const [ready, setReady] = useState(false);
   const [account, setAccount] = useState<Account | null>(null);
   const [mode, setModeS] = useState<WeatherMode>("scenario");
-  const [cond, setCondS] = useState<Cond>({ region: "national", disasterType: "호우" });
+  const [cond, setCondS] = useState<Cond>({ region: "national" });
   const [weather, setWeather] = useState<WeatherResponse | null>(null);
   const [convs, setConvs] = useState<Conversation[]>([]);
   const [checks, setChecks] = useState<Record<string, boolean>>({});
@@ -98,6 +99,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   const setAimOn = useCallback((v: boolean) => {
     LS.set("sa.aim", v);
     setAimOnS(v);
+    if (v) setWxRef(null); // AI 모드 중에는 [특보로 질문] 불가 (현재 특보가 자동 전달되므로 혼선 방지)
   }, []);
 
   useEffect(() => {
@@ -107,7 +109,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     setModeS(LS.get<WeatherMode>("sa.mode", "scenario"));
     setAimOnS(LS.get<boolean>("sa.aim", false));
     if (acc) {
-      setCondS({ region: acc.region, disasterType: "호우" });
+      setCondS({ region: acc.region });
       setConvs(LS.get<Conversation[]>(`sa.convs.${acc.id}`, []));
       setChecks(LS.get(`sa.checks.${acc.id}`, {}));
     }
@@ -141,7 +143,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     if (!acc) return;
     LS.set("sa.account", id);
     setAccount(acc);
-    setCondS({ region: acc.region, disasterType: "호우" });
+    setCondS({ region: acc.region });
     const saved = LS.get<Conversation[] | null>(`sa.convs.${acc.id}`, null);
     if (saved) setConvs(saved);
     else {
