@@ -8,6 +8,7 @@ import AnswerView from "@/components/explore/AnswerView";
 import Composer, { type ScenarioItem } from "@/components/explore/Composer";
 import StartScreen from "@/components/explore/StartScreen";
 import { advLabel, advTone } from "@/lib/wxref";
+import { REGIONS } from "@/lib/config";
 import RightPanel from "@/components/explore/RightPanel";
 import AimOverlay from "@/components/explore/AimOverlay";
 import LibraryDrawer from "@/components/explore/LibraryDrawer";
@@ -54,6 +55,9 @@ function Explore() {
   const [aimCollapsed, setAimCollapsed] = useState(false);
   const [lib, setLib] = useState(false);
   const [flowRun, setFlowRun] = useState<{ i: number; n: number } | null>(null);
+  const [regionNotice, setRegionNotice] = useState<{ from: RegionId; to: RegionId } | null>(null);
+  const [noMore, setNoMore] = useState(false);
+  const [mapEpoch, setMapEpoch] = useState(0); // 새 대화마다 지도·우측 패널을 새로 그림 (주제도 누적 방지)
   // 대화창 ↔ 지도 패널 폭 조절 (대화창 비율 %, 브라우저별 기억)
   const [chatW, setChatW] = useState(46);
   const [dragging, setDragging] = useState(false);
@@ -91,7 +95,15 @@ function Explore() {
     const k = `${s.cond.region}|${s.cond.sigungu ?? ""}|${s.cond.emd ?? ""}`;
     if (areaRef.current === null) { areaRef.current = k; return; }
     if (areaRef.current === k) return;
+    const prevRegion = areaRef.current.split("|")[0];
     areaRef.current = k;
+    // 전국 ↔ 시·도(광역) 단위가 바뀌면 새 대화로 시작 — 이전 지역의 지도 주제도·결과가 섞이지 않게 (이전 대화는 대화 목록에 저장됨)
+    if (prevRegion !== s.cond.region && convRef.current?.turns.length) {
+      newChat();
+      let hide = false;
+      try { hide = localStorage.getItem("sa.hideRegionNotice") === "1"; } catch {}
+      if (!hide) setRegionNotice({ from: prevRegion as RegionId, to: s.cond.region });
+    }
     setAreaToken((t) => t + 1);
     setSelectedId(null);
     openTab({ key: "map", kind: "map", title: "지도" });
@@ -184,6 +196,7 @@ function Explore() {
 
   const newChat = () => {
     setConv(null);
+    setMapEpoch((n) => n + 1);
     setTabs([]);
     setActive("");
     setMapExtra([]);
@@ -393,6 +406,7 @@ function Explore() {
         )}
         {split && (
           <RightPanel
+            key={mapEpoch}
             tabs={tabs}
             active={active}
             setActive={setActive}
@@ -406,6 +420,27 @@ function Explore() {
           />
         )}
       </main>
+      {regionNotice && (
+        <div className="ovl" onClick={() => setRegionNotice(null)}>
+          <div className="modal" style={{ width: "min(460px,100%)" }} onClick={(e) => e.stopPropagation()} role="alertdialog" aria-modal aria-label="새 대화 안내">
+            <div className="modal-hd"><h2>새 대화로 시작합니다</h2></div>
+            <div className="modal-bd">
+              <p style={{ margin: 0, lineHeight: 1.6 }}>
+                기준지역이 <b>{REGIONS[regionNotice.from].name}</b>에서 <b>{REGIONS[regionNotice.to].name}</b>(으)로 바뀌어 새 대화를 열었습니다.
+                지역 단위가 바뀌면 지도에 표시되는 행정경계·하천 주제도가 섞이지 않도록 대화를 나눕니다.
+              </p>
+              <p className="xs mute2" style={{ margin: "8px 0 0" }}>이전 대화는 [대화 목록]에서 다시 볼 수 있습니다. 같은 지역 안에서 시·군·구, 읍·면·동만 바꾸면 대화가 이어집니다.</p>
+              <label className="row xs" style={{ marginTop: 14, gap: 6, cursor: "pointer" }}>
+                <input type="checkbox" checked={noMore} onChange={(e) => setNoMore(e.target.checked)} /> 다시 보지 않기
+              </label>
+            </div>
+            <div className="modal-ft">
+              <span className="sp" />
+              <button className="btn pri" onClick={() => { if (noMore) { try { localStorage.setItem("sa.hideRegionNotice", "1"); } catch {} } setRegionNotice(null); }}>확인</button>
+            </div>
+          </div>
+        </div>
+      )}
       {lib && <LibraryDrawer region={s.cond.region} onClose={() => setLib(false)} onAsk={(q, p) => ask(q, p)} onScenario={(sc) => ask(applyScenario(sc).question, undefined, { scenario: sc })} onFlow={(steps, sc, wx) => runFlow(steps, sc, wx)} />}
     </ExploreContext.Provider>
   );
