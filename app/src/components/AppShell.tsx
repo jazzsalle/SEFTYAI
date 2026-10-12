@@ -8,6 +8,8 @@ import type { RegionId } from "@/lib/contract/agent";
 import { GovLogo, IcChevR, IcSiren } from "./Icons";
 import type { Advisory } from "@/lib/contract/agent";
 import { advLabel, advTime, advTone } from "@/lib/wxref";
+import { SopProvider } from "@/lib/sopState";
+import SopBar from "./sop/SopBar";
 
 const fmtT = (iso?: string) => {
   if (!iso) return "";
@@ -119,6 +121,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const emdList = cond.sigungu ? emds[cond.sigungu] ?? [] : [];
 
   return (
+    <SopProvider>
     <div className="app">
       <div className="nuri">
         <svg className="flag" viewBox="0 0 36 24"><rect width="36" height="24" fill="#fff" /><circle cx="18" cy="12" r="6" fill="#cd2e3a" /><path d="M12 12a6 6 0 0 0 12 0 3 3 0 0 0-6 0 3 3 0 0 1-6 0" fill="#0047a0" /></svg>
@@ -179,8 +182,11 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </header>
       <WxBar />
+      {/* 행동매뉴얼 대응 단계 바 — 지자체 계정에만 모든 화면 고정 */}
+      <SopBar />
       {children}
       {toastMsg && <div className="toast">{toastMsg}</div>}
     </div>
+    </SopProvider>
   );
 }

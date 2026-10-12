@@ -12,6 +12,10 @@ import RightPanel from "@/components/explore/RightPanel";
 import AimOverlay from "@/components/explore/AimOverlay";
 import LibraryDrawer from "@/components/explore/LibraryDrawer";
 import { IcEdit, IcList, IcMap, IcPlus } from "@/components/Icons";
+import { useSop } from "@/lib/sopState";
+
+/** 지자체 계정의 고정 탭 — 닫을 수 없고 우측 패널 맨 앞에 항상 있음 */
+const SOP_TAB: PanelTab = { key: "sop", kind: "sop", title: "대응절차", pinned: true };
 
 const LOADING_STEPS = ["질문과 재난상황 조건 해석", "재난안전 데이터 조회", "매뉴얼·계획문서 근거 확인", "답변 구성"];
 
@@ -36,6 +40,7 @@ interface AskOpts { region?: RegionId; baseTime?: string; prev?: string; scenari
 
 function Explore() {
   const s = useSession();
+  const sop = useSop();
   const router = useRouter();
   const sp = useSearchParams();
   const [conv, setConvS] = useState<Conversation | null>(null);
@@ -57,6 +62,7 @@ function Explore() {
   const [regionNotice, setRegionNotice] = useState<{ from: RegionId; to: RegionId } | null>(null);
   const [noMore, setNoMore] = useState(false);
   const [mapEpoch, setMapEpoch] = useState(0); // 새 대화마다 지도·우측 패널을 새로 그림 (주제도 누적 방지)
+  const [sopFocus, setSopFocus] = useState<{ id: string; n: number } | undefined>(undefined);
   // 대화창 ↔ 지도 패널 폭 조절 (대화창 비율 %, 브라우저별 기억)
   const [chatW, setChatW] = useState(46);
   const [dragging, setDragging] = useState(false);
@@ -85,9 +91,19 @@ function Explore() {
       if (c) setConv(c);
     }
     if (sp.get("panel") === "wx") openTab({ key: "wx", kind: "wx", title: "기상특보" });
+    if (sp.get("panel") === "sop") sop.requestOpen();
     if (sp.get("new")) newChat();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sp]);
+  // 단계 바 [대응절차 전체]·[다음 조치] → 우측 「대응절차」 탭 열기 (다른 화면에서 왔으면 이동 후 처리)
+  useEffect(() => {
+    if (!sop.openReq || !sop.enabled) return;
+    openTab(SOP_TAB);
+    const f = sop.openReq.focus;
+    if (f) setSopFocus((p) => ({ id: f, n: (p?.n ?? 0) + 1 }));
+    sop.clearOpen();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sop.openReq, sop.enabled]);
   // 기준지역(시도·시군구·읍면동) 변경 → 지도를 열고 해당 행정경계로 이동
   const areaRef = useRef<string | null>(null);
   useEffect(() => {
@@ -156,9 +172,9 @@ function Explore() {
     setTabs((prev) => {
       const ex = prev.find((p) => p.key === t.key);
       if (ex) return prev.map((p) => (p.key === t.key ? { ...p, ...t } : p));
-      const base = prev.some((p) => p.kind === "map") || t.kind === "map" ? prev : [{ key: "map", kind: "map" as const, title: "지도" }, ...prev];
+      const base = prev.some((p) => p.kind === "map") || t.kind === "map" || t.kind === "sop" ? prev : [{ key: "map", kind: "map" as const, title: "지도" }, ...prev];
       const next = [...base, t];
-      while (next.length > 6) next.splice(next.findIndex((p) => p.kind !== "map"), 1);
+      while (next.length > 6) next.splice(next.findIndex((p) => p.kind !== "map" && !p.pinned), 1);
       return next;
     });
     setActive(t.key);
@@ -406,7 +422,8 @@ function Explore() {
         {split && (
           <RightPanel
             key={mapEpoch}
-            tabs={tabs}
+            tabs={sop.enabled ? [SOP_TAB, ...tabs.filter((t) => t.kind !== "sop")] : tabs.filter((t) => t.kind !== "sop")}
+            sopFocus={sopFocus}
             active={active}
             setActive={setActive}
             close={(k) => setTabs((prev) => { const n = prev.filter((p) => p.key !== k); if (active === k) setActive(n.at(-1)?.key ?? ""); return n; })}

@@ -30,6 +30,7 @@
 | 공개용 / 내부용 | 공개용 = 대화 화면. 내부용 = 운영관리 > **응답 검증**(운영자 전용, T3Q 담당자용): ① 요청 정합 ② 응답 정답(정답셋) ③ 표출 정합 + 사람 판정·CSV. 정답셋 180문항은 `node scripts/build_gold.mjs`로 재생성(T3Q 정답셋 수신 시 교체) | D31 |
 | 새 대화 | 기준지역의 전국↔시·도 단위가 바뀌면 새 대화로 시작하고 안내한다("다시 보지 않기" 있음). 시군구·읍면동만 바꾸면 대화를 이어간다 | — |
 | 사용자 문구 | 요구사항 번호, T3Q, 시연, 샘플, 검증필요 같은 내부 용어를 화면에 내보내지 않는다. 응답 직전에 `lib/server/ux.ts`의 `uxClean`으로 정리한다 | — |
+| 대응절차 | **지자체 계정에만** 특보 바 아래 '대응 단계 바'를 모든 화면에 고정하고, 우측 패널에 닫을 수 없는 「대응절차」 탭을 둔다. 자기 지역 매뉴얼만 보이고 행안부·운영자 계정에서는 숨긴다. 체크리스트는 내 부서 기본 + [전체 부서 보기]. 특보 → 대응단계는 매뉴얼 근거 쪽을 밝힌 추천이며 사용자가 바꿀 수 있다. 위기경보 등급은 쓰지 않는다 | D35, D19 |
 | Figma | 디자이너 작업본이다. **분석만 하고 원본은 절대 수정하지 않는다**. 참고 이미지는 저장소 이력에서 제거했다 | — |
 
 ## 4. 코드 지도 (`app/src/`)
@@ -50,6 +51,9 @@
 | `lib/verify.ts`, `lib/server/verify.ts`, `app/api/verify`, `components/admin/VerifyTab.tsx` | 내부용 응답 정합성 검증 (3단 비교 로직 · 정답셋 실행 API · 화면). 정답셋 `app/data/seed/gold_set.json` |
 | `lib/help.ts`, `components/HelpCenter.tsx` | 온라인 도움말: 내용(항목·순서·예시 질문) / 전 화면 공통 버튼·서랍 (`app/layout.tsx`에 장착, `openHelp("verify")`로 특정 항목 열기) |
 | `lib/server/scenarios.ts`, `library.ts` | 조건 시나리오 13종, 추천 질문(CQ), 연속 질의 시연(특보 참조 흐름 포함) |
+| `lib/sop.ts`, `lib/sopState.tsx`, `lib/server/sop.ts`, `app/api/sop` | 행동매뉴얼 대응절차: 타입·특보 → 단계 추천(`recommendStep`)·진행 집계 / 단계 바·고정 탭 공용 상태(선택 단계·부서 범위·탭 열기 요청) / 지역별 매뉴얼 API |
+| `components/sop/SopBar.tsx`, `SopPane.tsx` | 대응 단계 바(`AppShell`에서 특보 바 아래) / 우측 「대응절차」 고정 탭(`RightPanel`, 탐색 화면의 `SOP_TAB`) |
+| `../scripts/sop/build_sop.py`, `data/seed/sop_procedures.json` | 매뉴얼 PDF(`etc/`, git 제외) → 대응절차 데이터. 프로세스 표 칸(채움색)으로 부서 행·단계 열을 나누고 R1~R25로 임무·조치·세부행동 추출, 행동카드에서 주관·지원·협업 기관과 쪽을 붙임(부산 3·4단계는 표와 카드 번호가 달라 조치 이름으로도 짝을 맞춤) |
 
 ## 5. 점검 (수정 후 반드시)
 ```bash
@@ -59,6 +63,8 @@ node scripts/wxref.mjs   http://localhost:3100        # 특보 참조 19문항
 node scripts/library.mjs http://localhost:3100 lib    # 추천 질문 (flow · check 도 각각)
 curl -s -X POST http://localhost:3100/api/verify -d '{}' -H 'content-type: application/json'   # 정답셋 180문항 3단 검증 (모두 ok 여야 함)
 npx tsc --noEmit                                       # .next/types TS6053 경고는 무시
+# 매뉴얼 PDF를 고쳤을 때만 (저장소 루트에서, pymupdf 필요)
+python -I -X utf8 scripts/sop/build_sop.py etc app/data/seed/sop_procedures.json [--dump <폴더>]
 ```
 배포 후에는 같은 스크립트를 `https://safetyai-three.vercel.app`로 다시 돌린다.
 

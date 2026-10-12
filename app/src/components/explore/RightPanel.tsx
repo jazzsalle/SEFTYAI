@@ -8,7 +8,8 @@ import { useExplore, type PanelTab } from "./ExploreCtx";
 import { DEFAULT_LAYERS, type Basemap, type LayerState, zoomBy } from "../map/MapView";
 import { TL_COLOR } from "./AnswerView";
 import SatCompare from "../SatCompare";
-import { IcChevR, IcDoc, IcExpand, IcMap, IcRefresh, IcX } from "../Icons";
+import SopPane from "../sop/SopPane";
+import { IcChevR, IcDoc, IcExpand, IcMap, IcPushpin, IcRefresh, IcX } from "../Icons";
 
 const MapView = dynamic(() => import("../map/MapView"), { ssr: false, loading: () => <div className="olmap" /> });
 
@@ -23,6 +24,8 @@ interface Props {
   focusToken: number;
   areaToken?: number;
   riverHighlight: string[];
+  /** 단계 바에서 고른 조치 (대응절차 탭에서 펼쳐 보임) */
+  sopFocus?: { id: string; n: number };
 }
 
 export default function RightPanel(p: Props) {
@@ -52,11 +55,12 @@ export default function RightPanel(p: Props) {
     <aside className={`rpanel ${drag ? "dragging" : ""}`} aria-label="상세 패널">
       <div className="rtabs" role="tablist">
         {p.tabs.map((t) => (
-          <div key={t.key} className={`rtab ${t.key === tab?.key ? "on" : ""}`} role="tab" aria-selected={t.key === tab?.key}>
-            <button className="rtab-b" onClick={() => p.setActive(t.key)}>
+          <div key={t.key} className={`rtab ${t.key === tab?.key ? "on" : ""} ${t.pinned ? "pinned" : ""}`} role="tab" aria-selected={t.key === tab?.key}>
+            <button className="rtab-b" onClick={() => p.setActive(t.key)} title={t.pinned ? "고정 탭 · 닫을 수 없습니다" : undefined}>
+              {t.pinned && <IcPushpin size={13} />}
               <span className="tl2">{t.title}</span>
             </button>
-            <button className="x" onClick={() => p.close(t.key)} aria-label={`${t.title} 닫기`}><IcX size={13} /></button>
+            {!t.pinned && <button className="x" onClick={() => p.close(t.key)} aria-label={`${t.title} 닫기`}><IcX size={13} /></button>}
           </div>
         ))}
         <span className="sp" />
@@ -100,6 +104,7 @@ export default function RightPanel(p: Props) {
           {tab.kind === "list" && tab.list && <ListPane list={tab.list} />}
           {tab.kind === "wx" && <WxPane />}
           {tab.kind === "doc" && tab.citation && <DocPane c={tab.citation} />}
+          {tab.kind === "sop" && <SopPane focus={p.sopFocus} />}
         </div>
       )}
     </aside>

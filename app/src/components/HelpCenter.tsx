@@ -33,11 +33,11 @@ export default function HelpCenter() {
   const list = useMemo(() => {
     const kw = q.trim().toLowerCase();
     const hit = (t: HelpTopic) => !kw || [t.title, ...t.body, ...(t.steps ?? []), ...(t.examples ?? [])].some((x) => x.toLowerCase().includes(kw));
-    // 운영관리 도움말은 운영자에게만 보인다
-    const all = HELP_TOPICS.filter((t) => op || !t.screens.includes("/admin")).filter(hit);
+    // 운영관리 도움말은 운영자에게만, 대응절차 도움말은 지자체 계정에만 보인다
+    const all = HELP_TOPICS.filter((t) => op || !t.screens.includes("/admin")).filter((t) => !t.roles || (!!account && t.roles.includes(account.role))).filter(hit);
     return { mine: all.filter(here), common: all.filter((t) => t.screens.includes("*")), other: all.filter((t) => !here(t) && !t.screens.includes("*")) };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [q, path, op]);
+  }, [q, path, op, account]);
 
   const show = (topic?: string) => {
     setOpen(true);

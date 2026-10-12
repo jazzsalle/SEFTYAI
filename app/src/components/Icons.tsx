@@ -20,6 +20,8 @@ export const IcRefresh = (p: P) => (<S {...p}><path d="M20 11a8 8 0 1 0-2.3 5.7"
 export const IcExpand = (p: P) => (<S {...p}><path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7" /></S>);
 export const IcPrint = (p: P) => (<S {...p}><path d="M6 9V3h12v6" /><rect x="4" y="9" width="16" height="8" rx="1" /><path d="M7 14h10v7H7z" /></S>);
 export const IcPin = (p: P) => (<S {...p}><path d="M12 21s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z" /><circle cx="12" cy="9" r="2.5" /></S>);
+/** 고정(압정) — 대응절차 단계 바·고정 탭 */
+export const IcPushpin = (p: P) => (<S {...p}><path d="M9 3h6l-1 6 3 3H7l3-3z" /><path d="M12 12v9" /></S>);
 export const IcClock = (p: P) => (<S {...p}><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></S>);
 export const IcCheck = (p: P) => (<S {...p}><path d="m5 12 5 5L20 7" /></S>);
 export const IcSearch = (p: P) => (<S {...p}><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></S>);

@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { uxClean } from "@/lib/server/ux";
 const J = (b: unknown, init?: ResponseInit) => NextResponse.json(uxClean(b), init);
 import { MANUALS } from "@/lib/server/manual";
+import { sopActionsOnPage } from "@/lib/server/sop";
+import { codeLabel, stepLabel } from "@/lib/sop";
 import { RISK_BY_ID } from "@/lib/server/risk";
 import { EVENT_BY_ID, R119_BY_ID, SR_BY_ID, fmtKrwThousand } from "@/lib/server/events";
 import { LEDGER } from "@/lib/server/ledger";
@@ -21,17 +23,28 @@ export function GET(req: Request) {
     const onPage = m.stages.flatMap((s) => s.tasks.filter((t) => t.page === page).map((t) => ({ s, t })));
     const fa = m.fieldActions.filter((f) => f.page === page);
     const img = m.images.find((i) => i.page === page);
+    // 대응절차(SOP) 조치 중 이 쪽(행동카드)에 근거를 둔 것
+    const sop = page ? sopActionsOnPage(m.id, page) : [];
     const lines = [
+      ...sop.map(({ m: sm, a }) =>
+        [
+          `[${stepLabel(sm, a.step)}] ${a.code ? codeLabel(sm, a.code) + " " : ""}${a.name}${a.condition ? ` (${a.condition})` : ""}`,
+          ...(a.orgs?.lead ? [`   - 주관: ${a.orgs.lead}${a.orgs.support?.length ? ` · 지원: ${a.orgs.support.join(", ")}` : ""}`] : []),
+          ...a.details.map((d) => `   ${d.seq}. ${d.title}${d.content ? "\n      " + d.content.split("\n").join("\n      ") : ""}`),
+          ...(a.notes ?? []).map((n) => `   ※ ${n}`),
+        ].join("\n"),
+      ),
       ...onPage.map(({ s, t }) => `[${s.name.replace(/\s*\(.*\)/, "")}] ${t.code ? t.code + " " : ""}${t.task}${t.owner ? `\n   - 담당: ${t.owner}` : ""}${t.timing ? ` · 시기: ${t.timing}` : ""}`),
       ...fa.map((f) => `[현장조치 · ${f.target}]\n   기준: ${f.criteria}\n${f.actions.map((l) => `   - ${l}`).join("\n")}`),
     ];
+    const sop0 = sop[0];
     return J({
       title: m.title,
       kind: "행동매뉴얼",
       region: `${m.region} · ${m.responsibleDept} · ${m.version.split(" (")[0]}`,
       page,
       pageCount: m.pageCount,
-      heading: onPage[0]?.s.name ?? fa[0]?.target ?? img?.caption ?? "",
+      heading: (sop0 ? `${stepLabel(sop0.m, sop0.a.step)} · 행동카드 ${sop0.a.code ? codeLabel(sop0.m, sop0.a.code) : ""}`.trim() : "") || (onPage[0]?.s.name ?? fa[0]?.target ?? img?.caption ?? ""),
       text: lines.length ? `이 쪽의 매뉴얼 조치 내용 (원문 정리)\n\n${lines.join("\n\n")}` : "이 쪽의 구조화 데이터가 없습니다. 아래 원문 이미지를 확인하세요.",
       image: img ? `/docs/manual/${img.file}` : undefined,
       downloadable: false,
