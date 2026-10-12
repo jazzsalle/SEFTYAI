@@ -49,7 +49,7 @@
 
 - **계약 고정** : `src/lib/contract/agent.ts`(zod). 시연 응답 서버도 응답을 스스로 `AgentResponse.parse()`로 검증 → 실 T3Q 연계 시 base URL만 교체, 동일 스키마 통과 여부로 검수.
 - **키 관리** : 기상청 키는 서버 환경변수(`KMA_SERVICE_KEY`), VWorld 키는 브라우저 타일 호출 특성상 공개(`NEXT_PUBLIC_VWORLD_KEY`) — **VWorld 콘솔에 배포 도메인 등록 필수**.
-- **상태** : 대화 이력·체크리스트·브리핑 설정은 계정별 localStorage(시연). 첫 로그인 시 응답 서버로 생성한 시연 이력 자동 주입(다른 PC에서도 이력 화면이 비지 않음). 운영 전환 시 Supabase 테이블(§6.3).
+- **상태** : 대화 이력·체크리스트·브리핑 설정은 계정별 localStorage(시연). 첫 로그인 시 응답 서버로 생성한 시연 이력 자동 주입(다른 PC에서도 이력 화면이 비지 않음). 대응절차 담당자 수정본은 지역 매뉴얼별 localStorage(원문 추출본 위에 덧씌움, 내보내기/가져오기로 공유 — D36). 운영 전환 시 Supabase 테이블(§6.3).
 
 ---
 
@@ -152,7 +152,7 @@ RiskObject(id, category, region, lon/lat, grade, reason(왜), trigger(언제·th
 ```
 
 ### 6.3 Supabase 전환 (`supabase/schema.sql`)
-`events`, `event_regions`, `reports_119`, `situation_reports`, `risk_objects(geometry Point 4326)`, `manual_stages`, `manual_tasks`, `ledger`, `conversations`, `turns`, `checklist_state` — DAL(`src/lib/server/*.ts`)의 조회 함수 시그니처를 유지한 채 구현체만 교체.
+`events`, `event_regions`, `reports_119`, `situation_reports`, `risk_objects(geometry Point 4326)`, `manual_stages`, `manual_tasks`, `ledger`, `conversations`, `turns`, `checklist_state`, `sop_edits`(대응절차 수정본·이력, 매뉴얼별 1행) — DAL(`src/lib/server/*.ts`)의 조회 함수 시그니처를 유지한 채 구현체만 교체.
 
 ---
 

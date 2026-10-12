@@ -29,6 +29,13 @@ export const IcLayers = (p: P) => (<S {...p}><path d="m12 3 9 5-9 5-9-5z" /><pat
 export const IcPhone = (p: P) => (<S {...p}><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2" /></S>);
 export const IcStar = (p: P) => (<S {...p}><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.3 6.5 20.2l1-6.2L3 9.6l6.2-.9z" /></S>);
 export const IcSpark = (p: P) => (<S {...p}><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6" /></S>);
+/* 대응절차 수정 (순서·삭제·내보내기·가져오기) */
+export const IcUp = (p: P) => (<S {...p}><path d="m6 15 6-6 6 6" /></S>);
+export const IcDown = (p: P) => (<S {...p}><path d="m6 9 6 6 6-6" /></S>);
+export const IcTrash = (p: P) => (<S {...p}><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" /></S>);
+export const IcUndo = (p: P) => (<S {...p}><path d="M9 14 4 9l5-5" /><path d="M4 9h10a6 6 0 0 1 0 12h-3" /></S>);
+export const IcDownload = (p: P) => (<S {...p}><path d="M12 4v11M7 10l5 5 5-5M5 20h14" /></S>);
+export const IcUpload = (p: P) => (<S {...p}><path d="M12 20V9M7 14l5-5 5 5M5 4h14" /></S>);
 
 export function GovLogo({ size = 36 }: { size?: number }) {
   // 정부 상징 형태 근사 (태극 곡선) — 시안용

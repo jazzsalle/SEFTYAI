@@ -3,6 +3,9 @@
 추출 규칙: report4 `public/api-docs/mapping.html` R1~R25
   대응단계(표의 열 순서, R22) → 임무 [n] → 조치 [n-m] → 세부행동 '-'
   부서 칸(R19)은 표의 행 묶음. 조치 상세(기관·쪽)는 행동카드에서 가져온다(②).
+  행동카드 본문은 원문 순서대로 블록(번호 제목·글머리·※·표)으로 모두 담는다 — 표준행동 표(②), 전파 표·표준문안(③),
+  지시내용(④). 연락처·성명 열과 실명·전화번호는 뺀다(R17). 카드 뒤 '붙임' 서식은 카드 본문이 아니다.
+  카드 짝: 코드+이름 → (못 찾으면) 코드+단계. 프로세스 표에 없는 카드는 그 단계 끝에 붙인다(애매한 경우 규칙).
 
 사용: python -I -X utf8 scripts/sop/build_sop.py <매뉴얼 PDF 폴더> <출력 JSON> [--dump <디버그 폴더>]
 """
@@ -100,10 +103,16 @@ MID_DOTS = "·․‧ㆍ･・"
 CIRCLED = {chr(0x2460 + i): str(i + 1) for i in range(20)}
 
 
+# 글꼴 기호(Wingdings)가 라틴 문자로 읽힌 것 — Ÿ = 글머리 •, è·ò = →, ž = 가운뎃점
+GLYPH_FIX = {"Ÿ": "•", "è": "→", "ò": "→", "ž": "·"}
+
+
 def norm(t: str) -> str:
     t = t.replace("\xa0", " ").replace("　", " ")
     for c in MID_DOTS:
         t = t.replace(c, "·")
+    for a, b in GLYPH_FIX.items():
+        t = t.replace(a, b)
     t = re.sub(r"\s+", " ", t)
     return t.strip()
 
@@ -113,12 +122,39 @@ def squash(t: str) -> str:
     return re.sub(r"\s+", "", norm(t))
 
 
-PHONE = re.compile(r"(☎\s*)?\(?0\d{1,3}\)?[\s\-－~.]*\d{3,4}[\s\-－~.]*\d{4}(\s*~\s*\d+)?|☎\s*[\d\-~]+")
+PHONE = re.compile(r"([☎☏]\s*)?\(?0\d{1,3}\)?[\s\-－~.—–‐‒―]*\d{3,4}[\s\-－~.—–‐‒―]*\d{4}(\s*~\s*\d+)?|[☎☏]\s*[\d\-~—–]+")
 
 
 NL = "\n"
-# 직위·역할 뒤에 붙은 실명 (R17) — '반장: 김광재', '담당자(도승욱)'
-NAME_AFTER_ROLE = re.compile(r"(반장|반원|담당자|담당|팀장|과장|주무관|성명|책임자|관리자|연락관)\s*(?:[:：]\s*|\(\s*)([가-힣]{2,4})(?:\s*[,·]\s*[가-힣]{2,4})*\s*\)?(?=$|[\s,)*])")
+# 괄호째 적은 전화번호 '(033-242-9131)', '(☏3040)'
+PHONE_PAREN = re.compile(r"\(\s*(?:[☎☏]\s*)?(?:0\d{1,3}\)?[\s\-－~.]*)?\d{3,4}[\s\-－~.]*\d{4}\s*\)|\(\s*[☎☏]\s*[\d\-~]+\s*\)")
+# 직위·역할 뒤에 붙은 실명 (R17) — '반장: 김광재', '담당자(도승욱)', '담당자 (윤선호 )'
+ROLE = r"(반장|반원|담당자|담당|팀장|과장|주무관|성명|책임자|관리자|연락관)"
+PNAME = r"([가-힣]{2,4}(?:\s*[,·]\s*[가-힣]{2,4})*)"
+NAME_PAREN = re.compile(ROLE + r"\s*\(\s*" + PNAME + r"\s*\)")
+NAME_COLON = re.compile(ROLE + r"\s*[:：]\s*" + PNAME + r"(?![가-힣])")
+# 사람 이름이 아닌 말 ('과장(필요 시 …)', '담당: 방재팀')
+NOT_NAME_HEAD = ("필요", "부재", "직무", "대행", "공석", "당직", "해당", "전체", "협조", "지원", "요청", "포함", "총괄", "실무", "방재", "주관", "소관", "현장", "비상", "상황", "재난", "자연", "안전",
+                 "한전", "한국", "경찰", "소방", "기상", "군청", "시청", "도청", "구청", "긴급", "선임", "주무", "임시", "정보", "조치", "전파", "보고", "주민", "이장", "통장",
+                 "장비", "인력", "차량", "구조", "구호", "방역", "이재", "기획", "인사", "공보", "홍보")
+NOT_NAME_TAIL = ("팀", "과", "실", "반", "부", "청", "소", "서", "단", "관", "국", "대", "센터", "본부", "담당")
+# 전화 기호 앞뒤의 실명 — '윤선호 ☎ 010-…', '☎ 이지민 사회복지사' (기관·부서 이름은 남김)
+NAME_BEFORE_TEL = re.compile(r"(?<![가-힣])([가-힣]{2,4})\s*(?=[☎☏])")
+NAME_AFTER_TEL = re.compile(r"([☎☏])\s*([가-힣]{2,4})(?![가-힣])")
+# '(담당자 윤선호)', '점검 * 윤선호' — 역할 뒤 띄어 쓴 이름, 줄 끝 * 뒤 이름 (세 글자 성명 꼴만)
+SURNAME_CHARS = "김이박최정강조윤장임한오서신권황안송류전홍고문양손배백허유남심노하곽성차주우구민나진지엄채원천방공현함변염여추도소석선설마길연위표명기반왕금옥육인맹제모탁국어은편용"
+NAME_SPACE = re.compile(ROLE + r"\s+([" + SURNAME_CHARS + r"][가-힣]{2})(?=\s*\))")
+NAME_STAR_END = re.compile(r"\s*[*＊]\s*([" + SURNAME_CHARS + r"][가-힣]{2})\s*$")
+
+
+def is_person(s: str) -> bool:
+    """성씨로 시작하고 기관·부서·일반 낱말이 아닌 2~4글자 (실명 후보)"""
+    return s[:1] in SURNAME_CHARS and not s.startswith(NOT_NAME_HEAD) and not s.endswith(NOT_NAME_TAIL)
+
+
+def _drop_name(m):
+    parts = re.split(r"\s*[,·]\s*", m.group(2))
+    return m.group(1) if all(is_person(p) for p in parts) else m.group(0)
 
 
 def scrub(t: str) -> str:
@@ -126,9 +162,17 @@ def scrub(t: str) -> str:
     out = []
     for ln in (t or "").split(NL):
         ln = re.sub(r"\(?\s*:?\s*https?://\d[\d.]*\s?\d*[^\s)]*\s*\)?", "", ln)  # 내부망(IP) 주소
+        ln = NAME_BEFORE_TEL.sub(lambda m: "" if is_person(m.group(1)) else m.group(0), ln)
+        ln = NAME_AFTER_TEL.sub(lambda m: m.group(1) if is_person(m.group(2)) else m.group(0), ln)
+        ln = PHONE_PAREN.sub("", ln)
         ln = PHONE.sub("", ln)
+        ln = re.sub(r"[☎☏]\s*(?=$|[\s)])", "", ln)
         ln = re.sub(r"\(\s*(FAX|fax|Fax|팩스)?\s*\)", "", ln)
-        ln = NAME_AFTER_ROLE.sub(lambda m: m.group(1), ln)
+        ln = NAME_PAREN.sub(_drop_name, ln)
+        ln = NAME_COLON.sub(_drop_name, ln)
+        ln = NAME_SPACE.sub(lambda m: m.group(1) if is_person(m.group(2)) else m.group(0), ln)
+        ln = NAME_STAR_END.sub(lambda m: "" if is_person(m.group(1)) else m.group(0), ln)
+        ln = re.sub(r"\s+\)", ")", ln)
         ln = re.sub(r"\s+,", ",", ln)
         ln = re.sub(r"\(\s*\)", "", ln)
         ln = re.sub(r"[ \t]{2,}", " ", ln).strip(" ,")
@@ -578,13 +622,150 @@ def step_of_label(s: str):
     return None
 
 
-def scan_cards(doc, man):
+# 행동카드 본문 (② 표준행동 · ③ 전파 표·표준문안 · ④ 지시내용)
+CONTACT_HEAD = re.compile(r"연락처|휴대폰|휴대전화|핸드폰|행정전화|전화번호|사무실|성명|담당자|대행|FAX|팩스|이메일|메일")
+ORG_HEAD = re.compile(r"기관|부서|소속")  # '기관명/부서명(담당자)'처럼 기관 이름 열은 남김
+PLACE_HEAD = re.compile(r"기관|부서|소속|시설|장소|지역|명칭|읍|면|마을|하천|도로|지구|구분")
+PERSON_CELL = re.compile(r"^[" + SURNAME_CHARS + r"][가-힣]{2}$")
+STEP_MARK = r"(?:징후\s*감지|초기\s*대응|비상\s*대응|수습\s*·?\s*복구)"
+PAGE_MARK = re.compile(r"^(?:[-–]\s*\d{1,3}\s*[-–]|\d{1,3}|태풍\s*·\s*호우\s*·\s*대설(?:\s*\d{1,3})?|[1-4]\s*단계(?:\s+\S+){0,2}|" + STEP_MARK + r"(?:\s*[1-4]\s*단계)?)$")
+ATTACH = re.compile(r"^\[?\s*붙\s*임\s*(?:공통\s*)?[\d①-⑳\]]")  # 카드 뒤 붙임 서식(보고서·공문 예시)은 카드 본문이 아님
+B1 = "○◯❍ㅇ●◦∘¡•⦁"
+B2 = "-\xad－–‐▸▹►▪▫"
+ARROWS = "⇨➡→▶▷⇒"
+PLACEHOLDER = re.compile(r"^[○◯]\s*(?:[○◯]|월|일|시|분)")  # '○월 ○일 ○시' 같은 빈칸 표시는 글머리가 아님
+HEAD_LABEL = re.compile(r"^[ⓢⓒ]?\s*(코\s*드\s*번\s*호|조\s*치\s*목\s*록|조\s*치\s*내\s*용|주\s*관\s*부\s*서|지\s*원\s*부\s*서|협\s*업\s*기\s*관|연\s*계\s*코\s*드)\s*[:：]?\s*(.*)$")
+
+
+class PageTables:
+    """쪽마다 표 감지 결과 (pymupdf find_tables) — 카드 머리 상자·본문 표를 함께 씀"""
+
+    def __init__(self, doc):
+        self.doc, self.cache = doc, {}
+
+    def get(self, pno):
+        if pno not in self.cache:
+            try:
+                found = self.doc[pno - 1].find_tables().tables
+            except Exception:
+                found = []
+            self.cache[pno] = [ti for ti in (tab_info(t) for t in found) if ti]
+        return self.cache[pno]
+
+
+def dedup_edges(vals, tol=2.0):
+    out = []
+    for v in sorted(vals):
+        if not out or v - out[-1] > tol:
+            out.append(v)
+    return out
+
+
+# 한글은 글자 단위로 줄을 바꿔 낱말 중간에서 끊기기도 함 — 어미·조사로 시작하는 이음 줄은 붙여 씀 ('발효|됨에', '주의|하시기')
+WORD_TAIL = ("됨", "됩니", "하시", "합니", "했", "하여", "하고", "하는", "해야", "해서", "한다", "도록", "에게", "에서", "으로", "니다", "습니")
+
+
+def join_wrapped(prev: str, nxt: str) -> str:
+    """칸·줄 너비 때문에 끊긴 줄 잇기 (R5). 글머리로 시작하는 줄은 새 줄로 둠"""
+    if not prev:
+        return nxt
+    if nxt[:1] in B1 + B2 + NOTE_SYM + ARROWS or re.match(r"^\d{1,2}[.)]\s", nxt):
+        return prev + NL + nxt
+    if prev.endswith(("·", "(", "/", "→", "~", "-")) or nxt.startswith((")", "·", ",", "/", "→")):
+        return prev + nxt
+    if re.search(r"[가-힣]$", prev) and nxt.startswith(WORD_TAIL):
+        return prev + nxt
+    return prev + " " + nxt
+
+
+def spaced_fix(t: str) -> str:
+    """'구 분'·'표 준 문 안'처럼 글자 사이를 띄운 머리글 → 붙임"""
+    return NL.join(re.sub(r"\s", "", ln) if re.fullmatch(r"[가-힣](?:\s[가-힣])+", ln) else ln for ln in t.split(NL))
+
+
+def cell_text(raw) -> str:
+    out = ""
+    for p in (raw or "").split("\n"):
+        p = norm(p)
+        if p and (p[0] == "¡" or 0xF000 <= ord(p[0]) <= 0xF0FF):
+            p = "○" + p[1:]  # 글꼴 기호로 그린 ○
+        if p:
+            out = join_wrapped(out, p)
+    out = scrub(out)
+    if NL not in out and out[:1] in B1 and out[1:2] == " ":
+        out = out[2:]  # 한 줄 칸 앞의 글머리는 장식
+    return spaced_fix(out)
+
+
+def tab_info(t):
+    """감지된 표 → 칸 목록 (합친 칸은 행·열 범위로)"""
+    rows = t.rows
+    if not rows:
+        return None
+    texts = t.extract()
+    bbs = [(i, j, bb) for i, r in enumerate(rows) for j, bb in enumerate(r.cells) if bb]
+    if not bbs:
+        return None
+    xs = dedup_edges([bb[0] for _, _, bb in bbs] + [bb[2] for _, _, bb in bbs])
+    ys = dedup_edges([bb[1] for _, _, bb in bbs] + [bb[3] for _, _, bb in bbs])
+
+    def idx(edges, v):
+        return min(range(len(edges)), key=lambda k: abs(edges[k] - v))
+
+    cells = []
+    for i, j, bb in bbs:
+        c0, c1, r0, r1 = idx(xs, bb[0]), idx(xs, bb[2]), idx(ys, bb[1]), idx(ys, bb[3])
+        if c1 <= c0 or r1 <= r0:
+            continue
+        raw = texts[i][j] if i < len(texts) and j < len(texts[i]) else ""
+        cells.append({"raw": raw or "", "t": cell_text(raw), "r0": r0, "r1": r1, "c0": c0, "c1": c1})
+    if not cells:
+        return None
+    return {"bbox": tuple(t.bbox), "cells": cells, "nrow": len(ys) - 1, "ncol": len(xs) - 1, "flat": squash(" ".join(c["raw"] for c in cells))}
+
+
+def header_fields(ti):
+    """카드 머리 상자(표) → 라벨별 값. '라벨 : 값' 한 칸, 또는 라벨 칸 오른쪽 칸이 값"""
+    rows = {}
+    for c in ti["cells"]:
+        rows.setdefault(c["r0"], []).append(c)
+    f = {}
+    for r in sorted(rows):
+        cs = sorted(rows[r], key=lambda c: c["c0"])
+        i = 0
+        while i < len(cs):
+            cur = None
+            for ln in (norm(x) for x in cs[i]["raw"].split("\n")):
+                if not ln:
+                    continue
+                m = HEAD_LABEL.match(ln)
+                if m:
+                    cur = squash(m.group(1))
+                    val = m.group(2).strip(" :：")
+                    if not val and i + 1 < len(cs) and not HEAD_LABEL.match(norm(cs[i + 1]["raw"].split("\n")[0])):
+                        nraw = cs[i + 1]["raw"]
+                        val = " · ".join(norm(x) for x in nraw.split("\n") if norm(x)) if cur == "연계코드" else cell_text(nraw)
+                        i += 1
+                        f[cur] = val
+                        cur = None
+                        continue
+                    f[cur] = val
+                elif cur:
+                    f[cur] = (f[cur] + " · " + ln) if cur == "연계코드" and f[cur] else join_wrapped(f[cur], ln)
+            i += 1
+    return {k: scrub(v) for k, v in f.items()}
+
+
+def scan_cards(doc, man, tables):
     a, b = man["cards"]
     cards = []
     for pno in range(a, b + 1):
         pg = doc[pno - 1]
         lines = page_lines(pg)
-        heads = [ln for ln in lines if squash(ln["t"]).startswith("코드번호")]
+        heads = sorted([ln for ln in lines if squash(ln["t"]).startswith("코드번호")], key=lambda l: l["y0"])
+        if not heads:
+            continue
+        tabs = tables.get(pno)
         for h in heads:
             # 카드 머리 영역: 코드번호 줄 위 40pt ~ 아래 90pt, 같은 표 폭
             y0, y1 = h["y0"] - 40, h["y0"] + 95
@@ -615,13 +796,25 @@ def scan_cards(doc, man):
                         val = " ".join(stop)
                     fields[lab] = norm(val.lstrip(":： "))
                     break
+            # 머리 상자가 표로 잡히면 그 칸 값이 더 정확함 (여러 줄 값·줄이 어긋난 값)
+            cy = (h["y0"] + h["y1"]) / 2
+            ht = next((t for t in tabs if "코드번호" in t["flat"] and t["bbox"][1] - 2 <= cy <= t["bbox"][3] + 2
+                       and not any(w in t["flat"] for w in ("표준행동", "전파방법", "세부내용", "지시내용"))), None)
+            if ht:
+                for lab, v in header_fields(ht).items():
+                    if v and lab != "코드번호":
+                        fields[lab] = v
+                hy0, hy1 = ht["bbox"][1], ht["bbox"][3]
+            else:
+                labs = [ln for ln in lines if h["y0"] - 5 <= ln["y0"] <= h["y0"] + 130 and re.match(r"^[ⓢⓒ]?(주관|지원|협업|연계|조치)", squash(ln["t"]))]
+                hy0, hy1 = h["y0"] - 40, max([ln["y1"] for ln in labs] + [h["y1"]]) + 4
             # 카드 단계 표시: 머리 왼쪽 위 작은 글
             tags = [ln for ln in lines if h["y0"] - 45 <= ln["y0"] < h["y0"] - 2 and ln["x0"] < h["x0"] + 60]
             tag = " ".join(norm(t["t"]) for t in sorted(tags, key=lambda l: (l["y0"], l["x0"])))
             code_raw = fields.get("코드번호", "")
             code = code_norm(re.sub(r"[^0-9①-⑳\-－,]", "", code_raw.replace("~", ",")))
             cards.append({
-                "pdf": pno, "y": h["y0"], "code": code, "codeRaw": code_raw, "tag": tag, "step": step_of_label(tag),
+                "pdf": pno, "y": h["y0"], "hy0": hy0, "hy1": hy1, "code": code, "codeRaw": code_raw, "tag": tag, "step": step_of_label(tag),
                 "name": fields.get("조치목록", ""), "summary": fields.get("조치내용", ""),
                 "lead": fields.get("주관부서", ""), "support": fields.get("지원부서", ""), "collab": fields.get("협업기관", ""),
                 "link": fields.get("연계코드", ""), "head": text,
@@ -635,131 +828,342 @@ def scan_cards(doc, man):
     return cards
 
 
-def segments(pg):
-    H, V = [], []
-    for d in pg.get_drawings():
-        for it in d["items"]:
-            if it[0] == "l":
-                p1, p2 = it[1], it[2]
-                if abs(p1.y - p2.y) < 1 and abs(p1.x - p2.x) > 8:
-                    H.append((min(p1.x, p2.x), max(p1.x, p2.x), (p1.y + p2.y) / 2))
-                elif abs(p1.x - p2.x) < 1 and abs(p1.y - p2.y) > 8:
-                    V.append(((p1.x + p2.x) / 2, min(p1.y, p2.y), max(p1.y, p2.y)))
-            elif it[0] == "re":
-                r = it[1]
-                if r.height < 1.5 and r.width > 8:
-                    H.append((r.x0, r.x1, (r.y0 + r.y1) / 2))
-                elif r.width < 1.5 and r.height > 8:
-                    V.append(((r.x0 + r.x1) / 2, r.y0, r.y1))
-    return H, V
+def table_block(ti):
+    """본문 표 → 화면용 행(합친 칸 유지) + 역할별 구조 (② 표준행동 · ③ 전파 표·표준문안).
+    연락처·성명·담당자 열과 내용 없는 열은 뺀다 (R17, 비상연락망 삭제본의 빈 칸)."""
+    cells, nrow, ncol = [dict(c) for c in ti["cells"]], ti["nrow"], ti["ncol"]
 
+    def owners(cs):
+        own = {}
+        for c in cs:
+            for rr in range(c["r0"], c["r1"]):
+                for kk in range(c["c0"], c["c1"]):
+                    own[(rr, kk)] = c
+        return own
 
-def card_tables(pg, y_from, y_to):
-    """행동카드 표 (표준행동 | 세부내용(지시내용) | 비고) → 세부행동 (②-8~10)"""
-    lines = page_lines(pg)
-    heads = [l for l in lines if squash(l["t"]) == "표준행동" and y_from <= l["y0"] <= y_to]
-    if not heads:
-        return []
-    H, V = segments(pg)
-    rows_out = []
-    for h in heads:
-        hy = (h["y0"] + h["y1"]) / 2
-        vx = sorted({round(v[0]) for v in V if v[1] < hy < v[2]})
-        xs = []
-        for x in vx:
-            if not xs or x - xs[-1] > 3:
-                xs.append(x)
-        if len(xs) < 3:
+    own = owners(cells)
+    first = [c for c in cells if c["r0"] == 0]
+    hrows = 0
+    if nrow >= 2 and any(c["t"] for c in first) and all(len(squash(c["t"])) <= 16 for c in first):
+        hrows = max(c["r1"] - c["r0"] for c in first)
+        if hrows >= nrow or hrows > 2:
+            hrows = 1
+
+    def head(k, o):
+        seen, out = set(), []
+        for rr in range(hrows):
+            c = o.get((rr, k))
+            if c is not None and id(c) not in seen:
+                seen.add(id(c))
+                out.append(c["t"])
+        return squash(" ".join(out))
+
+    drop = set()
+    for k in range(ncol):
+        h = head(k, own)
+        body = [own.get((rr, k)) for rr in range(hrows, nrow)]
+        if (h and CONTACT_HEAD.search(h) and not ORG_HEAD.search(h)) or (body and all(c is None or not c["t"] for c in body)):
+            drop.add(k)
             continue
-        cols = list(zip(xs, xs[1:]))
-        def col_of(x0, x1):
-            cx = (x0 + x1) / 2
-            for i, (a, b) in enumerate(cols):
-                if a - 1 <= cx <= b + 1:
-                    return i
-            return None
-        same = [l for l in lines if abs(l["y0"] - h["y0"]) < 4]
-        ci_s = col_of(h["x0"], h["x1"])
-        ci_d = next((col_of(l["x0"], l["x1"]) for l in same if squash(l["t"]) in ("세부내용", "지시내용", "세부내용및방법")), None)
-        ci_n = next((col_of(l["x0"], l["x1"]) for l in same if squash(l["t"]).startswith("비고")), None)
-        if ci_s is None or ci_d is None:
-            continue
-        bottom = max(v[2] for v in V if v[1] < hy < v[2])
-        sx0, sx1 = cols[ci_s]
-        hb = min([hh[2] for hh in H if hh[2] > h["y1"] - 1 and hh[0] <= sx0 + 3 and hh[1] >= sx1 - 3] + [h["y1"] + 4])
-        cuts = sorted({round(hh[2], 1) for hh in H if hb + 2 < hh[2] < bottom - 2 and hh[0] <= sx0 + 3 and hh[1] >= sx1 - 3})
-        edges = [hb] + cuts + [bottom]
-        for a, b in zip(edges, edges[1:]):
-            band = [l for l in lines if a - 1 <= (l["y0"] + l["y1"]) / 2 <= b + 1]
-            def txt(ci, sep):
-                if ci is None:
-                    return ""
-                ls = sorted([l for l in band if col_of(l["x0"], l["x1"]) == ci], key=lambda l: (l["y0"], l["x0"]))
-                return sep.join(norm(l["t"]) for l in ls if norm(l["t"]))
-            title = norm(txt(ci_s, " "))
-            if not title:
-                # 표준행동 칸이 위 행과 합쳐진 경우 — 앞 세부행동 내용에 이어 붙임
-                if rows_out:
-                    more = txt(ci_d, NL)
-                    if more:
-                        rows_out[-1]["content"] = (rows_out[-1]["content"] + NL + scrub(more)).strip()
-                continue
-            rows_out.append({"title": scrub(title), "content": scrub(txt(ci_d, NL)), "note": scrub(txt(ci_n, " "))})
-    return rows_out
-
-
-def card_body(doc, card, nxt, man):
-    """카드 본문 첫 깊이 = 세부행동 제목, 그 아래 = 내용 (R9·R13). 다음 카드 머리 전까지."""
+        # 머리글이 사람 열인지 분명하지 않아도 칸 대부분이 사람 이름 꼴이면 뺌 (R17) — 시설·지역 이름 열은 제외
+        vals = list({id(c): c["t"] for c in body if c is not None and c["t"]}.values())
+        named = [v for v in vals if PERSON_CELL.match(v) and is_person(v)]
+        if len(named) >= 2 and len(named) >= 0.6 * len(vals) and not PLACE_HEAD.search(h):
+            drop.add(k)
+    keep = [k for k in range(ncol) if k not in drop]
+    if not keep:
+        return None
+    pos = {k: i for i, k in enumerate(keep)}
     out = []
-    start_p, start_y = card["pdf"], card["y"] + 70
-    end_p = nxt["pdf"] if nxt else card["pdf"] + 1
-    end_y = nxt["y"] - 50 if nxt else 9999
-    for pno in range(start_p, min(end_p, start_p + 3) + 1):
+    for c in cells:
+        ks = [k for k in range(c["c0"], c["c1"]) if k in pos]
+        if ks:
+            c.update({"c0": pos[ks[0]], "c1": pos[ks[-1]] + 1})
+            out.append(c)
+    # 그 행에서 시작하는 칸이 모두 빈 행은 지움 (위에서 내려온 합친 칸은 한 행 줄임). 연락처 열을 빼고 비는 머리 행도
+    for rr in range(nrow - 1, -1, -1):
+        if any(c["t"] for c in out if c["r0"] == rr):
+            continue
+        if rr < hrows:
+            hrows -= 1
+        rest = []
+        for c in out:
+            if c["r0"] == rr:
+                if c["r1"] - c["r0"] > 1:
+                    c["r1"] -= 1
+                    rest.append(c)
+                continue
+            if c["r0"] < rr < c["r1"]:
+                c["r1"] -= 1
+            elif c["r0"] > rr:
+                c["r0"] -= 1
+                c["r1"] -= 1
+            rest.append(c)
+        out = rest
+        nrow -= 1
+    if nrow <= hrows:
+        return None  # 머리만 남은 표 (연락처만 있던 표)
+    own2 = owners(out)
+    heads = [head(k, own2) for k in range(len(keep))]
+    hflat = " ".join(heads)
+    if "표준행동" in hflat:
+        role = "std"
+    elif any(w in hflat for w in ("전파방법", "전파대상", "전파수단")):
+        role = "prop"
+    elif "문안" in hflat:
+        role = "tpl"
+    else:
+        role = "etc"
+
+    def col(*keys):
+        return next((k for k, h in enumerate(heads) if any(x in h for x in keys)), None)
+
+    def val(rr, k):
+        c = own2.get((rr, k)) if k is not None else None
+        return c["t"] if c else ""
+
+    std, prop, tpl = [], [], []
+    if role == "std":
+        ks, kd, kn = col("표준행동"), col("세부내용", "지시내용", "세부"), col("비고")
+        last_t = None
+        for rr in range(hrows, nrow):
+            tc = own2.get((rr, ks)) if ks is not None else None
+            dc = own2.get((rr, kd)) if kd is not None else None
+            content, note = (dc["t"] if dc else ""), val(rr, kn)
+            if std and ((tc is not None and tc is last_t) or not (tc and tc["t"])):
+                d = std[-1]  # 표준행동 칸이 여러 행에 걸침 → 세부내용 이어 붙임
+                if content and dc is not own2.get((rr - 1, kd)):
+                    d["content"] = (d["content"] + NL if d["content"] else "") + content
+                if note and note not in d["note"]:
+                    d["note"] = (d["note"] + " " + note).strip()
+                continue
+            if tc and tc["t"]:
+                std.append({"title": tc["t"].replace(NL, " "), "content": content, "note": note})
+                last_t = tc
+    elif role == "prop":
+        kk, km, kt, kn = col("구분"), col("방법", "수단"), col("대상"), col("비고")
+        for rr in range(hrows, nrow):
+            row = {"kind": val(rr, kk), "method": val(rr, km), "target": val(rr, kt), "note": val(rr, kn)}
+            row = {a: b for a, b in row.items() if b}
+            if row.get("method") or row.get("target"):
+                prop.append(row)
+    elif role == "tpl":
+        kk, kx = col("구분", "상황", "매체", "대상"), col("문안")
+        seen = {}
+        for rr in range(hrows, nrow):
+            xc = own2.get((rr, kx)) if kx is not None else None
+            if not xc or not xc["t"]:
+                continue
+            kind = val(rr, kk) if kk != kx else ""
+            if id(xc) in seen:
+                it = seen[id(xc)]
+                if kind and kind not in it["kind"]:
+                    it["kind"] = (it["kind"] + " · " + kind).strip(" ·")
+                continue
+            it = {"kind": kind, "text": xc["t"]}
+            seen[id(xc)] = it
+            tpl.append(it)
+    rows = []
+    for rr in range(nrow):
+        rc = []
+        for c in sorted([c for c in out if c["r0"] == rr], key=lambda c: c["c0"]):
+            cell = {"t": c["t"]}
+            if c["r1"] - c["r0"] > 1:
+                cell["rs"] = c["r1"] - c["r0"]
+            if c["c1"] - c["c0"] > 1:
+                cell["cs"] = c["c1"] - c["c0"]
+            if rr < hrows:
+                cell["h"] = True
+            rc.append(cell)
+        rows.append(rc)
+    block = {"k": "table", "role": role, "cols": len(keep), "rows": rows}
+    if tpl:
+        block["items"] = [{k: v for k, v in it.items() if v} for it in tpl]
+    return {"block": block, "std": std, "prop": prop, "tpl": tpl}
+
+
+CONTACT_WORDS = {"성명", "연락처", "주소", "소속", "직급", "직위", "휴대폰", "휴대전화", "전화", "전화번호", "사무실", "자택", "이름", "담당자", "취약계층", "관계", "비고", "구분"}
+
+
+def contact_header(t: str) -> bool:
+    """표로 잡히지 않은 비상연락망 머리글 줄 ('성명 연락처 주소 소속 …') — 내용을 지운 빈 연락망 (R17)"""
+    toks = [x for x in (re.sub(r"\(.*?\)", "", w) for w in t.split()) if x]
+    return len(toks) >= 3 and sum(1 for x in toks if x in CONTACT_WORDS or x.endswith("담당자")) / len(toks) >= 0.75
+
+
+def split_note(t: str):
+    """'징후 평가회의 개최 * 부재 시 차하급자 주관' → 제목, 덧붙인 설명"""
+    m = re.match(r"^(.*?\S)\s*(?:※|\s[*＊])\s*(\S.*)$", t)
+    return (norm(m.group(1)), norm(m.group(2))) if m else (t, "")
+
+
+def bullet_kind(t: str):
+    c = t[:1]
+    if not c:
+        return None
+    if c in B1 or 0xF000 <= ord(c) <= 0xF0FF:
+        return None if PLACEHOLDER.match(t) else 1
+    if c in B2:
+        return 2
+    if c == "·":
+        return 3
+    return None
+
+
+def text_block(t, r, prev, pno, right):
+    """카드 본문 한 줄 → 블록. 앞 줄에 이어지는 줄(R5)이면 앞 블록에 붙이고 None"""
+    m = re.match(r"^(\d{1,2})\s*\.\s*(\S.*)$", t)
+    if m and not re.match(r"^\d{1,2}\s*\.\s*\d", t):
+        title, note = split_note(m.group(2))
+        b = {"k": "h", "n": m.group(1), "t": scrub(title)}
+        if note:
+            b["note"] = scrub(note)
+        return b
+    lv = bullet_kind(t)
+    if lv:
+        return {"k": "p", "lv": lv, "t": scrub(t[1:].strip())}
+    c = t[0]
+    if c in ARROWS:
+        return {"k": "p", "lv": 2, "t": scrub(t[1:].strip()), "sym": c}
+    if c == "※":
+        return {"k": "note", "t": scrub(t[1:].strip())}
+    if c in "*＊":
+        return {"k": "note", "t": scrub(t[1:].strip()), "sym": "*"}
+    if prev:
+        pb, pr = prev
+        lh = max(pr["y1"] - pr["y0"], 8)
+        near = pr["pno"] == pno and -3 <= r["y0"] - pr["y1"] < lh * 1.2
+        hang = r["x0"] > pr["x0"] + 2  # 글머리 뒤로 들여 쓴 이음 줄
+        full = abs(r["x0"] - pr["x0"]) <= 3 and pr["x1"] >= right - 30  # 앞 줄이 오른쪽 끝까지 참 (내어쓰기 없는 줄바꿈)
+        if near and (hang or full):
+            key = "note" if pb.get("note") else "t"
+            pb[key] = scrub(join_wrapped(pb[key], t))  # 줄이 나뉜 '담당자 (실명)'도 이은 뒤 다시 거름
+            pr["y1"], pr["x1"] = r["y1"], r["x1"]
+            return None
+    return {"k": "p", "lv": 0, "t": scrub(t)}
+
+
+def card_content(doc, tables, card, nxt, man):
+    """행동카드 본문 — 머리 상자 아래부터 다음 카드 머리 전까지, 원문 순서대로 블록 (번호 제목·글머리·표·※)"""
+    start = card["pdf"]
+    last_p = min(nxt["pdf"], start + 3) if nxt else start + 1
+    blocks, pages, std, prop, tpl = [], [], [], [], []
+    prev = None
+    for pno in range(start, last_p + 1):
+        if pno != start and (pno in man["goals"] or pno > man["cards"][1]):
+            break  # 다음 단계 머리(대응 지침) 쪽은 카드가 아님
         pg = doc[pno - 1]
         H = pg.rect.height
-        for r in merge_rows(page_lines(pg)):
-            if pno == start_p and r["y0"] < start_y:
-                continue
-            if pno == end_p and r["y0"] >= end_y:
-                continue
-            if pno > start_p and pno == end_p and nxt is None:
-                continue
-            if r["y0"] < 45 or r["y0"] > H - 40:  # 쪽 머리글·쪽번호 (R20)
-                continue
-            out.append((pno, r))
-    # 표준행동 표가 있으면 표가 우선 (부산형)
-    rows = []
-    for pno in sorted({p for p, _ in out}):
-        y_from = start_y - 70 if pno == start_p else 0
-        y_to = end_y if pno == end_p else 9999
-        rows += card_tables(doc[pno - 1], y_from, y_to)
-    if rows:
-        return rows[:15]
-    titles = []
-    last_o = None
-    for pno, r in out:
-        t = norm(r["t"])
-        if r["t"][:1].isdigit() and r.get("size", 0) >= 11 and re.match(r"^\d{1,2}\.\s*\S", t) and not re.match(r"^\d{1,2}\.\d", t):
-            titles.append({"title": scrub(re.sub(r"^\d{1,2}\.\s*", "", t)), "content": "", "_x": r["x0"]})
-            last_o = None
+        top = card["hy1"] + 1 if pno == start else 0
+        bot = nxt["hy0"] - 1 if nxt and pno == nxt["pdf"] else H
+        if bot - top < 8:
             continue
-        if titles and re.match(r"^[○❍◯ㅇ●◦]\s*", t):
-            body = scrub(re.sub(r"^[○❍◯ㅇ●◦]\s*", "", t))
-            if body:
-                d = titles[-1]
-                d["content"] = (d["content"] + NL if d["content"] else "") + body
-                last_o = r
+        tabs = [t for t in tables.get(pno) if top - 3 <= t["bbox"][1] and t["bbox"][3] <= bot + 3 and "코드번호" not in t["flat"]]
+        all_rows = merge_rows([l for l in page_lines(pg) if top <= (l["y0"] + l["y1"]) / 2 <= bot])
+        right = max([r["x1"] for r in all_rows] + [0])
+        items = [(t["bbox"][1], 0, t) for t in tabs]
+        for r in all_rows:
+            cx, cy = (r["x0"] + r["x1"]) / 2, (r["y0"] + r["y1"]) / 2
+            if any(t["bbox"][0] - 2 <= cx <= t["bbox"][2] + 2 and t["bbox"][1] - 1 <= cy <= t["bbox"][3] + 1 for t in tabs):
+                continue
+            items.append((r["y0"], 1, r))
+        items.sort(key=lambda x: (x[0], x[1]))
+        got, stop = False, False
+        for _, kind, it in items:
+            if kind == 0:
+                tb = table_block(it)
+                if tb:
+                    blk, last = tb["block"], (blocks[-1] if blocks else None)
+                    if pno != start and not got and last and last["k"] == "table" and last["cols"] == blk["cols"]:
+                        # 쪽을 넘어 이어지는 표 → 앞 표에 행을 이어 붙임 (쪽마다 되풀이한 머리 행은 뺌)
+                        rows = blk["rows"]
+                        if rows and all(c.get("h") for c in rows[0]):
+                            if [c["t"] for c in rows[0]] == [c["t"] for c in last["rows"][0]]:
+                                rows = [r for r in rows if not all(c.get("h") for c in r)]
+                            else:
+                                rows = None
+                        if rows is not None:
+                            last["rows"] += rows
+                            if blk.get("items"):
+                                last.setdefault("items", []).extend(blk["items"])
+                            blk = None
+                    if blk:
+                        blocks.append(blk)
+                    std += tb["std"]
+                    prop += tb["prop"]
+                    tpl += tb["tpl"]
+                    got = True
+                prev = None
+                continue
+            r = it
+            t = norm(r["t"])
+            if not t or ((r["y0"] < 60 or r["y1"] > H - 75) and PAGE_MARK.match(t)) or contact_header(t):
+                continue  # 쪽 머리 단계 표시·쪽번호 (R20), 빈 연락망 머리글
+            if ATTACH.match(t) or (pno != start and re.match(r"^[가-하]\s*\.\s*(조치\s*내용|행동\s*요령|대응\s*지침)", t)):
+                stop = True
+                break
+            b = text_block(t, r, prev, pno, right)
+            got = True
+            if b is None or not b.get("t"):
+                continue
+            blocks.append(b)
+            prev = (b, {**r, "pno": pno})
+        if got:
+            pages.append(pno)
+        if stop:
+            break
+    return {"blocks": blocks[:150], "pages": pages or [start], "std": std, "prop": prop, "tpl": tpl}
+
+
+def card_details(cc):
+    """R9·R13 프로세스 표에 '-' 줄이 없는 조치의 세부행동 = 카드 표준행동 표, 없으면 번호 제목(그 아래 글머리는 내용)"""
+    if cc["std"]:
+        return [dict(d) for d in cc["std"]][:20]
+    blocks = cc["blocks"]
+    has_h = any(b["k"] == "h" for b in blocks)
+    out, cur = [], None
+    for b in blocks:
+        if b["k"] == "h" or (not has_h and b["k"] == "p" and b["lv"] == 1):
+            cur = {"title": b["t"], "content": "", "note": b.get("note", "")}
+            out.append(cur)
+        elif cur is not None and b["k"] == "p" and b["lv"] >= 1:
+            pre = {1: "", 2: "- ", 3: "· "}[b["lv"]] if has_h else ("" if b["lv"] == 2 else "· ")
+            cur["content"] = (cur["content"] + NL if cur["content"] else "") + pre + b["t"]
+    return [d for d in out if d["title"]][:15]
+
+
+def orgs_of(c):
+    def split(s):
+        return [x for x in (scrub(v).strip("-–— ") for v in re.split(r"[,，]", s or "")) if x]
+    return {"lead": scrub(c["lead"]).strip("-–— ") or None, "support": split(c["support"]) or None, "collab": split(c["collab"]) or None}
+
+
+GROUP_RANK = {"초기대응부서": 0, "협업부서": 1, "유관기관": 2, "지휘부": 3}
+
+
+def group_for_card(c, groups, man):
+    """프로세스 표에 없는 카드의 부서 칸 — 카드 주관부서가 든 행 묶음, 없으면 그 부서 이름으로 새 묶음"""
+    leads = orgs_of(c)["lead"] or ""
+    names = [x.strip() for x in re.split(r"[,，]", leads) if x.strip()]
+    for lead in names:
+        k = squash(re.sub(r"\(.*?\)", "", lead))
+        if len(k) < 2:
             continue
-        # ○ 줄이 칸 폭 때문에 넘어간 이음 줄 (R5)
-        if titles and last_o is not None and not lead_sym(t)[0] and r["x0"] > last_o["x0"] + 4 and 0 < r["y0"] - last_o["y0"] < (last_o["y1"] - last_o["y0"]) * 1.9:
-            d = titles[-1]
-            d["content"] = norm(d["content"] + " " + scrub(t)) if NL not in d["content"] else d["content"] + " " + scrub(t)
-            last_o = r
-            continue
-        last_o = None
-    for d in titles:
-        d.pop("_x", None)
-    return [d for d in titles if d["title"]][:12]
+        for g in sorted(groups, key=lambda g: GROUP_RANK.get(g["kind"], 9)):
+            if g["kind"] == "지휘부":
+                continue
+            gn = squash(g["name"])
+            if k in gn or (len(gn) >= 3 and gn in k):
+                return g
+    name = names[0] if names else "주관부서 미기재"
+    g = next((x for x in groups if x.get("cardOnly") and x["name"] == name), None)
+    if g:
+        return g
+    kind = "협업부서" if re.search(r"(과|실|관|단|팀|센터|사업소|읍|면|동)$", name) else "유관기관"
+    g = {"id": f"g{len(groups) + 1}", "name": name, "kind": kind, "fn": None, "pdf": c["pdf"], "page": c["pdf"] - man["offset"],
+         "mine": man["mine"] in squash(name), "cardOnly": True}
+    groups.append(g)
+    return g
 
 
 def name_sim(a: str, b: str) -> float:
@@ -900,20 +1304,26 @@ def build_manual(pdf_dir: Path, man, dump=None):
                         a.update({"step": col, "group": gid, "sub": sub, "pdf": pno})
                         actions.append(a)
     # ---- 행동카드 연결
-    cards = scan_cards(doc, man)
+    tables = PageTables(doc)
+    cards = scan_cards(doc, man, tables)
+    contents = {}
+
+    def content(ci):
+        if ci not in contents:
+            contents[ci] = card_content(doc, tables, cards[ci], cards[ci + 1] if ci + 1 < len(cards) else None, man)
+        return contents[ci]
+
     used_cards = set()
-    for a in actions:
-        if not a["code"]:
-            continue
-        ci = match_card(a, cards)
-        if ci is None:
-            continue
+
+    def link(a, ci):
         c = cards[ci]
         used_cards.add(ci)
-        a["card"] = c
-        nxt = cards[ci + 1] if ci + 1 < len(cards) else None
+        a["card"], a["cardIdx"] = c, ci
+        if not a["name"].strip() and c["name"]:  # 표에 번호만 있고 제목이 없는 조치 → 카드 조치목록
+            a["name"], cond = take_condition(c["name"])
+            a["condition"] = a["condition"] or cond
         if not a["details"]:  # R9 프로세스 표에 - 줄이 없으면 카드 본문
-            a["details"] = card_body(doc, c, nxt, man)
+            a["details"] = card_details(content(ci))
             a["detailsFrom"] = "card"
         # R7 이름 없는 임무 = 카드 조치목록 ('(필요시)통제활동'처럼 조건이 붙어 있으면 R8)
         if a["mission"]["implicit"] and not a["mission"]["name"] and c["name"]:
@@ -921,6 +1331,40 @@ def build_manual(pdf_dir: Path, man, dump=None):
             a["mission"]["name"] = n
             if cond and not a["mission"].get("condition"):
                 a["mission"]["condition"] = cond
+
+    pending = []
+    for a in actions:
+        if not a["code"]:
+            continue
+        ci = match_card(a, cards)
+        if ci is None:
+            pending.append(a)
+        else:
+            link(a, ci)
+    # 코드·단계가 같은데 이름이 달라 못 짝지은 조치 — 이름으로 다른 조치와 짝이 된 카드는 빼고 (부산 3·4단계 번호 어긋남)
+    free = set(range(len(cards))) - used_cards
+    for a in pending:
+        first = a["code"].split(",")[0]
+        cand = [i for i in free if cards[i]["step"] == a["step"] and first in cards[i]["code"].split(",")]
+        if cand:
+            link(a, max(cand, key=lambda i: name_sim(a["name"], cards[i]["name"])))
+    linked = len(used_cards)
+    # 프로세스 표에 없는 카드는 그 단계 끝에 붙임 (report4 '애매한 경우') — 카드 주관부서의 행 묶음에
+    co_mis = {}
+    for ci, c in enumerate(cards):
+        if ci in used_cards or c["step"] is None or not c["code"]:
+            continue
+        g = group_for_card(c, groups, man)
+        key = (g["id"], c["step"])
+        if key not in co_mis:
+            co_mis[key] = {"code": None, "name": "행동카드에만 있는 조치", "condition": "", "implicit": False, "cardOnly": True,
+                           "notes": [], "step": c["step"], "group": g["id"], "sub": "", "pdf": c["pdf"]}
+            missions.append(co_mis[key])
+        name, cond = take_condition(c["name"] or c["summary"])
+        actions.append({"code": c["code"], "raw": "", "name": name or c["code"], "mission": co_mis[key], "condition": cond, "notes": [],
+                        "details": card_details(content(ci)), "detailsFrom": "card", "coded": True, "changed": False, "order": 0,
+                        "step": c["step"], "group": g["id"], "sub": "", "pdf": c["pdf"], "card": c, "cardIdx": ci, "fromCard": True})
+        used_cards.add(ci)
     for m in missions:
         if m["implicit"] and not m["name"] and m["code"]:
             # 같은 부서 다른 단계에 같은 번호 임무가 있으면 그 이름
@@ -953,7 +1397,9 @@ def build_manual(pdf_dir: Path, man, dump=None):
         mis_out.append({"id": key, "code": m["code"], "name": m["name"], "step": STEPS[m["step"]], "group": m["group"],
                         "sub": m["sub"] or None, "condition": m["condition"] or None, "notes": [scrub(x) for x in m.get("notes", [])] or None,
                         # 번호·소제목 없이 기호 줄만 있는 칸에 붙인 '{부서} 조치' 임무 — 화면에서 머리를 숨김
-                        "auto": bool(m["implicit"] and not m["code"]) or None})
+                        "auto": bool(m["implicit"] and not m["code"]) or None,
+                        # 프로세스 표에 없는 행동카드를 단계 끝에 붙인 묶음
+                        "cardOnly": m.get("cardOnly") or None})
     act_out, seen = [], set()
     for k, a in enumerate(actions):
         aid = f"{STEPS[a['step']][0:2]}-{a['group']}-{a['code'] or 'u' + str(k)}"
@@ -961,11 +1407,6 @@ def build_manual(pdf_dir: Path, man, dump=None):
             aid += "b"
         seen.add(aid)
         c = a.get("card")
-        orgs = None
-        if c:
-            orgs = {"lead": scrub(c["lead"]).strip("- ") or None,
-                    "support": [scrub(x) for x in re.split(r"[,，]", c["support"]) if scrub(x).strip("- ")] or None,
-                    "collab": [scrub(x) for x in re.split(r"[,，]", c["collab"]) if scrub(x).strip("- ")] or None}
         page_pdf = c["pdf"] if c else a["pdf"]
         act_out.append({
             "id": aid, "code": a["code"], "name": scrub(a["name"]), "mission": mid[id(a["mission"])], "step": STEPS[a["step"]],
@@ -977,12 +1418,28 @@ def build_manual(pdf_dir: Path, man, dump=None):
                         for i, d in enumerate([d for d in a["details"] if scrub(d["title"])])],
             "detailsFrom": a.get("detailsFrom"),
             "summary": scrub(c["summary"]) if c and c["summary"] else None,
-            "orgs": orgs,
+            "orgs": orgs_of(c) if c else None,
+            "card": f"k{a['cardIdx'] + 1}" if c else None,
+            "fromCard": a.get("fromCard") or None,
             "page": page_pdf - man["offset"], "pdfPage": page_pdf, "tablePage": a["pdf"] - man["offset"], "tablePdfPage": a["pdf"],
+        })
+    card_out = []
+    for ci in sorted(used_cards):
+        c, cc = cards[ci], content(ci)
+        res = list(dict.fromkeys(p["kind"] for p in cc["prop"] if p.get("kind")))
+        card_out.append({
+            "id": f"k{ci + 1}", "code": c["code"], "name": scrub(c["name"]), "summary": scrub(c["summary"]) or None,
+            "phase": norm(c["tag"]) or None, "orgs": orgs_of(c), "link": scrub(c["link"]).strip("-–— ") or None,
+            "pdfPage": c["pdf"], "page": c["pdf"] - man["offset"], "pdfPages": cc["pages"],
+            "blocks": cc["blocks"],
+            "propagation": cc["prop"] or None,
+            "templates": [{k: v for k, v in t.items() if v} for t in cc["tpl"]] or None,
+            "resources": res or None,
         })
     out = {k: man[k] for k in ("id", "region", "manualId", "title", "short", "file", "offset", "style", "mine")}
     out.update({"pageCount": doc.page_count, "steps": step_out, "recommend": recommend, "groups": groups, "missions": mis_out,
-                "actions": act_out, "warnings": warn, "cards": len(cards), "cardsUsed": len(used_cards)})
+                "actions": act_out, "cards": card_out, "warnings": warn,
+                "stats": {"cards": len(cards), "linked": linked, "cardOnly": len(used_cards) - linked}})
     if dump:
         dump_manual(out, cards, Path(dump))
     return out
@@ -1003,13 +1460,40 @@ def dump_manual(m, cards, dump: Path):
                 L.append(f"    [{x['code'] or '-'}] {x['name']}{'  <' + x['sub'] + '>' if x['sub'] else ''}{'  {' + x['condition'] + '}' if x['condition'] else ''}")
                 for a in [a for a in m["actions"] if a["mission"] == x["id"]]:
                     o = a.get("orgs") or {}
-                    L.append(f"       {a['code'] or '·':10s} {a['name']}{'  {' + a['condition'] + '}' if a['condition'] else ''}  | 주관={o.get('lead')} p.{a['page']}{' ' + a['detailsFrom'] if a.get('detailsFrom') else ''}")
+                    L.append(f"       {a['code'] or '·':10s} {a['name']}{'  {' + a['condition'] + '}' if a['condition'] else ''}  | 주관={o.get('lead')} p.{a['page']}{' ' + a['detailsFrom'] if a.get('detailsFrom') else ''}{' 카드=' + a['card'] if a.get('card') else ''}{' (카드만)' if a.get('fromCard') else ''}")
                     for d in a["details"]:
                         L.append(f"           - {d['title']}" + (f"  ⟶ {d['content'][:80]!r}" if d.get("content") else ""))
                     for n in a.get("notes") or []:
                         L.append(f"           ※ {n}")
     (dump / f"{m['region']}_tree.txt").write_text("\n".join(L), encoding="utf-8")
-    (dump / f"{m['region']}_cards.txt").write_text("\n".join(f"p{c['pdf']} step={c['step']} code={c['code']!r} raw={c['codeRaw']!r} tag={c['tag']!r} | {c['name']} | 주관={c['lead']} | 지원={c['support']} | 협업={c['collab']}" for c in cards), encoding="utf-8")
+    (dump / f"{m['region']}_cards.txt").write_text("\n".join(f"p{c['pdf']} step={c['step']} code={c['code']!r} raw={c['codeRaw']!r} tag={c['tag']!r} | {c['name']} | 내용={c['summary']} | 주관={c['lead']} | 지원={c['support']} | 협업={c['collab']} | 연계={c['link']}" for c in cards), encoding="utf-8")
+    C = []
+    for k in m["cards"]:
+        users = [a["code"] + " " + a["name"] + (" (카드만)" if a.get("fromCard") else "") for a in m["actions"] if a.get("card") == k["id"]]
+        C.append(f"\n==== {k['id']} 카드 {k['code']} {k['name']} · p.{','.join(map(str, k['pdfPages']))} · 조치내용={k['summary']} · 연계={k['link']}")
+        C.append(f"     조치: {' / '.join(users)}")
+        if k.get("resources"):
+            C.append(f"     필요자원: {', '.join(k['resources'])}")
+        C.append(card_text(k))
+    (dump / f"{m['region']}_cardbody.txt").write_text("\n".join(C), encoding="utf-8")
+
+
+def card_text(card) -> str:
+    """검토용 카드 본문 글 (화면 lib/sop.ts cardText 와 같은 모양)"""
+    L = []
+    for b in card["blocks"]:
+        if b["k"] == "h":
+            L.append(f"{b['n']}. {b['t']}" + (f"  ※ {b['note']}" if b.get("note") else ""))
+        elif b["k"] == "p":
+            mark = (b["sym"] + " ") if b.get("sym") else {0: "", 1: "○ ", 2: "- ", 3: "· "}[b["lv"]]
+            L.append("  " * b["lv"] + mark + b["t"].replace(NL, NL + "  " * (b["lv"] + 1)))
+        elif b["k"] == "note":
+            L.append(f"  {b.get('sym', '※')} {b['t']}")
+        else:
+            L.append(f"  [표 {b['role']}]")
+            for row in b["rows"]:
+                L.append("   | " + " | ".join(c["t"].replace(NL, "⏎") + (f"<{c.get('rs', 1)}x{c.get('cs', 1)}>" if c.get("rs") or c.get("cs") else "") + ("*" if c.get("h") else "") for c in row))
+    return NL.join(L)
 
 
 def main():
@@ -1022,7 +1506,8 @@ def main():
             continue
         m = build_manual(pdf_dir, man, dump)
         res.append(m)
-        print(f"{m['region']}: 부서 {len(m['groups'])} · 임무 {len(m['missions'])} · 조치 {len(m['actions'])} · 카드 {m['cardsUsed']}/{m['cards']} · 경고 {len(m['warnings'])}")
+        s = m["stats"]
+        print(f"{m['region']}: 부서 {len(m['groups'])} · 임무 {len(m['missions'])} · 조치 {len(m['actions'])} · 카드 {s['cards']}장 (표와 짝 {s['linked']} · 단계 끝에 붙임 {s['cardOnly']}) · 경고 {len(m['warnings'])}")
     if not only:
         out_path.write_text(json.dumps({"rules": "report4 mapping.html R1~R25", "manuals": res}, ensure_ascii=False, indent=1), encoding="utf-8")
         print("저장:", out_path)
