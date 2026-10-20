@@ -14,7 +14,7 @@ export default function SopPropagate() {
   const { account } = useSession();
   const sop = useSop();
   const orgId = myOrg(account);
-  const hist = useDispatches(orgId);
+  const { list: hist } = useDispatches(orgId);
   const [open, setOpen] = useState(false);
   if (!account || !orgId || !canSend(account) || !sop.manual) return null;
   const m = sop.manual;

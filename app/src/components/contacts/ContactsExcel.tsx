@@ -32,9 +32,9 @@ export default function ContactsExcel({ api, orgId, orgName }: { api: Api; orgId
       setErrors(["엑셀 파일(.xlsx)을 읽을 수 없습니다."]);
     }
   };
-  const submit = () => {
+  const submit = async () => {
     if (!plan) return;
-    const e = api.replace(plan.next);
+    const e = await api.replace(plan.next, `엑셀 일괄 등록 (${sync ? "엑셀과 똑같이 맞추기" : "추가·수정만"})`);
     if (e) return setErrors([e]);
     const s = plan.stat;
     setDone(`추가 ${s.added}명 · 수정 ${s.updated}명${s.units ? ` · 새 조직 ${s.units}개` : ""}${s.groups ? ` · 새 전파그룹 ${s.groups}개` : ""}${s.removed ? ` · 삭제 ${s.removed}명` : ""}${s.removedUnits ? ` · 조직 삭제 ${s.removedUnits}개` : ""}`);

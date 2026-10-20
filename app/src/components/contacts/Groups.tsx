@@ -60,7 +60,7 @@ export default function Groups({ api }: { api: Api }) {
       )}
       {edit && (
         <Modal title={edit.id ? "전파그룹 수정" : "전파그룹 추가"} width={720} onClose={() => setEdit(null)}
-          foot={<>{err && <span className="ct-err">{err}</span>}<span className="xs mute2">{edit.memberIds.length}명 선택</span><span className="sp" /><button className="btn" onClick={() => setEdit(null)}>취소</button><button className="btn pri" onClick={() => { const e = api.saveGroup(edit); if (e) setErr(e); else setEdit(null); }}>저장</button></>}>
+          foot={<>{err && <span className="ct-err">{err}</span>}<span className="xs mute2">{edit.memberIds.length}명 선택</span><span className="sp" /><button className="btn" onClick={() => setEdit(null)}>취소</button><button className="btn pri" onClick={async () => { const e = await api.saveGroup(edit); if (e) setErr(e); else setEdit(null); }}>저장</button></>}>
           <label className="frow"><span className="lb">그룹명</span><input className="input" autoFocus value={edit.name} onChange={(e) => setEdit({ ...edit, name: e.target.value })} /></label>
           <div className="ct-search"><IcSearch size={14} /><input className="input" placeholder="이름·직위·부서 검색" value={q} onChange={(e) => setQ(e.target.value)} /></div>
           <div className="ct-pick">

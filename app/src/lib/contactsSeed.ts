@@ -5,7 +5,7 @@
  *    (매뉴얼의 개인 이름·휴대전화는 넣지 않고 가상 인명·번호로 채움)
  */
 import busanSeed from "@data/seed/contacts_busan.json";
-import type { Bundle, Contact, Group, Unit, UnitKind } from "./contacts";
+import type { Bundle, Contact, Group, Unit, UnitKind } from "./contactsCore";
 
 // people: [직위, 임무, 사무실 전화]
 type P = [string, string?, string?];

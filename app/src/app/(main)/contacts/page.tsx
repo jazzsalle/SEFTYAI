@@ -24,7 +24,7 @@ export default function ContactsPage() {
   const [orgId, setOrgId] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>("tree");
   const [show, setShow] = useState(false);
-  const [resend, setResend] = useState<Dispatch | null>(null);
+  const [resend, setResend] = useState<{ d: Dispatch; onlyFailed: boolean } | null>(null);
   const [confirm, setConfirm] = useState<Confirm>(null);
   useEffect(() => {
     const t = new URLSearchParams(window.location.search).get("tab");
@@ -32,7 +32,7 @@ export default function ContactsPage() {
   }, []);
   useEffect(() => setOrgId(myOrg(account) ?? orgs[0]?.id ?? null), [account]); // eslint-disable-line react-hooks/exhaustive-deps
   const api = useContacts(orgId, account);
-  const hist = useDispatches(orgId);
+  const { list: hist, error: histErr } = useDispatches(orgId);
   if (!account) return null;
   const op = account.role === "운영자";
   const mine = !!orgId && canManage(account, orgId);
@@ -76,15 +76,20 @@ export default function ContactsPage() {
                 <button className="btn sm ghost" onClick={() => setConfirm({ title: "예시 연락망으로 되돌리기", message: "지금 연락망을 지우고 예시 연락망(가상 인명·번호)으로 되돌릴까요? 전파 이력은 그대로 남습니다.", ok: "되돌리기", run: () => api.resetSeed() })}>예시 연락망으로 되돌리기</button>
               )}
             </div>
-            {tab === "tree" && (api.bundle.units.length ? <EmergencyTree b={api.bundle} show={show} onToggleShow={() => setShow((v) => !v)} /> : <div className="ct-card"><div className="ct-empty">등록된 연락망이 없습니다. {mine ? "조직·담당자 탭에서 조직과 담당자를 추가하세요." : ""}</div></div>)}
-            {tab === "people" && <People api={api} show={show} onToggleShow={() => setShow((v) => !v)} />}
-            {tab === "groups" && <Groups api={api} />}
-            {tab === "history" && <DispatchHistory list={hist} show={show} onResend={canSend(account) && myOrg(account) === orgId ? setResend : undefined} />}
+            {(api.error || (tab === "history" && histErr)) && <div className="notice danger" style={{ marginBottom: 12 }}>{api.error ?? histErr} <button className="lnk" onClick={() => { api.reload(); }}>다시 불러오기</button></div>}
+            {!api.loaded && !api.error && tab !== "history" && <div className="ct-card"><div className="ct-empty">연락망을 불러오는 중입니다…</div></div>}
+            {api.loaded && api.updatedAt && tab !== "history" && <div className="xs mute2" style={{ margin: "-6px 0 10px" }}>서버 저장 · 마지막 수정 {new Date(api.updatedAt).toLocaleString("ko-KR")} {api.updatedBy ?? ""}</div>}
+            {api.loaded && tab === "tree" && (api.bundle.units.length ? <EmergencyTree b={api.bundle} show={show} onToggleShow={() => setShow((v) => !v)} /> : <div className="ct-card"><div className="ct-empty">등록된 연락망이 없습니다. {mine ? "조직·담당자 탭에서 조직과 담당자를 추가하세요." : ""}</div></div>)}
+            {api.loaded && tab === "people" && <People api={api} show={show} onToggleShow={() => setShow((v) => !v)} />}
+            {api.loaded && tab === "groups" && <Groups api={api} />}
+            {tab === "history" && <DispatchHistory list={hist} show={show} onResend={canSend(account) && myOrg(account) === orgId ? (d, onlyFailed) => setResend({ d, onlyFailed }) : undefined} />}
           </>
         )}
       </div>
       {resend && orgId && (
-        <PropagateModal orgId={orgId} account={account} message={resend.message} sel={resend.sel} context={resend.context} resendOf={resend.id} onClose={() => setResend(null)} />
+        <PropagateModal orgId={orgId} account={account} message={resend.d.message} channels={resend.d.channels} context={resend.d.context} resendOf={resend.d.id}
+          sel={resend.onlyFailed ? { groupIds: [], unitIds: [], contactIds: resend.d.to.filter((t) => Object.values(t.result).some((v) => v === "발송 실패" || v === "결과 미확인")).map((t) => t.id) } : resend.d.sel}
+          onClose={() => setResend(null)} />
       )}
       <ConfirmDelete c={confirm} onClose={() => setConfirm(null)} />
     </div>

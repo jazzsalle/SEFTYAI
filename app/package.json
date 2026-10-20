@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@neondatabase/serverless": "^1.2.0",
     "exceljs": "^4.4.0",
     "next": "15.5.27",
     "ol": "^10.10.0",

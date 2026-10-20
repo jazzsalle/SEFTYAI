@@ -25,7 +25,7 @@ export function Modal({ title, sub, width, onClose, children, foot }: { title: s
   );
 }
 
-export type Confirm = { title: string; message: string; ok?: string; run: () => string | null } | null;
+export type Confirm = { title: string; message: string; ok?: string; run: () => string | null | Promise<string | null> } | null;
 
 export function ConfirmDelete({ c, onClose }: { c: Confirm; onClose: () => void }) {
   if (!c) return null;
@@ -33,9 +33,10 @@ export function ConfirmDelete({ c, onClose }: { c: Confirm; onClose: () => void 
 }
 function ConfirmBody({ c, onClose }: { c: NonNullable<Confirm>; onClose: () => void }) {
   const [err, setErr] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
   return (
     <Modal title={c.title} width={460} onClose={onClose}
-      foot={<>{err && <span className="ct-err">{err}</span>}<span className="sp" /><button className="btn" onClick={onClose}>취소</button><button className="btn danger" onClick={() => { const e = c.run(); if (e) setErr(e); else onClose(); }}>{c.ok ?? "삭제"}</button></>}>
+      foot={<>{err && <span className="ct-err">{err}</span>}<span className="sp" /><button className="btn" onClick={onClose}>취소</button><button className="btn danger" disabled={busy} onClick={async () => { setBusy(true); const e = await c.run(); setBusy(false); if (e) setErr(e); else onClose(); }}>{c.ok ?? "삭제"}</button></>}>
       <p style={{ fontSize: "var(--fs-s)", lineHeight: 1.6 }}>{c.message}</p>
     </Modal>
   );

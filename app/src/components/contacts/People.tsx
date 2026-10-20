@@ -28,7 +28,7 @@ export default function People({ api, show, onToggleShow }: { api: Api; show: bo
   const treeUnits = useMemo(() => [...b.units].sort((x, y) => (rank.get(x.id) ?? 0) - (rank.get(y.id) ?? 0)), [b.units, rank]);
   const depth = (u: Unit) => { let n = 0; for (let p = u.parentId; p; p = b.units.find((x) => x.id === p)?.parentId ?? null) n++; return n; };
 
-  const done = (e: string | null, close: () => void) => (e ? setErr(e) : (setErr(null), close()));
+  const done = async (p: Promise<string | null>, close: () => void) => { const e = await p; if (e) return setErr(e); setErr(null); close(); };
   const Row = ({ u, dp }: { u: Unit; dp: number }) => (
     <>
       <div className={`ct-tree ${sel?.id === u.id ? "on" : ""}`} style={{ paddingLeft: 10 + dp * 16 }} onClick={() => setSel(u.id)}>

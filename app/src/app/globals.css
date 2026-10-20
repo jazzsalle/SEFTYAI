@@ -1083,3 +1083,7 @@ label.chk input { width: 18px; height: 18px; accent-color: var(--c-primary); }
 .ct-prev tr.del td { color: var(--c-dang); }
 @media (max-width: 900px) { .ct-2col, .ct-2col.wide { grid-template-columns: 1fr; } .ct-ggrid { grid-template-columns: 1fr; } }
 .ct-modal .lnk, .ct-card .lnk, .notice .lnk { display: inline-flex; align-items: center; gap: 4px; border: 0; background: none; padding: 0; color: var(--c-primary-dk); font-weight: 700; font-size: var(--fs-xs); text-decoration: underline; cursor: pointer; }
+.ct-st { font-weight: 700; margin-left: 4px; }
+.ct-st.info { color: var(--c-primary-dk); }
+.ct-st.danger { color: var(--c-dang); }
+.ct-st.warn { color: var(--c-warn-dk); }
