@@ -1,6 +1,7 @@
 "use client";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import type { Advisory, AgentResponse, QueryContext, RegionId, WeatherMode, WeatherResponse, DisasterType } from "./contract/agent";
+import { api } from "./api";
 import { ACCOUNTS, type Account } from "./config";
 
 export interface Turn {
@@ -112,11 +113,32 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     setAimOnS(LS.get<boolean>("sa.aim", false));
     if (acc) {
       setCondS({ region: acc.region });
-      setConvs(LS.get<Conversation[]>(`sa.convs.${acc.id}`, []));
       setChecks(LS.get(`sa.checks.${acc.id}`, {}));
     }
     setReady(true);
   }, []);
+
+  // 대화 이력 — 서버 저장 (D38). 이 브라우저에 남아 있던 이력은 처음 한 번 서버로 옮기고 지움
+  const loadConvs = useCallback(async (acc: Account) => {
+    try {
+      const old = LS.get<Conversation[]>(`sa.convs.${acc.id}`, []);
+      if (old.length) {
+        await api("/api/conversations", { method: "PUT", json: { convs: old.slice(0, 100) } });
+        try {
+          localStorage.removeItem(`sa.convs.${acc.id}`);
+        } catch {}
+      }
+      setConvs(await api<Conversation[]>("/api/conversations"));
+    } catch {
+      setConvs([]);
+      setToast("대화 이력을 서버에서 불러오지 못했습니다.");
+      window.setTimeout(() => setToast(null), 2400);
+    }
+  }, []);
+  useEffect(() => {
+    if (account) loadConvs(account);
+    else setConvs([]);
+  }, [account, loadConvs]);
 
   // 기상특보 (시나리오/라이브)
   useEffect(() => {
@@ -146,18 +168,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     LS.set("sa.account", id);
     setAccount(acc);
     setCondS({ region: acc.region });
-    const saved = LS.get<Conversation[] | null>(`sa.convs.${acc.id}`, null);
-    if (saved) setConvs(saved);
-    else {
-      // 첫 로그인 : 시연용 대화 이력 주입 (다른 PC에서도 이력 화면이 비지 않도록)
-      fetch(`/api/fixtures/conversations?account=${acc.id}`)
-        .then((r) => (r.ok ? r.json() : []))
-        .then((list: Conversation[]) => {
-          setConvs(list);
-          LS.set(`sa.convs.${acc.id}`, list);
-        })
-        .catch(() => setConvs([]));
-    }
+    // 대화 이력은 계정이 바뀌면 서버에서 읽음 (처음 조회하는 계정은 서버가 시연용 대화로 채움)
     setChecks(LS.get(`sa.checks.${acc.id}`, {}));
   }, []);
 
@@ -175,23 +186,23 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
 
   const setCond = useCallback((c: Partial<Cond>) => setCondS((p) => ({ ...p, ...c })), []);
 
+  const saveFail = useCallback(() => {
+    setToast("대화 이력을 서버에 저장하지 못했습니다. 네트워크를 확인하세요.");
+    window.setTimeout(() => setToast(null), 3000);
+  }, []);
   const saveConv = useCallback(
-    (c: Conversation) =>
-      setConvs((prev) => {
-        const next = [c, ...prev.filter((x) => x.id !== c.id)].slice(0, 60);
-        if (account) LS.set(`sa.convs.${account.id}`, next);
-        return next;
-      }),
-    [account],
+    (c: Conversation) => {
+      setConvs((prev) => [c, ...prev.filter((x) => x.id !== c.id)].slice(0, 60));
+      if (account) api("/api/conversations", { method: "PUT", json: { convs: [c] } }).catch(saveFail);
+    },
+    [account, saveFail],
   );
   const deleteConvs = useCallback(
-    (ids: string[]) =>
-      setConvs((prev) => {
-        const next = prev.filter((x) => !ids.includes(x.id));
-        if (account) LS.set(`sa.convs.${account.id}`, next);
-        return next;
-      }),
-    [account],
+    (ids: string[]) => {
+      setConvs((prev) => prev.filter((x) => !ids.includes(x.id)));
+      if (account) api("/api/conversations", { method: "DELETE", json: { ids } }).catch(saveFail);
+    },
+    [account, saveFail],
   );
   const toggleCheck = useCallback(
     (k: string) =>

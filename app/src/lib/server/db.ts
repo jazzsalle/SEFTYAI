@@ -2,7 +2,7 @@ import "server-only";
 import { neon, type NeonQueryFunction } from "@neondatabase/serverless";
 
 /**
- * 서버 DB — Vercel에 붙인 Neon Postgres (DATABASE_URL). 연락망·상황전파 이력만 저장 (D37)
+ * 서버 DB — Vercel에 붙인 Neon Postgres (DATABASE_URL). 연락망·상황전파 이력(D37)·대화 이력(D38) 저장
  * 표는 처음 쓸 때 만든다 (create if not exists) — 배포 후 별도 마이그레이션 없이 동작
  */
 let client: NeonQueryFunction<false, false> | null = null;
@@ -41,6 +41,13 @@ const SCHEMA = [
      status text not null, reason text, provider_msg_id text, requested_at timestamptz, result_at timestamptz,
      primary key (dispatch_id, contact_id, channel))`,
   `create index if not exists sa_dispatch_to_msg on sa_dispatch_to (provider_msg_id)`,
+  // 대화 이력 (UFR-006-001-06) — 계정별, 대화 하나 = 한 행(질문·답변·당시 조건·참조대상 전체를 data 에)
+  `create table if not exists sa_conversations (
+     account_id text not null, id text not null, title text not null, region text, disaster_type text,
+     created_at timestamptz not null, updated_at timestamptz not null, data jsonb not null,
+     primary key (account_id, id))`,
+  `create index if not exists sa_conversations_acc_upd on sa_conversations (account_id, updated_at desc)`,
+  `create table if not exists sa_conv_accounts (account_id text primary key, seeded_at timestamptz not null default now())`,
   // 공통 관리로그 — 연락망 변경·발송·결과 수신 (UFR-009-002-01 변경이력)
   `create table if not exists sa_audit (
      id bigserial primary key, at timestamptz not null default now(), org_id text, account_id text, action text not null, detail jsonb)`,

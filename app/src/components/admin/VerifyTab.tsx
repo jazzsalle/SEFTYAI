@@ -6,6 +6,7 @@
  *  ③ 표출 정합 : Agent 응답값 ↔ 화면에 그려진 값            (UNE)
  * ①②③ 결과로 문항 판정(정합/부정합/보류·조치 담당·사유)을 자동으로 내고, 뒤집어야 할 때만 사람이 수정한다. CSV 내보내기. 수정한 판정·정답값은 이 브라우저에 저장.
  */
+import { api } from "@/lib/api";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { AgentResponse, Citation, EntityRef } from "@/lib/contract/agent";
 import { REGIONS } from "@/lib/config";
@@ -56,15 +57,8 @@ export default function VerifyTab() {
   const [allConvs, setAllConvs] = useState<{ account: string; convs: Conversation[] }[]>([]);
 
   useEffect(() => {
-    // 실사용 질의 : 이 브라우저에 저장된 모든 계정의 대화
-    try {
-      const out: { account: string; convs: Conversation[] }[] = [];
-      for (let i = 0; i < localStorage.length; i++) {
-        const k = localStorage.key(i);
-        if (k?.startsWith("sa.convs.")) out.push({ account: k.slice(9), convs: LS.get<Conversation[]>(k, []) });
-      }
-      setAllConvs(out);
-    } catch {}
+    // 실사용 질의 : 서버에 저장된 모든 계정의 대화 (운영자 전용)
+    api<{ account: string; convs: Conversation[] }[]>("/api/conversations?all=1").then(setAllConvs).catch(() => setAllConvs([]));
     fetch("/api/verify").then((r) => r.json()).then(setGold).catch(() => setGold({ meta: { name: "정답셋을 불러오지 못했습니다", builtAt: "", source: "", count: 0 }, items: [] }));
     setLocal(LS.get("sa.goldLocal", []));
     setOver(LS.get("sa.goldOverride", {}));
