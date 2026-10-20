@@ -30,7 +30,9 @@ export default function AdminPage() {
   const [why, setWhy] = useState("");
   const [trace, setTrace] = useState<TraceRow[]>([]);
   const [tsel, setTsel] = useState<TraceRow | null>(null);
-  useEffect(() => setTrace([...readTrace(), ...SAMPLE_TRACE]), [tab]);
+  useEffect(() => {
+    readTrace().then((l) => setTrace([...l, ...SAMPLE_TRACE]));
+  }, [tab]);
   const stats = useMemo(() => ({ ok: trace.filter((t) => t.status === "ok").length, fail: trace.filter((t) => t.status !== "ok" && t.status !== "clarify").length, avg: trace.length ? Math.round(trace.reduce((n, t) => n + t.ms, 0) / trace.length) : 0 }), [trace]);
 
   if (account?.role !== "운영자") return <div className="page"><div className="page-in"><div className="notice danger">운영관리는 시스템 운영자만 이용할 수 있습니다.</div></div></div>;

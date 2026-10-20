@@ -2,7 +2,7 @@ import "server-only";
 import { neon, type NeonQueryFunction } from "@neondatabase/serverless";
 
 /**
- * 서버 DB — Vercel에 붙인 Neon Postgres (DATABASE_URL). 연락망·상황전파 이력(D37)·대화 이력(D38) 저장
+ * 서버 DB — Vercel에 붙인 Neon Postgres (DATABASE_URL). 연락망·상황전파 이력(D37)·대화 이력(D38)·설정·대응절차·응답검증·추적로그(D39) 저장
  * 표는 처음 쓸 때 만든다 (create if not exists) — 배포 후 별도 마이그레이션 없이 동작
  */
 let client: NeonQueryFunction<false, false> | null = null;
@@ -48,6 +48,19 @@ const SCHEMA = [
      primary key (account_id, id))`,
   `create index if not exists sa_conversations_acc_upd on sa_conversations (account_id, updated_at desc)`,
   `create table if not exists sa_conv_accounts (account_id text primary key, seeded_at timestamptz not null default now())`,
+  // 설정·수정본 (D39) — 범위(scope) = acct:계정 / org:기관 / verify:응답검증(공용), 판 rev 로 충돌 확인
+  `create table if not exists sa_kv (
+     scope text not null, key text not null, value jsonb not null, rev int not null default 1,
+     updated_at timestamptz not null default now(), updated_by text, primary key (scope, key))`,
+  // 대응절차 체크 (D39) — 기관 공용, 행이 있으면 완료 (누가·언제)
+  `create table if not exists sa_checks (
+     scope text not null, key text not null, by_id text not null, by_name text not null, at timestamptz not null default now(),
+     primary key (scope, key))`,
+  // 연계 추적로그 (D39) — 에이전트 API 응답 때 서버가 직접 기록 (운영자 조회)
+  `create table if not exists sa_trace (
+     id bigserial primary key, at timestamptz not null default now(), account_id text, api text, intent text, status text,
+     ms int, q text, request_id text, datasets jsonb)`,
+  `create index if not exists sa_trace_at on sa_trace (at desc)`,
   // 공통 관리로그 — 연락망 변경·발송·결과 수신 (UFR-009-002-01 변경이력)
   `create table if not exists sa_audit (
      id bigserial primary key, at timestamptz not null default now(), org_id text, account_id text, action text not null, detail jsonb)`,

@@ -2,7 +2,7 @@
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { Advisory, AgentResponse, Citation, EntityRef, QueryContext, RegionId } from "@/lib/contract/agent";
-import { useSession, uid, logTrace, type Conversation, type Turn } from "@/lib/session";
+import { useSession, uid, type Conversation, type Turn } from "@/lib/session";
 import { ExploreContext, type ExploreApi, type PanelTab } from "@/components/explore/ExploreCtx";
 import AnswerView from "@/components/explore/AnswerView";
 import Composer, { type ScenarioItem } from "@/components/explore/Composer";
@@ -265,10 +265,9 @@ function Explore() {
     };
     let res: AgentResponse | null = null;
     try {
-      const r = await fetch("/api/agent/query", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ sessionId: working.id, question: q, presetKey, context }) });
+      const r = await fetch("/api/agent/query", { method: "POST", headers: { "content-type": "application/json", "x-sa-account": s.account?.id ?? "" }, body: JSON.stringify({ sessionId: working.id, question: q, presetKey, context }) });
       res = await r.json();
       if (!r.ok || !res?.blocks) throw new Error("응답 오류");
-      logTrace({ at: new Date().toISOString(), account: s.account?.id ?? "-", api: res.trace?.apis?.join(", ") ?? "T3Q Agent", intent: res.intent, status: res.status, ms: res.trace?.elapsedMs ?? 0, q, requestId: res.requestId, datasets: res.trace?.datasets ?? [] });
       const done: Conversation = { ...working, title: base.turns.length === 0 ? res.title : working.title, turns: working.turns.map((t) => (t.id === turn.id ? { ...t, pending: false, res: res!, req: { question: q, presetKey, context } } : t)), updatedAt: new Date().toISOString() };
       setConv(done);
       s.saveConv(done);
@@ -285,7 +284,6 @@ function Explore() {
         openTab({ key: "map", kind: "map", title: "지도" });
       }
     } catch {
-      logTrace({ at: new Date().toISOString(), account: s.account?.id ?? "-", api: "T3Q Agent", intent: "-", status: "TIMEOUT", ms: 30000, q, requestId: "-", datasets: [] });
       setConv({ ...working, turns: working.turns.map((t) => (t.id === turn.id ? { ...t, pending: false, failed: "AI 에이전트 연계 지연(TIMEOUT). 잠시 후 다시 시도해 주세요." } : t)) });
     }
     setTimeout(() => document.getElementById(`turn-${turn.id}`)?.scrollIntoView({ behavior: "smooth", block: "start" }), 120);

@@ -3,11 +3,12 @@
  * 대응절차 화면 상태 — 단계 바(AppShell)와 우측 「대응절차」 탭(탐색 화면)이 함께 쓴다.
  *  · 지자체 계정만, 자기 지역 매뉴얼만 (중앙정부·운영자 계정은 숨김)
  *  · 단계 = 특보로 추천한 단계 (사용자가 바꾸면 그 단계, 특보가 바뀌면 다시 추천 단계)
- *  · 체크 = 세션 checks (계정별 브라우저 저장)
- *  · 수정본 = 담당자가 매뉴얼 개정을 반영해 고친 내용 (지역 매뉴얼별 브라우저 저장, 원문 추출본은 그대로)
+ *  · 체크 = 세션 checks (기관 공용 서버 저장, D39)
+ *  · 수정본 = 담당자가 매뉴얼 개정을 반영해 고친 내용 (기관·매뉴얼별 서버 저장 D39 — scope org:지역, key sopEdits:매뉴얼ID, 판 rev 로 충돌 확인. 원문 추출본은 그대로)
  */
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { useSession } from "./session";
+import { api, ApiError } from "./api";
 import { applyEdits, emptyEdits, recommendStep, type SopEdits, type SopManual, type SopRec, type SopStep } from "./sop";
 
 export type SopScope = "mine" | "all";
@@ -62,7 +63,7 @@ const LS = {
 };
 
 export function SopProvider({ children }: { children: React.ReactNode }) {
-  const { account, weather } = useSession();
+  const { account, weather, toast } = useSession();
   const region = account?.role === "지자체" && account.region !== "national" ? account.region : null;
   const [base, setBase] = useState<SopManual | null>(null);
   const [edits, setEditsS] = useState<SopEdits | null>(null);
@@ -92,39 +93,83 @@ export function SopProvider({ children }: { children: React.ReactNode }) {
     };
   }, [region]);
 
-  // 담당자 수정본 (지역 매뉴얼별)
+  // 담당자 수정본 (기관·매뉴얼별, 서버) — 이 브라우저에 예전 수정본이 있으면 처음 한 번 서버로 옮김
   const editKey = base ? `sa.sopEdits.${base.id}` : null;
+  const kvScope = base ? `org:${base.region}` : null;
+  const kvKey = base ? `sopEdits:${base.id}` : null;
+  const [rev, setRev] = useState(0);
+  const revRef = useRef(0);
+  revRef.current = rev;
+  const loadEdits = useCallback(async () => {
+    if (!kvScope || !kvKey || !editKey) return;
+    try {
+      const kv = await api<Record<string, { value: SopEdits; rev: number }>>(`/api/kv?scope=${kvScope}`);
+      let it = kv[kvKey];
+      const old = LS.get<SopEdits | null>(editKey, null);
+      if (!it && old && account?.role === "지자체") {
+        const r = await api<{ item: { value: SopEdits; rev: number } }>("/api/kv", { method: "PUT", json: { scope: kvScope, key: kvKey, value: old, rev: 0 } });
+        it = r.item;
+      }
+      if (old) try { localStorage.removeItem(editKey); } catch {}
+      setEditsS(it?.value ?? null);
+      setRev(it?.rev ?? 0);
+    } catch {
+      setEditsS(null);
+    }
+  }, [kvScope, kvKey, editKey, account]);
   useEffect(() => {
-    setEditsS(editKey ? LS.get<SopEdits | null>(editKey, null) : null);
-  }, [editKey]);
+    setEditsS(null);
+    setRev(0);
+    loadEdits();
+  }, [loadEdits]);
+  /** 서버 저장 — 판이 다르면 다른 담당자가 먼저 고친 것 → 최신본으로 바꾸고 안내 */
+  const persist = useCallback(
+    async (next: SopEdits | null) => {
+      if (!kvScope || !kvKey) return;
+      try {
+        const r = await api<{ item: { rev: number } | null }>("/api/kv", { method: "PUT", json: { scope: kvScope, key: kvKey, value: next, rev: next ? revRef.current : undefined } });
+        setRev(r.item?.rev ?? 0);
+      } catch (e) {
+        if (e instanceof ApiError && e.status === 409) {
+          const latest = (e.body as { latest?: { value: SopEdits; rev: number } | null }).latest;
+          setEditsS(latest?.value ?? null);
+          setRev(latest?.rev ?? 0);
+          toast("다른 담당자가 먼저 수정본을 고쳤습니다. 최신 수정본을 불러왔으니 확인 후 다시 고치세요.");
+        } else {
+          toast("수정본을 서버에 저장하지 못했습니다.");
+          loadEdits();
+        }
+      }
+    },
+    [kvScope, kvKey, toast, loadEdits],
+  );
   const manual = useMemo(() => (base ? applyEdits(base, edits) : null), [base, edits]);
   const editView = useMemo(() => (base && editing ? applyEdits(base, edits, true) : null), [base, edits, editing]);
   const canEdit = !!region && !!base && account?.role === "지자체" && account.region === base.region;
 
+  const editsRef = useRef<SopEdits | null>(null);
+  editsRef.current = edits;
   const saveEdits = useCallback(
     (fn: (e: SopEdits) => SopEdits | void, what: string) => {
-      if (!base || !editKey) return;
-      setEditsS((prev) => {
-        const draft: SopEdits = structuredClone(prev ?? emptyEdits(base));
-        const next = fn(draft) ?? draft;
-        next.log = [{ at: new Date().toISOString(), by: account?.name ?? "", what }, ...(next.log ?? [])].slice(0, 300);
-        LS.set(editKey, next);
-        return next;
-      });
+      if (!base) return;
+      const draft: SopEdits = structuredClone(editsRef.current ?? emptyEdits(base));
+      const next = fn(draft) ?? draft;
+      next.log = [{ at: new Date().toISOString(), by: account?.name ?? "", what }, ...(next.log ?? [])].slice(0, 300);
+      editsRef.current = next;
+      setEditsS(next);
+      persist(next);
     },
-    [base, editKey, account],
+    [base, account, persist],
   );
   const replaceEdits = useCallback(
     (e: SopEdits | null, what: string) => {
-      if (!base || !editKey) return;
+      if (!base) return;
       const next = e ? { ...e, log: [{ at: new Date().toISOString(), by: account?.name ?? "", what }, ...(e.log ?? [])].slice(0, 300) } : null;
+      editsRef.current = next;
       setEditsS(next);
-      try {
-        if (next) localStorage.setItem(editKey, JSON.stringify(next));
-        else localStorage.removeItem(editKey);
-      } catch {}
+      persist(next);
     },
-    [base, editKey, account],
+    [base, account, persist],
   );
 
   useEffect(() => {

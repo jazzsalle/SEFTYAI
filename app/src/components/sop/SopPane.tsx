@@ -25,7 +25,8 @@ type RowEdit = { onEdit: () => void; onUp: () => void; onDown: () => void; onDel
 
 export default function SopPane({ focus }: { focus?: { id: string; n: number } }) {
   const sop = useSop();
-  const { checks, toggleCheck } = useSession();
+  const { checks, checkInfo, toggleCheck, resetChecks, toast } = useSession();
+  const [askReset, setAskReset] = useState(false);
   const x = useExplore();
   const ops = useSopEditOps();
   const editing = sop.editing && !!sop.editView;
@@ -79,7 +80,7 @@ export default function SopPane({ focus }: { focus?: { id: string; n: number } }
       : undefined;
   const row = (a: SopAction, g: SopGroup, groupName?: string) => (
     <ActionRow key={a.id} m={vm} a={a} card={a.card ? cards.get(a.card) : undefined} mine={g.mine} groupName={groupName}
-      done={!!checks[sopCheckKey(m, a)]} onCheck={() => toggleCheck(sopCheckKey(m, a))}
+      done={!!checks[sopCheckKey(m, a)]} doneBy={checkInfo[sopCheckKey(m, a)]} onCheck={() => toggleCheck(sopCheckKey(m, a))}
       open={!!open[a.id]} onToggle={() => toggle(a.id)} flash={flash === a.id} edit={rowEdit(a)}
       onPage={(p) => x.openCitation(cite(p, `${a.code ? codeLabel(m, a.code) + " " : ""}${a.name}`))} />
   );
@@ -106,7 +107,7 @@ export default function SopPane({ focus }: { focus?: { id: string; n: number } }
         <div className="sp-editbar">
           <div>
             <b>수정 중</b> — 조치를 고치거나(<IcEdit size={12} />) 순서를 바꾸고, 임무·조치를 추가하세요. 원문 추출본은 그대로 두고 수정본만 저장합니다.
-            <div className="xs" style={{ marginTop: 2 }}>시연 환경이라 이 PC 브라우저에 저장됩니다. 다른 PC·담당자와는 [수정 이력]의 내보내기 파일로 나눕니다.</div>
+            <div className="xs" style={{ marginTop: 2 }}>수정본은 서버에 저장되어 같은 기관 담당자가 함께 봅니다. 다른 담당자가 먼저 고쳤으면 최신본을 불러온 뒤 다시 고칩니다.</div>
           </div>
           <div className="btns">
             <button className="btn xs" onClick={() => setDlg({ k: "man" })}>매뉴얼 정보·단계 기준</button>
@@ -172,7 +173,18 @@ export default function SopPane({ focus }: { focus?: { id: string; n: number } }
         <span className="sp" />
         <span className="xs mute2">내 부서 완료 <b style={{ color: "var(--c-ok)" }}>{pg.done}</b> / {pg.total}</span>
         <button className="btn xs ghost" onClick={() => setOpen(allOpen ? {} : Object.fromEntries(visible.map((id) => [id, true])))}>{allOpen ? "모두 접기" : "모두 펼치기"}</button>
+        {!editing && Object.keys(checks).some((k) => k.startsWith(`sop:${m.id}:`)) && (
+          <button className="btn xs ghost" onClick={() => setAskReset(true)} title="상황이 끝나면 우리 기관 체크를 모두 비우고 새로 시작합니다">새 상황으로 시작</button>
+        )}
       </div>
+
+      {askReset && (
+        <div className="notice warn row" style={{ marginTop: 10, gap: 8 }} role="alertdialog" aria-label="새 상황으로 시작">
+          <span className="sp">이 매뉴얼의 우리 기관 체크를 모두 비울까요? 같은 기관 담당자 화면에서도 함께 비워집니다. (비운 기록은 관리로그에 남습니다)</span>
+          <button className="btn xs" onClick={() => setAskReset(false)}>취소</button>
+          <button className="btn xs pri" onClick={async () => { setAskReset(false); try { const n = await resetChecks(`sop:${m.id}:`); toast(`체크 ${n}개를 비웠습니다.`); } catch { toast("체크를 비우지 못했습니다."); } }}>비우기</button>
+        </div>
+      )}
 
       {view.total === 0 && view.cond.length === 0 && !editing && <div className="notice" style={{ marginTop: 12 }}>이 단계에 {sop.scope === "mine" ? "내 부서" : ""} 조치가 없습니다.</div>}
 
@@ -247,8 +259,8 @@ export default function SopPane({ focus }: { focus?: { id: string; n: number } }
   );
 }
 
-function ActionRow({ m, a, card, mine, done, onCheck, open, onToggle, flash, onPage, groupName, edit }: {
-  m: SopManual; a: SopAction; card?: SopCard; mine: boolean; done: boolean; onCheck: () => void; open: boolean; onToggle: () => void; flash: boolean;
+function ActionRow({ m, a, card, mine, done, doneBy, onCheck, open, onToggle, flash, onPage, groupName, edit }: {
+  m: SopManual; a: SopAction; card?: SopCard; mine: boolean; done: boolean; doneBy?: { by: string; at: string }; onCheck: () => void; open: boolean; onToggle: () => void; flash: boolean;
   onPage: (pdfPage: number) => void; groupName?: string; edit?: RowEdit;
 }) {
   // 세부행동이 카드 본문에서 온 것이면 카드 칸에서 보여 줌 (중복 표시 안 함)
@@ -259,7 +271,7 @@ function ActionRow({ m, a, card, mine, done, onCheck, open, onToggle, flash, onP
   return (
     <li className={`sp-act ${done && !edit ? "done" : ""} ${flash ? "flash" : ""} ${mine ? "" : "other"} ${del ? "deleted" : ""}`} data-act={a.id}>
       <div className="r">
-        {mine && !edit ? <input type="checkbox" checked={done} onChange={onCheck} aria-label={`${a.name} 완료`} /> : <span className="dot" aria-hidden />}
+        {mine && !edit ? <input type="checkbox" checked={done} onChange={onCheck} aria-label={`${a.name} 완료`} title={doneBy ? `${doneBy.by} · ${new Date(doneBy.at).toLocaleString("ko-KR")}` : undefined} /> : <span className="dot" aria-hidden />}
         <button className="tx" onClick={onToggle} aria-expanded={has ? open : undefined} disabled={!has}>
           {a.code && <b className="code">{codeLabel(m, a.code)}</b>}
           <span className="nm">{a.name || "(이름 없음)"}</span>
@@ -306,7 +318,7 @@ function ActionRow({ m, a, card, mine, done, onCheck, open, onToggle, flash, onP
           )}
           {a.notes?.map((n, i) => <div key={i} className="note">※ {n}</div>)}
           {card ? <SopCardView m={m} card={card} orgs={a.orgs} onPage={onPage} /> : <Orgs o={a.orgs} />}
-          {done && !edit && <div className="xs" style={{ color: "var(--c-ok)", marginTop: 6 }}><IcCheck size={12} /> 완료로 표시함</div>}
+          {done && !edit && <div className="xs" style={{ color: "var(--c-ok)", marginTop: 6 }}><IcCheck size={12} /> 완료로 표시함{doneBy ? ` · ${doneBy.by} ${new Date(doneBy.at).toLocaleString("ko-KR", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" })}` : ""}</div>}
         </div>
       )}
     </li>

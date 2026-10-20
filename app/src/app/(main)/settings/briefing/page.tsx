@@ -8,15 +8,25 @@ export default function BriefingSettings() {
   const { account, toast } = useSession();
   const [items, setItems] = useState<BriefItem[]>(BRIEF_DEFAULT);
   const [askReset, setAskReset] = useState(false);
-  useEffect(() => setItems(loadBrief(account?.id)), [account?.id]);
+  const [busy, setBusy] = useState(false);
+  useEffect(() => {
+    loadBrief(account?.id).then(setItems);
+  }, [account?.id]);
   const mv = (i: number, d: number) => setItems((l) => { const n = [...l]; const [x] = n.splice(i, 1); n.splice(i + d, 0, x); return n; });
   const on = items.filter((x) => x.on && x.q.trim()).length;
   const blank = items.some((x) => x.on && !x.q.trim());
   const ok = on >= BRIEF_MIN && !blank;
-  const save = () => {
-    if (!ok) return;
-    saveBrief(account?.id, items.filter((x) => x.q.trim() || x.on));
-    toast("브리핑 항목을 저장했습니다.");
+  const save = async () => {
+    if (!ok || busy) return;
+    setBusy(true);
+    try {
+      await saveBrief(account?.id, items.filter((x) => x.q.trim() || x.on));
+      toast("브리핑 항목을 저장했습니다.");
+    } catch (e) {
+      toast(`저장하지 못했습니다. ${(e as Error).message}`);
+    } finally {
+      setBusy(false);
+    }
   };
   return (
     <div className="page">
@@ -42,7 +52,7 @@ export default function BriefingSettings() {
           <span className="xs" style={{ color: ok ? "var(--c-sub)" : "var(--c-dang)" }}>
             체크 {on}개{on < BRIEF_MIN ? ` · ${BRIEF_MIN}개 이상 체크해야 저장할 수 있습니다` : blank ? " · 체크한 항목의 질의문을 입력하세요" : ""}
           </span>
-          <button className="btn pri" disabled={!ok} onClick={save}>저장</button>
+          <button className="btn pri" disabled={!ok || busy} onClick={save}>{busy ? "저장 중…" : "저장"}</button>
         </div>
         {askReset && (
           <div className="notice warn row" style={{ marginTop: 12 }} role="alertdialog" aria-label="기본 항목으로 되돌리기">

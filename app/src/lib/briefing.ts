@@ -1,12 +1,13 @@
 "use client";
 /**
- * 내 브리핑 항목 (계정별 · 이 브라우저에 저장) — UFR-006-001-05
+ * 내 브리핑 항목 (계정별 · 서버 저장 D39, scope acct:계정 · key brief) — UFR-006-001-05
  *  · 기본 질문 4개 · 최대 8개 · '사용' 체크한 항목 = 내 브리핑 세트 (4개 이상 체크해야 저장)
  *  · AI 모드 전광판 「브리핑 질문」 = 체크한 항목을 위에서부터 4개
  *  · 시작 화면 「브리핑 질문」     = 체크한 항목에서 접속할 때마다 무작위 4개
  */
 import { useEffect, useState } from "react";
 import { useSession } from "./session";
+import { api } from "./api";
 
 export interface BriefItem { key: string; label: string; q: string; on: boolean; /** 기본 질의문 그대로일 때만 쓰는 의도 고정 키 */ preset?: string }
 export const BRIEF_MAX = 8;
@@ -25,17 +26,27 @@ export const BRIEF_DEFAULT: BriefItem[] = [
 export const isDefaultItem = (it: BriefItem) => BRIEF_DEFAULT.some((d) => d.key === it.key);
 
 const keyOf = (accountId?: string) => `sa.brief.v3.${accountId ?? "-"}`;
-export function loadBrief(accountId?: string): BriefItem[] {
+const EVT = "sa:brief";
+/** 서버에서 읽기 — 저장한 적 없으면 기본 4개. 이 브라우저에 예전 설정이 있으면 처음 한 번 서버로 옮기고 지움 */
+export async function loadBrief(accountId?: string): Promise<BriefItem[]> {
+  if (!accountId) return BRIEF_DEFAULT;
   try {
-    const v = localStorage.getItem(keyOf(accountId));
-    const l = v ? (JSON.parse(v) as BriefItem[]) : null;
-    return Array.isArray(l) && l.length ? l : BRIEF_DEFAULT;
-  } catch {
-    return BRIEF_DEFAULT;
-  }
+    const kv = await api<Record<string, { value: BriefItem[] }>>(`/api/kv?scope=acct:${accountId}`);
+    const l = kv.brief?.value;
+    if (Array.isArray(l) && l.length) return l;
+    const old = (() => { try { return JSON.parse(localStorage.getItem(keyOf(accountId)) || "null") as BriefItem[] | null; } catch { return null; } })();
+    if (Array.isArray(old) && old.length) {
+      await saveBrief(accountId, old);
+      try { localStorage.removeItem(keyOf(accountId)); } catch {}
+      return old;
+    }
+  } catch {}
+  return BRIEF_DEFAULT;
 }
-export function saveBrief(accountId: string | undefined, items: BriefItem[]) {
-  try { localStorage.setItem(keyOf(accountId), JSON.stringify(items)); } catch {}
+export async function saveBrief(accountId: string | undefined, items: BriefItem[]) {
+  if (!accountId) return;
+  await api("/api/kv", { method: "PUT", json: { scope: `acct:${accountId}`, key: "brief", value: items } });
+  window.dispatchEvent(new Event(EVT));
 }
 const usable = (l: BriefItem[]) => l.filter((x) => x.on && x.q.trim());
 
@@ -43,7 +54,16 @@ const usable = (l: BriefItem[]) => l.filter((x) => x.on && x.q.trim());
 export function useBriefItems(): BriefItem[] {
   const { account } = useSession();
   const [items, setItems] = useState<BriefItem[]>(usable(BRIEF_DEFAULT));
-  useEffect(() => setItems(usable(loadBrief(account?.id))), [account?.id]);
+  useEffect(() => {
+    let alive = true;
+    const load = () => loadBrief(account?.id).then((l) => alive && setItems(usable(l)));
+    load();
+    window.addEventListener(EVT, load);
+    return () => {
+      alive = false;
+      window.removeEventListener(EVT, load);
+    };
+  }, [account?.id]);
   return items;
 }
 

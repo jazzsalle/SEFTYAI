@@ -4,7 +4,7 @@
  *  ① 요청 정합 : 보낸 질의 ↔ Agent가 받은 질의(echo)        (UNE·T3Q 연계)
  *  ② 응답 정답 : Agent 응답값 ↔ 정답셋 기대값               (T3Q)
  *  ③ 표출 정합 : Agent 응답값 ↔ 화면에 그려진 값            (UNE)
- * ①②③ 결과로 문항 판정(정합/부정합/보류·조치 담당·사유)을 자동으로 내고, 뒤집어야 할 때만 사람이 수정한다. CSV 내보내기. 수정한 판정·정답값은 이 브라우저에 저장.
+ * ①②③ 결과로 문항 판정(정합/부정합/보류·조치 담당·사유)을 자동으로 내고, 뒤집어야 할 때만 사람이 수정한다. CSV 내보내기. 판정·정답값·실행 결과는 서버 공용 저장(D39).
  */
 import { api } from "@/lib/api";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -42,6 +42,11 @@ const VerdictBadge = ({ f }: { f: Final | null }) =>
   ) : <span className="xs mute2">미실행</span>;
 const csvCell = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
 
+/** 응답 검증 공용 저장 (운영자, scope verify) — 실패해도 화면 값은 유지 */
+function putVerify(key: string, value: unknown) {
+  api("/api/kv", { method: "PUT", json: { scope: "verify", key, value } }).catch(() => console.warn("[verify] 서버 저장 실패", key));
+}
+
 export default function VerifyTab() {
   const s = useSession();
   const [gold, setGold] = useState<GoldSet | null>(null);
@@ -60,10 +65,21 @@ export default function VerifyTab() {
     // 실사용 질의 : 서버에 저장된 모든 계정의 대화 (운영자 전용)
     api<{ account: string; convs: Conversation[] }[]>("/api/conversations?all=1").then(setAllConvs).catch(() => setAllConvs([]));
     fetch("/api/verify").then((r) => r.json()).then(setGold).catch(() => setGold({ meta: { name: "정답셋을 불러오지 못했습니다", builtAt: "", source: "", count: 0 }, items: [] }));
-    setLocal(LS.get("sa.goldLocal", []));
-    setOver(LS.get("sa.goldOverride", {}));
-    setResults(LS.get("sa.verifyRun", {}));
-    setVerdicts(LS.get("sa.verdict", {}));
+    // 판정·정답값·실행 결과·직접 등록 문항 — 서버 공용(D39). 이 브라우저에 예전 것이 있고 서버가 비어 있으면 처음 한 번 옮김
+    api<Record<string, { value: unknown }>>("/api/kv?scope=verify")
+      .then(async (kv) => {
+        const pick = <T,>(key: string, d: T): T => {
+          if (kv[key]) return kv[key].value as T;
+          const old = LS.get<T | null>(`sa.${key}`, null);
+          if (old && (Array.isArray(old) ? old.length : Object.keys(old as object).length)) putVerify(key, old);
+          return old ?? d;
+        };
+        setLocal(pick("goldLocal", []));
+        setOver(pick("goldOverride", {}));
+        setResults(pick("verifyRun", {}));
+        setVerdicts(pick("verdict", {}));
+      })
+      .catch(() => {});
   }, []);
 
   /** 정답셋 문항 (로컬 등록분 포함, 화면에서 고친 정답값 반영) */
@@ -73,7 +89,7 @@ export default function VerifyTab() {
   const shown = items.filter((x) => (!group || (x.group ?? "기타") === group) && (!onlyBad || fin(x.id)?.verdict === "부정합"));
   const keepResults = (next: Record<string, VerifyResult>) => {
     setResults(next);
-    LS.set("sa.verifyRun", Object.fromEntries(Object.entries(next).map(([k, v]) => [k, { ...v, request: undefined, response: undefined }])));
+    putVerify("verifyRun", Object.fromEntries(Object.entries(next).map(([k, v]) => [k, { ...v, request: undefined, response: undefined }])));
   };
   const post = async (body: unknown): Promise<VerifyResult[]> => {
     const r = await fetch("/api/verify", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
@@ -102,7 +118,7 @@ export default function VerifyTab() {
       const [r] = await post({ item: it, full: true });
       setResults((prev) => {
         const next = { ...prev, [it.id]: r };
-        LS.set("sa.verifyRun", Object.fromEntries(Object.entries(next).map(([k, v]) => [k, { ...v, request: undefined, response: undefined }])));
+        putVerify("verifyRun", Object.fromEntries(Object.entries(next).map(([k, v]) => [k, { ...v, request: undefined, response: undefined }])));
         return next;
       });
     } catch (e) {
@@ -113,14 +129,14 @@ export default function VerifyTab() {
   const saveVerdict = (key: string, v: Omit<Verdict, "at" | "by">) => {
     const next = { ...verdicts, [key]: { ...v, at: new Date().toISOString(), by: s.account?.id ?? "-" } };
     setVerdicts(next);
-    LS.set("sa.verdict", next);
+    putVerify("verdict", next);
     s.toast("판정을 수정했습니다");
   };
   const clearVerdict = (key: string) => {
     const next = { ...verdicts };
     delete next[key];
     setVerdicts(next);
-    LS.set("sa.verdict", next);
+    putVerify("verdict", next);
     s.toast("자동 판정으로 되돌렸습니다");
   };
 
@@ -153,7 +169,7 @@ export default function VerifyTab() {
     URL.revokeObjectURL(a.href);
   };
 
-  /* ---------- 실사용 질의 (이 브라우저의 대화) ---------- */
+  /* ---------- 실사용 질의 (서버에 저장된 모든 계정 대화) ---------- */
   const live: LiveRow[] = useMemo(
     () => allConvs.flatMap(({ account, convs }) => convs.flatMap((c) => c.turns.filter((t) => t.res).map((t) => ({ key: `T:${t.id}`, at: t.at, conv: c.title, account, turn: t })))).sort((a, b) => b.at.localeCompare(a.at)).slice(0, 150),
     [allConvs],
@@ -170,7 +186,7 @@ export default function VerifyTab() {
     };
     const next = [...local, item];
     setLocal(next);
-    LS.set("sa.goldLocal", next);
+    putVerify("goldLocal", next);
     setView("gold");
     setGroup("실사용 질의 등록");
     setSel(null);
@@ -210,7 +226,7 @@ export default function VerifyTab() {
           const next = { ...over };
           if (ex) next[it.id] = ex; else delete next[it.id];
           setOver(next);
-          LS.set("sa.goldOverride", next);
+          putVerify("goldOverride", next);
           runOne({ ...it, expect: ex ?? (gold.items.find((g) => g.id === it.id) ?? local.find((g) => g.id === it.id) ?? it).expect });
         }}
         auto={r ? autoVerdict(r) : null}
@@ -296,7 +312,7 @@ export default function VerifyTab() {
 
       {view === "live" && (
         <>
-          <p className="xs mute2" style={{ margin: "0 0 8px" }}>이 브라우저에서 실제로 주고받은 질의입니다(모든 계정). 정답셋에 없으므로 ①·③만 자동 점검하고, 좋은 사례는 정답셋으로 등록합니다.</p>
+          <p className="xs mute2" style={{ margin: "0 0 8px" }}>서버에 저장된 모든 계정의 실제 질의입니다. 정답셋에 없으므로 ①·③만 자동 점검하고, 좋은 사례는 정답셋으로 등록합니다.</p>
           <table className="tbl">
             <thead><tr><th>시각</th><th>계정</th><th>질문</th><th>의도 · 판단 기준</th><th>① 요청</th><th>③ 표출</th><th>판정</th></tr></thead>
             <tbody>
@@ -443,7 +459,7 @@ function Detail(p: {
                 <div className="row w" style={{ gap: 6 }}>
                   <button className="btn xs" onClick={() => setEdit(JSON.stringify(p.item!.expect, null, 1))}>정답값 편집</button>
                   {p.overridden && <button className="btn xs ghost" onClick={() => p.onExpect!(null)}>원래 정답값으로</button>}
-                  <span className="xs mute2">T3Q 담당자가 기대값을 고쳐 다시 비교할 수 있습니다 (이 브라우저에 저장).</span>
+                  <span className="xs mute2">T3Q 담당자가 기대값을 고쳐 다시 비교할 수 있습니다 (서버에 저장).</span>
                 </div>
               ) : (
                 <>

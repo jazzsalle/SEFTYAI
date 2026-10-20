@@ -2,7 +2,7 @@
 /**
  * 대응절차 수정 — 매뉴얼은 해마다 1~2회 개정된다. 담당 공무원이 바뀐 내용을 화면에서 직접 고친다.
  * 원문 추출본은 그대로 두고 수정본(덧씌움)만 저장 → 언제든 원문으로 되돌릴 수 있고 누가 무엇을 고쳤는지 이력이 남는다.
- * 시연 환경은 브라우저 저장이라 다른 PC·담당자와는 [내보내기] 파일로 나눈다 (운영 전환 시 서버 저장).
+ * 수정본은 서버에 기관 공용으로 저장 (D39). [내보내기]·[가져오기]는 파일 보관·이관용.
  */
 import { useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -489,8 +489,8 @@ export function HistoryModal({ onClose }: { onClose: () => void }) {
       }
     >
       <div className="notice" style={{ marginBottom: 12 }}>
-        고친 내용은 원문 추출본 위에 덧씌워 저장하며, 매뉴얼 PDF에서 뽑은 원문은 바뀌지 않습니다. 시연 환경에서는 이 PC 브라우저에 저장되므로,
-        다른 PC·담당자와는 <b>내보내기</b> 파일을 주고받아 <b>가져오기</b>로 맞춥니다.
+        고친 내용은 원문 추출본 위에 덧씌워 저장하며, 매뉴얼 PDF에서 뽑은 원문은 바뀌지 않습니다. 수정본은 서버에 저장되어 같은 기관 담당자가 함께 봅니다.
+        <b>내보내기</b>·<b>가져오기</b>는 수정본을 파일로 보관하거나 옮길 때 씁니다.
       </div>
       {m.info && (m.info.edition || m.info.revisedAt || m.info.memo) && (
         <div className="sp-info">

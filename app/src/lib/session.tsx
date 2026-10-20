@@ -57,8 +57,13 @@ interface SessionState {
   convs: Conversation[];
   saveConv: (c: Conversation) => void;
   deleteConvs: (ids: string[]) => void;
+  /** 대응절차·답변 체크 — 기관 공용(서버 D39), 운영자는 개인 */
   checks: Record<string, boolean>;
+  /** 체크한 사람·시각 */
+  checkInfo: Record<string, { by: string; at: string }>;
   toggleCheck: (k: string) => void;
+  /** 새 상황으로 시작 — 기관 체크 비움 (prefix 를 주면 그 매뉴얼 것만) */
+  resetChecks: (prefix?: string) => Promise<number>;
   toast: (m: string) => void;
   toastMsg: string | null;
   aimOn: boolean;
@@ -94,7 +99,8 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   const [cond, setCondS] = useState<Cond>({ region: "national" });
   const [weather, setWeather] = useState<WeatherResponse | null>(null);
   const [convs, setConvs] = useState<Conversation[]>([]);
-  const [checks, setChecks] = useState<Record<string, boolean>>({});
+  const [checkInfo, setCheckInfo] = useState<Record<string, { by: string; at: string }>>({});
+  const checks = useMemo(() => Object.fromEntries(Object.keys(checkInfo).map((k) => [k, true])), [checkInfo]);
   const [toastMsg, setToast] = useState<string | null>(null);
   const [wxTick, setWxTick] = useState(0);
   const [aimOn, setAimOnS] = useState(false);
@@ -113,7 +119,6 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     setAimOnS(LS.get<boolean>("sa.aim", false));
     if (acc) {
       setCondS({ region: acc.region });
-      setChecks(LS.get(`sa.checks.${acc.id}`, {}));
     }
     setReady(true);
   }, []);
@@ -168,8 +173,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     LS.set("sa.account", id);
     setAccount(acc);
     setCondS({ region: acc.region });
-    // 대화 이력은 계정이 바뀌면 서버에서 읽음 (처음 조회하는 계정은 서버가 시연용 대화로 채움)
-    setChecks(LS.get(`sa.checks.${acc.id}`, {}));
+    // 대화 이력·체크는 계정이 바뀌면 서버에서 읽음 (처음 조회하는 계정은 서버가 시연용 대화로 채움)
   }, []);
 
   const logout = useCallback(() => {
@@ -204,14 +208,53 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     },
     [account, saveFail],
   );
+  // 체크 — 서버(기관 공용). 같은 기관 담당자가 체크한 것도 보이도록 20초마다 새로 읽음
+  const loadChecks = useCallback(async (acc: Account) => {
+    try {
+      const old = LS.get<Record<string, boolean>>(`sa.checks.${acc.id}`, {});
+      const keys = Object.keys(old).filter((k) => old[k]);
+      if (keys.length) {
+        // 이 브라우저에 남아 있던 체크는 처음 한 번 서버로 옮김
+        for (const key of keys.slice(0, 300)) await api("/api/checks", { method: "POST", json: { key, done: true } });
+        try {
+          localStorage.removeItem(`sa.checks.${acc.id}`);
+        } catch {}
+      }
+      setCheckInfo(await api<Record<string, { by: string; at: string }>>("/api/checks"));
+    } catch {}
+  }, []);
+  useEffect(() => {
+    if (!account) return setCheckInfo({});
+    loadChecks(account);
+    const t = setInterval(() => api<Record<string, { by: string; at: string }>>("/api/checks").then(setCheckInfo).catch(() => {}), 20000);
+    return () => clearInterval(t);
+  }, [account, loadChecks]);
   const toggleCheck = useCallback(
-    (k: string) =>
-      setChecks((p) => {
-        const n = { ...p, [k]: !p[k] };
-        if (account) LS.set(`sa.checks.${account.id}`, n);
+    (k: string) => {
+      const done = !checkInfo[k];
+      setCheckInfo((p) => {
+        const n = { ...p };
+        if (done) n[k] = { by: account?.name ?? "", at: new Date().toISOString() };
+        else delete n[k];
         return n;
-      }),
-    [account],
+      });
+      api<Record<string, { by: string; at: string }>>("/api/checks", { method: "POST", json: { key: k, done } })
+        .then(setCheckInfo)
+        .catch(() => {
+          setToast("체크를 서버에 저장하지 못했습니다.");
+          window.setTimeout(() => setToast(null), 2400);
+          if (account) loadChecks(account);
+        });
+    },
+    [account, checkInfo, loadChecks],
+  );
+  const resetChecks = useCallback(
+    async (prefix?: string) => {
+      const r = await api<{ cleared: number }>("/api/checks", { method: "DELETE", json: { prefix } });
+      setCheckInfo(await api<Record<string, { by: string; at: string }>>("/api/checks"));
+      return r.cleared;
+    },
+    [],
   );
   const toast = useCallback((m: string) => {
     setToast(m);
@@ -222,9 +265,9 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     () => ({
       ready, account, login, logout, mode, setMode, cond, setCond, weather,
       reloadWeather: () => setWxTick((t) => t + 1),
-      convs, saveConv, deleteConvs, checks, toggleCheck, toast, toastMsg, aimOn, setAimOn, wxRef, setWxRef,
+      convs, saveConv, deleteConvs, checks, checkInfo, toggleCheck, resetChecks, toast, toastMsg, aimOn, setAimOn, wxRef, setWxRef,
     }),
-    [ready, account, login, logout, mode, setMode, cond, setCond, weather, convs, saveConv, deleteConvs, checks, toggleCheck, toast, toastMsg, aimOn, setAimOn, wxRef, setWxRef],
+    [ready, account, login, logout, mode, setMode, cond, setCond, weather, convs, saveConv, deleteConvs, checks, checkInfo, toggleCheck, resetChecks, toast, toastMsg, aimOn, setAimOn, wxRef, setWxRef],
   );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
@@ -237,17 +280,11 @@ export function useSession() {
 
 export const uid = (p = "") => p + Math.random().toString(36).slice(2, 10);
 
-/** 연계 추적로그 (FUN-UNE-803004) — 시연판은 브라우저 보관, 질의 원문은 운영 화면에서 마스킹 */
+/** 연계 추적로그 (FUN-UNE-803004) — 에이전트 API가 서버 DB에 기록(D39), 운영관리에서 조회. 질의 원문은 운영 화면에서 한 번 더 마스킹 */
 export interface TraceRow { at: string; account: string; api: string; intent: string; status: string; ms: number; q: string; requestId: string; datasets: string[] }
-export function logTrace(r: TraceRow) {
+export async function readTrace(): Promise<TraceRow[]> {
   try {
-    const l: TraceRow[] = JSON.parse(localStorage.getItem("sa.trace") || "[]");
-    localStorage.setItem("sa.trace", JSON.stringify([r, ...l].slice(0, 200)));
-  } catch {}
-}
-export function readTrace(): TraceRow[] {
-  try {
-    return JSON.parse(localStorage.getItem("sa.trace") || "[]");
+    return await api<TraceRow[]>("/api/trace");
   } catch {
     return [];
   }
