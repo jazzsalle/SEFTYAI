@@ -6,6 +6,7 @@ import VerifyTab from "@/components/admin/VerifyTab";
 
 interface Acct { id: string; org: string; dept: string; role: string; status: "사용" | "잠금" | "중지" | "초기"; issued: string; last: string; hist: [string, string, string, string][] }
 const SEED: Acct[] = [
+  { id: "mois_dsd01", org: "중앙정부(행정안전부·NIA)", dept: "재난안전 AI 시범서비스 담당", role: "정부기관 공무원", status: "사용", issued: "2026-08-25", last: "2026-10-03 08:40", hist: [["2026-08-25 09:50", "발급", "admin01", "중앙정부 담당자 공용 계정(행정안전부·NIA)"]] },
   { id: "bs_safety01", org: "부산광역시", dept: "시민안전실 자연재난과", role: "지자체 공무원", status: "사용", issued: "2026-08-25", last: "2026-10-03 09:02", hist: [["2026-08-25 10:00", "발급", "admin01", "시범지역 담당자 사전 발급"]] },
   { id: "yc_safety02", org: "경상북도 영천시", dept: "안전재난하천과", role: "지자체 공무원", status: "사용", issued: "2026-08-25", last: "2026-10-02 18:40", hist: [["2026-08-25 10:02", "발급", "admin01", "시범지역 담당자 사전 발급"]] },
   { id: "ij_safety01", org: "강원특별자치도 인제군", dept: "안전교통과", role: "지자체 공무원", status: "사용", issued: "2026-08-25", last: "2026-10-03 07:11", hist: [["2026-08-25 10:03", "발급", "admin01", "시범지역 담당자 사전 발급"]] },

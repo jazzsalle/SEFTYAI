@@ -9,7 +9,7 @@ export default function MePage() {
   const rows: [string, string][] = [
     ["계정 ID", account.id],
     ["소속", `${account.org} ${account.dept}`],
-    ["사용자 유형", account.role === "지자체" ? "지자체 공무원" : account.role === "운영자" ? "시스템 운영자" : "검토용 계정"],
+    ["사용자 유형", account.role === "지자체" ? "지자체 공무원" : account.role === "운영자" ? "시스템 운영자" : "정부기관 공무원 (행정안전부·NIA 공용)"],
     ["기본 기준지역", REGIONS[account.region].name],
     ["조회 가능 지역", "제한 없음 (기본값은 소속 지역)"],
     ["조회 가능 데이터", "공무원용 전체 (개인정보 항목 포함, 대국민 미제공 항목 표시)"],

@@ -36,6 +36,13 @@ export const IcTrash = (p: P) => (<S {...p}><path d="M4 7h16M10 11v6M14 11v6M6 7
 export const IcUndo = (p: P) => (<S {...p}><path d="M9 14 4 9l5-5" /><path d="M4 9h10a6 6 0 0 1 0 12h-3" /></S>);
 export const IcDownload = (p: P) => (<S {...p}><path d="M12 4v11M7 10l5 5 5-5M5 20h14" /></S>);
 export const IcUpload = (p: P) => (<S {...p}><path d="M12 20V9M7 14l5-5 5 5M5 4h14" /></S>);
+/** 상황전파 — 보내기 */
+export const IcSend = (p: P) => (<S {...p}><path d="M21 3 10 14" /><path d="m21 3-7 18-4-7-7-4z" /></S>);
+export const IcUsers = (p: P) => (<S {...p}><circle cx="9" cy="8" r="3.5" /><path d="M2.5 20a6.5 6.5 0 0 1 13 0" /><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 14a6 6 0 0 1 3.5 6" /></S>);
+export const IcUser = (p: P) => (<S {...p}><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0 1 16 0" /></S>);
+export const IcOrg = (p: P) => (<S {...p}><rect x="9" y="3" width="6" height="5" rx="1" /><rect x="3" y="16" width="6" height="5" rx="1" /><rect x="15" y="16" width="6" height="5" rx="1" /><path d="M12 8v4M6 16v-4h12v4" /></S>);
+export const IcEye = (p: P) => (<S {...p}><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z" /><circle cx="12" cy="12" r="3" /></S>);
+export const IcEyeOff = (p: P) => (<S {...p}><path d="M3 3l18 18" /><path d="M10.6 5.1A10 10 0 0 1 12 5c6.4 0 10 7 10 7a17 17 0 0 1-3.2 4M6.6 6.6C3.8 8.4 2 12 2 12s3.6 7 10 7a9.7 9.7 0 0 0 4.4-1" /><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" /></S>);
 
 export function GovLogo({ size = 36 }: { size?: number }) {
   // 정부 상징 형태 근사 (태극 곡선) — 시안용

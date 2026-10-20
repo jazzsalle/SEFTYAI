@@ -174,6 +174,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
               </div>
               <Link href="/history" onClick={() => setMenu(false)}>대화 이력</Link>
               <Link href="/settings/briefing" onClick={() => setMenu(false)}>내 브리핑 항목</Link>
+              <Link href="/contacts" onClick={() => setMenu(false)}>연락망{account.role === "운영자" ? " (조회)" : ""}</Link>
               <Link href="/settings/me" onClick={() => setMenu(false)}>내 권한 정보</Link>
               {account.role === "운영자" && <Link href="/admin" onClick={() => setMenu(false)}>운영관리</Link>}
               <button onClick={() => { logout(); router.push("/login"); }}>로그아웃</button>

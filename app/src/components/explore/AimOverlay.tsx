@@ -38,7 +38,7 @@ export default function AimOverlay(p: {
   onClose: () => void;
 }) {
   const [d, setD] = useState<AimData | null>(null);
-  // 브리핑 질문 = 내 브리핑 항목 중 사용 중인 것을 위에서부터 5개
+  // 브리핑 질문 = 내 브리핑 항목 중 체크한 것을 위에서부터 4개
   const qs = useBriefItems().slice(0, BRIEF_AIM_COUNT);
   const [pg, setPg] = useState(0);
   // 전광판 위치 이동 (끌어서 옮기고 대화는 그대로 이어감 · 더블클릭 = 원위치 · 브라우저별 기억)

@@ -16,6 +16,7 @@ import {
 import { useExplore } from "../explore/ExploreCtx";
 import { IcCheck, IcChevD, IcChevR, IcDoc, IcDown, IcEdit, IcPlus, IcTrash, IcUndo, IcUp } from "../Icons";
 import SopCardView, { Orgs } from "./SopCardView";
+import SopPropagate from "./SopPropagate";
 import { ActionEditor, GroupEditor, HistoryModal, ManualEditor, MissionEditor, fmtTime, useSopEditOps } from "./SopEdit";
 
 const KIND_ORDER: Record<string, number> = { 초기대응부서: 0, 지휘부: 1, 협업부서: 2, 유관기관: 3 };
@@ -91,6 +92,7 @@ export default function SopPane({ focus }: { focus?: { id: string; n: number } }
           <h2>{m.title}</h2>
         </div>
         <div className="acts">
+          {!editing && <SopPropagate />}
           <button className="btn sm" onClick={() => x.openCitation(cite(st.tablePdfPage, "재난대응 프로세스"))}><IcDoc size={13} /> 매뉴얼 원문</button>
           {sop.canEdit && (
             <button className={`btn sm ${editing ? "pri" : ""}`} onClick={() => sop.setEditing(!editing)} aria-pressed={editing} title="매뉴얼이 개정되면 조치·행동카드·단계 기준을 직접 고칩니다">
