@@ -4,6 +4,10 @@ import type { Advisory, AgentResponse, QueryContext, RegionId, WeatherMode, Weat
 import { api } from "./api";
 import { ACCOUNTS, type Account } from "./config";
 
+/** 지난 상황으로 보관할 때 함께 보내는 화면 정보 (조치 이름·단계 — 누가·언제는 서버 값) */
+export interface CheckArchiveMeta { title?: string; note?: string; labels?: Record<string, { label: string; step: string }> }
+export interface CheckHistory { id: string; title: string; note: string; startedAt: string | null; endedAt: string; by: string; items: { key: string; label: string; step: string; by: string; at: string }[] }
+
 export interface Turn {
   id: string;
   q: string;
@@ -62,8 +66,8 @@ interface SessionState {
   /** 체크한 사람·시각 */
   checkInfo: Record<string, { by: string; at: string }>;
   toggleCheck: (k: string) => void;
-  /** 새 상황으로 시작 — 기관 체크 비움 (prefix 를 주면 그 매뉴얼 것만) */
-  resetChecks: (prefix?: string) => Promise<number>;
+  /** 새 상황으로 시작 — 기관 체크를 지난 상황으로 보관하고 비움 (prefix 를 주면 그 매뉴얼 것만) */
+  resetChecks: (prefix?: string, meta?: CheckArchiveMeta) => Promise<number>;
   toast: (m: string) => void;
   toastMsg: string | null;
   aimOn: boolean;
@@ -249,8 +253,8 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     [account, checkInfo, loadChecks],
   );
   const resetChecks = useCallback(
-    async (prefix?: string) => {
-      const r = await api<{ cleared: number }>("/api/checks", { method: "DELETE", json: { prefix } });
+    async (prefix?: string, meta?: CheckArchiveMeta) => {
+      const r = await api<{ cleared: number }>("/api/checks", { method: "DELETE", json: { prefix, ...meta } });
       setCheckInfo(await api<Record<string, { by: string; at: string }>>("/api/checks"));
       return r.cleared;
     },

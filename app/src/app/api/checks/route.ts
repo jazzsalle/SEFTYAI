@@ -1,5 +1,5 @@
 import { hasDb } from "@/lib/server/db";
-import { checkScope, checkSet, checksGet, checksReset } from "@/lib/server/kvStore";
+import { checkScope, checkSet, checksGet, checksReset, type CheckArchiveMeta } from "@/lib/server/kvStore";
 import { fail, json, whoami } from "@/lib/server/who";
 
 export const dynamic = "force-dynamic";
@@ -23,12 +23,17 @@ export async function POST(req: Request) {
   return json(await checksGet(checkScope(who)));
 }
 
-/** DELETE /api/checks — 새 상황으로 시작 (기관 체크 모두 비움, prefix 를 주면 그 매뉴얼만) */
+/** DELETE /api/checks — 새 상황으로 시작 (기관 체크를 지난 상황으로 보관하고 비움, prefix 를 주면 그 매뉴얼만) {prefix, title, note, labels} */
 export async function DELETE(req: Request) {
   const who = whoami(req);
   if (!who) return fail(401, "로그인이 필요합니다.");
   if (!hasDb()) return fail(503, "서버 DB가 연결되지 않았습니다.");
-  const body = (await req.json().catch(() => ({}))) as { prefix?: string };
-  const n = await checksReset(checkScope(who), who, typeof body.prefix === "string" ? body.prefix.slice(0, 200) : undefined);
+  const body = (await req.json().catch(() => ({}))) as { prefix?: string } & CheckArchiveMeta;
+  const meta: CheckArchiveMeta = {
+    title: typeof body.title === "string" ? body.title : undefined,
+    note: typeof body.note === "string" ? body.note : undefined,
+    labels: body.labels && typeof body.labels === "object" ? body.labels : undefined,
+  };
+  const n = await checksReset(checkScope(who), who, typeof body.prefix === "string" ? body.prefix.slice(0, 200) : undefined, meta);
   return json({ cleared: n });
 }

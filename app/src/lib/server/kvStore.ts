@@ -76,12 +76,53 @@ export async function checkSet(scope: string, key: string, done: boolean, who: A
   if (done) await sql.query("insert into sa_checks (scope, key, by_id, by_name) values ($1, $2, $3, $4) on conflict (scope, key) do nothing", [scope, key, who.id, who.name]);
   else await sql.query("delete from sa_checks where scope = $1 and key = $2", [scope, key]);
 }
-/** 새 상황으로 시작 — 기관 체크를 모두 비움 (관리로그에 남김) */
-export async function checksReset(scope: string, who: Account, prefix?: string) {
+/** 비울 때 함께 받는 화면 정보 — 조치 이름·단계는 그때의 매뉴얼 기준으로 남김 (누가·언제는 서버 값) */
+export interface CheckArchiveMeta { title?: string; note?: string; labels?: Record<string, { label?: string; step?: string }> }
+
+/** 새 상황으로 시작 — 기관 체크를 지난 상황으로 보관한 뒤 모두 비움 (관리로그에 남김) */
+export async function checksReset(scope: string, who: Account, prefix?: string, meta: CheckArchiveMeta = {}) {
   await ensureSchema();
-  const r = (await db().query("delete from sa_checks where scope = $1 and ($2::text is null or key like $2 || '%') returning key", [scope, prefix ?? null])) as Row[];
-  await audit(scope.startsWith("org:") ? scope.slice(4) : null, who.id, "대응절차 체크 비움", { scope, prefix: prefix ?? null, cleared: r.length });
-  return r.length;
+  const labels: Record<string, { label: string; step: string }> = {};
+  for (const [k, v] of Object.entries(meta.labels ?? {}).slice(0, 2000)) labels[k.slice(0, 300)] = { label: String(v?.label ?? "").slice(0, 300), step: String(v?.step ?? "").slice(0, 40) };
+  // 지우기와 보관을 한 문장으로 — 중간에 끊겨도 체크만 사라지는 일이 없게
+  const rows = (await db().query(
+    `with d as (delete from sa_checks where scope = $1 and ($2::text is null or key like $2 || '%') returning key, by_name, at),
+          h as (insert into sa_check_history (scope, prefix, title, note, started_at, by_id, by_name, items)
+                select $1, $2, $3, $4, min(d.at), $5, $6,
+                       jsonb_agg(jsonb_build_object('key', d.key, 'label', coalesce($7::jsonb -> d.key ->> 'label', ''), 'step', coalesce($7::jsonb -> d.key ->> 'step', ''),
+                                                    'by', d.by_name, 'at', d.at) order by d.at)
+                from d having count(*) > 0 returning id)
+     select (select count(*) from d)::int as n, (select id from h) as id`,
+    [scope, prefix ?? null, String(meta.title ?? "").slice(0, 200), String(meta.note ?? "").slice(0, 200), who.id, who.name, JSON.stringify(labels)],
+  )) as Row[];
+  const n = (rows[0]?.n as number) ?? 0;
+  await db().query("delete from sa_check_history where ended_at < now() - make_interval(days => $1)", [CHECK_HISTORY_DAYS]);
+  await audit(scope.startsWith("org:") ? scope.slice(4) : null, who.id, "대응절차 체크 비움", { scope, prefix: prefix ?? null, cleared: n, history: rows[0]?.id ?? null });
+  return n;
+}
+
+export interface CheckHistory { id: string; title: string; note: string; startedAt: string | null; endedAt: string; by: string; items: { key: string; label: string; step: string; by: string; at: string }[] }
+
+/** 지난 상황 보관 기간 — 마감 후 30일이 지나면 삭제 (D40) */
+export const CHECK_HISTORY_DAYS = 30;
+
+/** 지난 상황 — 최근 것부터 (prefix 를 주면 그 매뉴얼만) · 보관 기간이 지난 것은 먼저 지움 */
+export async function checksHistory(scope: string, prefix?: string): Promise<CheckHistory[]> {
+  await ensureSchema();
+  await db().query("delete from sa_check_history where ended_at < now() - make_interval(days => $1)", [CHECK_HISTORY_DAYS]);
+  const rows = (await db().query(
+    "select id, title, note, started_at, ended_at, by_name, items from sa_check_history where scope = $1 and ($2::text is null or prefix = $2) order by ended_at desc limit 50",
+    [scope, prefix ?? null],
+  )) as Row[];
+  return rows.map((r) => ({
+    id: String(r.id),
+    title: r.title as string,
+    note: r.note as string,
+    startedAt: r.started_at ? new Date(r.started_at as string).toISOString() : null,
+    endedAt: new Date(r.ended_at as string).toISOString(),
+    by: r.by_name as string,
+    items: ((r.items as CheckHistory["items"]) ?? []).map((i) => ({ ...i, at: new Date(i.at).toISOString() })),
+  }));
 }
 
 /* ---------------------------------------------------------------- 연계 추적로그 */

@@ -17,16 +17,17 @@ import { useExplore } from "../explore/ExploreCtx";
 import { IcCheck, IcChevD, IcChevR, IcDoc, IcDown, IcEdit, IcPlus, IcTrash, IcUndo, IcUp } from "../Icons";
 import SopCardView, { Orgs } from "./SopCardView";
 import SopPropagate from "./SopPropagate";
-import { ActionEditor, GroupEditor, HistoryModal, ManualEditor, MissionEditor, fmtTime, useSopEditOps } from "./SopEdit";
+import { ActionEditor, GroupEditor, HistoryModal, ManualEditor, MissionEditor, PastSituationsModal, actLabel, fmtTime, useSopEditOps } from "./SopEdit";
 
 const KIND_ORDER: Record<string, number> = { 초기대응부서: 0, 지휘부: 1, 협업부서: 2, 유관기관: 3 };
-type Dlg = { k: "act"; a: SopAction; isNew?: boolean } | { k: "mis"; mi: SopMission; isNew?: boolean } | { k: "grp"; g: SopGroup } | { k: "man" } | { k: "log" };
+type Dlg = { k: "act"; a: SopAction; isNew?: boolean } | { k: "mis"; mi: SopMission; isNew?: boolean } | { k: "grp"; g: SopGroup } | { k: "man" } | { k: "log" } | { k: "past" };
 type RowEdit = { onEdit: () => void; onUp: () => void; onDown: () => void; onDel: () => void; onRestore: () => void };
 
 export default function SopPane({ focus }: { focus?: { id: string; n: number } }) {
   const sop = useSop();
   const { checks, checkInfo, toggleCheck, resetChecks, toast } = useSession();
   const [askReset, setAskReset] = useState(false);
+  const [sitName, setSitName] = useState("");
   const x = useExplore();
   const ops = useSopEditOps();
   const editing = sop.editing && !!sop.editView;
@@ -173,16 +174,27 @@ export default function SopPane({ focus }: { focus?: { id: string; n: number } }
         <span className="sp" />
         <span className="xs mute2">내 부서 완료 <b style={{ color: "var(--c-ok)" }}>{pg.done}</b> / {pg.total}</span>
         <button className="btn xs ghost" onClick={() => setOpen(allOpen ? {} : Object.fromEntries(visible.map((id) => [id, true])))}>{allOpen ? "모두 접기" : "모두 펼치기"}</button>
+        {!editing && <button className="btn xs ghost" onClick={() => setDlg({ k: "past" })} title="[새 상황으로 시작] 때 보관한 상황별 체크 기록">지난 상황</button>}
         {!editing && Object.keys(checks).some((k) => k.startsWith(`sop:${m.id}:`)) && (
-          <button className="btn xs ghost" onClick={() => setAskReset(true)} title="상황이 끝나면 우리 기관 체크를 모두 비우고 새로 시작합니다">새 상황으로 시작</button>
+          <button className="btn xs ghost" onClick={() => { setSitName(""); setAskReset(true); }} title="상황이 끝나면 우리 기관 체크를 지난 상황으로 보관하고 새로 시작합니다">새 상황으로 시작</button>
         )}
       </div>
 
       {askReset && (
-        <div className="notice warn row" style={{ marginTop: 10, gap: 8 }} role="alertdialog" aria-label="새 상황으로 시작">
-          <span className="sp">이 매뉴얼의 우리 기관 체크를 모두 비울까요? 같은 기관 담당자 화면에서도 함께 비워집니다. (비운 기록은 관리로그에 남습니다)</span>
-          <button className="btn xs" onClick={() => setAskReset(false)}>취소</button>
-          <button className="btn xs pri" onClick={async () => { setAskReset(false); try { const n = await resetChecks(`sop:${m.id}:`); toast(`체크 ${n}개를 비웠습니다.`); } catch { toast("체크를 비우지 못했습니다."); } }}>비우기</button>
+        <div className="notice warn" style={{ marginTop: 10 }} role="alertdialog" aria-label="새 상황으로 시작">
+          <div>이 매뉴얼의 우리 기관 체크를 비우고 새로 시작할까요? 같은 기관 담당자 화면에서도 함께 비워집니다. 비운 체크는 누가·언제 했는지와 함께 <b>[지난 상황]</b>에 보관되며, 30일이 지나면 자동으로 삭제됩니다.</div>
+          <div className="row" style={{ marginTop: 8, gap: 8 }}>
+            <input className="input sp" style={{ height: 30 }} value={sitName} maxLength={100} onChange={(e) => setSitName(e.target.value)} placeholder="상황 이름 (선택) 예: 10.20 호우경보 대응" aria-label="상황 이름" />
+            <button className="btn xs" onClick={() => setAskReset(false)}>취소</button>
+            <button className="btn xs pri" onClick={async () => {
+              setAskReset(false);
+              const labels = Object.fromEntries(m.actions.filter((a) => checks[sopCheckKey(m, a)]).map((a) => [sopCheckKey(m, a), { label: actLabel(m, a), step: stepLabel(m, a.step) }]));
+              try {
+                const n = await resetChecks(`sop:${m.id}:`, { title: sitName.trim(), note: rec ? `추천 단계 ${stepLabel(m, rec.step)}` : "", labels });
+                toast(`체크 ${n}개를 지난 상황으로 보관하고 비웠습니다.`);
+              } catch { toast("체크를 비우지 못했습니다."); }
+            }}>보관하고 비우기</button>
+          </div>
         </div>
       )}
 
@@ -255,6 +267,7 @@ export default function SopPane({ focus }: { focus?: { id: string; n: number } }
       {dlg?.k === "grp" && <GroupEditor g={dlg.g} onClose={() => setDlg(null)} />}
       {dlg?.k === "man" && <ManualEditor onClose={() => setDlg(null)} />}
       {dlg?.k === "log" && <HistoryModal onClose={() => setDlg(null)} />}
+      {dlg?.k === "past" && <PastSituationsModal onClose={() => setDlg(null)} />}
     </div>
   );
 }

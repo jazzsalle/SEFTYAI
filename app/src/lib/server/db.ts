@@ -56,6 +56,11 @@ const SCHEMA = [
   `create table if not exists sa_checks (
      scope text not null, key text not null, by_id text not null, by_name text not null, at timestamptz not null default now(),
      primary key (scope, key))`,
+  // 지난 상황 (D40) — [새 상황으로 시작] 때 비우기 전 체크를 상황 하나로 보관 (items = [{key, label, step, by, at}])
+  `create table if not exists sa_check_history (
+     id bigserial primary key, scope text not null, prefix text, title text not null default '', note text not null default '',
+     started_at timestamptz, ended_at timestamptz not null default now(), by_id text not null, by_name text not null, items jsonb not null)`,
+  `create index if not exists sa_check_history_scope on sa_check_history (scope, ended_at desc)`,
   // 연계 추적로그 (D39) — 에이전트 API 응답 때 서버가 직접 기록 (운영자 조회)
   `create table if not exists sa_trace (
      id bigserial primary key, at timestamptz not null default now(), account_id text, api text, intent text, status text,

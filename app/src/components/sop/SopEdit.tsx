@@ -4,9 +4,10 @@
  * 원문 추출본은 그대로 두고 수정본(덧씌움)만 저장 → 언제든 원문으로 되돌릴 수 있고 누가 무엇을 고쳤는지 이력이 남는다.
  * 수정본은 서버에 기관 공용으로 저장 (D39). [내보내기]·[가져오기]는 파일 보관·이관용.
  */
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { useSession } from "@/lib/session";
+import { api } from "@/lib/api";
+import { useSession, type CheckHistory } from "@/lib/session";
 import { useSop } from "@/lib/sopState";
 import {
   SOP_STEPS, blocksToText, codeLabel, deriveCard, editCount, newSopId, stepLabel, textToBlocks,
@@ -18,7 +19,7 @@ import { IcDown, IcPlus, IcUp, IcX } from "../Icons";
 const same = (a: unknown, b: unknown) => JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
 const commaList = (s: string) => s.split(/[,，]/).map((x) => x.trim()).filter(Boolean);
 const lineList = (s: string) => s.split("\n").map((x) => x.trim()).filter(Boolean);
-const actLabel = (m: SopManual, a: Pick<SopAction, "code" | "name">) => `${a.code ? codeLabel(m, a.code) + " " : ""}${a.name}`;
+export const actLabel = (m: SopManual, a: Pick<SopAction, "code" | "name">) => `${a.code ? codeLabel(m, a.code) + " " : ""}${a.name}`;
 
 /** 편집 창 — 우측 패널(애니메이션 transform) 밖, 화면 맨 위에 띄움 */
 function Modal({ title, sub, wide, onClose, children, foot }: { title: string; sub?: string; wide?: boolean; onClose: () => void; children: React.ReactNode; foot: React.ReactNode }) {
@@ -521,6 +522,52 @@ export function HistoryModal({ onClose }: { onClose: () => void }) {
       ) : (
         <p className="xs mute2">아직 고친 내용이 없습니다. 원문 추출본 그대로입니다.</p>
       )}
+    </Modal>
+  );
+}
+
+/* ---------------------------------------------------------------- 지난 상황 (D40) — [새 상황으로 시작] 때 보관한 체크, 마감 후 30일 보관 */
+const KEEP_DAYS = 30;
+const daysLeft = (endedAt: string) => Math.max(0, Math.ceil((new Date(endedAt).getTime() + KEEP_DAYS * 86_400_000 - Date.now()) / 86_400_000));
+export function PastSituationsModal({ onClose }: { onClose: () => void }) {
+  const sop = useSop();
+  const m = sop.manual!;
+  const [list, setList] = useState<CheckHistory[] | null>(null);
+  const [err, setErr] = useState("");
+  const [open, setOpen] = useState<string | null>(null);
+  useEffect(() => {
+    api<CheckHistory[]>(`/api/checks/history?prefix=${encodeURIComponent(`sop:${m.id}:`)}`)
+      .then((r) => { setList(r); setOpen(r[0]?.id ?? null); })
+      .catch(() => setErr("지난 상황을 불러오지 못했습니다."));
+  }, [m.id]);
+  return (
+    <Modal wide title="지난 상황" sub={`${m.title} · 우리 기관`} onClose={onClose} foot={<><span className="sp" /><button className="btn" onClick={onClose}>닫기</button></>}>
+      <div className="notice" style={{ marginBottom: 12 }}>
+        [새 상황으로 시작]을 누를 때 그때까지의 체크를 상황 하나로 보관합니다. 어떤 조치를 누가·언제 했는지 상황별로 다시 볼 수 있습니다.
+        <b> 보관한 상황은 마감 후 {KEEP_DAYS}일이 지나면 자동으로 삭제됩니다.</b> 오래 남겨야 하면 그 전에 화면을 캡처하거나 따로 기록해 두세요.
+      </div>
+      {err && <div className="notice danger">{err}</div>}
+      {!list && !err && <div className="typing"><i /><i /><i /></div>}
+      {list && !list.length && <p className="xs mute2">아직 보관한 상황이 없습니다.</p>}
+      {list?.map((h) => (
+        <div key={h.id} className="sp-info" style={{ marginBottom: 8 }}>
+          <button className="lnk" style={{ fontWeight: 700 }} onClick={() => setOpen(open === h.id ? null : h.id)} aria-expanded={open === h.id}>
+            {h.title || "이름 없는 상황"}
+          </button>
+          <span className="xs mute2"> · {h.startedAt ? fmt(h.startedAt) : "—"} ~ {fmt(h.endedAt)} · 체크 {h.items.length}건 · 마감 {h.by} · {daysLeft(h.endedAt)}일 뒤 삭제</span>
+          {h.note && <div className="xs mute2" style={{ marginTop: 2 }}>{h.note}</div>}
+          {open === h.id && (
+            <table className="tbl sp-log" style={{ marginTop: 8 }}>
+              <thead><tr><th>체크 시각</th><th>단계</th><th>조치</th><th>체크한 사람</th></tr></thead>
+              <tbody>
+                {h.items.map((i) => (
+                  <tr key={i.key}><td className="nw">{fmt(i.at)}</td><td className="nw">{i.step || "—"}</td><td>{i.label || i.key}</td><td className="nw">{i.by}</td></tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      ))}
     </Modal>
   );
 }
