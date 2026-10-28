@@ -96,10 +96,10 @@ describe("사건 상세 패널 — 배치(R25)", () => {
     const fig = screen.getByText("보고 단계별 피해액·복구비").closest("figure");
     expect(fig?.getAttribute("role")).toBeNull(); // 그림(img)이 아니라 표
     expect([...(fig?.querySelectorAll("thead th") ?? [])].map((x) => x.textContent)).toEqual(["보고 단계", "항목 수", "피해액(원)", "복구비(원)"]);
-    // 항목 수는 받은 숫자 그대로(쉼표 없음), 금액(원)만 천 단위 쉼표
+    // 숫자는 천 단위 쉼표로 통일(사용자 결정 2026-10-28) — 항목 수·금액 모두
     expect(rowsOf(fig)).toEqual([
-      ["중앙", "15506", "950,141,668,000", "3,263,503,307,000"],
-      ["시군구", "15506", "950,173,767,000", "3,279,393,548,000"],
+      ["중앙", "15,506", "950,141,668,000", "3,263,503,307,000"],
+      ["시군구", "15,506", "950,173,767,000", "3,279,393,548,000"],
     ]);
   });
 });
@@ -110,11 +110,11 @@ describe("사건 상세 패널 — 받은 값 그대로", () => {
     const ev = rec("T3Q-10").response.result as { event_summary: string };
     expect(screen.getByText(ev.event_summary).tagName).toBe("P");
     const text = c.textContent ?? "";
-    expect(text).toContain("사망 — · 실종 — · 부상 — · 이재민 16767");
+    expect(text).toContain("사망 — · 실종 — · 부상 — · 이재민 16,767");
     expect(text).toContain("재산피해1,037,156,500,000원");
-    // 건수는 받은 숫자 그대로
+    // 건수·인원도 천 단위 쉼표(통일)
     expect(text).toContain("공공시설913건 · 95,965,587,000원");
-    expect(text).toContain("사유시설228298건 · 406,065,397,000원");
+    expect(text).toContain("사유시설228,298건 · 406,065,397,000원");
     // 데이터 기준 시각은 받은 글자 그대로(날짜만 자르지 않음)
     expect(text).toContain(`데이터 기준 ${(rec("T3Q-10").response.meta as { base_time: string }).base_time}`);
     // 제공처 알림(warnings·data_gaps)은 각 섹션 끝에 그대로

@@ -2,6 +2,7 @@
 import { useState } from "react";
 import type { PreviewItem } from "@/lib/jobTypes";
 import { API_KO, fieldKo, statusKo } from "@/lib/labels";
+import { fmtNum, fmtValue } from "@/lib/format";
 import { useExplore } from "@/components/explore/ExploreCtx";
 import { Gaps } from "@/components/explore/DetailPane";
 
@@ -29,18 +30,22 @@ export const DETAIL: Record<string, { api: string; idKey: string; nameKey: strin
 
 /**
  * 칸 글자 — 값은 그대로. 주요 항목 표(all=false)는 이름·값 객체에서 이름·값만 꺼내고, 그 밖의 객체는 「한국어 키: 값」으로 풀어 쓴다.
- * 「모든 항목 보기」(all=true)는 객체를 늘 키 전부 풀어 쓴다(행정코드 같은 옆 키도 빠지지 않게)
+ * 「모든 항목 보기」(all=true)는 객체를 늘 키 전부 풀어 쓴다(행정코드 같은 옆 키도 빠지지 않게).
+ * 숫자는 천 단위 쉼표(번호·코드·연도 열은 그대로 — key 로 가림, lib/format.ts fmtValue)
  */
-export function cellText(v: unknown, all = false): string {
+export function cellText(v: unknown, all = false, key?: string): string {
   if (v === null || v === undefined || v === "") return "—";
-  if (Array.isArray(v)) return v.map((x) => cellText(x, all)).join(", ");
+  if (Array.isArray(v)) return v.map((x) => cellText(x, all, key)).join(", ");
   if (typeof v === "object") {
     const o = v as Record<string, unknown>;
-    if (!all && "name" in o && Object.keys(o).length <= 3) return cellText(o.name);
-    if (!all && "value" in o && Object.keys(o).length <= 3) return cellText(o.value);
-    return Object.entries(o).map(([k, x]) => `${fieldKo(k)}: ${cellText(x, all)}`).join(" · ");
+    if (!all && "name" in o && Object.keys(o).length <= 3) return cellText(o.name, false, "name");
+    if (!all && "value" in o && Object.keys(o).length <= 3) return cellText(o.value, false, key);
+    // {key: "built_year", value: 1995} 꼴(속성 목록)은 value 의 열 이름을 그 key 로 본다
+    const own = typeof o.key === "string" ? o.key : undefined;
+    return Object.entries(o).map(([k, x]) => `${fieldKo(k)}: ${cellText(x, all, k === "value" && own ? own : k)}`).join(" · ");
   }
   if (typeof v === "boolean") return v ? "있음" : "없음";
+  if (typeof v === "number") return fmtValue(key, v);
   return String(v);
 }
 
@@ -57,7 +62,7 @@ export function CardHead({ p, open, onToggle }: { p: PreviewItem; open: boolean;
   return (
     <button className="datacard-t" onClick={onToggle} aria-expanded={open}>
       <b>{p.label}</b>
-      <span className="xs muted"> · {API_KO[p.apiId] ?? p.apiId} · {statusKo(env?.status ?? (p.http ? undefined : "ERROR"))} · 전체 {env?.result?.total_count ?? "—"}건 · 데이터 기준 {env?.meta?.base_time ?? "—"}</span>
+      <span className="xs muted"> · {API_KO[p.apiId] ?? p.apiId} · {statusKo(env?.status ?? (p.http ? undefined : "ERROR"))} · 전체 {typeof env?.result?.total_count === "number" ? fmtNum(env.result.total_count) : (env?.result?.total_count ?? "—")}건 · 데이터 기준 {env?.meta?.base_time ?? "—"}</span>
     </button>
   );
 }
@@ -74,7 +79,7 @@ export default function GenericCard({ p }: { p: PreviewItem }) {
   // 상세를 여는 단추를 둘 칸 — 이름 칸(없으면 첫 칸). 행 어디를 눌러도 열리고, 키보드는 이 단추로(Enter·Space 의 클릭이 행으로 올라간다)
   const btnKey = det ? (keys.includes(det.nameKey) ? det.nameKey : keys[0]) : null;
   const cells = (it: Record<string, unknown>): [string, string][] =>
-    all ? keys.map((k) => [k, cellText(it[k], true)]) : cols.map((c) => [c.key, cellText(c.get(it))]);
+    all ? keys.map((k) => [k, cellText(it[k], true, k)]) : cols.map((c) => [c.key, cellText(c.get(it), false, c.key)]);
   // 유사사례 → 사건 상세에서 유사도 근거를 같은 조건으로 비교
   const ctx = p.apiId === "T3Q-04" ? ((p.request as { query_context?: Record<string, unknown> } | null)?.query_context ?? null) : null;
   return (

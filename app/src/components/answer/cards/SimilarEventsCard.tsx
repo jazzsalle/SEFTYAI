@@ -28,7 +28,7 @@ const OK_STATUS = ["SUCCESS", "PARTIAL_SUCCESS"];
 
 const empty = (v: unknown) => v === null || v === undefined || v === "";
 /** 받은 값 → 글자. 비었으면 null(그 자리를 두지 않는다) */
-const textOrNull = (v: unknown) => (empty(v) ? null : cellText(v));
+const textOrNull = (v: unknown, key?: string) => (empty(v) ? null : cellText(v, false, key));
 
 /** 사건 상세에 보낼 사건 ID — 받은 값 그대로(글자·숫자일 때만) */
 function idOf(it: Item): string | null {
@@ -55,8 +55,8 @@ function fieldsOf(it: Item) {
     period: `${cellText(it.started_at)} ~ ${cellText(it.ended_at)}`,
     area: textOrNull(pick("representative_admin_area.name")(it)),
     life: empty(life) ? null : typeof life === "string" ? (VALUE_KO[life] ?? life) : cellText(life),
-    rank: textOrNull(pick("similarity.rank")(it)),
-    score: cellText(pick("similarity.score")(it)),
+    rank: textOrNull(pick("similarity.rank")(it), "rank"),
+    score: cellText(pick("similarity.score")(it), false, "score"),
     scale: textOrNull(pick("similarity.scale")(it)),
   };
 }
@@ -180,7 +180,7 @@ function AllFields({ items, onOpen }: { items: Item[]; onOpen: (it: Item) => voi
           {items.map((it, i) => (
             <tr key={i} className="clk" onClick={() => onOpen(it)}>
               {keys.map((k) => {
-                const text = cellText(it[k], true);
+                const text = cellText(it[k], true, k);
                 return <td key={k}>{k === btnKey ? <button type="button" className="lnk">{text}</button> : text}</td>;
               })}
             </tr>

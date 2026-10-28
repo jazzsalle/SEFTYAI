@@ -1,6 +1,7 @@
 "use client";
 import "./viz.css";
 import { useRef, useState } from "react";
+import { fmtNum } from "@/lib/format";
 
 /**
  * 시각화 부품 — T3Q Data API 값을 그대로 그린다(값 가공 없음, 축 눈금만 간추림). V1 반려, V2·V3 그대로(R25),
@@ -11,16 +12,8 @@ import { useRef, useState } from "react";
  */
 export const SERIES = ["var(--series-1)", "var(--series-2)", "var(--series-3)", "var(--series-4)", "var(--series-5)"];
 
-/**
- * 받은 숫자 그대로 + 정수 부분 천 단위 쉼표. 소수부는 받은 자릿수 그대로(toLocaleString 은 소수 3자리로 반올림하므로 쓰지 않음).
- * 지수 표기·NaN 등 쉼표를 넣을 수 없는 꼴은 글자 그대로.
- */
-export function fmtNum(n: number): string {
-  const s = String(n);
-  if (!/^-?\d+(\.\d+)?$/.test(s)) return s;
-  const [int, frac] = s.split(".");
-  return int.replace(/\B(?=(\d{3})+$)/g, ",") + (frac === undefined ? "" : `.${frac}`);
-}
+/** 천 단위 쉼표(정수부만, 소수부 그대로) — 공통 숫자 표기는 lib/format.ts 하나로 */
+export { fmtNum };
 
 /** 축 눈금용 간추린 숫자(원 단위 큰 수) — 막대 끝 값 표기는 원값 그대로 */
 export function compactKo(n: number) {

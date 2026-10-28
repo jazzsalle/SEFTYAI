@@ -2,7 +2,8 @@
 import { useState, type ReactNode } from "react";
 import { type T3qDataState, type T3qEnvelope, useT3qData } from "@/lib/t3qData";
 import { fieldKo, statusKo, VALUE_KO } from "@/lib/labels";
-import { BarList, compactKo, fmtNum, SERIES, StackedBar, Timeline } from "../viz/Charts";
+import { fmtNum, fmtValue } from "@/lib/format";
+import { BarList, compactKo, SERIES, StackedBar, Timeline } from "../viz/Charts";
 import { Gaps, Tree } from "./DetailPane";
 
 /**
@@ -66,14 +67,16 @@ const groupColor = (g: string) => SERIES[Math.max(0, GROUP_ORDER.indexOf(g)) % S
 /** 받은 값 글자 — 빈 값·빈 목록은 「—」, 목록은 항목마다 쉼표로 잇는다(같은 값도 그대로). 숫자는 받은 그대로(쉼표 없음) */
 const txt = (v: unknown): string =>
   v == null || v === "" ? "—" : Array.isArray(v) ? (v.length ? v.map(txt).join(", ") : "—") : typeof v === "object" ? JSON.stringify(v) : String(v);
-/** 건수 — 받은 숫자 그대로 + 「건」 */
-const cnt = (v: unknown) => (typeof v === "number" ? `${v}건` : txt(v));
-/** 금액(원) — 받은 숫자 그대로 + 천 단위 쉼표(예전부터의 금액 표기, 자릿수 불변) */
+/** 숫자 칸 — 천 단위 쉼표(번호·코드·연도 열은 그대로, lib/format.ts fmtValue), 숫자가 아니면 받은 글자 */
+const num = (k: string, v: unknown) => (typeof v === "number" ? fmtValue(k, v) : txt(v));
+/** 건수 — 천 단위 쉼표 + 「건」 */
+const cnt = (v: unknown) => (typeof v === "number" ? `${fmtNum(v)}건` : txt(v));
+/** 금액(원) — 천 단위 쉼표(자릿수 불변) */
 const amt = (v: unknown) => (typeof v === "number" ? fmtNum(v) : txt(v));
 const krw = (v: unknown) => (typeof v === "number" ? `${fmtNum(v)}원` : txt(v));
 /** 코드 값 칸(시각 단위·기록 종류·연결 근거) — 사전(VALUE_KO)에 있으면 한국어 이름, 없으면 받은 글자 */
 const CODE_KEYS = new Set(["time_precision", "record_type", "relation_basis"]);
-const cellOf = (k: string, v: unknown) => (CODE_KEYS.has(k) && typeof v === "string" ? (VALUE_KO[v] ?? v) : txt(v));
+const cellOf = (k: string, v: unknown) => (CODE_KEYS.has(k) && typeof v === "string" ? (VALUE_KO[v] ?? v) : num(k, v));
 /** 받은 항목들의 키 전부 — 나오는 순서대로(앞 항목에 없던 키도 뒤에 붙인다) */
 function keysOf(rows: Record<string, unknown>[]) {
   const keys: string[] = [];
@@ -188,7 +191,7 @@ function DamageView({ d, res, env }: { d: Damage; res: Dmg; env: Env<Dmg> }) {
     <>
       <dl className="kv" style={{ margin: "6px 0 4px" }}>
         <dt>재산피해</dt><dd>{krw(d.property?.property_damage_krw)}</dd>
-        <dt>인명·이재민</dt><dd>{human.map(([k, v]) => `${fieldKo(k)} ${txt(v)}`).join(" · ") || "—"}</dd>
+        <dt>인명·이재민</dt><dd>{human.map(([k, v]) => `${fieldKo(k)} ${num(k, v)}`).join(" · ") || "—"}</dd>
         <dt>공공시설</dt><dd>{cnt(d.facilities?.public?.record_count)} · {krw(d.facilities?.public?.damage_amount_krw)}</dd>
         <dt>사유시설</dt><dd>{cnt(d.facilities?.private?.record_count)} · {krw(d.facilities?.private?.damage_amount_krw)}</dd>
       </dl>
@@ -209,7 +212,7 @@ function DamageView({ d, res, env }: { d: Damage; res: Dmg; env: Env<Dmg> }) {
               <thead><tr><th>보고 단계</th><th className="num">항목 수</th><th className="num">피해액(원)</th><th className="num">복구비(원)</th></tr></thead>
               <tbody>
                 {rec.map((x, i) => (
-                  <tr key={i}><td>{txt(x.report_level)}</td><td className="num">{txt(x.item_count)}</td><td className="num">{amt(x.damage_amount_krw)}</td><td className="num">{amt(x.recovery_cost_krw)}</td></tr>
+                  <tr key={i}><td>{txt(x.report_level)}</td><td className="num">{num("item_count", x.item_count)}</td><td className="num">{amt(x.damage_amount_krw)}</td><td className="num">{amt(x.recovery_cost_krw)}</td></tr>
                 ))}
               </tbody>
             </table>
@@ -222,7 +225,7 @@ function DamageView({ d, res, env }: { d: Damage; res: Dmg; env: Env<Dmg> }) {
           <div className="md-table">
             <table>
               <thead><tr>{regKeys.map((k) => <th key={k}>{fieldKo(k)}</th>)}</tr></thead>
-              <tbody>{regs.map((g, i) => <tr key={i}>{regKeys.map((k) => <td key={k}>{txt(g[k])}</td>)}</tr>)}</tbody>
+              <tbody>{regs.map((g, i) => <tr key={i}>{regKeys.map((k) => <td key={k}>{num(k, g[k])}</td>)}</tr>)}</tbody>
             </table>
           </div>
         </figure>
@@ -266,7 +269,7 @@ function SimilarityView({ s, env }: { s: Sim; env: Env<Sim> }) {
   const sim = s.similarity;
   const cons = s.contributions ?? [];
   // 유사도 — 받은 키 전부(점수·순위·척도·산식 판·비교에 쓴 요인 비율 등) 받은 순서·값 그대로
-  const simText = sim && typeof sim === "object" ? Object.entries(sim).map(([k, v]) => `${fieldKo(k)} ${txt(v)}`).join(" · ") : undefined;
+  const simText = sim && typeof sim === "object" ? Object.entries(sim).map(([k, v]) => `${fieldKo(k)} ${num(k, v)}`).join(" · ") : undefined;
   return (
     <>
       <StackedBar
@@ -281,7 +284,7 @@ function SimilarityView({ s, env }: { s: Sim; env: Env<Sim> }) {
           <thead><tr><th>요인군</th><th>요인</th><th>현재 조건</th><th>과거 사례</th><th>일치도</th><th>가중치</th><th>기여도</th></tr></thead>
           <tbody>
             {(s.factors ?? []).map((f, i) => (
-              <tr key={i}><td>{f.factor_group}</td><td>{f.factor}{f.unit ? ` (${f.unit})` : ""}</td><td>{txt(f.current_value)}</td><td>{txt(f.past_value)}</td><td>{txt(f.match)}</td><td>{txt(f.weight_used)}</td><td>{txt(f.contribution)}</td></tr>
+              <tr key={i}><td>{f.factor_group}</td><td>{f.factor}{f.unit ? ` (${f.unit})` : ""}</td><td>{num("current_value", f.current_value)}</td><td>{num("past_value", f.past_value)}</td><td>{txt(f.match)}</td><td>{txt(f.weight_used)}</td><td>{txt(f.contribution)}</td></tr>
             ))}
           </tbody>
         </table>

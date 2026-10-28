@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { API_KO, fieldKo, gapName, GAP_KO, QUALITY_KO, statusKo } from "@/lib/labels";
+import { fmtValue } from "@/lib/format";
 import EventDetail from "./EventDetail";
 
 /**
@@ -54,29 +55,34 @@ export function Gaps({ env }: { env: Pick<Env, "data_gaps" | "warnings"> }) {
   );
 }
 
-export function Tree({ v }: { v: unknown }) {
+/** 받은 값 나무 — 값은 그대로, 숫자만 천 단위 쉼표(번호·코드·연도 열은 그대로 — k = 그 값의 열 이름) */
+export function Tree({ v, k }: { v: unknown; k?: string }) {
   if (v === null || v === undefined) return <span className="mute2">없음</span>;
   if (Array.isArray(v)) {
     if (!v.length) return <span className="mute2">없음</span>;
-    if (v.every((x) => x === null || typeof x !== "object")) return <span>{v.map(String).join(", ")}</span>;
+    if (v.every((x) => x === null || typeof x !== "object")) return <span>{v.map((x) => (typeof x === "number" ? fmtValue(k, x) : String(x))).join(", ")}</span>;
     return (
       <ol className="tree-list">
-        {v.map((x, i) => <li key={i}><Tree v={x} /></li>)}
+        {v.map((x, i) => <li key={i}><Tree v={x} k={k} /></li>)}
       </ol>
     );
   }
   if (typeof v === "object") {
+    const o = v as Record<string, unknown>;
+    // {key: "built_year", value: 1995} 꼴(속성 목록)은 value 의 열 이름을 그 key 로 본다
+    const own = typeof o.key === "string" ? o.key : undefined;
     return (
       <dl className="kv tree">
-        {Object.entries(v as Record<string, unknown>).map(([k, x]) => (
-          <div key={k} style={{ display: "contents" }}>
-            <dt>{fieldKo(k)}</dt>
-            <dd><Tree v={x} /></dd>
+        {Object.entries(o).map(([kk, x]) => (
+          <div key={kk} style={{ display: "contents" }}>
+            <dt>{fieldKo(kk)}</dt>
+            <dd><Tree v={x} k={kk === "value" && own ? own : kk} /></dd>
           </div>
         ))}
       </dl>
     );
   }
   if (typeof v === "boolean") return <span>{v ? "예" : "아니요"}</span>;
+  if (typeof v === "number") return <span>{fmtValue(k, v)}</span>;
   return <span>{String(v)}</span>;
 }
