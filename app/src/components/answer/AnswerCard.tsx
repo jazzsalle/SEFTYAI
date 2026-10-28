@@ -338,9 +338,12 @@ function Menu({ label, children }: { label: string; children: (close: () => void
   );
 }
 
+/** 띄우지 않는 T3Q 고정 안내문(사용자 지시 2026-10-28 — 모든 답의 limitations 에 같은 글로 붙어 온다). 다른 한계 문구는 그대로 보인다 */
+const HIDDEN_LIMITATIONS = new Set(["유사사례는 예측·위험판단이 아닌 참고 정보"]);
+
 /** 경고·정보 부족·한계 — T3Q 문구 그대로(제자리). id 를 주면 「경고·정보 부족 보기」 바로가기 대상 */
 export function RawFoot({ raw, id }: { raw: NonNullable<JobFull["raw"]>; id?: string }) {
-  const lim = raw.result?.limitations ?? [];
+  const lim = (raw.result?.limitations ?? []).filter((l) => !HIDDEN_LIMITATIONS.has(l.trim()));
   if (!raw.warnings?.length && !raw.data_gaps?.length && !lim.length) return null;
   return (
     <div className="gaps" id={id} tabIndex={id ? -1 : undefined}>

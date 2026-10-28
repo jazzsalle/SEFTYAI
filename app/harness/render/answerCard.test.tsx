@@ -97,13 +97,13 @@ describe("답변 카드 — 받은 값만, 센 값·설명 없음", () => {
     expect(container.querySelector("[title*='24시간']")).toBeNull();
   });
 
-  it("경고·정보 부족이 있으면 답 위에 바로가기(개수 없음) — 알림은 제자리(답변 대상 아래), 한계 줄도 그대로", () => {
+  it("경고·정보 부족이 있으면 답 위에 바로가기(개수 없음) — 알림은 제자리(답변 대상 아래), T3Q 고정 안내문 한 줄은 띄우지 않음(사용자 지시)", () => {
     const job = makeJob();
     const { container } = wrap(<AnswerCard job={job} full={makeFull(job)} />);
     const jump = screen.getByRole("button", { name: "경고·정보 부족 보기 ↓" });
     const gaps = container.querySelector(".gaps")!;
     expect(gaps.textContent).toContain("정보 부족: 행동매뉴얼 — 원자료에 없음");
-    expect(gaps.textContent).toContain("유사사례는 예측·위험판단이 아닌 참고 정보");
+    expect(container.textContent).not.toContain("유사사례는 예측·위험판단이 아닌 참고 정보");
     expect(container.querySelector(".refbox")!.compareDocumentPosition(gaps) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(jump.compareDocumentPosition(container.querySelector(".md")!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     fireEvent.click(jump);
