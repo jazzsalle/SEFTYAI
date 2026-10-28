@@ -1,26 +1,24 @@
 "use client";
 /**
- * 서버 API 호출 — 로그인한 계정 ID를 헤더(x-sa-account)로 함께 보냄
- * (시연판: 별도 인증 서버 없이 계정 ID로 권한을 판정. 실서비스는 세션 인증으로 바꿈)
+ * 서버 API 호출 — 로그인 세션은 쿠키(sa_sid)로 간다 (R7). 401 이면 세션 만료 이벤트를 알린다.
+ * 유휴 30분: 사용자가 최근 1분 안에 화면을 조작했을 때만 x-sa-activity: 1 을 보내 세션을 연장한다(백그라운드 폴링은 연장하지 않음).
  */
-export function accountId(): string | null {
-  try {
-    const v = localStorage.getItem("sa.account");
-    return v ? (JSON.parse(v) as string) : null;
-  } catch {
-    return null;
-  }
+let lastActivity = Date.now();
+if (typeof window !== "undefined") {
+  const mark = () => { lastActivity = Date.now(); };
+  for (const ev of ["pointerdown", "keydown", "wheel", "touchstart"]) window.addEventListener(ev, mark, { passive: true, capture: true });
 }
-
 export async function api<T>(path: string, init: RequestInit & { json?: unknown } = {}): Promise<T> {
   const { json, headers, ...rest } = init;
   const r = await fetch(path, {
     ...rest,
     cache: "no-store",
-    headers: { ...(json !== undefined ? { "content-type": "application/json" } : {}), "x-sa-account": accountId() ?? "", ...headers },
+    credentials: "same-origin",
+    headers: { ...(json !== undefined ? { "content-type": "application/json" } : {}), "x-sa-activity": Date.now() - lastActivity < 60_000 ? "1" : "0", ...headers },
     body: json !== undefined ? JSON.stringify(json) : rest.body,
   });
   const body = await r.json().catch(() => ({}));
+  if (r.status === 401 && typeof window !== "undefined" && !path.startsWith("/api/auth/")) window.dispatchEvent(new Event("sa:session-expired"));
   if (!r.ok) throw new ApiError(r.status, (body as { error?: string }).error ?? `서버 오류 (${r.status})`, body);
   return body as T;
 }

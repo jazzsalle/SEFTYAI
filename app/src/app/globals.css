@@ -219,10 +219,10 @@ label.chk input { width: 18px; height: 18px; accent-color: var(--c-primary); }
   border-radius: var(--r-m); font-size: var(--fs-xs); color: var(--c-text); }
 .menu button:hover, .menu a:hover { background: var(--c-sec-sub); }
 
-/* 특보 바 */
-.wxbar { flex: none; min-height: 50px; display: flex; align-items: center; gap: 14px; padding: 8px 24px;
+/* 특보 바 — 44px(시각 설계 §0.4·결함 8). 안의 가장 큰 것: 단계 표시 30px · [특보로 질문] 32px */
+.wxbar { flex: none; min-height: 44px; display: flex; align-items: center; gap: 14px; padding: 4px 24px;
   background: #fff; border-bottom: 1px solid var(--c-line); font-size: var(--fs-s); }
-.wxbar .tag { display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 12px; border-radius: var(--r-s);
+.wxbar .tag { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 12px; border-radius: var(--r-s);
   background: var(--c-dang); color: #fff; font-weight: 800; font-size: var(--fs-s); }
 .wxbar .tag.warn { background: var(--c-warn); color: #3a2a00; }
 .wxbar .tag.none { background: var(--c-ok-sub); color: var(--c-ok); }
@@ -790,8 +790,10 @@ label.chk input { width: 18px; height: 18px; accent-color: var(--c-primary); }
 /* =====================================================================
    행동매뉴얼 대응절차 — 단계 바(특보 바 아래 고정) · 우측 고정 탭
    ===================================================================== */
-.sopbar { flex: none; min-height: 46px; display: flex; align-items: center; gap: 12px; padding: 6px 24px;
+/* 대응절차 줄 — 40px(시각 설계 §0.4·결함 8). 안의 가장 큰 것: [대응절차 전체] 30px · 단계 단추 30px */
+.sopbar { flex: none; min-height: 40px; display: flex; align-items: center; gap: 12px; padding: 4px 24px;
   background: #f6f9ff; border-bottom: 1px solid var(--c-primary-bd); font-size: var(--fs-xs); min-width: 0; }
+.sopbar .btn.sm { height: 30px; }
 .sopbar.hot { background: linear-gradient(90deg, #fff1ee, #f6f9ff 55%); border-bottom-color: #f3c7bf; }
 .sopbar .sb-lab { flex: none; display: inline-flex; align-items: center; gap: 5px; height: 28px; padding: 0 10px; border-radius: var(--r-s);
   background: var(--c-navy); color: #fff; font-weight: 800; }

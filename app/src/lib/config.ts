@@ -28,6 +28,8 @@ export interface Account {
   region: RegionId;
   color: string;
   initial: string;
+  /** 첫 로그인·재설정 후 비밀번호 변경이 필요한가 (서버 세션이 채움) */
+  mustChangePw?: boolean;
 }
 
 export const ACCOUNTS: Account[] = [
@@ -39,22 +41,3 @@ export const ACCOUNTS: Account[] = [
 ];
 
 export const DISASTER_TYPES = ["전체", "호우", "태풍", "홍수", "침수", "산사태"] as const;
-
-/** 위험·취약 객체 범주별 표시 색 (지도·목록 공통) */
-export const CATEGORY_STYLE: Record<string, { color: string; icon: string }> = {
-  급경사지: { color: "#bd2c0f", icon: "⛰" },
-  붕괴위험지역: { color: "#de3412", icon: "⛰" },
-  산사태취약지역: { color: "#8a5a00", icon: "⛰" },
-  위험저수지: { color: "#0b78cb", icon: "◉" },
-  풍수해개선지구: { color: "#6f4bd8", icon: "◆" },
-  상습침수지역: { color: "#0a6e9e", icon: "≋" },
-  홍수취약지구: { color: "#1d4f9c", icon: "≋" },
-  지하차도: { color: "#e5590b", icon: "▼" },
-  야영장: { color: "#228738", icon: "▲" },
-  소하천: { color: "#0f9d8a", icon: "~" },
-  하천위험요소: { color: "#0f9d8a", icon: "!" },
-  건축물지하공간: { color: "#575d66", icon: "▣" },
-  "119신고": { color: "#de3412", icon: "☎" },
-  재난사건: { color: "#6b2fb3", icon: "◷" },
-};
-export const catStyle = (c?: string) => CATEGORY_STYLE[c ?? ""] ?? { color: "#256ef4", icon: "●" };

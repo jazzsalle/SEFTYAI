@@ -1,0 +1,229 @@
+{
+  "id": "inje:BR-02",
+  "question": "위험·취약지역 중 과거 재난 때 실제로 피해가 났던 곳과 피해 내용은?",
+  "request": {
+    "question": "위험·취약지역 중 과거 재난 때 실제로 피해가 났던 곳과 피해 내용은?",
+    "question_source": "BRIEFING",
+    "query_context": {
+      "region": {
+        "admin_code": "5181000000",
+        "name": "강원특별자치도 인제군",
+        "level": "SIGUNGU"
+      },
+      "disaster_types": [
+        "호우"
+      ]
+    }
+  },
+  "final": {
+    "schema_version": "2.0",
+    "request_id": "50eb639441c573da32bb6c315bde52f3",
+    "correlation_id": "corr-50eb639441c573da32bb6c315bde52f3",
+    "status": "SUCCESS",
+    "conversation_id": "CONV-20261028-572ccd",
+    "turn_no": 1,
+    "result": {
+      "response_id": "RES-20261028-53f3b5",
+      "question": "위험·취약지역 중 과거 재난 때 실제로 피해가 났던 곳과 피해 내용은?",
+      "question_source": "BRIEFING",
+      "answer": "강원특별자치도 인제군 관내 **자연재해위험개선지구(NDIZ)** 및 **급경사지 붕괴위험지역(CRA)** 등 법정 위험·취약지역 중, 과거 집중호우 및 태풍 시 실제 피해가 발생했던 주요 지구와 세부 피해 내역은 다음과 같습니다.\n\n---\n\n### 1. 자연재해위험개선지구(NDIZ) 실제 피해 발생 현황\n\n| 구분 | 위험지구명 | 위치 및 취약유형 | 주요 재난 및 실제 피해 내용 |\n|---|---|---|---|\n| **하천범람·유실** | [서화교·반월촌교·서화지구](#ref:r6) | [서화면 서화리·천도리 일원](#ref:r12) (인북천/서화천) | • **2020년 7~8월 호우 및 태풍 마이삭·하이선**: [인북천(후평교~반월촌교~심적교)](#ref:r12) 및 서화천 제방 붕괴·유실, [세종3교 도로 침수](#ref:r11), 군사시설(사격장·GP) 침수 피해<br>• **2024년 7월 호우**: [지방도 453호선 서화지구](#ref:r12) 도로 유실 피해 |\n| **침수·방재취약** | [수교·내가평교 지구](#ref:r5) | [북면 용대리 일원](#ref:r10) (영실천·북천) | • **2020년 태풍 마이삭·하이선**: [소교량 침수](#ref:r10)(1,241만 원), [상수도 취수장 침수](#ref:r10)(펌프 2기 및 자동제어시스템 파손, 1억 4,592만 원), 영실천 제방 유실 |\n| **하천유실·침수** | [덕다리 지구](#ref:r32) | [기린면 현리 일원](#ref:r32) (방태천·내린천) | • **2020년 태풍 마이삭·하이선**: 방태천(현리 1287-2) 및 소양강(서리 6-15) 호안·하천 기본시설 유실, 군부대 울타리 법면 유실 |\n| **고립·하천피해** | [덕산 지구](#ref:r4) | [인제읍 덕산리 일원](#ref:r30) (소양강·인북천) | • **2020년 7~8월 호우**: [인북천(덕산리 1039)](#ref:r30) 하천시설 유실, [17연대본부 성당 및 울타리](#ref:r30) 파손 |\n| **사면유실·고립** | [송계·속사동 지구](#ref:r2) | [상남면 미산리 일원](#ref:r16) (내린천) | • **2022년 8월 호우**: [미산 사면1](#ref:r16) 도로 사면 유실<br>• **2023년 태풍 카눈**: [지방도 446호선(미산지구)](#ref:r16) 도로 사면 붕괴 및 개인약수 수해 |\n| **산사태·고립** | [가아·솔정 지구](#ref:r4) | [인제읍 가아리 일원](#ref:r4) (가아천) | • **2022년 8월 호우**: [가아임도 도로 및 비탈면 산사태](#ref:r4) 유실 피해 |\n| **붕괴위험** | [남북 지구](#ref:r4) | [인제읍 남북리 일원](#ref:r23) | • **2022년 8월 호우**: [남북심적임도 산사태](#ref:r23) 발생 및 법면 붕괴 |\n| **하천유실·고립** | [진동·설피골1교 지구](#ref:r1) | [기린면 진동리 일원](#ref:r28) (설피골천) | • **2022년 8월 호우**: [진동리 농로](#ref:r28) 유실<br>• **2025년 9~10월 호우**: [진동리 일원 농경지](#ref:r28)(채소류) 침수 피해 |\n\n---\n\n### 2. 급경사지 붕괴위험지역(CRA) 실제 사면 붕괴·산사태 발생 현황\n\n| 붕괴위험지구명 | 위치 | 위험등급 | 실제 피해 및 사면 붕괴 내용 |\n|---|---|---|---|\n| [상남1](#ref:r2) | [상남면 상남리 산305](#ref:r13) | A (해제) | • **2024년 9월 호우**: [상남리 산305 임야 산사태](#ref:r13) 발생(국유림관리소 복구) |\n| [인제16](#ref:r4) | [인제읍 하추리 산39-1](#ref:r25) | D (해제) | • **2022년 8월 호우**: [하추리 산33 일원 임도 산사태](#ref:r25) 피해 |\n| [인제13](#ref:r3) | [남면 상수내리 58-9](#ref:r26) | D (해제) | • **2022년 8월 호우 / 태풍 힌남노**: [상수내리 임도 산사태](#ref:r26) 및 [국도46호선 상수내지구 도로 유실](#ref:r26) |\n| [인제34(남북)](#ref:r4) | [인제읍 남북리 산114-1](#ref:r23) | D (해제) | • **2022년 8월 호우**: [남북리 산사태](#ref:r23) 및 임도 법면 유실 |\n| [인제32(미시령) 외 북면 일원](#ref:r5) | [북면 용대리·한계리 산 일원](#ref:r10) | C~D | • **2020년 8월 호우 / 태풍 마이삭·하이선**: [국도44호선·46호선 용대리~한계리 구간](#ref:r10) 비탈면 유실 및 낙석 산사태 다수 발생 |\n\n---\n\n### 3. 주요 원인 분석 및 종합 시사점\n1. **인북천·소양강 수계의 통수단면 부족 및 제방 유실**: 서화면(서화리·천도리)과 북면(용대리)은 하천 만곡부 및 취약 제방 구간으로, 집중호우 시 하천 수위 급상승으로 인한 월류·제방 붕괴 및 저지대 군사·공공시설 침수가 반복되었습니다.\n2. **산악 도로 및 임도 사면의 연속 붕괴**: 상남면(미산리·상남리)과 인제읍(가아리·하추리)은 급경사 비탈면 절개지와 임도 주변 토사가 집중호우 시 일시에 유실되며 도로 단절 및 산사태 피해가 집중되었습니다.\n\n> **데이터 출처**: 행정안전부 재난안전 데이터베이스(`mois_struct152` — `hazard.zone`, `hazard.improvement_district`, `disaster.public_damage`, `disaster.recovery_item`, `disaster.private_damage`)",
+      "answer_format": "MARKDOWN",
+      "entities": [],
+      "result_groups": [],
+      "evidence_refs": [],
+      "follow_up_questions": [],
+      "refs": [
+        {
+          "ref": "r6",
+          "entity_type": "REGION",
+          "display_name": "서화3",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "5181034000",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r12",
+          "entity_type": "REGION",
+          "display_name": "7.28~8.11 호우",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "5181034023",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r11",
+          "entity_type": "REGION",
+          "display_name": "7.28~8.11 호우",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "5181034024",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r5",
+          "entity_type": "REGION",
+          "display_name": "인제27",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "5181032000",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r10",
+          "entity_type": "REGION",
+          "display_name": "제9호 태풍 마이삭 및 제10호 태풍 하이선",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "5181032024",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r32",
+          "entity_type": "REGION",
+          "display_name": "제9호 태풍 마이삭 및 제10호 태풍 하이선",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "5181033021",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r4",
+          "entity_type": "REGION",
+          "display_name": "인제16",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "5181025000",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r30",
+          "entity_type": "REGION",
+          "display_name": "7.28~8.11 호우(12차 전환)",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "5181025024",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r2",
+          "entity_type": "REGION",
+          "display_name": "김부1",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "5181035000",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r16",
+          "entity_type": "REGION",
+          "display_name": "6.27~7.27 호우·강풍·풍랑(확정)",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "5181035023",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r23",
+          "entity_type": "REGION",
+          "display_name": "8.8. ~ 17. 호우(확정)",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "5181025022",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r1",
+          "entity_type": "REGION",
+          "display_name": "방동",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "5181033000",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r28",
+          "entity_type": "REGION",
+          "display_name": "8.8. ~ 17. 호우(확정)",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "5181033025",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r13",
+          "entity_type": "REGION",
+          "display_name": "9.19.~21. 호우(확정)",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "5181035021",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r25",
+          "entity_type": "REGION",
+          "display_name": "8.8. ~ 17. 호우(확정)",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "5181025030",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r3",
+          "entity_type": "REGION",
+          "display_name": "인제10",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "5181031000",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r26",
+          "entity_type": "REGION",
+          "display_name": "8.8. ~ 17. 호우(확정)",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "5181031030",
+            "draw": "pin"
+          }
+        }
+      ],
+      "conversation_title": null,
+      "limitations": [
+        "유사사례는 예측·위험판단이 아닌 참고 정보"
+      ],
+      "context_used": {
+        "used_conditions": [],
+        "unused_conditions": [],
+        "reference_used": false
+      }
+    },
+    "data_gaps": [],
+    "warnings": [],
+    "meta": {
+      "source": "T3Q",
+      "base_time": "2026-10-28T03:00:04+09:00",
+      "quality_status": "VERIFIED",
+      "disclosure_level": "공개",
+      "elapsed_ms": 147946
+    }
+  },
+  "waitedMs": 148854,
+  "timeout": false
+}

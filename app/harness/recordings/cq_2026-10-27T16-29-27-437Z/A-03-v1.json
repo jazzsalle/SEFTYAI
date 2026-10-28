@@ -1,0 +1,376 @@
+{
+  "id": "A-03-v1",
+  "question": "서천군에 산사태 주의보가 났다고 가정하면 먼저 점검할 급경사지와 산사태취약지역은? 위험등급별 개수부터.",
+  "request": {
+    "question": "서천군에 산사태 주의보가 났다고 가정하면 먼저 점검할 급경사지와 산사태취약지역은? 위험등급별 개수부터.",
+    "question_source": "USER",
+    "query_context": {
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "region": {
+        "admin_code": "4477000000",
+        "name": "충청남도 서천군",
+        "level": "SIGUNGU"
+      },
+      "disaster_types": [
+        "산사태"
+      ],
+      "detail": {
+        "warning_kind": "산사태",
+        "warning_level": "주의보"
+      }
+    },
+    "weather_warnings": {
+      "collect_status": "COLLECTED",
+      "source": "역량질문 시험 조건",
+      "items": [
+        {
+          "warning_key": "CQ-A-03-v1-0",
+          "kind": "산사태",
+          "level": "주의보",
+          "change": "발효"
+        }
+      ]
+    }
+  },
+  "final": {
+    "schema_version": "2.0",
+    "request_id": "18b7e61fa2f854bbe0497cb53933e66d",
+    "correlation_id": "corr-18b7e61fa2f854bbe0497cb53933e66d",
+    "status": "SUCCESS",
+    "conversation_id": "CONV-20261028-ea42f4",
+    "turn_no": 1,
+    "result": {
+      "response_id": "RES-20261028-7fd091",
+      "question": "서천군에 산사태 주의보가 났다고 가정하면 먼저 점검할 급경사지와 산사태취약지역은? 위험등급별 개수부터.",
+      "question_source": "USER",
+      "answer": "### 1. 결론\n\n충청남도 서천군에 **산사태 주의보**가 발령될 경우, 인명피해 우려가 가장 높은 **급경사지 고위험 등급(E·D등급) 4개소**, **최근 점검 ‘불안전’ 및 주민대피 기준이 지정된 붕괴위험지역 4개소**, 그리고 **산사태취약지역 최고 위험등급(A등급) 28개소**(특히 계곡부 하류 민가를 위협하는 토석류 19개소)를 최우선으로 점검·예찰해야 합니다.\n\n---\n\n### 2. 위험등급별 현황 및 개수\n\n#### ① 급경사지: 총 211개소\n*급경사지 재해위험도 평가는 E등급(81점 이상) 및 D등급(61~80점)이 붕괴위험이 높은 고위험군에 해당합니다.*\n\n| 위험등급 | 개수(개소) | 비고 및 위험 수준 |\n| :---: | :---: | :--- |\n| **E등급** | **1** | 재해위험도 매우 높음 (즉각적인 정비 및 대피 검토 대상) |\n| **D등급** | **3** | 재해위험도 높음 (붕괴 위험 징후 지속 관찰 필요) |\n| **C등급** | **3** | 주의 관찰 대상 (이 중 2개소는 2026년 정기점검서 '불안전' 판정) |\n| **B등급** | 9 | 양호 (경미한 결함) |\n| **A등급** | 15 | 상태 우수 |\n| **미평가** | 180 | 평가 미실시 또는 이력 관리 (이 중 2개소는 법정 붕괴위험지역 지정 및 '불안전' 판정) |\n| **합계** | **211** | |\n\n#### ② 산사태취약지역: 총 90개소\n*산림청 산사태취약지역은 **A등급이 가장 위험도가 높은 등급**으로, 계곡부를 따라 흙·돌이 쏟아져 내리는 '토석류'와 사면 붕괴형 '산사태'로 구분됩니다.*\n\n| 위험등급 | 토석류(계곡형) | 산사태(사면형) | 합계(개소) | 비고 |\n| :---: | :---: | :---: | :---: | :--- |\n| **A등급** | **19** | **9** | **28** | **최우선 점검 및 주민대피 준비 대상** |\n| **B등급** | 39 | 22 | **61** | 주의 관찰 및 수시 예찰 |\n| **C등급** | 1 | 0 | **1** | 일반 예찰 |\n| **합계** | **59** | **31** | **90** | |\n\n---\n\n### 3. 최우선 점검 대상 상세 현황\n\n#### (1) 급경사지 최우선 점검 대상 (고위험 E·D등급 및 불안전·붕괴위험지역)\n\n산사태 주의보 및 강우 시 비탈면 붕괴·유실 가능성이 높아 즉각적인 현장 점검과 예찰이 필요한 급경사지입니다.\n\n| 순위 | 급경사지명 | 등급 (점수) | 소재지 | 관리주체 | 최근 점검결과 (점검일) | 특이사항 및 우선 점검 사유 |\n| :---: | :--- | :---: | :--- | :--- | :---: | :--- |\n| 1 | [성주4지구](#ref:r1) | **E (82점)** | 장항읍 성주리 | 지자체(시군구) | 안전 (2026-03-03) | **관내 유일 E등급**, 법정 붕괴위험지역 지정 지구 |\n| 2 | [원수2지구](#ref:r2) | **D (75점)** | 장항읍 원수리 | 지자체(시도) | 안전 (2026-03-03) | D등급 고위험 비탈면 |\n| 3 | [성주3지구](#ref:r3) | **D (69점)** | 장항읍 성주리 | 지자체(시도) | 안전 (2026-02-23) | 성주4지구와 인접한 D등급 고위험군 |\n| 4 | [공암지구](#ref:r4) | **D (64점)** | 서면 도둔리 | 지자체(시군구) | 안전 (2026-02-23) | **사면 우측부 붕괴 이력**으로 붕괴위험지역 지정 |\n| 5 | [마량리 급경사지](#ref:r40) | 미평가 | 서면 마량리 | 서천군 | **불안전 (2026-05-29)** | **주민대피 관리기준 지정**, 낙석·토사 유출 및 인접 주택 피해 우려로 2025년 붕괴위험지역 신규 지정 |\n| 6 | [도둔리 급경사지](#ref:r39) | 미평가 | 서면 도둔리 | 서천군 | **불안전 (2026-04-09)** | 법정 붕괴위험지역 지정 및 점검 결과 불안전 |\n| 7 | [원수지구](#ref:r5) | **C (60점)** | 장항읍 원수리 | 지자체(시도) | **불안전 (2026-02-23)** | D등급 경계치(60점)이며 최근 점검 결과 불안전 판정 |\n| 8 | [성산지구](#ref:r6) | **C (51점)** | 비인면 성산리 | 기타(민간/기업) | **불안전 (2026-03-04)** | 민간/기업 소유 급경사지로 최근 점검 불안전 |\n\n---\n\n#### (2) 산사태취약지역 최우선 점검 대상 (A등급 28개소)\n\nA등급 중에서도 급경사 계곡부를 통해 토석이 한꺼번에 쏟아져 하류 민가·도로를 덮칠 수 있는 **토석류 밀집 읍·면**을 우선 확인해야 합니다.\n\n| 읍·면 | A등급 개소수 | 주요 취약지역 및 위치 (종류) | 현장 확인 사항 |\n| :--- | :---: | :--- | :--- |\n| **판교면** | **8개소** | • [금덕리 4개소](#ref:r27) (토석류 3, 산사태 1)<br>• [심동리](#ref:r33) (토석류)<br>• [마대리](#ref:r31) (토석류)<br>• [상좌리](#ref:r32) (토석류)<br>• [흥림리](#ref:r34) (토석류) | 산간 계곡 유로 폐색 여부, 사방댐 퇴적 상태, 하류 민가 대피로 점검 |\n| **비인면** | **6개소** | • [성산리 3개소](#ref:r20) (토석류 2, 산사태 1)<br>• [성내리 2개소](#ref:r17) (토석류 2)<br>• [율리](#ref:r8) (토석류) | 배수로 막힘, 옹벽·축대 균열, 해안/산림 인접 비탈면 토사 유출 여부 |\n| **종천면** | **4개소** | • [종천리](#ref:r25) (토석류)<br>• [지석리](#ref:r26) (토석류)<br>• [랑평리](#ref:r23) (토석류)<br>• [산천리](#ref:r24) (산사태, 국유림) | 계곡수 탁도 급변 여부 확인, 국유림 경계 임도 유실 확인 |\n| **기산면** | **3개소** | • [가공리](#ref:r9), [월기리](#ref:r10), [화산리](#ref:r11) (전부 산사태) | 농경지 및 주택 배후 사면 인장균열 여부 |\n| **마산면** | **3개소** | • [관포리](#ref:r12) (토석류)<br>• [군간리](#ref:r13) (토석류)<br>• [안당리](#ref:r14) (산사태) | 저수지·소하천 상류 계곡 토석 이동 징후 |\n| **서면** | **1개소** | • [도둔리](#ref:r35) (산사태, 국유림) | 도둔리 급경사지와 연계 점검 |\n| **문산면** | **1개소** | • [수암리](#ref:r16) (토석류) | 소하천 합류부 통수단면 확보 여부 |\n| **시초면** | **1개소** | • [초현리](#ref:r22) (토석류) | 계곡수 용출 상태 |\n| **마서면** | **1개소** | • [도삼리](#ref:r15) (산사태) | 사면 최상부 함몰 징후 확인 |\n\n---\n\n### 4. 담당자 우선 조치사항\n\n1. **마량리 급경사지 사전 대피 체계 가동**:\n   - [마량리 급경사지](#ref:r40)는 관내에서 유일하게 **주민대피 관리기준**이 수립된 곳이므로 강우량이 누적되기 전 인접 주택 주민 연락망 가동 및 대피소 사전 준비.\n2. **장항읍 성주리·원수리 급경사지 밀집 구간 순찰**:\n   - E등급 [성주4지구](#ref:r1), D등급 [원수2지구](#ref:r2)·[성주3지구](#ref:r3), 점검 불량 판정인 [원수지구](#ref:r5)가 장항읍 일대에 밀집해 있으므로 읍사무소 예찰반 즉각 현장 배치.\n3. **판교면·비인면 산사태취약지역 토석류 모니터링**:\n   - A등급 토석류 취약지역이 집중된 판교면(금덕리 일원)과 비인면(성산리·성내리 일원)에 대해 계곡수 용출, 흙탕물 급증, 낙석 발생 등 전조 증상 집중 감시 및 주민 주의 안내문자(CBS/마을방송) 송출.",
+      "answer_format": "MARKDOWN",
+      "entities": [],
+      "result_groups": [],
+      "evidence_refs": [],
+      "follow_up_questions": [],
+      "refs": [
+        {
+          "ref": "r1",
+          "entity_type": "RISK_AREA",
+          "display_name": "성주4지구",
+          "map": {
+            "key": "slope_no",
+            "value": "4477000019",
+            "draw": "line"
+          }
+        },
+        {
+          "ref": "r2",
+          "entity_type": "RISK_AREA",
+          "display_name": "원수2지구",
+          "map": {
+            "key": "slope_no",
+            "value": "4477000017",
+            "draw": "line"
+          }
+        },
+        {
+          "ref": "r3",
+          "entity_type": "RISK_AREA",
+          "display_name": "성주3지구",
+          "map": {
+            "key": "slope_no",
+            "value": "4477000018",
+            "draw": "line"
+          }
+        },
+        {
+          "ref": "r4",
+          "entity_type": "RISK_AREA",
+          "display_name": "공암지구",
+          "map": {
+            "key": "slope_no",
+            "value": "4477000048",
+            "draw": "line"
+          }
+        },
+        {
+          "ref": "r40",
+          "entity_type": "RISK_AREA",
+          "display_name": "마량리 급경사지",
+          "map": {
+            "key": "slope_no",
+            "value": "4477000007",
+            "draw": "line"
+          }
+        },
+        {
+          "ref": "r39",
+          "entity_type": "RISK_AREA",
+          "display_name": "도둔리 급경사지",
+          "map": {
+            "key": "slope_no",
+            "value": "4477000006",
+            "draw": "line"
+          }
+        },
+        {
+          "ref": "r5",
+          "entity_type": "RISK_AREA",
+          "display_name": "원수지구",
+          "map": {
+            "key": "slope_no",
+            "value": "4477000015",
+            "draw": "line"
+          }
+        },
+        {
+          "ref": "r6",
+          "entity_type": "RISK_AREA",
+          "display_name": "성산지구",
+          "map": {
+            "key": "slope_no",
+            "value": "4477000005",
+            "draw": "line"
+          }
+        },
+        {
+          "ref": "r27",
+          "entity_type": "RISK_AREA",
+          "display_name": "충청남도 서천군 판교면 금덕리",
+          "map": {
+            "key": "landslide_area_id",
+            "value": "B-다마29009497-24-001",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r33",
+          "entity_type": "RISK_AREA",
+          "display_name": "충청남도 서천군 판교면 심동리",
+          "map": {
+            "key": "landslide_area_id",
+            "value": "M-다마23259766-16-001",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r31",
+          "entity_type": "RISK_AREA",
+          "display_name": "충청남도 서천군 판교면 마대리",
+          "map": {
+            "key": "landslide_area_id",
+            "value": "M-다마25779718-16-001",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r32",
+          "entity_type": "RISK_AREA",
+          "display_name": "충청남도 서천군 판교면 상좌리",
+          "map": {
+            "key": "landslide_area_id",
+            "value": "M-다마23739522-16-001",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r34",
+          "entity_type": "RISK_AREA",
+          "display_name": "충청남도 서천군 판교면 흥림리",
+          "map": {
+            "key": "landslide_area_id",
+            "value": "M-다마28269244-16-001",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r20",
+          "entity_type": "RISK_AREA",
+          "display_name": "충청남도 서천군 비인면 성산리",
+          "map": {
+            "key": "landslide_area_id",
+            "value": "M-다마22039444-16-001",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r17",
+          "entity_type": "RISK_AREA",
+          "display_name": "충청남도 서천군 비인면 성내리",
+          "map": {
+            "key": "landslide_area_id",
+            "value": "M-다마19709427-16-001",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r8",
+          "entity_type": "RISK_AREA",
+          "display_name": "충청남도 서천군 비인면 율리",
+          "map": {
+            "key": "landslide_area_id",
+            "value": "B-다마21979614-21-001",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r25",
+          "entity_type": "RISK_AREA",
+          "display_name": "충청남도 서천군 종천면 종천리",
+          "map": {
+            "key": "landslide_area_id",
+            "value": "M-다마21629039-16-001",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r26",
+          "entity_type": "RISK_AREA",
+          "display_name": "충청남도 서천군 종천면 지석리",
+          "map": {
+            "key": "landslide_area_id",
+            "value": "M-다마26589218-16-001",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r23",
+          "entity_type": "RISK_AREA",
+          "display_name": "충청남도 서천군 종천면 랑평리",
+          "map": {
+            "key": "landslide_area_id",
+            "value": "M-다마23389168-16-001",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r24",
+          "entity_type": "RISK_AREA",
+          "display_name": "충청남도 서천군 종천면 산천리",
+          "map": {
+            "key": "landslide_area_id",
+            "value": "M-다마24809086-14-001",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r9",
+          "entity_type": "RISK_AREA",
+          "display_name": "충청남도 서천군 기산면 가공리",
+          "map": {
+            "key": "landslide_area_id",
+            "value": "B-다마35098872-20-001",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r10",
+          "entity_type": "RISK_AREA",
+          "display_name": "충청남도 서천군 기산면 월기리",
+          "map": {
+            "key": "landslide_area_id",
+            "value": "B-다마34318910-24-001",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r11",
+          "entity_type": "RISK_AREA",
+          "display_name": "충청남도 서천군 기산면 화산리",
+          "map": {
+            "key": "landslide_area_id",
+            "value": "B-다마34228711-24-001",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r12",
+          "entity_type": "RISK_AREA",
+          "display_name": "충청남도 서천군 마산면 관포리",
+          "map": {
+            "key": "landslide_area_id",
+            "value": "M-다마35909644-16-001",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r13",
+          "entity_type": "RISK_AREA",
+          "display_name": "충청남도 서천군 마산면 군간리",
+          "map": {
+            "key": "landslide_area_id",
+            "value": "B-다마36079805-24-001",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r14",
+          "entity_type": "RISK_AREA",
+          "display_name": "충청남도 서천군 마산면 안당리",
+          "map": {
+            "key": "landslide_area_id",
+            "value": "B-다마36209021-24-001",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r35",
+          "entity_type": "RISK_AREA",
+          "display_name": "충청남도 서천군 서면 도둔리",
+          "map": {
+            "key": "landslide_area_id",
+            "value": "M-다마10769624-15-001",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r16",
+          "entity_type": "RISK_AREA",
+          "display_name": "충청남도 서천군 문산면 수암리",
+          "map": {
+            "key": "landslide_area_id",
+            "value": "M-다마30229427-14-001",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r22",
+          "entity_type": "RISK_AREA",
+          "display_name": "충청남도 서천군 시초면 초현리",
+          "map": {
+            "key": "landslide_area_id",
+            "value": "M-다마31589254-16-001",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r15",
+          "entity_type": "RISK_AREA",
+          "display_name": "충청남도 서천군 마서면 도삼리",
+          "map": {
+            "key": "landslide_area_id",
+            "value": "B-다마30608084-24-001",
+            "draw": "pin"
+          }
+        }
+      ],
+      "conversation_title": null,
+      "limitations": [
+        "유사사례는 예측·위험판단이 아닌 참고 정보"
+      ],
+      "context_used": {
+        "used_conditions": [],
+        "unused_conditions": [],
+        "reference_used": false
+      }
+    },
+    "data_gaps": [],
+    "warnings": [],
+    "meta": {
+      "source": "T3Q",
+      "base_time": "2026-10-28T01:32:59+09:00",
+      "quality_status": "VERIFIED",
+      "disclosure_level": "공개",
+      "elapsed_ms": 115559
+    }
+  },
+  "waitedMs": 117761,
+  "timeout": false
+}

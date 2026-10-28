@@ -1,0 +1,319 @@
+{
+  "id": "yeongcheon:LB-FT-02",
+  "question": "경상북도 영천시의 저지대 침수 위험 지역은 어디야? 상습침수 필지 수와 저지대 원인 침수흔적이 난 법정동을 같이 보여줘.",
+  "request": {
+    "question": "경상북도 영천시의 저지대 침수 위험 지역은 어디야? 상습침수 필지 수와 저지대 원인 침수흔적이 난 법정동을 같이 보여줘.",
+    "question_source": "SUGGEST",
+    "query_context": {
+      "region": {
+        "admin_code": "4723000000",
+        "name": "경상북도 영천시",
+        "level": "SIGUNGU"
+      },
+      "disaster_types": [
+        "호우"
+      ]
+    }
+  },
+  "final": {
+    "schema_version": "2.0",
+    "request_id": "9e7d4f11f1ff48e71b1874d213c90a9d",
+    "correlation_id": "corr-9e7d4f11f1ff48e71b1874d213c90a9d",
+    "status": "SUCCESS",
+    "conversation_id": "CONV-20261028-0a536a",
+    "turn_no": 1,
+    "result": {
+      "response_id": "RES-20261028-81f344",
+      "question": "경상북도 영천시의 저지대 침수 위험 지역은 어디야? 상습침수 필지 수와 저지대 원인 침수흔적이 난 법정동을 같이 보여줘.",
+      "question_source": "SUGGEST",
+      "answer": "### 결론\n\n경상북도 영천시의 저지대 침수 위험 지역 현황은 다음과 같습니다.\n\n1. **상습침수 필지**: 총 **41필지**(19개 법정동)가 등록되어 있으며, 41필지 모두 도심지 중첩 구역에 해당하여 누적 침수 일수 2~3회에 따라 **상습침수 대상**으로 판정 관리되고 있습니다. 가장 집중된 지역은 [경상북도 영천시 고경면 용전리](#ref:r145)(8필지), [경상북도 영천시 녹전동](#ref:r32)(6필지), [경상북도 영천시 금호읍 황정리](#ref:r146)(4필지), [경상북도 영천시 화남면 용계리](#ref:r147)(3필지) 순입니다.\n2. **저지대 원인 침수흔적 및 피해 발생 법정동**:\n   - **공식 침수흔적도(`flood.trace`)**: 영천시 관할 구역에 등재된 침수흔적 공간 데이터(폴리곤)는 **0건**입니다.\n   - **재난 사유시설 피해대장(`disaster.private_damage`)**: 실제 '침수(저지대침수)' 원인으로 확정된 피해 사례는 총 **4건**이며, 발생 법정동은 **[경상북도 영천시 화남면 귀호리](#ref:r137)**, **[경상북도 영천시 신녕면 신덕리](#ref:r143)**(및 신녕면 일원), **[경상북도 영천시 자양면 보현리](#ref:r144)**입니다.\n3. **저지대 침수위험 방재 지구(`hazard.zone`)**:\n   - [도동](#ref:r22)(도동 621~800-5 일원)이 자연재해위험개선지구 중 정비대상 시설명이 **'저지대'**로 명시되어 배수로(L=2.0km) 및 배수펌프장 정비가 추진된 대표 저지대 침수취약지구입니다.\n\n---\n\n### 세부 내역 및 근거\n\n#### 1. 영천시 상습침수 필지 법정동별 현황 (총 41필지)\n*(출처: `flood.chronic_parcel`, `flood.v_chronic_parcel`, `ref.v_legal_dong`)*\n\n| 법정동명 | 법정동코드 | 상습침수 필지 수 | 주요 지목 | 침수 일수 (판정) |\n|---|---|---:|---|---|\n| [경상북도 영천시 고경면 용전리](#ref:r145) | `4723038029` | **8** | 답, 전, 과수원, 공장용지 | 2~3일 (상습침수) |\n| [경상북도 영천시 녹전동](#ref:r32) | `4723012100` | **6** | 대, 전, 과수원 | 2일 (상습침수) |\n| [경상북도 영천시 금호읍 황정리](#ref:r146) | `4723025041` | **4** | 대, 과수원 | 2일 (상습침수) |\n| [경상북도 영천시 화남면 용계리](#ref:r147) | `4723035032` | **3** | 전, 임야 | 2일 (상습침수) |\n| [경상북도 영천시 북안면 북리](#ref:r148) | `4723039023` | **2** | 대 | 2일 (상습침수) |\n| [경상북도 영천시 고경면 도암리](#ref:r149) | `4723038030` | **2** | 전, 과수원 | 2~3일 (상습침수) |\n| [경상북도 영천시 금호읍 냉천리](#ref:r150) | `4723025027` | **2** | 답 | 2일 (상습침수) |\n| [경상북도 영천시 화남면 신호리](#ref:r124) | `4723035023` | **2** | 답, 과수원 | 2일 (상습침수) |\n| [경상북도 영천시 화산면 암기리](#ref:r151) | `4723033029` | **2** | 과수원 | 2일 (상습침수) |\n| [경상북도 영천시 대전동](#ref:r31) | `4723012000` | **1** | 과수원 | 2일 (상습침수) |\n| [경상북도 영천시 서산동](#ref:r41) | `4723013000` | **1** | 답 | 2일 (상습침수) |\n| [경상북도 영천시 성내동](#ref:r20) | `4723010900` | **1** | 대 | 3일 (상습침수) |\n| [경상북도 영천시 고경면 삼포리](#ref:r152) | `4723038043` | **1** | 전 | 2일 (상습침수) |\n| [경상북도 영천시 고경면 창하리](#ref:r153) | `4723038022` | **1** | 답 | 2일 (상습침수) |\n| [경상북도 영천시 금호읍 원제리](#ref:r154) | `4723025026` | **1** | 대 | 2일 (상습침수) |\n| [경상북도 영천시 청통면 대평리](#ref:r155) | `4723031025` | **1** | 공장용지 | 2일 (상습침수) |\n| [경상북도 영천시 청통면 보성리](#ref:r156) | `4723031023` | **1** | 답 | 2일 (상습침수) |\n| [경상북도 영천시 화북면 죽전리](#ref:r157) | `4723034028` | **1** | 전 | 2일 (상습침수) |\n| [경상북도 영천시 화산면 삼부리](#ref:r158) | `4723033030` | **1** | 전 | 2일 (상습침수) |\n\n---\n\n#### 2. 실제 '저지대 침수' 피해 발생 법정동 내역\n*(출처: `disaster.private_damage`, `disaster.named_disaster`)*\n\n침수흔적도(`flood.trace`) 상에는 영천시 관할 도형이 누락되어 있으나, 확정 복구 사유시설 피해대장 상 **'침수(저지대침수)'**로 기록된 실제 피해 내역은 다음과 같습니다.\n\n| 발생일자 | 재난명 | 피해 위치(법정동) | 법정동코드 | 원인 분류 | 피해 내용 및 확정금액 |\n|---|---|---|---|---|---|\n| **2024-07-10** | 7.8.~19. 호우(확정) | [경상북도 영천시 화남면 귀호리](#ref:r137) | `4723035028` | 침수(저지대침수) | 주택 침수 (114㎡ 이상) / 3,000,000원 |\n| **2024-07-08** | 7.8.~19. 호우(확정) | [경상북도 영천시 신녕면](#ref:r44) 일원 | `4723032000` | 침수(저지대침수) | 사유시설 침수 / 3,000,000원 |\n| **2021-08-24** | 제12호 태풍 오마이스 | [경상북도 영천시 신녕면 신덕리](#ref:r143) | `4723032029` | 침수(저지대침수) | 사유시설 침수 |\n| **2021-08-24** | 제12호 태풍 오마이스 | [경상북도 영천시 자양면 보현리](#ref:r144) | `4723036021` | 침수(저지대침수) | 사유시설 침수 / 2,000,000원 |\n\n---\n\n#### 3. 영천시 주요 저지대 및 침수위험 방재 지구 현황\n*(출처: `hazard.zone`, `hazard.improvement_district`)*\n\n- **[도동](#ref:r22)지구 (도동 621~800-5 일원)**: 시설구분이 '저지대'로 지정된 자연재해위험개선지구로, 내수 배제 및 하천 수위 상승에 대응하기 위해 배수로 2.0km 및 배수펌프장 1식을 정비함.\n- **[단포](#ref:r50)지구 (고경면 창하리 1179-4 일원)**: 2026년 지정된 침수위험지구로 저지대 내수 배제를 위한 배수펌프장 신설 및 저류지 유입부 설치 추진 중.\n- **[완산](#ref:r24)지구 (완산동 10 일원)**: 저지대 침수 해소를 위해 배수펌프장 정비가 완료된 구역.\n\n---\n\n### 한계 및 권장 확인사항\n\n1. **침수흔적도 데이터 한계**: 전국 침수흔적 공간 DB(`flood.trace`) 내 영천시 관할 침수흔적 폴리곤이 등재되어 있지 않으므로, 공간 GIS 분석 시에는 사유시설 침수 피해대장(`disaster.private_damage`) 및 상습침수 필지 좌표를 교차 활용해야 합니다.\n2. **현장 점검 권장**: 상습침수 필지가 다수 밀집된 **고경면 용전리(8필지)**, **녹전동(6필지)**, **금호읍 황정리(4필지)**와 최근 2024년 7월 호우 시 실제 저지대 침수 피해가 발생한 **화남면 귀호리**, **신녕면 신덕리** 일원의 배수시설 및 수문 작동 상태를 우선 점검하시기 바랍니다.",
+      "answer_format": "MARKDOWN",
+      "entities": [],
+      "result_groups": [],
+      "evidence_refs": [],
+      "follow_up_questions": [],
+      "refs": [
+        {
+          "ref": "r145",
+          "entity_type": "REGION",
+          "display_name": "경상북도 영천시 고경면 용전리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4723038029",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r32",
+          "entity_type": "REGION",
+          "display_name": "녹전동",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4723012100",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r146",
+          "entity_type": "REGION",
+          "display_name": "경상북도 영천시 금호읍 황정리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4723025041",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r147",
+          "entity_type": "REGION",
+          "display_name": "경상북도 영천시 화남면 용계리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4723035032",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r137",
+          "entity_type": "REGION",
+          "display_name": "오천지",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4723035028",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r143",
+          "entity_type": "REGION",
+          "display_name": "제12호 태풍 오마이스",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4723032029",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r144",
+          "entity_type": "REGION",
+          "display_name": "제12호 태풍 오마이스",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4723036021",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r22",
+          "entity_type": "REGION",
+          "display_name": "도동",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4723011100",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r148",
+          "entity_type": "REGION",
+          "display_name": "경상북도 영천시 북안면 북리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4723039023",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r149",
+          "entity_type": "REGION",
+          "display_name": "경상북도 영천시 고경면 도암리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4723038030",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r150",
+          "entity_type": "REGION",
+          "display_name": "경상북도 영천시 금호읍 냉천리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4723025027",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r124",
+          "entity_type": "REGION",
+          "display_name": "대내지",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4723035023",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r151",
+          "entity_type": "REGION",
+          "display_name": "경상북도 영천시 화산면 암기리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4723033029",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r31",
+          "entity_type": "REGION",
+          "display_name": "대전동",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4723012000",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r41",
+          "entity_type": "REGION",
+          "display_name": "서산동",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4723013000",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r20",
+          "entity_type": "REGION",
+          "display_name": "성내동",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4723010900",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r152",
+          "entity_type": "REGION",
+          "display_name": "경상북도 영천시 고경면 삼포리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4723038043",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r153",
+          "entity_type": "REGION",
+          "display_name": "경상북도 영천시 고경면 창하리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4723038022",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r154",
+          "entity_type": "REGION",
+          "display_name": "경상북도 영천시 금호읍 원제리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4723025026",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r155",
+          "entity_type": "REGION",
+          "display_name": "경상북도 영천시 청통면 대평리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4723031025",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r156",
+          "entity_type": "REGION",
+          "display_name": "경상북도 영천시 청통면 보성리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4723031023",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r157",
+          "entity_type": "REGION",
+          "display_name": "경상북도 영천시 화북면 죽전리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4723034028",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r158",
+          "entity_type": "REGION",
+          "display_name": "경상북도 영천시 화산면 삼부리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4723033030",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r44",
+          "entity_type": "REGION",
+          "display_name": "신녕면",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4723032000",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r50",
+          "entity_type": "REGION",
+          "display_name": "고경면",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4723038000",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r24",
+          "entity_type": "REGION",
+          "display_name": "완산동",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4723011300",
+            "draw": "pin"
+          }
+        }
+      ],
+      "conversation_title": null,
+      "limitations": [
+        "유사사례는 예측·위험판단이 아닌 참고 정보"
+      ],
+      "context_used": {
+        "used_conditions": [],
+        "unused_conditions": [],
+        "reference_used": false
+      }
+    },
+    "data_gaps": [],
+    "warnings": [],
+    "meta": {
+      "source": "T3Q",
+      "base_time": "2026-10-28T03:20:06+09:00",
+      "quality_status": "VERIFIED",
+      "disclosure_level": "공개",
+      "elapsed_ms": 186080
+    }
+  },
+  "waitedMs": 187014,
+  "timeout": false
+}

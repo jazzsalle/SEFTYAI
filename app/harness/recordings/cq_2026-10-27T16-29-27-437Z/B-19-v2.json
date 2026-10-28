@@ -1,0 +1,59 @@
+{
+  "id": "B-19-v2",
+  "question": "세종시 조치원읍 «신흥» 개선지구는 어떤 저감대책이 계획돼 있어?",
+  "request": {
+    "question": "세종시 조치원읍 «신흥» 개선지구는 어떤 저감대책이 계획돼 있어?",
+    "question_source": "USER",
+    "query_context": {
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "region": {
+        "admin_code": "3611000000",
+        "name": "세종특별자치시",
+        "level": "SIGUNGU"
+      },
+      "disaster_types": [
+        "호우"
+      ]
+    }
+  },
+  "final": {
+    "schema_version": "2.0",
+    "request_id": "f833bd597297ab77f154a32dcbf7aed1",
+    "correlation_id": "corr-f833bd597297ab77f154a32dcbf7aed1",
+    "status": "SUCCESS",
+    "conversation_id": "CONV-20261028-77415e",
+    "turn_no": 1,
+    "result": {
+      "response_id": "RES-20261028-7a098a",
+      "question": "세종시 조치원읍 «신흥» 개선지구는 어떤 저감대책이 계획돼 있어?",
+      "question_source": "USER",
+      "answer": "### 결론\n\n세종특별자치시 조치원읍 **«신흥» 자연재해위험개선지구**의 계획된 저감대책(사업내용)은 지방하천인 **조천(0.7㎞) 하천정비** 및 **교량 재가설 1개소**입니다.\n\n---\n\n### 세부 저감대책 및 정비사업 계획\n\n| 구분 | 주요 내용 | 비고 |\n| :--- | :--- | :--- |\n| **지구명** | 신흥 자연재해위험개선지구 (NDIZ) | 위험등급: **나** 등급 |\n| **위치** | 세종특별자치시 조치원읍 죽림리 193-1 일원 | 지정면적: 0.08 ㎢ |\n| **재해유형** | **침수위험** | 2019-09-30 지정 |\n| **대상시설** | **조천** (지방하천) | - |\n| **계획 저감대책** | **• 하천정비 L = 0.7 ㎞<br>• 교량 재가설 1개소** | 하천 통수단면 확보 및 통수지장 교량 개체 |\n| **사업기간** | **2020년 ~ 2023년** | 시행기관: 세종특별자치시 |\n\n---\n\n### 사업비 투자 계획 및 사업 기대효과\n\n1. **연차별 사업비 투자 계획 (총 118억 4,600만 원)**\n   - **2020년**: 10억 원 (국비 5.0억 / 지방비 5.0억)\n   - **2021년**: 10억 원 (국비 5.0억 / 지방비 5.0억)\n   - **2022년**: 42억 원 (국비 21.0억 / 지방비 21.0억)\n   - **2023년**: 56억 4,600만 원 (국비 28억 2,300만 / 지방비 28억 2,300만)\n   - *재원 분담: 국비 59억 2,300만 원(50%), 지방비 59억 2,300만 원(50%)*\n\n2. **사업 수혜 및 기대효과**\n   - **인명 보호**: 20,650명\n   - **수혜 세대**: 3,730세대\n   - **시가지 침수 예방**: 165.0 ha\n   - **보호 건물**: 100동\n\n---\n\n### 출처 및 다음 확인사항\n- **근거 자료**: `hazard.zone`, `hazard.improvement_district`, `hazard.zone_investment`, `hazard.zone_beneficiary` (행정안전부 자연재해위험개선지구 중기정비계획 총괄조서)\n- **다음 확인사항**: 계획 기간(2020~2023년) 종료에 따른 준공 완료 여부 및 지구 해제 고시 진행 현황은 세종시 시민안전실(자연재난과) 사업 관리대장을 통해 추가 확인이 가능합니다.",
+      "answer_format": "MARKDOWN",
+      "entities": [],
+      "result_groups": [],
+      "evidence_refs": [],
+      "follow_up_questions": [],
+      "refs": [],
+      "conversation_title": null,
+      "limitations": [
+        "유사사례는 예측·위험판단이 아닌 참고 정보"
+      ],
+      "context_used": {
+        "used_conditions": [],
+        "unused_conditions": [],
+        "reference_used": false
+      }
+    },
+    "data_gaps": [],
+    "warnings": [],
+    "meta": {
+      "source": "T3Q",
+      "base_time": "2026-10-28T01:47:13+09:00",
+      "quality_status": "VERIFIED",
+      "disclosure_level": "공개",
+      "elapsed_ms": 65266
+    }
+  },
+  "waitedMs": 68322,
+  "timeout": false
+}

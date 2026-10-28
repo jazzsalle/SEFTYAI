@@ -1,0 +1,62 @@
+/* =====================================================================
+   유사재난 사례 카드 (SimilarEventsCard) — 첫 사건 카드 + 둘째부터 받은 순서 줄
+   빨강 없음 · 파랑 강조 없음(파랑은 누를 수 있는 사건 이름과 누를 때 바탕만)
+   ===================================================================== */
+
+/* 사건 이름 — 단추(누르면 사건 상세) */
+.sim-name {
+  border: 0; background: none; padding: 0; margin: 0;
+  font: inherit; text-align: left; cursor: pointer;
+  overflow-wrap: anywhere;
+}
+.sim-name:hover { text-decoration: underline; }
+
+.sim-meta { font-size: var(--fs-xs); color: var(--c-sub); font-variant-numeric: tabular-nums; }
+.sim-score { margin-left: auto; font-size: var(--fs-xs); color: var(--c-sub); white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+/* 첫 사건 카드 */
+.sim-top {
+  margin-top: 8px; padding: 12px 16px;
+  background: #fff; border: 1px solid var(--c-bd); border-radius: var(--r-l);
+  cursor: pointer;
+}
+.sim-top:hover { background: var(--c-surface); }
+.sim-top-h { display: flex; align-items: center; gap: 8px; }
+.sim-rank {
+  display: inline-flex; align-items: center; height: 22px; padding: 0 8px;
+  border-radius: var(--r-s); background: var(--c-sec-sub); color: var(--c-navy);
+  font-size: var(--fs-2xs); font-weight: 700;
+}
+.sim-top .sim-score b { font-size: 16px; color: var(--c-text); }
+.sim-top .sim-name { display: block; margin-top: 4px; font-size: var(--fs-hs); font-weight: 700; line-height: 1.35; color: var(--c-text); }
+.sim-top .sim-meta { margin-top: 2px; }
+
+/* 둘째부터 — 줄 */
+.sim-list {
+  margin-top: 8px; background: #fff;
+  border: 1px solid var(--c-line); border-radius: var(--r-l);
+  max-height: 360px; overflow-y: auto; /* 답이 밀려 내려가지 않게 안에서 스크롤 */
+}
+.sim-row { padding: 8px 12px; border-bottom: 1px solid var(--c-line); cursor: pointer; }
+.sim-row:last-child { border-bottom: 0; }
+.sim-row:hover { background: var(--c-primary-sub); }
+.sim-l1 { display: flex; align-items: baseline; flex-wrap: wrap; gap: 2px 8px; }
+.sim-row .sim-name { font-size: var(--fs-s); font-weight: 700; color: var(--c-primary-dk); }
+
+/* 사건 요약 — 받은 글 그대로(줄바꿈·공백 포함) */
+.sim-sum {
+  margin-top: 4px; min-height: 20px;
+  font-size: var(--fs-xs); line-height: 1.55; color: var(--c-text);
+  white-space: pre-wrap; overflow-wrap: anywhere;
+}
+.sim-sum.sim-fail { color: var(--c-warn-dk); }
+/* 받는 중 — 회색 줄(글자 없음) */
+.sim-sk {
+  display: block; width: 56%; max-width: 420px; height: 10px; margin-top: 5px;
+  border-radius: 5px; background: var(--c-line);
+  animation: sim-pulse 1.4s ease-in-out infinite;
+}
+@keyframes sim-pulse { 50% { opacity: 0.45; } }
+@media (prefers-reduced-motion: reduce) { .sim-sk { animation: none; } }
+
+.sim-all { display: inline-block; margin-top: 8px; }

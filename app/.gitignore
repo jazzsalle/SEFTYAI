@@ -41,3 +41,8 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 .env*.local
+
+# 로컬 개발 DB (PGlite)
+/.localdb/
+# 하네스 화면 캡처(로컬 확인용)
+/harness/reports/shots/

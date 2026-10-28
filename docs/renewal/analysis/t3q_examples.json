@@ -1,0 +1,344 @@
+{
+  "_about": "T3Q 시범서비스 API v0.3.0 — api/app/catalog.py(APIS, GET /v1/catalog 와 같은 목록)의 152 실제 ID 예시 요청을 손으로 옮긴 것. path 는 base_url 뒤에 붙는다. 'examples' = catalog.py 그대로(정렬 순서 동일, 공통 항목 T3Q-22·23·24 제외). 'derived' = catalog note·라우터 코드에서 보완한 추가 호출(source 표기). body 안 caller·query_context 는 catalog.py:7-11 상수 CALLER·QC 를 펼친 값.",
+  "generated_from": "api/app/catalog.py (APIS.sort — catalog.py:94)",
+  "base_url_template": "https://<T3Q 서버>/apps/r/<서비스 토큰>/api",
+  "headers": {
+    "Authorization": "Bearer <클라이언트 토큰 a2app_…>",
+    "Content-Type": "application/json",
+    "X-Request-Id": "(선택 — 요청마다 유일하게. ASYNC 작업 키가 된다)",
+    "X-Correlation-Id": "(선택)"
+  },
+  "constants": {
+    "CALLER": {"user_id": "U-TEST-0001", "role": "LOCAL_GOV_OFFICER", "org_admin_code": "2600000000"},
+    "QC": {
+      "reference_time": "2026-08-25T16:00:00+09:00",
+      "region": {"admin_code": "2600000000", "name": "부산광역시", "level": "SIDO"},
+      "disaster_types": ["호우"],
+      "period": {"from": "2026-08-25T14:00:00+09:00", "to": null},
+      "detail": {
+        "warning_kind": "호우", "warning_level": "경보", "keywords": ["호우", "침수"],
+        "conditions": [{"item": "RAIN_1H", "label": "1시간 강우", "value": 68, "unit": "mm", "source_type": "MANUAL"}]
+      }
+    },
+    "EV": "T10107-20200728-0001",
+    "_source": "api/app/catalog.py:7-12"
+  },
+  "examples": [
+    {
+      "id": "T3Q-01", "name": "Agent 질의", "kind": "Agent", "method": "POST", "path": "/v1/agent/query", "query": null,
+      "body": {
+        "caller": {"user_id": "U-TEST-0001", "role": "LOCAL_GOV_OFFICER", "org_admin_code": "2600000000"},
+        "conversation_id": null, "turn_no": 1,
+        "question": "서천군 급경사지를 최신 위험등급 나쁜 순으로 알려줘", "question_source": "USER",
+        "query_context": {
+          "reference_time": "2026-08-25T16:00:00+09:00",
+          "region": {"admin_code": "2600000000", "name": "부산광역시", "level": "SIDO"},
+          "disaster_types": ["호우"], "period": {"from": "2026-08-25T14:00:00+09:00", "to": null},
+          "detail": {"warning_kind": "호우", "warning_level": "경보", "keywords": ["호우", "침수"],
+                     "conditions": [{"item": "RAIN_1H", "label": "1시간 강우", "value": 68, "unit": "mm", "source_type": "MANUAL"}]}
+        },
+        "reference": null, "response_mode": "ASYNC"
+      },
+      "state": "IMPLEMENTED", "priority": "P0", "async": true,
+      "note": "Agent 416(1~6분) — ASYNC 면 PROCESSING(202) 뒤 EXT-02 로 받는다. 답의 [이름](#ref:rN) + result.refs[] → EXT-01 지도",
+      "source": "api/app/catalog.py:15-18"
+    },
+    {
+      "id": "T3Q-02", "name": "현재 상황 브리핑 항목 호출 · 취소", "kind": "Agent", "method": "POST", "path": "/v1/agent/query", "query": null,
+      "body": {
+        "caller": {"user_id": "U-TEST-0001", "role": "LOCAL_GOV_OFFICER", "org_admin_code": "2600000000"},
+        "question": "현재 우선 확인해야 할 위험·취약지역은?", "question_source": "BRIEFING",
+        "briefing": {"preset_id": "BP-001", "briefing_item_id": "risk", "item_no": 2, "item_total": 4},
+        "query_context": {
+          "reference_time": "2026-08-25T16:00:00+09:00",
+          "region": {"admin_code": "2600000000", "name": "부산광역시", "level": "SIDO"},
+          "disaster_types": ["호우"], "period": {"from": "2026-08-25T14:00:00+09:00", "to": null},
+          "detail": {"warning_kind": "호우", "warning_level": "경보", "keywords": ["호우", "침수"],
+                     "conditions": [{"item": "RAIN_1H", "label": "1시간 강우", "value": 68, "unit": "mm", "source_type": "MANUAL"}]}
+        },
+        "response_mode": "ASYNC"
+      },
+      "state": "IMPLEMENTED", "priority": "P1", "async": true,
+      "note": "T3Q-01 과 같은 Agent — 답 글로 브리핑, briefing_item 의 요약·건수 칸은 비어 있음 · 취소 = POST /v1/agent/query/{request_id}/cancel",
+      "source": "api/app/catalog.py:19-22"
+    },
+    {
+      "id": "T3Q-03", "name": "추천·후속 질문", "kind": "Agent", "method": "GET", "path": "/v1/suggested-questions",
+      "query": {"region_admin_code": "2600000000", "disaster_types": "호우", "per_group": "1"},
+      "body": null, "state": "IMPLEMENTED", "priority": "P1", "async": false,
+      "note": "고정 목록(데이터군별 1개)", "source": "api/app/catalog.py:23-24"
+    },
+    {
+      "id": "T3Q-04", "name": "유사사례 검색", "kind": "Data", "method": "POST", "path": "/v1/similar-events/search", "query": null,
+      "body": {
+        "caller": {"user_id": "U-TEST-0001", "role": "LOCAL_GOV_OFFICER", "org_admin_code": "2600000000"},
+        "event_master_ids": null,
+        "query_context": {
+          "reference_time": "2026-08-25T16:00:00+09:00",
+          "region": {"admin_code": "2600000000", "name": "부산광역시", "level": "SIDO"},
+          "disaster_types": ["호우"], "period": {"from": "2026-08-25T14:00:00+09:00", "to": null},
+          "detail": {"warning_kind": "호우", "warning_level": "경보", "keywords": ["호우", "침수"],
+                     "conditions": [{"item": "RAIN_1H", "label": "1시간 강우", "value": 68, "unit": "mm", "source_type": "MANUAL"}]}
+        },
+        "page": {"page": 1, "size": 10}
+      },
+      "state": "IMPLEMENTED", "priority": "P0", "async": false, "note": null, "source": "api/app/catalog.py:25-26"
+    },
+    {
+      "id": "T3Q-05", "name": "위험·취약 대상 목록", "kind": "Data", "method": "POST", "path": "/v1/risk-knowledge/search", "query": null,
+      "body": {
+        "caller": {"user_id": "U-TEST-0001", "role": "LOCAL_GOV_OFFICER", "org_admin_code": "2600000000"},
+        "data_group": "RISK_FACTOR_FACILITY", "object_ids": null,
+        "region": {"admin_code": "2629000000", "level": "SIGUNGU"}, "page": {"page": 1, "size": 20}
+      },
+      "state": "IMPLEMENTED", "priority": "P0", "async": false, "note": null, "source": "api/app/catalog.py:27-29"
+    },
+    {
+      "id": "T3Q-06", "name": "계획문서 목록", "kind": "Data", "method": "POST", "path": "/v1/plans/search", "query": null,
+      "body": {
+        "caller": {"user_id": "U-TEST-0001", "role": "LOCAL_GOV_OFFICER", "org_admin_code": "2600000000"},
+        "plan_ids": ["RBP-1024180202010", "HZP-NDIZ", "HZP-CRA"], "region": null
+      },
+      "state": "IMPLEMENTED", "priority": "P0", "async": false, "note": null, "source": "api/app/catalog.py:30-31"
+    },
+    {
+      "id": "T3Q-10", "name": "사건 상세", "kind": "Data", "method": "GET", "path": "/v1/events/T10107-20200728-0001", "query": null,
+      "body": null, "state": "IMPLEMENTED", "priority": "P0", "async": false, "note": null, "source": "api/app/catalog.py:32"
+    },
+    {
+      "id": "T3Q-11", "name": "유사도 근거 · 영향요인 비교", "kind": "Data", "method": "POST", "path": "/v1/events/T10107-20200728-0001/similarity", "query": null,
+      "body": {
+        "caller": {"user_id": "U-TEST-0001", "role": "LOCAL_GOV_OFFICER", "org_admin_code": "2600000000"},
+        "query_context": {
+          "reference_time": "2026-08-25T16:00:00+09:00",
+          "region": {"admin_code": "2600000000", "name": "부산광역시", "level": "SIDO"},
+          "disaster_types": ["호우"], "period": {"from": "2026-08-25T14:00:00+09:00", "to": null},
+          "detail": {"warning_kind": "호우", "warning_level": "경보", "keywords": ["호우", "침수"],
+                     "conditions": [{"item": "RAIN_1H", "label": "1시간 강우", "value": 68, "unit": "mm", "source_type": "MANUAL"}]}
+        }
+      },
+      "state": "IMPLEMENTED", "priority": "P0", "async": false, "note": null, "source": "api/app/catalog.py:33-34"
+    },
+    {
+      "id": "T3Q-12", "name": "사건 타임라인", "kind": "Data", "method": "GET", "path": "/v1/events/T10107-20200728-0001/timeline", "query": null,
+      "body": null, "state": "IMPLEMENTED", "priority": "P0", "async": false,
+      "note": "홍수특보·재난문자(사건 기간 × 관련 시도) — 겹치는 기록이 없는 사건은 DATA_NOT_AVAILABLE(예: T10101-20181026-0001)",
+      "source": "api/app/catalog.py:35-36"
+    },
+    {
+      "id": "T3Q-13", "name": "피해·대응 조회 · 중대본보고서 요약 조회", "kind": "Data", "method": "GET", "path": "/v1/events/T10107-20200728-0001/damage-response", "query": null,
+      "body": null, "state": "IMPLEMENTED", "priority": "P0", "async": false,
+      "note": "보고서 GET /v1/events/T10107-20200728-0001/reports = DATA_NOT_AVAILABLE(원천 없음)",
+      "source": "api/app/catalog.py:37-38"
+    },
+    {
+      "id": "T3Q-15", "name": "위험·취약 대상 상세", "kind": "Data", "method": "GET", "path": "/v1/risk-objects/UP-609", "query": null,
+      "body": null, "state": "IMPLEMENTED", "priority": "P0", "async": false,
+      "note": "HZ-1536(자연재해위험개선지구) · SL-2611000001(급경사지) · UP-609(지하차도)",
+      "source": "api/app/catalog.py:39-40"
+    },
+    {
+      "id": "T3Q-16", "name": "하천 계획지식", "kind": "Data", "method": "GET", "path": "/v1/rivers/RV-1024180/plan-knowledge",
+      "query": {"station_limit": "20"},
+      "body": null, "state": "IMPLEMENTED", "priority": "P1", "async": false, "note": null, "source": "api/app/catalog.py:41-42"
+    },
+    {
+      "id": "T3Q-17", "name": "계획문서 상세", "kind": "Data", "method": "GET", "path": "/v1/plans/RBP-1024180202010", "query": null,
+      "body": null, "state": "IMPLEMENTED", "priority": "P0", "async": false, "note": null, "source": "api/app/catalog.py:43"
+    },
+    {
+      "id": "T3Q-18", "name": "객체관계 조회", "kind": "Data", "method": "POST", "path": "/v1/kg/query", "query": null,
+      "body": {
+        "caller": {"user_id": "U-TEST-0001", "role": "LOCAL_GOV_OFFICER", "org_admin_code": "2600000000"},
+        "source_ids": ["RV-1024180"], "relation_types": null, "depth": 1
+      },
+      "state": "IMPLEMENTED", "priority": "P1", "async": false, "note": null, "source": "api/app/catalog.py:44-45"
+    },
+    {
+      "id": "T3Q-19", "name": "근거 조회", "kind": "Data", "method": "POST", "path": "/v1/evidence/search", "query": null,
+      "body": {
+        "caller": {"user_id": "U-TEST-0001", "role": "LOCAL_GOV_OFFICER", "org_admin_code": "2600000000"},
+        "object_id": "T10107-20200728-0001", "include_passage": true, "context_paragraphs": 0, "page": {"page": 1, "size": 20}
+      },
+      "state": "IMPLEMENTED", "priority": "P0", "async": false,
+      "note": "TITLE_ONLY(연보 쪽)·AGGREGATE_ONLY(피해 집계) — 인용 문단은 NOT_YET_BUILT",
+      "source": "api/app/catalog.py:46-48"
+    },
+    {
+      "id": "T3Q-20", "name": "근거 원문 다운로드·원문 보기", "kind": "Data", "method": "GET", "path": "/v1/documents/DOC-2020_재해연보/file", "query": null,
+      "body": null, "state": "DATA_NOT_AVAILABLE", "priority": "P1", "async": false,
+      "note": "문서 저장소 미연결(NOT_YET_BUILT)", "source": "api/app/catalog.py:49-50"
+    },
+    {
+      "id": "T3Q-25", "name": "대화 문맥 상태 조회", "kind": "Agent", "method": "GET", "path": "/v1/agent/conversations/CONV-TEST", "query": null,
+      "body": null, "state": "STORE", "priority": "P1", "async": false,
+      "note": "T3Q-01 로 만든 conversation_id 를 넣는다", "source": "api/app/catalog.py:51-52"
+    },
+    {
+      "id": "T3Q-27", "name": "대화 문맥 삭제", "kind": "Agent", "method": "POST", "path": "/v1/agent/conversations/purge", "query": null,
+      "body": {
+        "caller": {"user_id": "U-TEST-0001", "role": "LOCAL_GOV_OFFICER", "org_admin_code": "2600000000"},
+        "conversation_ids": ["CONV-TEST"], "reason": "USER_REQUEST"
+      },
+      "state": "STORE", "priority": "P1", "async": false,
+      "note": "1건은 DELETE /v1/agent/conversations/{id}", "source": "api/app/catalog.py:53-54"
+    },
+    {
+      "id": "T3Q-28", "name": "행동매뉴얼 대응절차 (Action Item)", "kind": "Agent", "method": "POST", "path": "/v1/agent/query", "query": null,
+      "body": {
+        "caller": {"user_id": "U-TEST-0001", "role": "LOCAL_GOV_OFFICER", "org_admin_code": "2600000000"},
+        "question": "이 상황에서 행동매뉴얼상 확인해야 할 대응절차는?", "question_source": "QUICK", "quick_query_id": "QQ-03",
+        "query_context": {
+          "reference_time": "2026-08-25T16:00:00+09:00",
+          "region": {"admin_code": "2600000000", "name": "부산광역시", "level": "SIDO"},
+          "disaster_types": ["호우"], "period": {"from": "2026-08-25T14:00:00+09:00", "to": null},
+          "detail": {"warning_kind": "호우", "warning_level": "경보", "keywords": ["호우", "침수"],
+                     "conditions": [{"item": "RAIN_1H", "label": "1시간 강우", "value": 68, "unit": "mm", "source_type": "MANUAL"}]}
+        },
+        "response_mode": "ASYNC"
+      },
+      "state": "IMPLEMENTED", "priority": "P0", "async": true,
+      "note": "T3Q-01 과 같은 Agent — 행동매뉴얼 원천이 없어 action_items 는 비고 data_gaps manual NOT_IN_SOURCE",
+      "source": "api/app/catalog.py:55-58"
+    },
+    {
+      "id": "T3Q-29", "name": "AI 모드 상황 점검", "kind": "Agent", "method": "POST", "path": "/v1/agent/query", "query": null,
+      "body": {
+        "caller": {"user_id": "U-TEST-0001", "role": "LOCAL_GOV_OFFICER", "org_admin_code": "2600000000"},
+        "conversation_id": null,
+        "question": "제공된 기상특보 정보를 기준으로 대응 검토가 필요합니까?", "question_source": "AI_MODE", "response_mode": "ASYNC",
+        "ai_mode": {"check_id": "AIM-TEST-0001", "trigger": "FIRST", "interval_min": 10, "prompt_id": "AIM-PROMPT-01"},
+        "query_context": {"reference_time": "2026-08-25T16:00:00+09:00", "region": {"admin_code": "2600000000", "name": "부산광역시", "level": "SIDO"}},
+        "weather_warnings": {"collect_status": "SUCCESS", "items": []}
+      },
+      "state": "IMPLEMENTED", "priority": "P1", "async": true,
+      "note": "T3Q-01 과 같은 Agent — 답 글로 점검, priority_review·warning_guides 칸은 비어 있음",
+      "source": "api/app/catalog.py:59-64"
+    },
+    {
+      "id": "T3Q-30", "name": "침수흔적 목록·속성", "kind": "Data", "method": "POST", "path": "/v1/flood-traces/search", "query": null,
+      "body": {
+        "caller": {"user_id": "U-TEST-0001", "role": "LOCAL_GOV_OFFICER", "org_admin_code": "2600000000"},
+        "region": {"admin_code": "2600000000", "level": "SIDO"}, "flood_year": 2020, "page": {"page": 1, "size": 20}
+      },
+      "state": "IMPLEMENTED", "priority": "P1", "async": false, "note": null, "source": "api/app/catalog.py:65-66"
+    },
+    {
+      "id": "T3Q-31", "name": "답변 평가", "kind": "Agent", "method": "POST", "path": "/v1/agent/feedback", "query": null,
+      "body": {
+        "caller": {"user_id": "U-TEST-0001", "role": "LOCAL_GOV_OFFICER", "org_admin_code": "2600000000"},
+        "conversation_id": "CONV-TEST", "turn_no": 1, "response_id": "RES-TEST-0001", "rating": "GOOD"
+      },
+      "state": "STORE", "priority": "P1", "async": false, "note": null, "source": "api/app/catalog.py:67-68"
+    },
+    {
+      "id": "T3Q-32", "name": "재난 전·후 위성영상 메타", "kind": "Data", "method": "GET", "path": "/v1/events/T10107-20200728-0001/satellite-images", "query": null,
+      "body": null, "state": "DATA_NOT_AVAILABLE", "priority": "P1", "async": false,
+      "note": "위성영상 원천 없음(NOT_IN_SOURCE)", "source": "api/app/catalog.py:69-70"
+    },
+    {
+      "id": "T3Q-33", "name": "소방 신고·긴급구조 정보", "kind": "Data", "method": "GET", "path": "/v1/events/T10107-20200728-0001/fire-reports", "query": null,
+      "body": null, "state": "DATA_NOT_AVAILABLE", "priority": "P1", "async": false,
+      "note": "119 신고 원천 없음(NOT_IN_SOURCE)", "source": "api/app/catalog.py:71-72"
+    },
+    {
+      "id": "T3Q-34", "name": "대피시설·대피정보", "kind": "Data", "method": "POST", "path": "/v1/evacuation-facilities/search", "query": null,
+      "body": {
+        "caller": {"user_id": "U-TEST-0001", "role": "LOCAL_GOV_OFFICER", "org_admin_code": "2600000000"},
+        "linked_object_ids": ["SL-2611000001"], "page": 1, "size": 20
+      },
+      "state": "DATA_NOT_AVAILABLE", "priority": "P1", "async": false, "note": "대피시설 원천 없음", "source": "api/app/catalog.py:73-74"
+    },
+    {
+      "id": "T3Q-35", "name": "신고·처리(민원) 이력", "kind": "Data", "method": "GET", "path": "/v1/events/T10107-20200728-0001/complaints", "query": null,
+      "body": null, "state": "DATA_NOT_AVAILABLE", "priority": "P1", "async": false, "note": "민원 원천 없음", "source": "api/app/catalog.py:75-76"
+    },
+    {
+      "id": "T3Q-36", "name": "하천범람·도시침수지도 속성", "kind": "Data", "method": "POST", "path": "/v1/flood-maps/search", "query": null,
+      "body": {
+        "caller": {"user_id": "U-TEST-0001", "role": "LOCAL_GOV_OFFICER", "org_admin_code": "2600000000"},
+        "region": {"admin_code": "2617000000", "level": "SIGUNGU"}, "map_types": ["URBAN_FLOOD"]
+      },
+      "state": "DATA_NOT_AVAILABLE", "priority": "P1", "async": false, "note": "침수지도 원천 없음", "source": "api/app/catalog.py:77-79"
+    },
+    {
+      "id": "EXT-01", "name": "공간객체 도형(GeoJSON)", "kind": "Data", "method": "POST", "path": "/v1/spatial-objects/geometry", "query": null,
+      "body": {
+        "caller": {"user_id": "U-TEST-0001", "role": "LOCAL_GOV_OFFICER", "org_admin_code": "2600000000"},
+        "items": [
+          {"ref": "r1", "key": "slope_no", "value": "1111000019"},
+          {"ref": "r2", "key": "legal_dong_code", "value": "4477025021"},
+          {"ref": "r3", "key": "spatial_object_id", "value": "FT-I_109"},
+          {"ref": "r4", "key": "latlon", "value": "36.01258,126.69511"}
+        ]
+      },
+      "state": "IMPLEMENTED", "priority": "확장", "async": false,
+      "note": "T3Q-01 result.refs[].map{key, value} → GeoJSON(EPSG:4326) — 명세 공통 규약 6절 «공간객체 API» 자리, gis 스키마",
+      "source": "api/app/catalog.py:87-90"
+    },
+    {
+      "id": "EXT-02", "name": "Agent 질의 결과(비동기)", "kind": "Agent", "method": "GET", "path": "/v1/agent/query/{request_id}", "query": null,
+      "body": null, "state": "IMPLEMENTED", "priority": "확장", "async": false,
+      "note": "T3Q-01 response_mode=ASYNC 의 request_id — PROCESSING(202) 이면 다시, 끝나면 T3Q-01 응답 그대로 (catalog 원문 path 는 '/v1/agent/query/REQ-…' 자리표시)",
+      "source": "api/app/catalog.py:91-92"
+    }
+  ],
+  "derived": [
+    {
+      "id": "T3Q-02-cancel", "name": "진행 중 호출 취소", "method": "POST", "path": "/v1/agent/query/{request_id}/cancel",
+      "path_params_from": "T3Q-01 ASYNC 응답의 request_id", "body": {"reason": "USER_CANCELLED"},
+      "expect": {"http": 200, "status": "SUCCESS", "cancel_result": ["CANCELLED", "ALREADY_COMPLETED", "NOT_FOUND"]},
+      "source": "api/app/routers/agent.py:161-173 · catalog.py:22(note)"
+    },
+    {
+      "id": "T3Q-27-one", "name": "대화 문맥 삭제(1건)", "method": "DELETE", "path": "/v1/agent/conversations/CONV-TEST", "body": null,
+      "expect": {"delete_result": ["DELETED", "NOT_FOUND"]},
+      "source": "api/app/routers/agent.py:232-239 · catalog.py:54(note)"
+    },
+    {
+      "id": "T3Q-13-reports", "name": "중대본보고서 요약", "method": "GET", "path": "/v1/events/T10107-20200728-0001/reports", "body": null,
+      "expect": {"status": "DATA_NOT_AVAILABLE"}, "source": "api/app/routers/events.py:416-422 · catalog.py:38(note)"
+    },
+    {
+      "id": "T3Q-12-empty", "name": "타임라인 — 겹치는 기록 없는 사건", "method": "GET", "path": "/v1/events/T10101-20181026-0001/timeline", "body": null,
+      "expect": {"status": "DATA_NOT_AVAILABLE"}, "source": "api/app/catalog.py:36(note)"
+    },
+    {
+      "id": "T3Q-15-HZ", "name": "위험·취약 상세 — 자연재해위험개선지구", "method": "GET", "path": "/v1/risk-objects/HZ-1536", "body": null,
+      "source": "api/app/catalog.py:40(note)"
+    },
+    {
+      "id": "T3Q-15-SL", "name": "위험·취약 상세 — 급경사지", "method": "GET", "path": "/v1/risk-objects/SL-2611000001", "body": null,
+      "source": "api/app/catalog.py:40(note)"
+    },
+    {
+      "id": "T3Q-20-page", "name": "원문 쪽 이미지", "method": "GET", "path": "/v1/documents/DOC-2020_재해연보/pages/1", "body": null,
+      "expect": {"status": "DATA_NOT_AVAILABLE"}, "source": "api/app/routers/evidence.py:167-174"
+    },
+    {
+      "id": "EXT-01-from-agent-fixture", "name": "도형 조회 — Agent refs 꼴(오프라인 시험 픽스처)", "method": "POST", "path": "/v1/spatial-objects/geometry",
+      "body": {"items": [{"ref": "r1", "key": "slope_no", "value": "4477000101"}, {"ref": "r2", "key": "latlon", "value": "36.01258,126.69511"}]},
+      "source": "api/tests/test_offline.py:216-219"
+    },
+    {
+      "id": "NEG-unknown-event", "name": "없는 사건 ID → 404 + NO_RESULT", "method": "GET", "path": "/v1/events/T00000-00000000-0000", "body": null,
+      "expect": {"http": 404, "status": "NO_RESULT", "warning_code": "NOT_FOUND"}, "source": "api/app/routers/events.py:62-63"
+    },
+    {
+      "id": "NEG-empty-ids", "name": "빈 ID 목록 → NO_RESULT", "method": "POST", "path": "/v1/similar-events/search", "body": {"event_master_ids": []},
+      "expect": {"http": 200, "status": "NO_RESULT"}, "source": "api/app/routers/events.py:83-84"
+    },
+    {
+      "id": "NEG-feedback-422", "name": "rating 값 오류 → FastAPI 422(봉투 아님)", "method": "POST", "path": "/v1/agent/feedback",
+      "body": {"response_id": "RES-TEST-0001", "rating": "SOSO"},
+      "expect": {"http": 422}, "source": "api/app/routers/agent.py:260 · tests/test_offline.py:160"
+    },
+    {
+      "id": "SYS-catalog", "name": "API 목록", "method": "GET", "path": "/v1/catalog", "body": null, "source": "api/main.py:39-42"
+    },
+    {
+      "id": "SYS-health", "name": "살아 있나(인증 없음)", "method": "GET", "path": "/health", "body": null,
+      "expect": {"body": {"status": "ok", "version": "0.3.0"}}, "source": "api/main.py:24-27"
+    }
+  ]
+}

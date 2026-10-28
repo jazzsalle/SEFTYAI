@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "ol/ol.css";
 import "./globals.css";
+import "./renewal.css";
 import { SessionProvider } from "@/lib/session";
 import HelpCenter from "@/components/HelpCenter";
 

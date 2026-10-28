@@ -1,0 +1,446 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=1440">
+<title>시안 B · 위험·취약 대상과 침수흔적</title>
+<style>
+@font-face { font-family: "Pretendard"; src: local("Pretendard Variable"), local("Pretendard"), url("../../../../app/public/fonts/PretendardVariable.woff2") format("woff2-variations"); font-weight: 45 920; font-display: block; }
+:root {
+  --c-text:#1E2124; --c-sub:#464C53; --c-mute:#6D7882; --c-dis:#8A949E; --c-bolder:#131416;
+  --c-primary:#256EF4; --c-primary-dk:#0B50D0; --c-primary-sub:#ECF2FE; --c-primary-bd:#D8E5FD;
+  --c-navy:#063A74; --c-navy-2:#052B57; --c-sec-sub:#EEF2F7; --c-sec-bd:#D6E0EB;
+  --c-bg:#F4F5F6; --c-line:#E6E8EA; --c-bd:#CDD1D5; --c-bd-gray:#B1B8BE; --c-input-bd:#58616A;
+  --c-warn-dk:#8A5C00; --c-warn-sub:#FFF3DB; --c-warn-bd:#FFE0A3; --c-warn-ic:#9E6A00;
+  --c-info:#0B78CB; --c-info-sub:#E7F4FE; --c-info-bd:#D3EBFD;
+  --c-ok:#228738; --c-ok-sub:#EAF6EC;
+  /* 차트 팔레트(validate_palette 전 쌍 통과 · 흰 바탕) — 빨강 없음 */
+  --viz-1:#2a78d6; --viz-2:#1baf7a; --viz-3:#008300; --viz-4:#6250d6; --viz-5:#eda100;
+  --viz-ctx:#B1B8BE; --viz-ctx-dk:#8A949E; --viz-grid:#E6E8EA; --viz-axis:#CDD1D5;
+  --sh-1:0 0 2px rgba(0,0,0,.05),0 1px 2px rgba(0,0,0,.05);
+  --sh-2:0 4px 8px rgba(0,0,0,.08),0 0 2px rgba(0,0,0,.08);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { width: 1440px; font-family: "Pretendard", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", sans-serif; font-size: 15px; line-height: 1.5; color: var(--c-text); background: var(--c-bg); word-break: keep-all; overflow-wrap: anywhere; -webkit-font-smoothing: antialiased; }
+body.fluid { width: auto; min-width: 0; }
+button { font: inherit; color: inherit; cursor: pointer; }
+.ic { flex: none; vertical-align: -3px; }
+.spin { animation: spin 1s linear infinite; } @keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .spin { animation: none !important; } }
+:focus-visible { outline: 2px solid var(--c-primary); outline-offset: 2px; }
+.sp { flex: 1; }
+.mute { color: var(--c-mute); } .sub { color: var(--c-sub); }
+.xs { font-size: 13px; } .xxs { font-size: 12px; }
+.num { font-variant-numeric: tabular-nums; }
+.r { text-align: right; }
+.row { display: flex; align-items: center; gap: 8px; }
+.wrap { flex-wrap: wrap; }
+.nw { white-space: nowrap; }
+
+/* ── 시안 표기(제품에 들어가지 않음) ── */
+.doc { background: #fff; border-bottom: 1px solid var(--c-bd); padding: 18px 32px 14px; }
+.doc h1 { font-size: 22px; margin: 0; letter-spacing: -.2px; }
+.doc .lead { color: var(--c-sub); font-size: 14px; margin-top: 2px; }
+.doc .legend { display: flex; gap: 8px 22px; flex-wrap: wrap; margin-top: 10px; font-size: 13px; color: var(--c-sub); align-items: center; }
+.doc .legend .k { display: inline-flex; align-items: center; gap: 6px; }
+.doc .src { margin-top: 8px; font-size: 12px; color: var(--c-sub); line-height: 1.6; }
+.appr { position: relative; outline: 2px dashed #131416; outline-offset: 3px; border-radius: 4px; }
+.appr::after { content: attr(data-appr); position: absolute; top: -13px; right: -8px; background: #131416; color: #fff; font-size: 11px; line-height: 18px; font-weight: 700; padding: 0 7px; border-radius: 999px; white-space: nowrap; z-index: 6; letter-spacing: 0; }
+.appr.b::after { top: auto; bottom: -13px; }
+.appr.side::after { top: 50%; right: auto; left: calc(100% + 8px); transform: translateY(-50%); }
+.appr.l::after { right: auto; left: -8px; }
+.stt { margin-top: 18px; }
+.stt-h { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: var(--c-sub); margin: 22px 0 8px; padding-top: 14px; border-top: 2px solid #131416; }
+.stt-h .k { background: #131416; color: #fff; border-radius: 4px; padding: 1px 8px; font-size: 12px; }
+.st-card { background: #fff; border: 1px solid var(--c-line); border-radius: 8px; padding: 12px 16px; margin-top: 10px; box-shadow: var(--sh-1); min-width: 0; }
+.st-lb { font-size: 12px; font-weight: 700; color: var(--c-sub); margin-bottom: 6px; }
+.skel { height: 12px; border-radius: 4px; background: linear-gradient(90deg, #EEF0F2, #F6F7F8, #EEF0F2); margin: 8px 0; }
+.sk { display: inline-block; height: 8px; border-radius: 4px; background: linear-gradient(90deg, #E9ECEF, #F3F4F6, #E9ECEF); vertical-align: middle; }
+.appr-k { display: inline-block; width: 26px; height: 14px; outline: 2px dashed #131416; outline-offset: -2px; border-radius: 3px; }
+.pin { display: inline-flex; flex: none; width: 20px; height: 20px; border-radius: 50%; background: #131416; color: #fff; font-size: 11px; font-weight: 700; align-items: center; justify-content: center; line-height: 1; vertical-align: 1px; letter-spacing: 0; }
+.omit { border: 1px solid var(--c-bd-gray); border-radius: 8px; padding: 10px 14px; font-size: 13px; color: var(--c-sub); background: repeating-linear-gradient(135deg, #fff 0 9px, #F4F5F6 9px 18px); }
+.omit b { color: var(--c-text); }
+.notes { font-size: 13px; color: var(--c-sub); }
+.notes h4 { font-size: 13px; color: var(--c-text); margin: 0 0 8px; }
+.notes ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.notes li { display: grid; grid-template-columns: 20px 1fr; gap: 8px; align-items: start; background: #fff; border: 1px solid var(--c-line); border-radius: 8px; padding: 10px 12px; line-height: 1.55; }
+.notes li b { color: var(--c-text); }
+.ruler { position: absolute; left: 0; right: 0; border-top: 2px dashed #131416; z-index: 40; pointer-events: none; }
+.ruler span { position: absolute; right: 12px; top: -22px; background: #131416; color: #fff; font-size: 12px; font-weight: 700; padding: 1px 8px; border-radius: 4px; }
+
+/* ── 제품: 「유엔이가 센 값」 표시(줄이지 않음) ── */
+.cnt { display: inline-flex; align-items: center; height: 18px; padding: 0 6px; margin-left: 4px; border-radius: 999px; background: #fff; border: 1px solid var(--c-bd-gray); color: var(--c-sub); font-size: 11px; font-weight: 600; line-height: 1; vertical-align: 2px; white-space: nowrap; letter-spacing: 0; }
+
+/* ── 앱 머리(한 줄) · 특보 줄 · 대응절차 줄 ── */
+.chrome { position: sticky; top: 0; z-index: 30; }
+.gh { height: 56px; background: #fff; border-bottom: 1px solid var(--c-bd); display: flex; align-items: center; padding: 0 24px; gap: 22px; }
+.gh .logo { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 17px; color: var(--c-bolder); white-space: nowrap; }
+.gh .logo .sym { width: 24px; height: 24px; border-radius: 50%; background: conic-gradient(var(--c-navy) 0 50%, #9fb3cc 0 100%); }
+.gh .logo small { font-size: 12px; font-weight: 700; color: var(--c-primary-dk); background: var(--c-primary-sub); border-radius: 4px; padding: 2px 8px; }
+.gh nav { display: flex; height: 56px; }
+.gh nav a { padding: 0 13px; display: flex; align-items: center; font-weight: 700; font-size: 15px; color: var(--c-sub); border-bottom: 3px solid transparent; text-decoration: none; white-space: nowrap; }
+.gh nav a.on { color: var(--c-navy-2); border-color: var(--c-navy-2); }
+.gh .right { margin-left: auto; display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--c-sub); white-space: nowrap; }
+.sel { height: 32px; border: 1px solid var(--c-bd); border-radius: 6px; padding: 0 8px 0 10px; display: inline-flex; align-items: center; gap: 6px; background: #fff; color: var(--c-text); font-size: 13px; white-space: nowrap; }
+.sel.sm { height: 28px; font-size: 12px; }
+.aimode { height: 32px; border-radius: 999px; background: var(--c-navy); color: #fff; font-weight: 700; padding: 0 14px; display: inline-flex; align-items: center; gap: 6px; font-size: 13px; }
+.aimode i { width: 7px; height: 7px; border-radius: 50%; background: #9fb3cc; }
+.user { color: var(--c-primary-dk); font-weight: 700; font-size: 14px; }
+.wx { height: 44px; background: #fff; border-bottom: 1px solid var(--c-bd); display: flex; align-items: center; gap: 12px; padding: 0 24px; font-size: 14px; white-space: nowrap; overflow: hidden; }
+.wx .st { border-radius: 4px; padding: 2px 10px; font-size: 13px; font-weight: 700; }
+.wx .st.none { background: var(--c-sec-sub); color: var(--c-navy-2); }
+.wx.alert { background: #FFF8EB; }
+.wx .st.alert { background: var(--c-warn-dk); color: #fff; }
+.sop { height: 40px; background: #F8F9FA; border-bottom: 1px solid var(--c-bd); display: flex; align-items: center; gap: 10px; padding: 0 24px; font-size: 13px; color: var(--c-sub); white-space: nowrap; overflow: hidden; }
+.sop .lab { display: inline-flex; align-items: center; gap: 4px; height: 26px; padding: 0 10px; border-radius: 4px; background: var(--c-navy); color: #fff; font-weight: 700; }
+.sop ol { display: flex; gap: 4px; list-style: none; margin: 0; padding: 0; }
+.sop li { display: inline-flex; align-items: center; gap: 5px; height: 26px; padding: 0 10px 0 4px; border: 1px solid var(--c-bd); border-radius: 999px; background: #fff; color: var(--c-text); }
+.sop li i { font-style: normal; width: 18px; height: 18px; border-radius: 50%; background: var(--c-bg); display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; }
+.sop li.on { background: var(--c-navy); border-color: var(--c-navy); color: #fff; font-weight: 700; }
+.sop li.on i { background: #fff; color: var(--c-navy); }
+.sop li em { font-style: normal; font-size: 11px; font-weight: 700; color: inherit; opacity: .9; }
+.sop .basis b { color: var(--c-text); }
+
+/* ── 본문 배치 ── */
+.body { display: flex; gap: 20px; padding: 20px 24px 28px; align-items: flex-start; }
+.rail { width: 48px; flex: none; background: #fff; border: 1px solid var(--c-bd); border-radius: 10px; padding: 10px 0; display: flex; flex-direction: column; align-items: center; gap: 8px; color: var(--c-sub); font-size: 12px; }
+.rail .vt { writing-mode: vertical-rl; letter-spacing: 1px; font-weight: 700; color: var(--c-text); }
+.rail .b { min-width: 20px; height: 20px; border-radius: 10px; background: var(--c-primary); color: #fff; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+
+/* 질문 목록(펼침) */
+.qpanel { width: 248px; flex: none; background: #fff; border: 1px solid var(--c-bd); border-radius: 10px; overflow: hidden; }
+.qp-h { display: flex; align-items: center; gap: 6px; padding: 12px 14px; border-bottom: 1px solid var(--c-line); font-weight: 700; }
+.qp-sec { padding: 10px 14px 4px; font-size: 12px; color: var(--c-sub); font-weight: 700; }
+.qp-item { display: grid; grid-template-columns: 18px 1fr; gap: 6px; padding: 9px 14px; border-left: 3px solid transparent; font-size: 13px; }
+.qp-item.cur { background: var(--c-primary-sub); border-left-color: var(--c-primary); }
+.qp-item .m { grid-column: 2; font-size: 12px; color: var(--c-sub); }
+.qp-item .st-ok { color: var(--c-ok); }
+.qp-empty { padding: 4px 14px 10px; font-size: 12px; color: var(--c-mute); }
+
+/* 대화 열 */
+.thread-h { display: flex; align-items: center; gap: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--c-bd); margin-bottom: 10px; }
+.thread-h h2 { font-size: 17px; margin: 0; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 32px; padding: 0 12px; border: 1px solid var(--c-input-bd); border-radius: 6px; background: #fff; color: var(--c-text); font-size: 13px; font-weight: 500; white-space: nowrap; text-decoration: none; }
+.btn.sm { height: 28px; padding: 0 10px; font-size: 12px; border-radius: 4px; }
+.btn.xs { height: 24px; padding: 0 8px; font-size: 12px; border-radius: 4px; border-color: var(--c-bd); color: var(--c-sub); }
+.btn.pri { background: var(--c-primary); border-color: var(--c-primary); color: #fff; font-weight: 700; }
+.btn.sec { background: var(--c-primary-sub); border-color: var(--c-primary); color: var(--c-primary-dk); font-weight: 700; }
+.btn.ghost { border-color: transparent; background: none; color: var(--c-primary-dk); padding: 0 6px; }
+.btn.dis { color: var(--c-dis); border-color: var(--c-bd); background: #fff; cursor: not-allowed; }
+.btn.icon { width: 28px; padding: 0; }
+.lnk { color: var(--c-primary-dk); font-weight: 600; text-decoration: none; background: none; border: 0; padding: 0; display: inline-flex; align-items: center; gap: 3px; }
+.qbubble { margin-left: auto; max-width: 680px; background: var(--c-primary-sub); border: 1px solid var(--c-primary); border-radius: 12px; padding: 8px 14px; font-size: 16px; line-height: 1.5; }
+.qb-meta { font-size: 12px; color: var(--c-primary-dk); font-weight: 700; margin-right: 6px; }
+.qb-foot { margin-top: 4px; font-size: 13px; color: var(--c-sub); display: flex; flex-wrap: wrap; gap: 2px 6px; align-items: center; justify-content: flex-end; }
+.qbubble ol { margin: 4px 0 0; padding-left: 20px; font-size: 15px; }
+.tag { display: inline-flex; align-items: center; gap: 4px; height: 24px; padding: 0 9px; border-radius: 999px; font-size: 12px; font-weight: 700; white-space: nowrap; border: 1px solid var(--c-bd); background: #fff; color: var(--c-sub); }
+.tag.sm { height: 20px; padding: 0 7px; font-size: 11px; }
+.tag.navy { background: var(--c-sec-sub); border-color: var(--c-sec-bd); color: var(--c-navy-2); }
+.tag.pri { background: var(--c-primary-sub); border-color: var(--c-primary-bd); color: var(--c-primary-dk); }
+.tag.warn { background: var(--c-warn-sub); border-color: var(--c-warn-bd); color: var(--c-warn-dk); }
+.tag.off { background: var(--c-bg); border-color: var(--c-bd); color: var(--c-sub); font-weight: 600; }
+.src-mark { display: inline-flex; align-items: center; height: 16px; padding: 0 5px; margin-left: 2px; border-radius: 3px; font-size: 10.5px; font-weight: 700; background: #fff; border: 1px solid var(--c-bd-gray); color: var(--c-sub); }
+.src-mark.auto { border-color: var(--c-warn-bd); background: var(--c-warn-sub); color: var(--c-warn-dk); }
+
+/* 자동 조회 데이터 */
+.dblock { background: #fff; border: 1px solid var(--c-line); border-left: 4px solid var(--c-navy); border-radius: 8px; padding: 12px 16px 14px; margin-top: 12px; box-shadow: var(--sh-1); }
+.dblock-h { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13px; color: var(--c-sub); }
+.dsum { display: flex; align-items: center; gap: 8px; min-height: 38px; background: #fff; border: 1px solid var(--c-line); border-left: 4px solid var(--c-navy); border-radius: 8px; padding: 6px 12px; margin-top: 10px; font-size: 13px; color: var(--c-sub); box-shadow: var(--sh-1); }
+.dsum b { color: var(--c-text); }
+.dcard { margin-top: 14px; }
+.dcard + .dcard { border-top: 1px solid var(--c-line); padding-top: 16px; }
+.dcard-t { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.dcard-t h3 { font-size: 19px; margin: 0; letter-spacing: -.2px; }
+.dmeta { font-size: 13px; color: var(--c-sub); }
+.cond { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 8px; font-size: 13px; color: var(--c-sub); }
+.drow { display: grid; grid-template-columns: 112px 1fr auto; gap: 10px; align-items: center; padding: 8px 0; border-top: 1px solid var(--c-line); font-size: 14px; }
+.drow:first-of-type { border-top: 0; }
+.drow .k { font-weight: 700; color: var(--c-navy-2); }
+.gap { display: flex; gap: 6px; align-items: baseline; font-size: 13px; color: var(--c-text); }
+.gap .ic { color: var(--c-warn-ic); align-self: center; }
+
+/* 알림(정보·주의) */
+.note { border-radius: 8px; padding: 10px 14px; font-size: 13px; line-height: 1.6; }
+.note.info { background: var(--c-info-sub); border: 1px solid var(--c-info-bd); color: var(--c-navy-2); }
+.note.info .ic { color: var(--c-info); }
+.note.warn { background: var(--c-warn-sub); border: 1px solid var(--c-warn-bd); color: var(--c-text); }
+.note.warn .ic { color: var(--c-warn-ic); }
+.note.gray { background: var(--c-bg); color: var(--c-sub); }
+.note .ttl { font-weight: 700; display: flex; align-items: center; gap: 6px; }
+
+/* 답변 카드 */
+.acard { background: #fff; border: 1px solid var(--c-bd); border-radius: 12px; padding: 12px 20px 16px; margin-top: 12px; box-shadow: var(--sh-1); }
+.acard.loading { border-style: dashed; }
+.ahead { position: sticky; top: 0; z-index: 3; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin: -12px -20px 0; padding: 7px 20px 4px; background: rgba(255,255,255,.97); border-radius: 12px 12px 0 0; font-size: 13px; color: var(--c-sub); }
+.ahead b.t { font-size: 15px; color: var(--c-text); }
+.ahead .ok { color: var(--c-ok); font-weight: 700; display: inline-flex; align-items: center; gap: 3px; }
+.ameta { font-size: 12.5px; color: var(--c-sub); display: flex; flex-wrap: wrap; gap: 2px 8px; align-items: center; }
+.ctxline { margin-top: 4px; display: flex; flex-wrap: wrap; align-items: center; gap: 2px 0; font-size: 12.5px; color: var(--c-sub); background: var(--c-bg); border-radius: 6px; padding: 2px 10px; }
+.ctxline > span { padding: 0 10px; border-left: 1px solid var(--c-bd); }
+.ctxline > span:first-child { padding-left: 0; border-left: 0; }
+.ctxline b { color: var(--c-text); }
+.ctxline .flag { color: var(--c-warn-dk); font-weight: 700; display: inline-flex; gap: 3px; align-items: center; }
+.limit { margin-top: 4px; display: flex; gap: 6px; align-items: center; font-size: 12.5px; color: var(--c-sub); }
+.limit .ic { color: var(--c-mute); }
+.acard.annot .ameta { margin-top: 12px; } .acard.annot > .row { margin-top: 14px; } .acard.annot > .limit { margin-top: 16px; } .acard.annot > .md { margin-top: 18px; }
+.first { margin-top: 8px; background: var(--c-warn-sub); border: 1px solid var(--c-warn-bd); border-radius: 8px; padding: 7px 12px; display: grid; gap: 4px; font-size: 13px; }
+.first .ln { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.first .lb { font-weight: 700; color: var(--c-warn-dk); }
+.first .ic { color: var(--c-warn-ic); }
+.find { display: inline-flex; align-items: center; gap: 6px; height: 28px; border: 1px solid var(--c-bd); border-radius: 4px; padding: 0 8px; color: var(--c-mute); font-size: 12px; width: 150px; background: #fff; }
+.toc-pop { position: relative; margin-top: 8px; border: 1px solid var(--c-bd); border-radius: 8px; padding: 10px 14px; font-size: 13px; background: #fff; box-shadow: var(--sh-2); max-width: 460px; }
+.toc-pop ol { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 2px; }
+.toc-pop li a { color: var(--c-primary-dk); text-decoration: none; }
+.toc-pop li.l4 { padding-left: 16px; }
+.toc-pop li.l4 a { color: var(--c-sub); }
+.toast { display: inline-flex; align-items: center; gap: 8px; background: var(--c-navy-2); color: #fff; border-radius: 999px; padding: 8px 16px; font-size: 13px; font-weight: 700; box-shadow: var(--sh-2); }
+
+/* 답변 본문(글자 그대로) */
+.md { font-size: 15px; line-height: 1.75; color: var(--c-text); margin-top: 8px; }
+.md h1, .md h2, .md h3, .md h4 { line-height: 1.45; margin: 22px 0 8px; color: var(--c-bolder); scroll-margin-top: 56px; }
+.md h3 { font-size: 17px; padding-left: 10px; border-left: 3px solid var(--c-primary); }
+.md h4 { font-size: 16px; }
+.md > :first-child { margin-top: 0; }
+.md p { margin: 8px 0; }
+.md ul, .md ol { margin: 6px 0; padding-left: 22px; }
+.md li { margin: 3px 0; }
+.md blockquote { margin: 10px 0; padding: 8px 14px; border-left: 4px solid var(--c-primary-bd); background: #fafbfc; color: var(--c-sub); }
+.md blockquote p { margin: 0; }
+.md hr { border: 0; border-top: 1px solid var(--c-line); margin: 18px 0; }
+.md code { font-family: ui-monospace, Consolas, monospace; font-size: .88em; background: var(--c-sec-sub); padding: 1px 5px; border-radius: 4px; }
+.md strong { font-weight: 600; color: var(--c-bolder); }
+.md-tbl { margin: 10px 0; }
+.md-tbl-tools { display: flex; justify-content: flex-end; gap: 10px; align-items: center; margin-bottom: 4px; line-height: 1; }
+.md-table { position: relative; overflow-x: auto; border: 1px solid var(--c-line); border-radius: 6px; }
+.md-table table { border-collapse: separate; border-spacing: 0; width: 100%; font-size: 13px; line-height: 1.55; }
+.md-table th, .md-table td { padding: 7px 10px; border-bottom: 1px solid var(--c-line); text-align: left; vertical-align: top; min-width: 3.2em; background: #fff; overflow-wrap: normal; word-break: keep-all; }
+.md-table th { background: var(--c-sec-sub); font-weight: 700; color: var(--c-navy-2); white-space: nowrap; }
+.md-table tr:last-child td { border-bottom: 0; }
+.md-table th:first-child, .md-table td:first-child { position: sticky; left: 0; z-index: 1; box-shadow: 1px 0 0 var(--c-line); }
+.md-table.scrolled th:first-child, .md-table.scrolled td:first-child { box-shadow: 1px 0 0 var(--c-line), 6px 0 8px -6px rgba(0,0,0,.25); }
+.md-tblbox { position: relative; }
+.md-tblbox.scrolls::after { content: ""; position: absolute; top: 1px; bottom: 1px; right: 1px; width: 22px; border-radius: 0 6px 6px 0; background: linear-gradient(to left, rgba(19,20,22,.16), rgba(19,20,22,0)); pointer-events: none; z-index: 2; }
+.md-tbl .more { display: none; font-size: 12px; color: var(--c-sub); margin-top: 4px; justify-content: flex-end; }
+.md-tbl.scrolls .more { display: flex; }
+.ref-link { color: var(--c-primary); text-decoration: underline dotted 1px; text-underline-offset: 3px; font-weight: inherit; }
+.ref-link.on { background: var(--c-primary-sub); border-radius: 3px; box-shadow: 0 0 0 2px var(--c-primary-sub); }
+
+/* 답변 대상 */
+.refbox { margin-top: 16px; background: var(--c-sec-sub); border-radius: 8px; padding: 12px 14px; }
+.refbox .filters { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+.fchip { display: inline-flex; align-items: center; gap: 5px; height: 28px; padding: 0 10px; border-radius: 999px; border: 1px solid var(--c-bd); background: #fff; font-size: 12px; color: var(--c-sub); font-weight: 600; }
+.fchip.on { border-color: var(--c-navy); background: var(--c-navy); color: #fff; }
+.reflist { list-style: none; margin: 8px 0 0; padding: 0; background: #fff; border-radius: 6px; border: 1px solid var(--c-line); }
+.reflist li { display: grid; grid-template-columns: 18px 18px 1fr auto; gap: 8px; align-items: center; padding: 7px 12px; border-bottom: 1px solid var(--c-line); font-size: 13px; }
+.reflist li:last-child { border-bottom: 0; }
+.reflist li.on { background: var(--c-primary-sub); box-shadow: inset 3px 0 0 var(--c-primary); }
+.reflist .nm { font-weight: 700; color: var(--c-text); }
+.reflist .said { font-size: 12px; color: var(--c-sub); }
+.cbx { width: 16px; height: 16px; border: 1.5px solid var(--c-input-bd); border-radius: 3px; background: #fff; display: inline-block; }
+.cbx.on { background: var(--c-primary); border-color: var(--c-primary); position: relative; }
+.cbx.on::after { content: ""; position: absolute; left: 4px; top: 1px; width: 4px; height: 8px; border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg); }
+.evid { margin-top: 14px; display: flex; gap: 8px; align-items: center; font-size: 13px; color: var(--c-sub); }
+.acard-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--c-line); }
+
+/* 입력창 */
+.composer { margin-top: 22px; background: #fff; border: 1px solid var(--c-bd); border-radius: 12px; padding: 12px 16px; box-shadow: var(--sh-2); }
+.composer .cl { display: flex; gap: 6px; align-items: center; font-size: 13px; color: var(--c-sub); flex-wrap: wrap; }
+.composer .in { margin-top: 8px; border: 1px solid var(--c-input-bd); border-radius: 6px; height: 44px; display: flex; align-items: center; padding: 0 12px; color: var(--c-mute); font-size: 15px; }
+.composer .bt { margin-top: 8px; display: flex; gap: 8px; align-items: center; font-size: 13px; color: var(--c-sub); }
+
+/* 우측 패널(탭) */
+.panel { flex: none; background: #fff; border: 1px solid var(--c-bd); border-radius: 12px; box-shadow: var(--sh-1); overflow: hidden; }
+.ptabs { display: flex; align-items: stretch; height: 50px; border-bottom: 1px solid var(--c-bd); padding: 0 12px; gap: 2px; font-size: 14px; }
+.ptab { padding: 0 12px; display: flex; align-items: center; gap: 6px; font-weight: 700; color: var(--c-sub); border-bottom: 3px solid transparent; white-space: nowrap; }
+.ptab.on { color: var(--c-primary-dk); border-color: var(--c-primary); }
+.ptabs .r { margin-left: auto; display: flex; align-items: center; gap: 12px; font-size: 13px; color: var(--c-sub); }
+.phead { padding: 16px 24px 16px; }
+.kicker { font-size: 13px; color: var(--c-sub); display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.ptitle { font-size: 24px; font-weight: 700; margin: 2px 0 2px; letter-spacing: -.3px; color: var(--c-bolder); line-height: 1.35; }
+.psub { font-size: 14px; color: var(--c-sub); }
+.scope { margin-top: 10px; display: flex; gap: 6px; flex-wrap: wrap; align-items: center; font-size: 13px; color: var(--c-text); background: var(--c-sec-sub); border-radius: 6px; padding: 6px 10px; }
+.scope b { color: var(--c-navy-2); }
+.tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 8px; }
+.tile { background: var(--c-bg); border-radius: 8px; padding: 12px 14px; min-width: 0; }
+.tile .lb { font-size: 13px; color: var(--c-sub); display: flex; align-items: center; gap: 4px; }
+.tile .v { font-size: 26px; font-weight: 700; line-height: 1.25; margin-top: 2px; color: var(--c-bolder); letter-spacing: -.3px; }
+.tile .v small { font-size: 14px; font-weight: 600; color: var(--c-sub); margin-left: 2px; letter-spacing: 0; }
+.tile .v.md2 { font-size: 18px; }
+.tile .s { font-size: 12.5px; color: var(--c-sub); margin-top: 2px; }
+.tile .cap { font-size: 12px; color: var(--c-sub); margin-top: 6px; padding-top: 6px; border-top: 1px solid #E1E4E7; }
+.sec { padding: 16px 24px 18px; border-top: 1px solid var(--c-line); }
+.sec-h { display: flex; align-items: center; gap: 8px; }
+.sec-h h3 { font-size: 17px; margin: 0; color: var(--c-bolder); }
+.sec-h .tog { margin-left: auto; color: var(--c-sub); display: inline-flex; align-items: center; gap: 4px; font-size: 13px; }
+.subh { font-size: 14px; font-weight: 700; margin: 14px 0 6px; color: var(--c-text); display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
+.subh .sub { font-weight: 400; font-size: 12.5px; }
+.kv { display: grid; grid-template-columns: 112px 1fr; gap: 6px 12px; font-size: 14px; margin: 0; }
+.kv dt { color: var(--c-sub); }
+.kv dd { margin: 0; }
+.hl { background: var(--c-primary-sub); font-weight: 700; color: var(--c-bolder); border-radius: 3px; padding: 0 3px; }
+
+/* 표 */
+.tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
+.tbl th { text-align: left; font-weight: 700; color: var(--c-navy-2); background: var(--c-sec-sub); padding: 7px 10px; white-space: nowrap; }
+.tbl td { padding: 7px 10px; border-bottom: 1px solid var(--c-line); vertical-align: top; }
+.tbl td.r, .tbl th.r { text-align: right; }
+.tbl tr.em td { font-weight: 700; color: var(--c-bolder); background: #FAFBFC; }
+.tbl tr:last-child td { border-bottom: 0; }
+.tblw { border: 1px solid var(--c-line); border-radius: 6px; overflow: hidden; }
+
+/* 시각화 공통 */
+.viz-cap { font-size: 13px; color: var(--c-sub); margin: 12px 0 4px; display: flex; gap: 6px; align-items: baseline; flex-wrap: wrap; }
+.viz-cap b { color: var(--c-text); font-size: 14px; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 13px; color: var(--c-sub); margin-top: 8px; }
+.legend .sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: 0; }
+.legend b { color: var(--c-text); }
+[data-tip] { cursor: default; }
+#tip { position: absolute; z-index: 50; pointer-events: none; background: #fff; border: 1px solid var(--c-bd); border-radius: 6px; box-shadow: var(--sh-2); padding: 6px 10px; font-size: 12px; color: var(--c-sub); max-width: 300px; display: none; }
+#tip b { display: block; color: var(--c-text); font-size: 13px; }
+
+.rcard { border: 1px solid var(--c-line); background: #fff; border-radius: 10px; padding: 12px 14px; }
+.rcard.on { border: 2px solid var(--c-primary); background: var(--c-primary-sub); padding: 11px 13px; }
+.fv { margin-top: 8px; display: grid; grid-template-columns: 1fr 1fr; gap: 2px 10px; font-size: 13px; color: var(--c-sub); }
+.fv b { color: var(--c-text); }
+.grp { background: #FAFBFC; border: 1px solid var(--c-line); border-radius: 8px; padding: 10px 12px; }
+.mgmt { margin-top: 10px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 13px; color: var(--c-sub); background: var(--c-bg); border-radius: 6px; padding: 6px 10px; }
+.mgmt b { color: var(--c-text); }
+.tbl.ft th { white-space: normal; line-height: 1.35; vertical-align: bottom; }
+</style></head>
+<body>
+<header class="doc">
+  <h1>시안 B(2판) · 위험·취약 대상 목록 · 침수흔적 목록 카드 (+ 대상 상세)</h1>
+  <div class="lead">목록 카드는 「조회 범위 → 대상(현장 판단 값)」 순서. 상세는 현장 판단 값과 연락할 곳부터. 값은 모두 받은 그대로이고, 고르기·묶기·이름 바꾸기는 승인 항목으로 표시했다.</div>
+  <div class="legend">
+    <span class="k"><span class="appr-k"></span> 승인 필요 제안(점선 상자 · 번호는 명세 「승인 필요 항목」)</span>
+    <span class="k"><span class="cnt" title="유엔이(이 서비스)가 받은 목록을 센 값입니다. 제공처가 준 숫자가 아닙니다.">유엔이가 센 값</span> 제품에도 들어가는 표시 — 유엔이(이 서비스)가 받은 목록을 센 값</span>
+    <span class="k"><span class="pin">1</span> 설계 메모 번호(제품에 없음)</span>
+  </div>
+  <div class="src">값: 녹화본(2026-10-27 15:53 데이터 조회) 그대로 — 위험·취약 대상 목록(부산광역시 남구 · 잠재 위험요소·취약시설) · 침수흔적 목록(부산광역시 · 2020년, 전체 91건 중 1쪽) · 위험·취약 대상 상세(대남지하차도, 초량, 복병산절개지 옹벽). 두 카드는 서로 다른 조회 녹화를 한 화면에 모은 부품 시안이다(기준지역 남구는 시안 상황). 특보 줄·대응절차 줄은 가정(특보 없음).</div>
+</header>
+<div class=""><div class="gh">
+  <div class="logo"><span class="sym" aria-hidden="true"></span>행정안전부 <small>재난안전 AI</small></div>
+  <nav><a class="on" href="#">통합 탐색</a><a href="#">대화 이력</a><a href="#">연락망·상황전파</a></nav>
+  <div class="right">기준지역 <span class="sel">부산광역시 <svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m4 6 4 4 4-4"/></svg></span><span class="sel">남구 <svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m4 6 4 4 4-4"/></svg></span>
+    <span>도움말</span><span>가 글자 크기</span><span class="aimode"><i></i>AI 모드</span><span class="user">부산광역시 · 내 정보 ▾</span></div>
+</div>
+<div class="wx "><span class="st none">특보 없음</span><b>부산광역시에 발효 중인 기상특보가 없습니다</b><span class="sub xs">기상청 02:45 갱신</span><span class="sp"></span><span class="lnk xs">특보로 질문 ›</span></div>
+<div class="sop"><span class="lab">대응절차</span><ol><li class="on"><i>1</i>징후감지</li><li class=""><i>2</i>초기대응</li><li class=""><i>3</i>비상대응</li><li class=""><i>4</i>수습·복구</li></ol><span class="basis">발효 특보 없음 · 평시</span><span class="sp"></span><span class="btn sm" style="background:var(--c-navy);border-color:var(--c-navy);color:#fff;font-weight:700">대응절차 전체 ›</span></div></div>
+<div class="body">
+  <div class="rail" title="질문 목록(접힘)"><span class="b">2</span><span class="vt">질문 목록</span><svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 4 4 4-4 4"/></svg></div>
+  <main style="width:700px;flex:none">
+    <div class="thread-h"><h2>남구 통제·대피 대상과 침수 이력</h2><span class="sub"><svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m10.6 2.6 2.8 2.8-7.8 7.8H2.8v-2.8z"/></svg></span><span class="sp"></span><span class="btn sm"><svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v10M3 8h10"/></svg> 새 대화</span></div>
+    <div class="dblock" style="margin-top:0">
+      <div class="dblock-h"><span class="tag navy">자동 조회 데이터</span>에이전트 답변과 따로 먼저 조회한 결과 <span class="sub" title="값과 순서는 제공처가 보낸 그대로입니다." data-tip="값과 순서는 제공처가 보낸 그대로입니다." tabindex="0" style="display:inline-flex"><svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6.25"/><path d="M8 7.2v3.8M8 5.1v.1"/></svg></span></div>
+      <section class="dcard">
+  <div class="dcard-t"><h3>위험·취약 대상</h3><span class="dmeta">전체 <b>4</b>건 · 자료 기준일 2026-10-20</span><span class="sub" title="값과 순서는 제공처가 보낸 그대로입니다. 4건 이하는 카드, 그보다 많으면 표와 쪽 넘김." data-tip="값과 순서는 제공처가 보낸 그대로입니다. 4건 이하는 카드, 그보다 많으면 표와 쪽 넘김." tabindex="0" style="display:inline-flex"><svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6.25"/><path d="M8 7.2v3.8M8 5.1v.1"/></svg></span><span class="sp"></span><span class="btn sm">표로 보기</span><span class="btn sm ghost">접기 <svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m4 10 4-4 4 4"/></svg></span></div>
+  <div class="cond"><span class="pin">1</span>조회 조건 <span class="tag">부산광역시 남구</span><span class="tag">잠재 위험요소·취약시설</span></div>
+  <div class="row xs sub" style="margin-top:6px;gap:6px"><svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 14.2s4.6-4.2 4.6-7.6A4.6 4.6 0 0 0 3.4 6.6c0 3.4 4.6 7.6 4.6 7.6z"/><circle cx="8" cy="6.6" r="1.6"/></svg>이 목록은 위치 정보가 없어 지도에 표시할 수 없습니다.</div>
+  <div role="list" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px"><div class="rcard on" role="listitem" tabindex="0">
+        <div class="row" style="align-items:flex-start"><span style="color:var(--c-navy);margin-top:2px"><svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 13.4V8.2a6 6 0 0 1 12 0v5.2"/><path d="M5.2 13.4V9a2.8 2.8 0 0 1 5.6 0v4.4M1.4 13.4h13.2"/></svg></span><div style="min-width:0"><div style="font-weight:700;font-size:16px">대남지하차도</div><div class="xs sub">부산광역시 남구 대연동 · 지하차도</div></div><span class="sp"></span><span class="tag navy nw">등급 4</span><span class="sub" title="등급의 높고 낮음 기준은 제공되지 않았습니다." data-tip="등급의 높고 낮음 기준은 제공되지 않았습니다." tabindex="0" style="display:inline-flex"><svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6.25"/><path d="M8 7.2v3.8M8 5.1v.1"/></svg></span></div>
+        <div class="fv appr" data-appr="승인 B3"><span>통제 기준 수심 <b>5cm</b></span><span>진입차단시설 <b>차단봉</b></span><span>하천 500m 이내 <b>예</b></span><span>인명피해우려지역 <b>예</b></span></div>
+        <div class="xs" style="margin-top:8px;color:var(--c-primary-dk);font-weight:700"><svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m3.2 8.4 3 3 6.6-6.8"/></svg> 오른쪽에 상세 열림</div>
+      </div><div class="rcard" role="listitem" tabindex="0">
+        <div class="row" style="align-items:flex-start"><span style="color:var(--c-navy);margin-top:2px"><svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 13.4V8.2a6 6 0 0 1 12 0v5.2"/><path d="M5.2 13.4V9a2.8 2.8 0 0 1 5.6 0v4.4M1.4 13.4h13.2"/></svg></span><div style="min-width:0"><div style="font-weight:700;font-size:16px">문현지하차도</div><div class="xs sub">부산광역시 남구 문현동 · 지하차도</div></div><span class="sp"></span><span class="tag navy nw">등급 4</span><span class="sub" title="등급의 높고 낮음 기준은 제공되지 않았습니다." data-tip="등급의 높고 낮음 기준은 제공되지 않았습니다." tabindex="0" style="display:inline-flex"><svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6.25"/><path d="M8 7.2v3.8M8 5.1v.1"/></svg></span></div>
+        <div class="row" style="margin-top:6px;gap:8px"><span class="xs">진입차단시설 <b>차단봉</b></span></div><div class="row" style="margin-top:6px;gap:6px"><span class="sk" style="width:46%"></span><span class="xxs mute">현장 값 받는 중</span></div>
+        <div class="xs" style="margin-top:8px;color:var(--c-sub);font-weight:400">누르면 상세</div>
+      </div><div class="rcard" role="listitem" tabindex="0">
+        <div class="row" style="align-items:flex-start"><span style="color:var(--c-navy);margin-top:2px"><svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 13.4V8.2a6 6 0 0 1 12 0v5.2"/><path d="M5.2 13.4V9a2.8 2.8 0 0 1 5.6 0v4.4M1.4 13.4h13.2"/></svg></span><div style="min-width:0"><div style="font-weight:700;font-size:16px">문화지하차도</div><div class="xs sub">부산광역시 남구 대연동 · 지하차도</div></div><span class="sp"></span><span class="tag navy nw">등급 4</span><span class="sub" title="등급의 높고 낮음 기준은 제공되지 않았습니다." data-tip="등급의 높고 낮음 기준은 제공되지 않았습니다." tabindex="0" style="display:inline-flex"><svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6.25"/><path d="M8 7.2v3.8M8 5.1v.1"/></svg></span></div>
+        <div class="row" style="margin-top:6px;gap:8px"><span class="xs sub">진입차단시설 정보 없음</span></div><div class="row" style="margin-top:6px;gap:6px"><span class="sk" style="width:46%"></span><span class="xxs mute">현장 값 받는 중</span></div>
+        <div class="xs" style="margin-top:8px;color:var(--c-sub);font-weight:400">누르면 상세</div>
+      </div><div class="rcard" role="listitem" tabindex="0">
+        <div class="row" style="align-items:flex-start"><span style="color:var(--c-navy);margin-top:2px"><svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 13.4V8.2a6 6 0 0 1 12 0v5.2"/><path d="M5.2 13.4V9a2.8 2.8 0 0 1 5.6 0v4.4M1.4 13.4h13.2"/></svg></span><div style="min-width:0"><div style="font-weight:700;font-size:16px">신선대지하차도</div><div class="xs sub">부산광역시 남구 용당동 · 지하차도</div></div><span class="sp"></span><span class="tag navy nw">등급 2</span><span class="sub" title="등급의 높고 낮음 기준은 제공되지 않았습니다." data-tip="등급의 높고 낮음 기준은 제공되지 않았습니다." tabindex="0" style="display:inline-flex"><svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6.25"/><path d="M8 7.2v3.8M8 5.1v.1"/></svg></span></div>
+        <div class="row" style="margin-top:6px;gap:8px"><span class="xs">진입차단시설 <b>스크린</b></span></div><div class="row" style="margin-top:6px;gap:6px"><span class="sk" style="width:46%"></span><span class="xxs mute">현장 값 받는 중</span></div>
+        <div class="xs" style="margin-top:8px;color:var(--c-sub);font-weight:400">누르면 상세</div>
+      </div></div>
+  <div class="xxs sub" style="margin-top:6px"><span class="pin">2</span> 4건 이하이면 대상 상세를 함께 받아 현장 판단 값을 카드에 둔다(받은 값 그대로). 대남지하차도만 녹화가 있어 나머지는 「받는 중」으로 그림.</div>
+</section>
+      <section class="dcard">
+  <div class="dcard-t"><h3>침수흔적</h3><span class="dmeta">전체 <b>91</b>건 · 1쪽(쪽당 20건) · 자료 기준일 2026-10-20</span><span class="sub" title="값과 순서는 제공처가 보낸 그대로입니다." data-tip="값과 순서는 제공처가 보낸 그대로입니다." tabindex="0" style="display:inline-flex"><svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6.25"/><path d="M8 7.2v3.8M8 5.1v.1"/></svg></span><span class="sp"></span><span class="btn sm sec"><svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 14.2s4.6-4.2 4.6-7.6A4.6 4.6 0 0 0 3.4 6.6c0 3.4 4.6 7.6 4.6 7.6z"/><circle cx="8" cy="6.6" r="1.6"/></svg> 이 쪽 지도에서 보기</span><span class="btn sm">표로 보기</span></div>
+  <div class="cond"><span class="pin">3</span>조회 범위 <span class="sel sm">부산광역시 전체 <svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m4 6 4 4 4-4"/></svg></span><span class="sel sm">침수 연도 2020 <svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m4 6 4 4 4-4"/></svg></span><span class="src-mark">자동 선택</span></div>
+  <div class="note warn" style="margin-top:8px;padding:6px 12px;display:flex;align-items:center;gap:8px"><svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2.2 14.3 13H1.7z"/><path d="M8 6.4v3.1M8 11.3v.1"/></svg><span><b>기준지역(부산광역시 남구)과 다른 범위로 조회했습니다</b> — 부산광역시 전체 · 2020년</span><span class="sp"></span><span class="btn sm">남구로 다시 조회</span></div>
+  <div class="subh" style="margin-top:12px"><span class="pin">4</span>목록 <span class="sub">받은 20건 중 10건 · 행정구역은 행정코드를 유엔이 지역 목록으로 바꾼 이름</span></div>
+  <div class="appr" data-appr="승인 G4"><div class="tblw"><table class="tbl ft" style="table-layout:fixed"><colgroup><col style="width:66px"><col style="width:138px"><col style="width:92px"><col style="width:88px"><col style="width:80px"><col style="width:68px"><col></colgroup>
+    <thead><tr><th>행정구역</th><th>지구명 · 침수 사건</th><th>기간</th><th class="r">평균 침수심(단위 미표기¹)</th><th class="r">면적(㎡)</th><th class="r">침수 시간(시간)</th><th>원인</th></tr></thead><tbody><tr><td class="nw">동구</td><td><b>수정1지구</b><div class="xxs sub">20년07월 장마철 집중호우</div></td><td class="num xs">2020-07-23</td><td class="r num">4.565</td><td class="r num">16,179</td><td class="r num">1</td><td class="xs">집중호우, 배수불량</td></tr><tr><td class="nw">동구</td><td><b>좌천1지구</b><div class="xxs sub">20년07월 장마철 집중호우</div></td><td class="num xs">2020-07-23<div class="sub nw">~ 2020-07-24</div></td><td class="r num">2.087</td><td class="r num">16,679.8</td><td class="r num">5</td><td class="xs">집중호우, 배수불량</td></tr><tr><td class="nw">동구</td><td><b>초량1지구</b><div class="xxs sub">우20년07월 장마철 집중호</div></td><td class="num xs">2020-07-23<div class="sub nw">~ 2020-07-24</div></td><td class="r num">2.675</td><td class="r num">9,608.5</td><td class="r num">6</td><td class="xs">집중호우, 저지대지하도로, 배수불량</td></tr><tr><td class="nw">동구</td><td><b>초량2지구</b><div class="xxs sub">20년07월 장마철 집중호우</div></td><td class="num xs">2020-07-23</td><td class="r num">4.212</td><td class="r num">70,777.7</td><td class="r num">1</td><td class="xs">집중호우, 배수불량</td></tr><tr><td class="nw">동구</td><td><b>범일동 자성대아파트</b><div class="xxs sub">2020.07.10 집중호우에 의한 침수</div></td><td class="num xs">2020-07-10</td><td class="r num">1.621</td><td class="r num">23,326.1</td><td class="r num">2</td><td class="xs">집중호우</td></tr><tr><td class="nw">동구</td><td><b>범일동 자성대아파트</b><div class="xxs sub">2020.07.10 집중호우에 의한 침수</div></td><td class="num xs">2020-07-10</td><td class="r num">1.621</td><td class="r num">23,326.1</td><td class="r num">2</td><td class="xs">집중호우</td></tr><tr><td class="nw">영도구</td><td><b>청학1지구(2020년07월</b><div class="xxs sub">2020년 07월 10일 집중호우</div></td><td class="num xs">2020-07-10</td><td class="r num">4.118</td><td class="r num">12,049.3</td><td class="r num">2</td><td class="xs">내수침수</td></tr><tr><td class="nw">영도구</td><td><b>청학1지구(2020년 7월</b><div class="xxs sub">2020년 7월 23일 집중호우</div></td><td class="num xs">2020-07-23</td><td class="r num">4.045</td><td class="r num">10,409.9</td><td class="r num">2</td><td class="xs">내수침수</td></tr><tr><td class="nw">해운대구</td><td><b>해운대구 반송동 385-</b><div class="xxs sub">7월 장마철 집중호우</div></td><td class="num xs">2020-07-23<div class="sub nw">~ 2020-07-24</div></td><td class="r num">37.3</td><td class="r num">15,023.1</td><td class="r num">4</td><td class="xs">저지대 및 배수불량</td></tr><tr><td class="nw">해운대구</td><td><b>해운대구 석대동 201-</b><div class="xxs sub">7월 장마철 집중호우</div></td><td class="num xs">2020-07-10</td><td class="r num">10</td><td class="r num">44,787.3</td><td class="r num">5</td><td class="xs">저지대 및 배수불량</td></tr></tbody></table></div></div>
+  <div class="row xs" style="margin-top:8px"><span class="btn sm">이 쪽 나머지 10건 <svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m4 6 4 4 4-4"/></svg></span><span class="sp"></span><span class="lnk">2쪽 ›</span></div>
+  <div class="xxs sub" style="margin-top:8px;line-height:1.6">¹ 평균 침수심 단위(받은 값 그대로): 원천 단위 미표기(cm 로 보임)<br>각 항목의 최대 침수심(m) — 원자료에 없음</div>
+</section>
+    </div>
+    <div class="stt-h"><span class="k">상태 시안</span> 같은 부품의 다른 상태 — 값은 녹화본 그대로</div>
+  <div class="st-card"><div class="st-lb">상태 1 · 표로 보기 (위험·취약 대상 · 열 이름 한국어 · 5건 이상이면 이 표가 기본)</div>
+    <div class="tblw"><table class="tbl" style="font-size:12px"><thead><tr><th>이름</th><th>분류</th><th>유형</th><th>진입차단시설</th><th>등급</th><th>행정구역</th><th>위치 정보</th><th>대상 번호</th></tr></thead><tbody><tr><td><b>대남지하차도</b></td><td class="nw">지하차도(취약시설)</td><td class="nw">지하차도</td><td class="nw">차단봉</td><td class="nw">4</td><td>부산광역시 남구 대연동</td><td class="nw">없음</td><td class="num xxs nw">UP-609</td></tr><tr><td><b>문현지하차도</b></td><td class="nw">지하차도(취약시설)</td><td class="nw">지하차도</td><td class="nw">차단봉</td><td class="nw">4</td><td>부산광역시 남구 문현동</td><td class="nw">없음</td><td class="num xxs nw">UP-610</td></tr><tr><td><b>문화지하차도</b></td><td class="nw">지하차도(취약시설)</td><td class="nw">지하차도</td><td class="nw"><span class="sub">정보 없음</span></td><td class="nw">4</td><td>부산광역시 남구 대연동</td><td class="nw">없음</td><td class="num xxs nw">UP-611</td></tr><tr><td><b>신선대지하차도</b></td><td class="nw">지하차도(취약시설)</td><td class="nw">지하차도</td><td class="nw">스크린</td><td class="nw">2</td><td>부산광역시 남구 용당동</td><td class="nw">없음</td><td class="num xxs nw">UP-612</td></tr></tbody></table></div>
+    <div class="xs sub" style="margin-top:6px">5건 이상일 때만 머리에 「등급별」 칩(등급 값마다 곳 수 <span class="cnt" title="유엔이(이 서비스)가 받은 목록을 센 값입니다. 제공처가 준 숫자가 아닙니다.">유엔이가 센 값</span>, 승인 B1). 「세부 유형」 항목 이름은 분류가 지하차도이면 「진입차단시설」.</div></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+    <div class="st-card"><div class="st-lb">상태 2 · 조회 중</div><div class="row"><b>침수흔적</b><svg class="ic spin" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke-width="2"><circle cx="8" cy="8" r="6" stroke="#D8E5FD"/><path d="M8 2a6 6 0 0 1 6 6" stroke="#256EF4" stroke-linecap="round"/></svg><span class="xs sub">조회하고 있습니다</span></div><div class="skel" style="width:90%"></div><div class="skel" style="width:70%"></div><div class="xs sub">다시 불러올 때는 이전 목록을 흐리게 둔 채 바꿉니다.</div></div>
+    <div class="st-card"><div class="st-lb">상태 3 · 일부 제공 — 빈 자리 옆에만 (피해·대응 실제 응답)</div><div class="tile" style="padding:8px 12px"><div class="lb">이재민</div><div class="v" style="font-size:20px">16,767<small>명</small></div><div class="s gap"><svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2.2 14.3 13H1.7z"/><path d="M8 6.4v3.1M8 11.3v.1"/></svg><span>사망·실종·부상 원자료에 없음</span></div></div><div class="gap" style="margin-top:8px"><svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2.2 14.3 13H1.7z"/><path d="M8 6.4v3.1M8 11.3v.1"/></svg><span>대응 정보(도로 통제·대피·조치)는 원자료에 없음습니다.</span></div><div class="xxs sub" style="margin-top:6px">제목 옆 상태 배지는 두지 않는다.</div></div>
+    <div class="st-card"><div class="st-lb">상태 4 · 자료 없음 (침수지도 실제 응답)</div><b>침수지도</b><div class="note gray" style="margin-top:8px"><b>침수지도 원자료 없음</b> — 제공처에 하천범람지도·도시침수지도 자료가 없습니다. 과거 침수흔적은 침수흔적 목록에서 볼 수 있습니다.</div><div class="xxs sub" style="margin-top:6px">원문 보기 없음 — 제공처 원문은 운영관리 · 추적로그 조회에만.</div></div>
+    <div class="st-card"><div class="st-lb">상태 5 · 결과 없음</div><b>위험·취약 대상</b><div style="margin-top:8px">조건에 맞는 대상이 없습니다.</div><div class="xs sub" style="margin-top:2px">조회 조건 · 부산광역시 남구 · 잠재 위험요소·취약시설</div><div class="row" style="margin-top:8px"><span class="btn sm">조건 바꾸기</span></div></div>
+    <div class="st-card"><div class="st-lb">상태 6 · 급경사지 — 등급이 원자료에 없고 담당 부서가 온 경우</div><div class="row"><b>복병산절개지 옹벽</b><span class="xs sub">급경사지 · 부산광역시 중구 대청동1가</span></div>
+      <div class="mgmt"><span>관리 <b>지자체</b></span><span>담당 부서 <b>중구 안전도시과</b></span><span class="gap"><svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2.2 14.3 13H1.7z"/><path d="M8 6.4v3.1M8 11.3v.1"/></svg>연락처 제공 안 됨</span><span class="sp"></span><span class="btn sm"><svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5.2 2.2 3.4 2.6c-.8.3-1.3 1.1-1.1 2 1.2 4.7 4.2 7.7 8.9 8.9.9.2 1.7-.3 2-1.1l.4-1.8-2.9-1.3-1.3 1.3c-1.7-.8-2.9-2-3.7-3.7l1.3-1.3z"/></svg> 연락망에서 중구 찾기</span></div>
+      <div class="tiles" style="grid-template-columns:1fr 1fr;margin-top:8px"><div class="tile"><div class="lb">위험등급</div><div class="v md2 sub" style="margin-top:4px">원자료에 없음</div></div><div class="tile"><div class="lb">최근 점검 결과</div><div class="v md2" style="margin-top:4px">안전</div><div class="s">최근 안전점검일 2026-03-19</div></div></div></div>
+    <div class="st-card"><div class="st-lb">상태 7 · 오류</div><div class="note warn" style="display:flex;gap:8px"><svg class="ic" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2.2 14.3 13H1.7z"/><path d="M8 6.4v3.1M8 11.3v.1"/></svg><div><b>위험·취약 대상을 불러오지 못했습니다.</b> 에이전트 답변은 따로 받고 있습니다.<div class="row" style="margin-top:6px"><span class="btn sm">다시 조회</span></div></div></div></div>
+  </div>
+    <div class="notes" style="margin-top:22px"><h4>설계 메모 — 담당자의 질문: 「우리 지역에서 먼저 볼 곳은 어디고, 어디가 언제 잠겼었나?」</h4><ol><li><span class="pin">1</span><div><b>조회 조건을 카드 머리에</b> — 어느 지역·어느 데이터군을 조회했는지 먼저. 위치 정보가 모두 없으면 카드 머리에 한 번만 알린다(버튼 4개 반복 대신).</div></li><li><span class="pin">2</span><div><b>카드에 현장 판단 값</b> — 4건 이하이면 상세를 함께 받아 통제 기준 수심·진입차단시설·하천 500m 이내·인명피해우려지역을 받은 값 그대로. 4건뿐이라 등급별 개수는 두지 않는다.</div></li><li><span class="pin">3</span><div><b>조회 범위 = 바꿀 수 있는 선택 상자</b> — 지역·연도를 바로 바꾼다. 기준지역과 범위가 다르면 노랑 한 줄로 알리고 「남구로 다시 조회」.</div></li><li><span class="pin">4</span><div><b>행정구역 열</b> — 받은 20건은 동구·영도구·해운대구·강서구·금정구 — 남구는 없다. 행정코드를 지역 이름으로 바꿔 「남구 기록」으로 오해하지 않게(승인 G4). 칸 안 막대는 없앴다.</div></li><li><span class="pin">5</span><div><b>현장 판단 값 먼저</b> — 지하차도 상세는 통제 기준 수심을 요약 칸 맨 앞에(승인 B3). 등급 옆 ⓘ는 「높고 낮음 기준은 제공되지 않음」.</div></li><li><span class="pin">6</span><div><b>속성 묶음</b> — 위험 특성·시설 정보·대비 상태로 묶음(승인 B4). 영문이 섞인 항목 이름은 사전 대역(박스 연장(m), 승인 B5).</div></li><li><span class="pin">7</span><div><b>누구에게 연락할지</b> — 담당 부서·연락처가 비면 머리에 「제공 안 됨」과 「연락망에서 남구 찾기」(행정코드로 연락망을 거름). 부서가 오면(중구 안전도시과) 그대로 보이고 같은 버튼.</div></li></ol></div>
+  </main>
+  <div style="flex:none;width:604px"><aside class="panel" style="width:604px">
+  <div class="ptabs"><span class="ptab">지도</span><span class="ptab on">대남지하차도 <svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m4.5 4.5 7 7M11.5 4.5l-7 7"/></svg></span><span class="ptab">초량 <svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m4.5 4.5 7 7M11.5 4.5l-7 7"/></svg></span><div class="r"><span>새 창으로 분리 <svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9.2 2.4h4.4v4.4M13.4 2.6 7.6 8.4M11.8 9.6v3.6H2.8V4.2h3.6"/></svg></span><span>패널 접기 <svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 4 4 4-4 4"/></svg></span></div></div>
+  <div class="phead">
+    <div class="kicker"><svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 13.4V8.2a6 6 0 0 1 12 0v5.2"/><path d="M5.2 13.4V9a2.8 2.8 0 0 1 5.6 0v4.4M1.4 13.4h13.2"/></svg>잠재 위험요소·취약시설 · 지하차도(취약시설)</div>
+    <div class="row" style="align-items:flex-start;margin-top:2px"><div class="ptitle">대남지하차도</div><span class="sp"></span><span class="btn sm">참조</span><span class="btn sm">이어서 묻기</span></div>
+    <div class="psub">부산광역시 남구 대연동 · 주소 부산 남구 대연동</div>
+    <div class="mgmt"><span class="pin">7</span><span>관리 <b>지자체</b></span><span class="gap"><svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2.2 14.3 13H1.7z"/><path d="M8 6.4v3.1M8 11.3v.1"/></svg>담당 부서·연락처 제공 안 됨</span><span class="sp"></span><span class="btn sm"><svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5.2 2.2 3.4 2.6c-.8.3-1.3 1.1-1.1 2 1.2 4.7 4.2 7.7 8.9 8.9.9.2 1.7-.3 2-1.1l.4-1.8-2.9-1.3-1.3 1.3c-1.7-.8-2.9-2-3.7-3.7l1.3-1.3z"/></svg> 연락망에서 남구 찾기</span></div>
+    <div class="tiles" style="grid-template-columns:1.15fr 1fr 1fr">
+      <div class="tile appr" data-appr="승인 B3" style="background:var(--c-primary-sub)"><div class="lb"><span class="pin">5</span>통제 기준 수심(cm)</div><div class="v">5<small>cm</small></div></div>
+      <div class="tile"><div class="lb">등급 <span class="sub" title="등급의 높고 낮음 기준은 제공되지 않았습니다." data-tip="등급의 높고 낮음 기준은 제공되지 않았습니다." tabindex="0" style="display:inline-flex"><svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6.25"/><path d="M8 7.2v3.8M8 5.1v.1"/></svg></span></div><div class="v">4</div></div>
+      <div class="tile"><div class="lb">진입차단시설 형태</div><div class="v md2" style="margin-top:6px">차단봉</div></div>
+    </div>
+    <div class="row xs sub" style="margin-top:8px;gap:6px"><svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 14.2s4.6-4.2 4.6-7.6A4.6 4.6 0 0 0 3.4 6.6c0 3.4 4.6 7.6 4.6 7.6z"/><circle cx="8" cy="6.6" r="1.6"/></svg>위치 정보가 제공되지 않아 지도에 표시할 수 없습니다.</div>
+  </div>
+  <div class="sec">
+    <div class="sec-h"><h3>위험·취약 정보</h3><span class="tog">접기 <svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m4 10 4-4 4 4"/></svg></span></div>
+    <div class="appr" data-appr="승인 B4 · B5" style="margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div class="grp"><div class="subh" style="margin:0 0 6px"><span class="pin">6</span>위험 특성</div><dl class="kv" style="grid-template-columns:118px 1fr;font-size:13px"><dt>U형</dt><dd>예</dd><dt>하천 500m 이내</dt><dd>예</dd><dt>하천명</dt><dd>남천</dd><dt>인명피해우려지역</dt><dd>예</dd></dl></div>
+      <div class="grp"><div class="subh" style="margin:0 0 6px">시설 정보</div><dl class="kv" style="grid-template-columns:96px 1fr;font-size:13px"><dt>관리주체</dt><dd>지자체</dd><dt>준공연도</dt><dd>1995</dd><dt>박스 연장(m)</dt><dd>125</dd></dl></div>
+    </div>
+    <div class="subh">대비 상태</div>
+    <dl class="kv" style="grid-template-columns:132px 1fr;font-size:14px"><dt>차단시설 조달</dt><dd>예</dd><dt>미설치 사유</dt><dd>해당없음</dd><dt>대응계획 수립</dt><dd>예</dd><dt>설비 보유</dt><dd>스피커 · 전광판 · 대피시설 · 배수시설(지하) · 수위계측기 · 진입차단시설(차단봉) · CCTV</dd></dl>
+  </div>
+  <div class="sec">
+    <div class="sec-h"><h3>근거</h3><span class="tog">접기 <svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m4 10 4-4 4 4"/></svg></span></div>
+    <div class="row" style="margin-top:10px;align-items:flex-start"><svg class="ic" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 1.8h5.4L12.6 5v9.2H4z"/><path d="M9.2 1.8V5.2h3.4M6 8.4h4.4M6 10.9h4.4"/></svg><div><div>(최종) 지하차도 현황(26.6.10.기준) — 표 «지하차도_차단시설_현황» 288행</div><div class="xs sub">출처 지하차도 현황(2026-06-10 기준) · 기준일 2026-06-10 · 공개 등급 공개</div></div></div>
+  </div>
+  <div class="sec">
+    <div class="sec-h"><h3>제공되지 않은 항목</h3><span class="tog">펼치기 <svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m4 6 4 4 4-4"/></svg></span></div>
+    <div class="xs sub" style="margin-top:6px">지정 사유 · 주요 위험 조건 · 예상 피해 · 취약성 · 위험도 세부 점수 · 지정일 · 지정 번호 · 면적 또는 길이 · 지정 근거 · 관련 계획 · 과거 사건 — 제공처 응답에 값이 없습니다.</div>
+  </div>
+</aside><aside class="panel" style="width:604px;margin-top:16px">
+  <div class="ptabs"><span class="ptab">지도</span><span class="ptab">대남지하차도 <svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m4.5 4.5 7 7M11.5 4.5l-7 7"/></svg></span><span class="ptab on">초량 <svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m4.5 4.5 7 7M11.5 4.5l-7 7"/></svg></span><div class="r"><span class="sub">다른 탭을 연 모습</span></div></div>
+  <div class="phead">
+    <div class="kicker"><svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1.6 13.2 6 5.4l2.6 4 1.8-2.6 4 6.4z"/></svg>위험·취약지역 · 자연재해위험개선지구 · 침수위험</div>
+    <div class="row" style="align-items:flex-start;margin-top:2px"><div class="ptitle">초량</div><span class="sp"></span><span class="btn sm">참조</span><span class="btn sm">이어서 묻기</span></div>
+    <div class="psub">부산광역시 동구 · 부산 동구 초량동1173(초량제1지하차도) 일원</div>
+    <div class="mgmt"><span>관리 <b>동구청</b></span><span class="gap"><svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2.2 14.3 13H1.7z"/><path d="M8 6.4v3.1M8 11.3v.1"/></svg>담당 부서·연락처 제공 안 됨</span><span class="sp"></span><span class="btn sm"><svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5.2 2.2 3.4 2.6c-.8.3-1.3 1.1-1.1 2 1.2 4.7 4.2 7.7 8.9 8.9.9.2 1.7-.3 2-1.1l.4-1.8-2.9-1.3-1.3 1.3c-1.7-.8-2.9-2-3.7-3.7l1.3-1.3z"/></svg> 연락망에서 동구 찾기</span></div>
+    <div class="tiles">
+      <div class="tile"><div class="lb">위험등급 <span class="sub" title="등급의 높고 낮음 기준은 제공되지 않았습니다." data-tip="등급의 높고 낮음 기준은 제공되지 않았습니다." tabindex="0" style="display:inline-flex"><svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6.25"/><path d="M8 7.2v3.8M8 5.1v.1"/></svg></span></div><div class="v">가</div></div>
+      <div class="tile"><div class="lb">지정일</div><div class="v md2" style="margin-top:6px">2023-03-29</div></div>
+      <div class="tile"><div class="lb">면적 또는 길이</div><div class="v md2" style="margin-top:6px">0.054344㎢</div></div>
+    </div>
+  </div>
+  <div class="sec">
+    <div class="sec-h"><h3>정비사업</h3><span class="tog">접기 <svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m4 10 4-4 4 4"/></svg></span></div>
+    <dl class="kv" style="margin-top:12px;grid-template-columns:118px 1fr">
+      <dt>사업 기간(계획)</dt><dd><b>2024 ~ 2028</b> <span class="xs sub">· 실제 공사 진행 여부는 제공되지 않음</span></dd>
+      <dt>사업내용</dt><dd>배수펌프장 설치 1식, 수문신설 1개소, 관로정비 L=4.14km</dd><dt>시설명</dt><dd>배수펌프장</dd><dt>시설등급</dt><dd>도시방재시설</dd><dt>시행기관</dt><dd>동구청</dd><dt>재해유형</dt><dd>침수위험</dd></dl>
+    <div class="row" style="margin-top:12px"><svg class="ic" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 1.8h5.4L12.6 5v9.2H4z"/><path d="M9.2 1.8V5.2h3.4M6 8.4h4.4M6 10.9h4.4"/></svg><span>관련 계획 · <b>자연재해위험개선지구 중기정비계획</b></span><span class="sp"></span><span class="btn sm">계획 열기</span></div>
+    <div class="xs sub" style="margin-top:6px">근거 · 자연재해위험개선지구 중기정비계획 — 표 «자연재해위험개선지구_중기정비계획_총괄조서» 51행</div>
+  </div>
+</aside></div>
+</div>
+<div id="tip" role="status"></div><script>
+(() => { const t = document.getElementById("tip");
+  const show = (el) => { const [v, l] = (el.getAttribute("data-tip") || "").split("|"); t.textContent = ""; const b = document.createElement("b"); b.textContent = v; t.appendChild(b); if (l) t.appendChild(document.createTextNode(l)); const r = el.getBoundingClientRect(); t.style.left = (window.scrollX + r.right + 8) + "px"; t.style.top = (window.scrollY + r.top - 4) + "px"; t.style.display = "block"; };
+  document.querySelectorAll("[data-tip]").forEach((el) => { el.addEventListener("pointerenter", () => show(el)); el.addEventListener("focus", () => show(el)); el.addEventListener("pointerleave", () => (t.style.display = "none")); el.addEventListener("blur", () => (t.style.display = "none")); });
+  // 표가 상자보다 넓으면 오른쪽 가장자리 그림자 + 「옆으로 더 있음」, 옆으로 밀었으면 첫 열 그림자
+  document.querySelectorAll("[data-demo-scroll]").forEach((w) => w.querySelectorAll(".md-table").forEach((t) => (t.scrollLeft = +w.dataset.demoScroll)));
+  const mark = () => document.querySelectorAll(".md-table").forEach((b) => { const wide = b.scrollWidth > b.clientWidth + 1; b.parentElement.classList.toggle("scrolls", wide && b.scrollLeft + b.clientWidth < b.scrollWidth - 1); b.closest(".md-tbl").classList.toggle("scrolls", wide); b.classList.toggle("scrolls", wide); b.classList.toggle("scrolled", b.scrollLeft > 0); });
+  mark(); window.addEventListener("resize", mark); document.querySelectorAll(".md-table").forEach((b) => b.addEventListener("scroll", mark));
+})();</script>
+</body></html>

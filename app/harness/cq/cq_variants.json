@@ -1,0 +1,6526 @@
+[
+  {
+    "id": "A-02-v1",
+    "cq_id": "A-02",
+    "cq_original": "서천군내 저지대 침수 위험 지역은 어디인가?",
+    "variant_kind": "표현·조건",
+    "variant_kind_raw": "표현·조건",
+    "question": "호우경보가 내려진 서천군에서 저지대라 물이 먼저 찰 만한 곳을 알려줘. 상습침수 필지와 원인이 «저지대»인 과거 침수흔적 기준으로.",
+    "question_source": null,
+    "query_context": null,
+    "condition_raw": "충청남도 서천군(4477000000) · 호우 · 2026-08-25 14:00 · 발효 호우경보",
+    "condition_parsed": {
+      "region_name": "충청남도 서천군",
+      "sido": "충청남도",
+      "sigungu": "서천군",
+      "admin_code": "4477000000",
+      "level": "SGG",
+      "disaster_types": [
+        "호우"
+      ],
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "active_warning": "호우경보",
+      "extra": []
+    },
+    "query_context_draft": {
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "region": {
+        "admin_code": "4477000000",
+        "name": "충청남도 서천군",
+        "level": "SGG"
+      },
+      "disaster_types": [
+        "호우"
+      ],
+      "alert_stage": "경보",
+      "weather_alerts": [
+        {
+          "alert_type": "호우",
+          "alert_level": "경보",
+          "status": "발효"
+        }
+      ]
+    },
+    "expected_apis": [
+      "T3Q-01",
+      "T3Q-05",
+      "T3Q-30"
+    ],
+    "api_flow_raw": "T3Q-01 Agent 질의 → T3Q-05 위험·취약 대상 목록 → T3Q-30 침수흔적",
+    "cq_table_apis": [
+      "T3Q-01",
+      "T3Q-05",
+      "T3Q-30",
+      "T3Q-36"
+    ],
+    "data_groups": [
+      "FLOOD_MAP",
+      "FLOOD_TRACE",
+      "RISK_AREA"
+    ],
+    "cq_table_modes": [],
+    "expected_answer": "{\"상습침수 필지\": 2210, \"침수흔적\": 366, \"원인 «저지대» 흔적\": 87, \"그 법정동 수\": 33}",
+    "expected_answer_json": {
+      "상습침수 필지": 2210,
+      "침수흔적": 366,
+      "원인 «저지대» 흔적": 87,
+      "그 법정동 수": 33
+    },
+    "expected_answer_truncated": false,
+    "check_sql": null,
+    "region": {
+      "sido": "충청남도",
+      "sigungu": "서천군",
+      "admin_code": "4477000000",
+      "level": "SGG"
+    },
+    "follow_up": null,
+    "spatial_op": null,
+    "memo": null,
+    "notes": null,
+    "agent416_result": {
+      "grade": "정답",
+      "comment": "저지대 원인 흔적 87건·읍면 분포(장항 35 등)·상습침수 필지 리별 실측 일치 (389초 · SQL 8회)"
+    },
+    "cq_original_416_result": "정답",
+    "source_line": 57,
+    "scope_note": null,
+    "answer_type": "count_map",
+    "judge_mode": "auto",
+    "judge_reason": "두 자리 이상 정수·이름만 — 답 글 포함 여부로 판정",
+    "answer_check_tokens": [
+      "2210",
+      "366",
+      "87",
+      "33"
+    ]
+  },
+  {
+    "id": "A-02-v2",
+    "cq_id": "A-02",
+    "cq_original": "서천군내 저지대 침수 위험 지역은 어디인가?",
+    "variant_kind": "지역·시점",
+    "variant_kind_raw": "지역",
+    "question": "부산 사하구의 저지대 침수 위험 지역은 어디야? 상습침수 필지 수와 저지대 원인 침수흔적이 난 법정동을 같이 보여줘.",
+    "question_source": null,
+    "query_context": null,
+    "condition_raw": "부산광역시 사하구(2638000000) · 호우 · 2026-08-25 14:00",
+    "condition_parsed": {
+      "region_name": "부산광역시 사하구",
+      "sido": "부산광역시",
+      "sigungu": "사하구",
+      "admin_code": "2638000000",
+      "level": "SGG",
+      "disaster_types": [
+        "호우"
+      ],
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "active_warning": null,
+      "extra": []
+    },
+    "query_context_draft": {
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "region": {
+        "admin_code": "2638000000",
+        "name": "부산광역시 사하구",
+        "level": "SGG"
+      },
+      "disaster_types": [
+        "호우"
+      ]
+    },
+    "expected_apis": [
+      "T3Q-01",
+      "T3Q-05",
+      "T3Q-30"
+    ],
+    "api_flow_raw": "T3Q-01 Agent 질의 → T3Q-05 위험·취약 대상 목록 → T3Q-30 침수흔적",
+    "cq_table_apis": [
+      "T3Q-01",
+      "T3Q-05",
+      "T3Q-30",
+      "T3Q-36"
+    ],
+    "data_groups": [
+      "FLOOD_MAP",
+      "FLOOD_TRACE",
+      "RISK_AREA"
+    ],
+    "cq_table_modes": [],
+    "expected_answer": "{\"상습침수 필지\": 82, \"침수흔적\": 38, \"원인 «저지대» 흔적\": 0, \"그 법정동 수\": 0}",
+    "expected_answer_json": {
+      "상습침수 필지": 82,
+      "침수흔적": 38,
+      "원인 «저지대» 흔적": 0,
+      "그 법정동 수": 0
+    },
+    "expected_answer_truncated": false,
+    "check_sql": null,
+    "region": {
+      "sido": "부산광역시",
+      "sigungu": "사하구",
+      "admin_code": "2638000000",
+      "level": "SGG"
+    },
+    "follow_up": null,
+    "spatial_op": null,
+    "memo": null,
+    "notes": null,
+    "agent416_result": {
+      "grade": "정답",
+      "comment": "상습침수 82필지·흔적 38건·«저지대» 원인 0건 정확히 일치 (389초 · SQL 18회)"
+    },
+    "cq_original_416_result": "정답",
+    "source_line": 65,
+    "scope_note": null,
+    "answer_type": "count_map",
+    "judge_mode": "auto_partial",
+    "judge_reason": "큰 수·이름은 자동, 한 자리 수·0·null·소수(반올림 표기)·서술 구절은 사람 확인",
+    "answer_check_tokens": [
+      "82",
+      "38"
+    ]
+  },
+  {
+    "id": "A-02-g",
+    "cq_id": "A-02",
+    "cq_original": "서천군내 저지대 침수 위험 지역은 어디인가?",
+    "variant_kind": "공간",
+    "variant_kind_raw": "공간",
+    "question": "서천군 100년 빈도 침수지도(도시침수·하천범람)에서 침수심 1m 이상 구역의 면적과, 그 구역 안에 있는 건축물 수를 지도 종류별로 알려줘.",
+    "question_source": null,
+    "query_context": null,
+    "condition_raw": "충청남도 서천군(4477000000) · 호우 · 2026-08-25 14:00",
+    "condition_parsed": {
+      "region_name": "충청남도 서천군",
+      "sido": "충청남도",
+      "sigungu": "서천군",
+      "admin_code": "4477000000",
+      "level": "SGG",
+      "disaster_types": [
+        "호우"
+      ],
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "active_warning": null,
+      "extra": []
+    },
+    "query_context_draft": {
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "region": {
+        "admin_code": "4477000000",
+        "name": "충청남도 서천군",
+        "level": "SGG"
+      },
+      "disaster_types": [
+        "호우"
+      ]
+    },
+    "expected_apis": [
+      "T3Q-01",
+      "T3Q-36"
+    ],
+    "api_flow_raw": "T3Q-01 Agent 질의 → T3Q-36 침수지도 속성",
+    "cq_table_apis": [
+      "T3Q-01",
+      "T3Q-05",
+      "T3Q-30",
+      "T3Q-36"
+    ],
+    "data_groups": [
+      "FLOOD_MAP",
+      "FLOOD_TRACE",
+      "RISK_AREA"
+    ],
+    "cq_table_modes": [],
+    "expected_answer": "{\"도시침수지도\": {\"1m 이상 면적 ㎢\": 0.891, \"그 안 건축물\": 18}, \"국가하천 하천범람지도\": {\"1m 이상 면적 ㎢\": 15.05, \"그 안 건축물\": 91}, \"지방하천 하천범람지도\": {\"1m 이상 면적 ㎢\": 60.703, \"그 안 건축물\": 1875}}",
+    "expected_answer_json": {
+      "도시침수지도": {
+        "1m 이상 면적 ㎢": 0.891,
+        "그 안 건축물": 18
+      },
+      "국가하천 하천범람지도": {
+        "1m 이상 면적 ㎢": 15.05,
+        "그 안 건축물": 91
+      },
+      "지방하천 하천범람지도": {
+        "1m 이상 면적 ㎢": 60.703,
+        "그 안 건축물": 1875
+      }
+    },
+    "expected_answer_truncated": false,
+    "check_sql": null,
+    "region": {
+      "sido": "충청남도",
+      "sigungu": "서천군",
+      "admin_code": "4477000000",
+      "level": "SGG"
+    },
+    "follow_up": null,
+    "spatial_op": "점-폴리곤 포함(ST_Intersects) — gis.flood_map_part × gis.building_point",
+    "memo": null,
+    "notes": "공간 연산: 점-폴리곤 포함(ST_Intersects) — gis.flood_map_part × gis.building_point",
+    "agent416_result": {
+      "grade": "정답",
+      "comment": "1m 이상 면적 도시 0.891·국가 15.05·지방 60.703㎢, 건축물 18·91 일치, 지방 1,872동은 실측 1,875 와 3 차 (123초 · SQL 10회)"
+    },
+    "cq_original_416_result": "정답",
+    "source_line": 73,
+    "scope_note": null,
+    "answer_type": "nested_count_map",
+    "judge_mode": "auto_partial",
+    "judge_reason": "큰 수·이름은 자동, 한 자리 수·0·null·소수(반올림 표기)·서술 구절은 사람 확인",
+    "answer_check_tokens": [
+      "0.891",
+      "18",
+      "15.05",
+      "91",
+      "60.703",
+      "1875"
+    ]
+  },
+  {
+    "id": "A-03-v1",
+    "cq_id": "A-03",
+    "cq_original": "서천군내 급경사지로 산사태 위험 지역은 어디인가?",
+    "variant_kind": "표현·조건",
+    "variant_kind_raw": "표현·조건",
+    "question": "서천군에 산사태 주의보가 났다고 가정하면 먼저 점검할 급경사지와 산사태취약지역은? 위험등급별 개수부터.",
+    "question_source": null,
+    "query_context": null,
+    "condition_raw": "충청남도 서천군(4477000000) · 산사태 · 2026-08-25 14:00 · 발효 산사태주의보",
+    "condition_parsed": {
+      "region_name": "충청남도 서천군",
+      "sido": "충청남도",
+      "sigungu": "서천군",
+      "admin_code": "4477000000",
+      "level": "SGG",
+      "disaster_types": [
+        "산사태"
+      ],
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "active_warning": "산사태주의보",
+      "extra": []
+    },
+    "query_context_draft": {
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "region": {
+        "admin_code": "4477000000",
+        "name": "충청남도 서천군",
+        "level": "SGG"
+      },
+      "disaster_types": [
+        "산사태"
+      ],
+      "alert_stage": "주의보",
+      "weather_alerts": [
+        {
+          "alert_type": "산사태",
+          "alert_level": "주의보",
+          "status": "발효"
+        }
+      ]
+    },
+    "expected_apis": [
+      "T3Q-01",
+      "T3Q-05",
+      "T3Q-15"
+    ],
+    "api_flow_raw": "T3Q-01 Agent 질의 → T3Q-05 위험·취약 대상 목록 → T3Q-15 위험·취약 대상 상세",
+    "cq_table_apis": [
+      "T3Q-01",
+      "T3Q-05",
+      "T3Q-15"
+    ],
+    "data_groups": [
+      "RISK_AREA"
+    ],
+    "cq_table_modes": [],
+    "expected_answer": "{\"급경사지\": 211, \"최신 등급\": {\"A\": 15, \"B\": 9, \"C\": 3, \"D\": 3, \"E\": 1, \"미평가\": 180}, \"산사태취약지역\": {\"산사태취약지역(산사태)\": 31, \"산사태취약지역(토석류)\": 59}, \"붕괴위험지구 지정·해제\": {\"지정\": 12, \"지정해제\": 21}}",
+    "expected_answer_json": {
+      "급경사지": 211,
+      "최신 등급": {
+        "A": 15,
+        "B": 9,
+        "C": 3,
+        "D": 3,
+        "E": 1,
+        "미평가": 180
+      },
+      "산사태취약지역": {
+        "산사태취약지역(산사태)": 31,
+        "산사태취약지역(토석류)": 59
+      },
+      "붕괴위험지구 지정·해제": {
+        "지정": 12,
+        "지정해제": 21
+      }
+    },
+    "expected_answer_truncated": false,
+    "check_sql": null,
+    "region": {
+      "sido": "충청남도",
+      "sigungu": "서천군",
+      "admin_code": "4477000000",
+      "level": "SGG"
+    },
+    "follow_up": null,
+    "spatial_op": null,
+    "memo": null,
+    "notes": null,
+    "agent416_result": {
+      "grade": "정답",
+      "comment": "급경사지 등급 A15·B9·C3·D3·E1, 취약지역 토석류59/산사태31 일치(급경사지 212·미평가 181 은 실측 211·180 과 1 차) (389초 · SQL 8회)"
+    },
+    "cq_original_416_result": "부분 정답",
+    "source_line": 84,
+    "scope_note": null,
+    "answer_type": "nested_count_map",
+    "judge_mode": "auto_partial",
+    "judge_reason": "큰 수·이름은 자동, 한 자리 수·0·null·소수(반올림 표기)·서술 구절은 사람 확인",
+    "answer_check_tokens": [
+      "211",
+      "15",
+      "180",
+      "31",
+      "59",
+      "12",
+      "21"
+    ]
+  },
+  {
+    "id": "A-03-v2",
+    "cq_id": "A-03",
+    "cq_original": "서천군내 급경사지로 산사태 위험 지역은 어디인가?",
+    "variant_kind": "지역·시점",
+    "variant_kind_raw": "지역",
+    "question": "영천시의 급경사지 산사태 위험 지역 현황 — 급경사지 등급, 산사태취약지역, 붕괴위험지구 지정 상태를 정리해줘.",
+    "question_source": null,
+    "query_context": null,
+    "condition_raw": "경상북도 영천시(4723000000) · 산사태 · 2026-08-25 14:00",
+    "condition_parsed": {
+      "region_name": "경상북도 영천시",
+      "sido": "경상북도",
+      "sigungu": "영천시",
+      "admin_code": "4723000000",
+      "level": "SGG",
+      "disaster_types": [
+        "산사태"
+      ],
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "active_warning": null,
+      "extra": []
+    },
+    "query_context_draft": {
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "region": {
+        "admin_code": "4723000000",
+        "name": "경상북도 영천시",
+        "level": "SGG"
+      },
+      "disaster_types": [
+        "산사태"
+      ]
+    },
+    "expected_apis": [
+      "T3Q-01",
+      "T3Q-05",
+      "T3Q-15"
+    ],
+    "api_flow_raw": "T3Q-01 Agent 질의 → T3Q-05 위험·취약 대상 목록 → T3Q-15 위험·취약 대상 상세",
+    "cq_table_apis": [
+      "T3Q-01",
+      "T3Q-05",
+      "T3Q-15"
+    ],
+    "data_groups": [
+      "RISK_AREA"
+    ],
+    "cq_table_modes": [],
+    "expected_answer": "{\"급경사지\": 330, \"최신 등급\": {\"A\": 5, \"B\": 64, \"C\": 13, \"D\": 2, \"미평가\": 246}, \"산사태취약지역\": {\"산사태취약지역(산사태)\": 43, \"산사태취약지역(토석류)\": 241}, \"붕괴위험지구 지정·해제\": {\"지정\": 7, \"지정해제\": 2}}",
+    "expected_answer_json": {
+      "급경사지": 330,
+      "최신 등급": {
+        "A": 5,
+        "B": 64,
+        "C": 13,
+        "D": 2,
+        "미평가": 246
+      },
+      "산사태취약지역": {
+        "산사태취약지역(산사태)": 43,
+        "산사태취약지역(토석류)": 241
+      },
+      "붕괴위험지구 지정·해제": {
+        "지정": 7,
+        "지정해제": 2
+      }
+    },
+    "expected_answer_truncated": false,
+    "check_sql": null,
+    "region": {
+      "sido": "경상북도",
+      "sigungu": "영천시",
+      "admin_code": "4723000000",
+      "level": "SGG"
+    },
+    "follow_up": null,
+    "spatial_op": null,
+    "memo": null,
+    "notes": null,
+    "agent416_result": {
+      "grade": "정답",
+      "comment": "등급 분포·취약지역 토석류241/산사태43 일치, 붕괴위험지구 5지구(지정3·해제2)=지정 행 7/해제 2 의 고유 급경사지 기준(급경사지 332 는 실측 330 과 2 차) (288초 · SQL 19회)"
+    },
+    "cq_original_416_result": "부분 정답",
+    "source_line": 92,
+    "scope_note": null,
+    "answer_type": "nested_count_map",
+    "judge_mode": "auto_partial",
+    "judge_reason": "큰 수·이름은 자동, 한 자리 수·0·null·소수(반올림 표기)·서술 구절은 사람 확인",
+    "answer_check_tokens": [
+      "330",
+      "64",
+      "13",
+      "246",
+      "43",
+      "241"
+    ]
+  },
+  {
+    "id": "A-03-g",
+    "cq_id": "A-03",
+    "cq_original": "서천군내 급경사지로 산사태 위험 지역은 어디인가?",
+    "variant_kind": "공간",
+    "variant_kind_raw": "공간",
+    "question": "정선군 급경사지 붕괴위험지역 지정 도면 안에 있거나 50m 안에 붙어 있는 급경사지는 몇 곳이고 어디야? 그 급경사지의 최신 위험등급도.",
+    "question_source": null,
+    "query_context": null,
+    "condition_raw": "강원특별자치도 정선군(5177000000) · 산사태 · 2026-08-25 14:00",
+    "condition_parsed": {
+      "region_name": "강원특별자치도 정선군",
+      "sido": "강원특별자치도",
+      "sigungu": "정선군",
+      "admin_code": "5177000000",
+      "level": "SGG",
+      "disaster_types": [
+        "산사태"
+      ],
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "active_warning": null,
+      "extra": []
+    },
+    "query_context_draft": {
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "region": {
+        "admin_code": "5177000000",
+        "name": "강원특별자치도 정선군",
+        "level": "SGG"
+      },
+      "disaster_types": [
+        "산사태"
+      ]
+    },
+    "expected_apis": [
+      "T3Q-01",
+      "T3Q-05",
+      "T3Q-15"
+    ],
+    "api_flow_raw": "T3Q-01 Agent 질의 → T3Q-05 위험·취약 대상 목록 → T3Q-15 위험·취약 대상 상세",
+    "cq_table_apis": [
+      "T3Q-01",
+      "T3Q-05",
+      "T3Q-15"
+    ],
+    "data_groups": [
+      "RISK_AREA"
+    ],
+    "cq_table_modes": [],
+    "expected_answer": "{\"붕괴위험지역 도면\": 26, \"50m 안 급경사지\": 28, \"등급별\": {\"A\": 1, \"B\": 1, \"C\": 8, \"D\": 10, \"미평가\": 8}, \"예\": [{\"name\": \"북실지구\", \"alias\": \"\"}, {\"name\": \"향교지구\", \"alias\": \"\"}, {\"name\": \"구미정지구\", \"alias\": \"\"}, {\"name\": \"함백관지구\", \"alias\": \"\"}, {\"name\": \"막골1지구\", \"alias\": \"\"}, {\"name\": \"화암10지구(지방도421\", \"alias\": \"\"}, {\"name\": \"화암11지구(지방도424\", \"alias\": \"\"}, {\"name\": \"화암12지구(지방도424)\", \"alias\": \"\"}]}",
+    "expected_answer_json": {
+      "붕괴위험지역 도면": 26,
+      "50m 안 급경사지": 28,
+      "등급별": {
+        "A": 1,
+        "B": 1,
+        "C": 8,
+        "D": 10,
+        "미평가": 8
+      },
+      "예": [
+        {
+          "name": "북실지구",
+          "alias": ""
+        },
+        {
+          "name": "향교지구",
+          "alias": ""
+        },
+        {
+          "name": "구미정지구",
+          "alias": ""
+        },
+        {
+          "name": "함백관지구",
+          "alias": ""
+        },
+        {
+          "name": "막골1지구",
+          "alias": ""
+        },
+        {
+          "name": "화암10지구(지방도421",
+          "alias": ""
+        },
+        {
+          "name": "화암11지구(지방도424",
+          "alias": ""
+        },
+        {
+          "name": "화암12지구(지방도424)",
+          "alias": ""
+        }
+      ]
+    },
+    "expected_answer_truncated": false,
+    "check_sql": null,
+    "region": {
+      "sido": "강원특별자치도",
+      "sigungu": "정선군",
+      "admin_code": "5177000000",
+      "level": "SGG"
+    },
+    "follow_up": null,
+    "spatial_op": "선·점-폴리곤 거리(ST_DWithin 50m) — gis.steep_slope × gis.collapse_risk_zone(LSMD UP401)",
+    "memo": null,
+    "notes": "공간 연산: 선·점-폴리곤 거리(ST_DWithin 50m) — gis.steep_slope × gis.collapse_risk_zone(LSMD UP401)",
+    "agent416_result": {
+      "grade": "정답",
+      "comment": "50m 안 급경사지 28곳·등급 D10·C8·B1·A1·미평가8 일치 (288초 · SQL 10회)"
+    },
+    "cq_original_416_result": "부분 정답",
+    "source_line": 100,
+    "scope_note": null,
+    "answer_type": "mixed",
+    "judge_mode": "auto_partial",
+    "judge_reason": "큰 수·이름은 자동, 한 자리 수·0·null·소수(반올림 표기)·서술 구절은 사람 확인",
+    "answer_check_tokens": [
+      "26",
+      "28",
+      "10",
+      "북실지구",
+      "향교지구",
+      "구미정지구",
+      "함백관지구",
+      "막골1지구",
+      "화암10지구(지방도421",
+      "화암11지구(지방도424",
+      "화암12지구(지방도424)"
+    ]
+  },
+  {
+    "id": "A-05-v1",
+    "cq_id": "A-05",
+    "cq_original": "서천군내 과거 침수지역은 어디인가?",
+    "variant_kind": "표현·조건",
+    "variant_kind_raw": "표현·조건",
+    "question": "2024년 7월 호우 때 서천군 침수흔적을 지도에 띄워줘. 법정동별 건수와 침수면적 합도.",
+    "question_source": null,
+    "query_context": null,
+    "condition_raw": "충청남도 서천군(4477000000) · 호우 · 2024-07-10 09:00",
+    "condition_parsed": {
+      "region_name": "충청남도 서천군",
+      "sido": "충청남도",
+      "sigungu": "서천군",
+      "admin_code": "4477000000",
+      "level": "SGG",
+      "disaster_types": [
+        "호우"
+      ],
+      "reference_time": "2024-07-10T09:00:00+09:00",
+      "active_warning": null,
+      "extra": []
+    },
+    "query_context_draft": {
+      "reference_time": "2024-07-10T09:00:00+09:00",
+      "region": {
+        "admin_code": "4477000000",
+        "name": "충청남도 서천군",
+        "level": "SGG"
+      },
+      "disaster_types": [
+        "호우"
+      ]
+    },
+    "expected_apis": [
+      "T3Q-01",
+      "T3Q-30"
+    ],
+    "api_flow_raw": "T3Q-01 Agent 질의 → T3Q-30 침수흔적",
+    "cq_table_apis": [
+      "T3Q-01",
+      "T3Q-30"
+    ],
+    "data_groups": [
+      "FLOOD_TRACE"
+    ],
+    "cq_table_modes": [],
+    "expected_answer": "{\"2024 흔적\": 353, \"법정동\": 102, \"면적 합 ㎡\": 172605, \"상위 법정동\": [{\"읍면\": \"비인면\", \"동리\": \"성내리\", \"n\": 43}, {\"읍면\": \"장항읍\", \"동리\": \"신창리\", \"n\": 23}, {\"읍면\": \"서면\", \"동리\": \"도둔리\", \"n\": 19}, {\"읍면\": \"한산면\", \"동리\": \"지현리\", \"n\": 11}, {\"읍면\": \"장항읍\", \"동리\": \"성주리\", \"n\": 10}]}",
+    "expected_answer_json": {
+      "2024 흔적": 353,
+      "법정동": 102,
+      "면적 합 ㎡": 172605,
+      "상위 법정동": [
+        {
+          "읍면": "비인면",
+          "동리": "성내리",
+          "n": 43
+        },
+        {
+          "읍면": "장항읍",
+          "동리": "신창리",
+          "n": 23
+        },
+        {
+          "읍면": "서면",
+          "동리": "도둔리",
+          "n": 19
+        },
+        {
+          "읍면": "한산면",
+          "동리": "지현리",
+          "n": 11
+        },
+        {
+          "읍면": "장항읍",
+          "동리": "성주리",
+          "n": 10
+        }
+      ]
+    },
+    "expected_answer_truncated": false,
+    "check_sql": null,
+    "region": {
+      "sido": "충청남도",
+      "sigungu": "서천군",
+      "admin_code": "4477000000",
+      "level": "SGG"
+    },
+    "follow_up": null,
+    "spatial_op": null,
+    "memo": null,
+    "notes": null,
+    "agent416_result": {
+      "grade": "정답",
+      "comment": "2024 흔적 353건·102개 법정동·면적 172,605㎡ 일치 (134초 · SQL 10회)"
+    },
+    "cq_original_416_result": "정답",
+    "source_line": 111,
+    "scope_note": null,
+    "answer_type": "mixed",
+    "judge_mode": "auto",
+    "judge_reason": "두 자리 이상 정수·이름만 — 답 글 포함 여부로 판정",
+    "answer_check_tokens": [
+      "353",
+      "102",
+      "172605",
+      "43",
+      "23",
+      "19",
+      "11",
+      "10",
+      "비인면",
+      "성내리",
+      "장항읍",
+      "신창리",
+      "서면",
+      "도둔리",
+      "한산면",
+      "지현리",
+      "성주리"
+    ]
+  },
+  {
+    "id": "A-05-v2",
+    "cq_id": "A-05",
+    "cq_original": "서천군내 과거 침수지역은 어디인가?",
+    "variant_kind": "지역·시점",
+    "variant_kind_raw": "지역·시점",
+    "question": "부산 동구에서 과거에 침수됐던 곳을 연도별로 보여줘.",
+    "question_source": null,
+    "query_context": null,
+    "condition_raw": "부산광역시 동구(2617000000) · 호우 · 2026-08-25 14:00",
+    "condition_parsed": {
+      "region_name": "부산광역시 동구",
+      "sido": "부산광역시",
+      "sigungu": "동구",
+      "admin_code": "2617000000",
+      "level": "SGG",
+      "disaster_types": [
+        "호우"
+      ],
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "active_warning": null,
+      "extra": []
+    },
+    "query_context_draft": {
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "region": {
+        "admin_code": "2617000000",
+        "name": "부산광역시 동구",
+        "level": "SGG"
+      },
+      "disaster_types": [
+        "호우"
+      ]
+    },
+    "expected_apis": [
+      "T3Q-01",
+      "T3Q-30"
+    ],
+    "api_flow_raw": "T3Q-01 Agent 질의 → T3Q-30 침수흔적",
+    "cq_table_apis": [
+      "T3Q-01",
+      "T3Q-30"
+    ],
+    "data_groups": [
+      "FLOOD_TRACE"
+    ],
+    "cq_table_modes": [],
+    "expected_answer": "{\"흔적\": 20, \"연도별\": {\"2020\": 6, \"2024\": 14}}",
+    "expected_answer_json": {
+      "흔적": 20,
+      "연도별": {
+        "2020": 6,
+        "2024": 14
+      }
+    },
+    "expected_answer_truncated": false,
+    "check_sql": null,
+    "region": {
+      "sido": "부산광역시",
+      "sigungu": "동구",
+      "admin_code": "2617000000",
+      "level": "SGG"
+    },
+    "follow_up": null,
+    "spatial_op": null,
+    "memo": null,
+    "notes": null,
+    "agent416_result": {
+      "grade": "부분 정답",
+      "comment": "2020·2024 침수 연도는 맞으나 흔적 20건(2020:6·2024:14) 집계 없이 상습침수 필지·피해 자료로 2016·2017 등 섞음 (129초 · SQL 14회)"
+    },
+    "cq_original_416_result": "정답",
+    "source_line": 119,
+    "scope_note": null,
+    "answer_type": "nested_count_map",
+    "judge_mode": "auto_partial",
+    "judge_reason": "큰 수·이름은 자동, 한 자리 수·0·null·소수(반올림 표기)·서술 구절은 사람 확인",
+    "answer_check_tokens": [
+      "20",
+      "14"
+    ]
+  },
+  {
+    "id": "A-05-g",
+    "cq_id": "A-05",
+    "cq_original": "서천군내 과거 침수지역은 어디인가?",
+    "variant_kind": "공간",
+    "variant_kind_raw": "공간",
+    "question": "서천군 2024년 침수흔적 범위 안에 들어가는 건축물은 몇 동이고, 많은 법정동 5곳은?",
+    "question_source": null,
+    "query_context": null,
+    "condition_raw": "충청남도 서천군(4477000000) · 호우 · 2026-08-25 14:00",
+    "condition_parsed": {
+      "region_name": "충청남도 서천군",
+      "sido": "충청남도",
+      "sigungu": "서천군",
+      "admin_code": "4477000000",
+      "level": "SGG",
+      "disaster_types": [
+        "호우"
+      ],
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "active_warning": null,
+      "extra": []
+    },
+    "query_context_draft": {
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "region": {
+        "admin_code": "4477000000",
+        "name": "충청남도 서천군",
+        "level": "SGG"
+      },
+      "disaster_types": [
+        "호우"
+      ]
+    },
+    "expected_apis": [
+      "T3Q-01",
+      "T3Q-30"
+    ],
+    "api_flow_raw": "T3Q-01 Agent 질의 → T3Q-30 침수흔적",
+    "cq_table_apis": [
+      "T3Q-01",
+      "T3Q-30"
+    ],
+    "data_groups": [
+      "FLOOD_TRACE"
+    ],
+    "cq_table_modes": [],
+    "expected_answer": "{\"흔적(bbox 확인됨)\": 353, \"안 건축물\": 323, \"상위 법정동\": [{\"동리\": \"성내리\", \"n\": 82}, {\"동리\": \"신창리\", \"n\": 33}, {\"동리\": \"성주리\", \"n\": 16}, {\"동리\": \"사곡리\", \"n\": 16}, {\"동리\": \"지현리\", \"n\": 12}]}",
+    "expected_answer_json": {
+      "흔적(bbox 확인됨)": 353,
+      "안 건축물": 323,
+      "상위 법정동": [
+        {
+          "동리": "성내리",
+          "n": 82
+        },
+        {
+          "동리": "신창리",
+          "n": 33
+        },
+        {
+          "동리": "성주리",
+          "n": 16
+        },
+        {
+          "동리": "사곡리",
+          "n": 16
+        },
+        {
+          "동리": "지현리",
+          "n": 12
+        }
+      ]
+    },
+    "expected_answer_truncated": false,
+    "check_sql": null,
+    "region": {
+      "sido": "충청남도",
+      "sigungu": "서천군",
+      "admin_code": "4477000000",
+      "level": "SGG"
+    },
+    "follow_up": null,
+    "spatial_op": "점-사각형 포함 — gis.flood_trace(bbox, 원천 폴리곤은 엑셀에서 잘림) × gis.building_point",
+    "memo": "bbox 라 실제 흔적보다 넓다(과대)",
+    "notes": "메모: bbox 라 실제 흔적보다 넓다(과대) | 공간 연산: 점-사각형 포함 — gis.flood_trace(bbox, 원천 폴리곤은 엑셀에서 잘림) × gis.building_point",
+    "agent416_result": {
+      "grade": "정답",
+      "comment": "흔적 안 건축물 323동·상위 법정동(성내 82·신창 33·성주/사곡 16·지현 12) 일치 (146초 · SQL 13회)"
+    },
+    "cq_original_416_result": "정답",
+    "source_line": 127,
+    "scope_note": null,
+    "answer_type": "mixed",
+    "judge_mode": "auto",
+    "judge_reason": "두 자리 이상 정수·이름만 — 답 글 포함 여부로 판정",
+    "answer_check_tokens": [
+      "353",
+      "323",
+      "82",
+      "33",
+      "16",
+      "12",
+      "성내리",
+      "신창리",
+      "성주리",
+      "사곡리",
+      "지현리"
+    ]
+  },
+  {
+    "id": "A-14-v1",
+    "cq_id": "A-14",
+    "cq_original": "서천군 내 주거지역이 인접한 소하천으로 저지대 주택·마을 침수 위험이 큰 곳은 어디인가?",
+    "variant_kind": "표현·조건",
+    "variant_kind_raw": "표현·조건",
+    "question": "2024년 7월 호우 때 서천군에서 주택 침수 피해가 난 곳을 읍면별로 정리해줘.",
+    "question_source": null,
+    "query_context": null,
+    "condition_raw": "충청남도 서천군(4477000000) · 호우 · 2024-07-12 09:00",
+    "condition_parsed": {
+      "region_name": "충청남도 서천군",
+      "sido": "충청남도",
+      "sigungu": "서천군",
+      "admin_code": "4477000000",
+      "level": "SGG",
+      "disaster_types": [
+        "호우"
+      ],
+      "reference_time": "2024-07-12T09:00:00+09:00",
+      "active_warning": null,
+      "extra": []
+    },
+    "query_context_draft": {
+      "reference_time": "2024-07-12T09:00:00+09:00",
+      "region": {
+        "admin_code": "4477000000",
+        "name": "충청남도 서천군",
+        "level": "SGG"
+      },
+      "disaster_types": [
+        "호우"
+      ]
+    },
+    "expected_apis": [
+      "T3Q-01",
+      "T3Q-13"
+    ],
+    "api_flow_raw": "T3Q-01 Agent 질의 → T3Q-13 피해·대응",
+    "cq_table_apis": [
+      "T3Q-01",
+      "T3Q-05",
+      "T3Q-13",
+      "T3Q-36"
+    ],
+    "data_groups": [
+      "FLOOD_MAP",
+      "RISK_AREA",
+      "SIMILAR_EVENT"
+    ],
+    "cq_table_modes": [],
+    "expected_answer": "{\"장항읍\": 54, \"비인면\": 52, \"서천읍\": 51, \"종천면\": 25, \"마서면\": 24, \"서면\": 21, \"판교면\": 17, \"한산면\": 15, \"기산면\": 10, \"문산면\": 9, \"마산면\": 8, \"시초면\": 8, \"화양면\": 4}",
+    "expected_answer_json": {
+      "장항읍": 54,
+      "비인면": 52,
+      "서천읍": 51,
+      "종천면": 25,
+      "마서면": 24,
+      "서면": 21,
+      "판교면": 17,
+      "한산면": 15,
+      "기산면": 10,
+      "문산면": 9,
+      "마산면": 8,
+      "시초면": 8,
+      "화양면": 4
+    },
+    "expected_answer_truncated": false,
+    "check_sql": null,
+    "region": {
+      "sido": "충청남도",
+      "sigungu": "서천군",
+      "admin_code": "4477000000",
+      "level": "SGG"
+    },
+    "follow_up": null,
+    "spatial_op": null,
+    "memo": null,
+    "notes": null,
+    "agent416_result": {
+      "grade": "정답",
+      "comment": "읍면별 주택 침수 건수 일치(장항 55 는 실측 54 와 1 차) (163초 · SQL 18회)"
+    },
+    "cq_original_416_result": "부분 정답",
+    "source_line": 139,
+    "scope_note": null,
+    "answer_type": "count_map",
+    "judge_mode": "auto_partial",
+    "judge_reason": "큰 수·이름은 자동, 한 자리 수·0·null·소수(반올림 표기)·서술 구절은 사람 확인",
+    "answer_check_tokens": [
+      "54",
+      "52",
+      "51",
+      "25",
+      "24",
+      "21",
+      "17",
+      "15",
+      "10",
+      "장항읍",
+      "비인면",
+      "서천읍",
+      "종천면",
+      "마서면",
+      "서면",
+      "판교면",
+      "한산면",
+      "기산면",
+      "문산면",
+      "마산면",
+      "시초면",
+      "화양면"
+    ]
+  },
+  {
+    "id": "A-14-g1",
+    "cq_id": "A-14",
+    "cq_original": "서천군 내 주거지역이 인접한 소하천으로 저지대 주택·마을 침수 위험이 큰 곳은 어디인가?",
+    "variant_kind": "공간",
+    "variant_kind_raw": "공간",
+    "question": "서천군 소하천구역 경계에서 50m 안에 있는 주택(단독·공동)은 몇 동이고, 많은 읍면은 어디야?",
+    "question_source": null,
+    "query_context": null,
+    "condition_raw": "충청남도 서천군(4477000000) · 호우 · 2026-08-25 14:00",
+    "condition_parsed": {
+      "region_name": "충청남도 서천군",
+      "sido": "충청남도",
+      "sigungu": "서천군",
+      "admin_code": "4477000000",
+      "level": "SGG",
+      "disaster_types": [
+        "호우"
+      ],
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "active_warning": null,
+      "extra": []
+    },
+    "query_context_draft": {
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "region": {
+        "admin_code": "4477000000",
+        "name": "충청남도 서천군",
+        "level": "SGG"
+      },
+      "disaster_types": [
+        "호우"
+      ]
+    },
+    "expected_apis": [
+      "T3Q-01",
+      "T3Q-05"
+    ],
+    "api_flow_raw": "T3Q-01 Agent 질의 → T3Q-05 위험·취약 대상 목록",
+    "cq_table_apis": [
+      "T3Q-01",
+      "T3Q-05",
+      "T3Q-13",
+      "T3Q-36"
+    ],
+    "data_groups": [
+      "FLOOD_MAP",
+      "RISK_AREA",
+      "SIMILAR_EVENT"
+    ],
+    "cq_table_modes": [],
+    "expected_answer": "{\"소하천구역 폴리곤\": 72, \"50m 안 주택\": 257, \"읍면별\": {\"문산면\": 41, \"종천면\": 27, \"기산면\": 27, \"판교면\": 26, \"비인면\": 25, \"마산면\": 23}}",
+    "expected_answer_json": {
+      "소하천구역 폴리곤": 72,
+      "50m 안 주택": 257,
+      "읍면별": {
+        "문산면": 41,
+        "종천면": 27,
+        "기산면": 27,
+        "판교면": 26,
+        "비인면": 25,
+        "마산면": 23
+      }
+    },
+    "expected_answer_truncated": false,
+    "check_sql": null,
+    "region": {
+      "sido": "충청남도",
+      "sigungu": "서천군",
+      "admin_code": "4477000000",
+      "level": "SGG"
+    },
+    "follow_up": null,
+    "spatial_op": "점-폴리곤 거리(ST_DWithin 50m) — gis.small_river_zone(LSMD UJ301) × gis.building_point",
+    "memo": null,
+    "notes": "공간 연산: 점-폴리곤 거리(ST_DWithin 50m) — gis.small_river_zone(LSMD UJ301) × gis.building_point",
+    "agent416_result": {
+      "grade": "정답",
+      "comment": "읍면별(문산41·종천27·기산27·판교26·비인25·마산23) 일치, 총 254동은 실측 257 과 3 차 (142초 · SQL 13회)"
+    },
+    "cq_original_416_result": "부분 정답",
+    "source_line": 147,
+    "scope_note": null,
+    "answer_type": "nested_count_map",
+    "judge_mode": "auto",
+    "judge_reason": "두 자리 이상 정수·이름만 — 답 글 포함 여부로 판정",
+    "answer_check_tokens": [
+      "72",
+      "257",
+      "41",
+      "27",
+      "26",
+      "25",
+      "23",
+      "문산면",
+      "종천면",
+      "기산면",
+      "판교면",
+      "비인면",
+      "마산면"
+    ]
+  },
+  {
+    "id": "A-14-g2",
+    "cq_id": "A-14",
+    "cq_original": "서천군 내 주거지역이 인접한 소하천으로 저지대 주택·마을 침수 위험이 큰 곳은 어디인가?",
+    "variant_kind": "공간",
+    "variant_kind_raw": "공간",
+    "question": "그 소하천 50m 안 주택 가운데 100년 빈도 침수지도에서 침수심 0.5m 이상 구역에 드는 집은 몇 동이야?",
+    "question_source": null,
+    "query_context": null,
+    "condition_raw": "충청남도 서천군(4477000000) · 호우 · 2026-08-25 14:00",
+    "condition_parsed": {
+      "region_name": "충청남도 서천군",
+      "sido": "충청남도",
+      "sigungu": "서천군",
+      "admin_code": "4477000000",
+      "level": "SGG",
+      "disaster_types": [
+        "호우"
+      ],
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "active_warning": null,
+      "extra": []
+    },
+    "query_context_draft": {
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "region": {
+        "admin_code": "4477000000",
+        "name": "충청남도 서천군",
+        "level": "SGG"
+      },
+      "disaster_types": [
+        "호우"
+      ]
+    },
+    "expected_apis": [
+      "T3Q-01",
+      "T3Q-05",
+      "T3Q-36"
+    ],
+    "api_flow_raw": "T3Q-01 Agent 질의 → T3Q-05 위험·취약 대상 목록 → T3Q-36 침수지도 속성",
+    "cq_table_apis": [
+      "T3Q-01",
+      "T3Q-05",
+      "T3Q-13",
+      "T3Q-36"
+    ],
+    "data_groups": [
+      "FLOOD_MAP",
+      "RISK_AREA",
+      "SIMILAR_EVENT"
+    ],
+    "cq_table_modes": [],
+    "expected_answer": "{\"0.5m 이상 구역 안\": 10}",
+    "expected_answer_json": {
+      "0.5m 이상 구역 안": 10
+    },
+    "expected_answer_truncated": false,
+    "check_sql": null,
+    "region": {
+      "sido": "충청남도",
+      "sigungu": "서천군",
+      "admin_code": "4477000000",
+      "level": "SGG"
+    },
+    "follow_up": {
+      "previous_id": "A-14-g1",
+      "previous_id_inferred": false
+    },
+    "spatial_op": "거리 + 점-폴리곤 포함 — 소하천구역 × 건축물 × 침수지도",
+    "memo": "이어서 묻기(FOLLOW_UP) — A-14-g1 다음 턴",
+    "notes": "메모: 이어서 묻기(FOLLOW_UP) — A-14-g1 다음 턴 | 공간 연산: 거리 + 점-폴리곤 포함 — 소하천구역 × 건축물 × 침수지도",
+    "agent416_result": {
+      "grade": "정답",
+      "comment": "소하천 50m 안 주택 중 0.5m 이상 구역 10동 일치 (189초 · SQL 18회)"
+    },
+    "cq_original_416_result": "부분 정답",
+    "source_line": 156,
+    "scope_note": null,
+    "answer_type": "count_map",
+    "judge_mode": "auto",
+    "judge_reason": "두 자리 이상 정수·이름만 — 답 글 포함 여부로 판정",
+    "answer_check_tokens": [
+      "10"
+    ]
+  },
+  {
+    "id": "A-16-v1",
+    "cq_id": "A-16",
+    "cq_original": "서천군 산지 인접 소하천 유역 중 산사태·토석류 위험이 큰 읍면·하천은 어디인가?",
+    "variant_kind": "표현·조건",
+    "variant_kind_raw": "표현·조건",
+    "question": "서천군에서 토석류 위험 산사태취약지역이 많은 읍면 순으로 알려줘.",
+    "question_source": null,
+    "query_context": null,
+    "condition_raw": "충청남도 서천군(4477000000) · 산사태 · 2026-08-25 14:00",
+    "condition_parsed": {
+      "region_name": "충청남도 서천군",
+      "sido": "충청남도",
+      "sigungu": "서천군",
+      "admin_code": "4477000000",
+      "level": "SGG",
+      "disaster_types": [
+        "산사태"
+      ],
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "active_warning": null,
+      "extra": []
+    },
+    "query_context_draft": {
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "region": {
+        "admin_code": "4477000000",
+        "name": "충청남도 서천군",
+        "level": "SGG"
+      },
+      "disaster_types": [
+        "산사태"
+      ]
+    },
+    "expected_apis": [
+      "T3Q-01",
+      "T3Q-05"
+    ],
+    "api_flow_raw": "T3Q-01 Agent 질의 → T3Q-05 위험·취약 대상 목록",
+    "cq_table_apis": [
+      "T3Q-01",
+      "T3Q-05"
+    ],
+    "data_groups": [
+      "RISK_AREA"
+    ],
+    "cq_table_modes": [],
+    "expected_answer": "{\"판교면\": 15, \"비인면\": 13, \"문산면\": 8, \"종천면\": 6, \"마산면\": 4, \"시초면\": 3, \"서천읍\": 3, \"한산면\": 3, \"화양면\": 2, \"마서면\": 2}",
+    "expected_answer_json": {
+      "판교면": 15,
+      "비인면": 13,
+      "문산면": 8,
+      "종천면": 6,
+      "마산면": 4,
+      "시초면": 3,
+      "서천읍": 3,
+      "한산면": 3,
+      "화양면": 2,
+      "마서면": 2
+    },
+    "expected_answer_truncated": false,
+    "check_sql": null,
+    "region": {
+      "sido": "충청남도",
+      "sigungu": "서천군",
+      "admin_code": "4477000000",
+      "level": "SGG"
+    },
+    "follow_up": null,
+    "spatial_op": null,
+    "memo": null,
+    "notes": null,
+    "agent416_result": {
+      "grade": "정답",
+      "comment": "토석류 취약지역 읍면 순위·개수(판교15·비인13·문산8…) 전부 일치 (117초 · SQL 7회)"
+    },
+    "cq_original_416_result": "부분 정답",
+    "source_line": 168,
+    "scope_note": null,
+    "answer_type": "count_map",
+    "judge_mode": "auto_partial",
+    "judge_reason": "큰 수·이름은 자동, 한 자리 수·0·null·소수(반올림 표기)·서술 구절은 사람 확인",
+    "answer_check_tokens": [
+      "15",
+      "13",
+      "판교면",
+      "비인면",
+      "문산면",
+      "종천면",
+      "마산면",
+      "시초면",
+      "서천읍",
+      "한산면",
+      "화양면",
+      "마서면"
+    ]
+  },
+  {
+    "id": "A-16-g",
+    "cq_id": "A-16",
+    "cq_original": "서천군 산지 인접 소하천 유역 중 산사태·토석류 위험이 큰 읍면·하천은 어디인가?",
+    "variant_kind": "공간",
+    "variant_kind_raw": "공간",
+    "question": "서천군 산사태취약지역 중 소하천구역에서 300m 안에 있는 곳은 몇 곳이고, 어느 읍면에 몰려 있어?",
+    "question_source": null,
+    "query_context": null,
+    "condition_raw": "충청남도 서천군(4477000000) · 산사태 · 2026-08-25 14:00",
+    "condition_parsed": {
+      "region_name": "충청남도 서천군",
+      "sido": "충청남도",
+      "sigungu": "서천군",
+      "admin_code": "4477000000",
+      "level": "SGG",
+      "disaster_types": [
+        "산사태"
+      ],
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "active_warning": null,
+      "extra": []
+    },
+    "query_context_draft": {
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "region": {
+        "admin_code": "4477000000",
+        "name": "충청남도 서천군",
+        "level": "SGG"
+      },
+      "disaster_types": [
+        "산사태"
+      ]
+    },
+    "expected_apis": [
+      "T3Q-01",
+      "T3Q-05"
+    ],
+    "api_flow_raw": "T3Q-01 Agent 질의 → T3Q-05 위험·취약 대상 목록",
+    "cq_table_apis": [
+      "T3Q-01",
+      "T3Q-05"
+    ],
+    "data_groups": [
+      "RISK_AREA"
+    ],
+    "cq_table_modes": [],
+    "expected_answer": "{\"300m 안\": 40, \"종류별\": {\"산사태취약지역(산사태)\": 16, \"산사태취약지역(토석류)\": 24}, \"읍면별\": {\"문산면\": 15, \"판교면\": 11, \"비인면\": 6, \"마산면\": 3, \"기산면\": 2, \"화양면\": 2, \"한산면\": 1}}",
+    "expected_answer_json": {
+      "300m 안": 40,
+      "종류별": {
+        "산사태취약지역(산사태)": 16,
+        "산사태취약지역(토석류)": 24
+      },
+      "읍면별": {
+        "문산면": 15,
+        "판교면": 11,
+        "비인면": 6,
+        "마산면": 3,
+        "기산면": 2,
+        "화양면": 2,
+        "한산면": 1
+      }
+    },
+    "expected_answer_truncated": false,
+    "check_sql": null,
+    "region": {
+      "sido": "충청남도",
+      "sigungu": "서천군",
+      "admin_code": "4477000000",
+      "level": "SGG"
+    },
+    "follow_up": null,
+    "spatial_op": "점-폴리곤 거리(ST_DWithin 300m) — gis.landslide_area × gis.small_river_zone",
+    "memo": null,
+    "notes": "공간 연산: 점-폴리곤 거리(ST_DWithin 300m) — gis.landslide_area × gis.small_river_zone",
+    "agent416_result": {
+      "grade": "정답",
+      "comment": "300m 안 40곳·토석류24/산사태16·읍면별(문산15·판교11…) 일치 (103초 · SQL 15회)"
+    },
+    "cq_original_416_result": "부분 정답",
+    "source_line": 176,
+    "scope_note": null,
+    "answer_type": "nested_count_map",
+    "judge_mode": "auto_partial",
+    "judge_reason": "큰 수·이름은 자동, 한 자리 수·0·null·소수(반올림 표기)·서술 구절은 사람 확인",
+    "answer_check_tokens": [
+      "40",
+      "16",
+      "24",
+      "15",
+      "11",
+      "문산면",
+      "판교면",
+      "비인면",
+      "마산면",
+      "기산면",
+      "화양면",
+      "한산면"
+    ]
+  },
+  {
+    "id": "A-25-v1",
+    "cq_id": "A-25",
+    "cq_original": "2024년 7.8.~10. 호우 기간 서천군 인근 홍수주의보·경보 발령 지점과 연계해 볼 관측소는?",
+    "variant_kind": "표현·조건",
+    "variant_kind_raw": "표현·조건",
+    "question": "현재 상황 브리핑 — 2024년 7월 9일 18시 서천군 기준, 금강홍수통제소가 근처 지점에 낸 홍수주의보·경보를 시간순으로 알려줘.",
+    "question_source": "BRIEFING",
+    "query_context": null,
+    "condition_raw": "충청남도 서천군(4477000000) · 홍수 · 2024-07-09 18:00",
+    "condition_parsed": {
+      "region_name": "충청남도 서천군",
+      "sido": "충청남도",
+      "sigungu": "서천군",
+      "admin_code": "4477000000",
+      "level": "SGG",
+      "disaster_types": [
+        "홍수"
+      ],
+      "reference_time": "2024-07-09T18:00:00+09:00",
+      "active_warning": null,
+      "extra": []
+    },
+    "query_context_draft": {
+      "reference_time": "2024-07-09T18:00:00+09:00",
+      "region": {
+        "admin_code": "4477000000",
+        "name": "충청남도 서천군",
+        "level": "SGG"
+      },
+      "disaster_types": [
+        "홍수"
+      ]
+    },
+    "expected_apis": [
+      "T3Q-01",
+      "T3Q-02"
+    ],
+    "api_flow_raw": "T3Q-01 Agent 질의 → T3Q-02 현재 상황 브리핑",
+    "cq_table_apis": [
+      "T3Q-01",
+      "T3Q-02"
+    ],
+    "data_groups": [],
+    "cq_table_modes": [
+      "(브리핑)"
+    ],
+    "expected_answer": "[{\"issued_at\": \"2024-07-08T02:50:00\", \"name\": \"대전시(인창교)\", \"river_name\": null, \"warning_kind\": \"주의보\", \"action\": \"발령\"}, {\"issued_at\": \"2024-07-08T03:00:00\", \"name\": \"옥천군(옥각교)\", \"river_name\": null, \"warning_kind\": \"주의보\", \"action\": \"발령\"}, {\"issued_at\": \"2024-07-08T03:50:00\", \"name\": \"금산군(문암교)\", \"river_name\": null, \"warning_kind\": \"주의보\", \"action\": \"발령\"}, {\"issued_at\": \"2024-07-08T04:20:00\", \"name\": \"대전시(복수교)\", \"river_name\": null, \"warning_kind\": \"주의보\", \"action\": \"발령\"}, {\"issued_at\": \"2024-07-08T07:10:00\", \"name\": \"옥천군(산계교)\", \"river_name\": null, \"warning_kind\": \"주의보\", \"action\": \"발령\"}, {\"issued_at\":  …",
+    "expected_answer_json": null,
+    "expected_answer_truncated": true,
+    "check_sql": null,
+    "region": {
+      "sido": "충청남도",
+      "sigungu": "서천군",
+      "admin_code": "4477000000",
+      "level": "SGG"
+    },
+    "follow_up": null,
+    "spatial_op": null,
+    "memo": null,
+    "notes": null,
+    "agent416_result": {
+      "grade": "정답",
+      "comment": "금강홍수통제소 7/8~7/9 18시 발령·해제 시간순 목록 일치 (91초 · SQL 6회)"
+    },
+    "cq_original_416_result": "정답",
+    "source_line": 187,
+    "scope_note": "질문 범위: 금강홍수통제소가 서천군 근처 지점에 낸 특보(대전·옥천·금산 등 타 시군 지점 포함)",
+    "answer_type": "record_list",
+    "judge_mode": "human",
+    "judge_reason": "원문 정답이 «…» 로 잘림 — 보이는 앞부분만 참고",
+    "answer_check_tokens": []
+  },
+  {
+    "id": "A-25-v2",
+    "cq_id": "A-25",
+    "cq_original": "2024년 7.8.~10. 호우 기간 서천군 인근 홍수주의보·경보 발령 지점과 연계해 볼 관측소는?",
+    "variant_kind": "지역·시점",
+    "variant_kind_raw": "지역",
+    "question": "2024년 7월 8~10일 논산시 지점에 발령된 홍수특보(지점·종류·시각)는?",
+    "question_source": "BRIEFING",
+    "query_context": null,
+    "condition_raw": "충청남도 논산시(4423000000) · 홍수 · 2024-07-10 23:00",
+    "condition_parsed": {
+      "region_name": "충청남도 논산시",
+      "sido": "충청남도",
+      "sigungu": "논산시",
+      "admin_code": "4423000000",
+      "level": "SGG",
+      "disaster_types": [
+        "홍수"
+      ],
+      "reference_time": "2024-07-10T23:00:00+09:00",
+      "active_warning": null,
+      "extra": []
+    },
+    "query_context_draft": {
+      "reference_time": "2024-07-10T23:00:00+09:00",
+      "region": {
+        "admin_code": "4423000000",
+        "name": "충청남도 논산시",
+        "level": "SGG"
+      },
+      "disaster_types": [
+        "홍수"
+      ]
+    },
+    "expected_apis": [
+      "T3Q-01",
+      "T3Q-02"
+    ],
+    "api_flow_raw": "T3Q-01 Agent 질의 → T3Q-02 현재 상황 브리핑",
+    "cq_table_apis": [
+      "T3Q-01",
+      "T3Q-02"
+    ],
+    "data_groups": [],
+    "cq_table_modes": [
+      "(브리핑)"
+    ],
+    "expected_answer": "[{\"issued_at\": \"2024-07-10T03:00:00\", \"name\": \"논산시(인천교)\", \"warning_kind\": \"주의보\", \"action\": \"발령\"}, {\"issued_at\": \"2024-07-10T03:10:00\", \"name\": \"논산시(풋개다리)\", \"warning_kind\": \"주의보\", \"action\": \"발령\"}, {\"issued_at\": \"2024-07-10T03:40:00\", \"name\": \"논산시(동성교)\", \"warning_kind\": \"주의보\", \"action\": \"발령\"}, {\"issued_at\": \"2024-07-10T03:50:00\", \"name\": \"논산시(풋개다리)\", \"warning_kind\": \"경보\", \"action\": \"변경\"}, {\"issued_at\": \"2024-07-10T03:50:00\", \"name\": \"논산시(인천교)\", \"warning_kind\": \"경보\", \"action\": \"변경\"}, {\"issued_at\": \"2024-07-10T04:10:00\", \"name\": \"논산시(논산대교)\", \"warning_kind\": \"주의보\", \"action\": \"발령\"}, {\"issued_at\": \"2 …",
+    "expected_answer_json": null,
+    "expected_answer_truncated": true,
+    "check_sql": null,
+    "region": {
+      "sido": "충청남도",
+      "sigungu": "논산시",
+      "admin_code": "4423000000",
+      "level": "SGG"
+    },
+    "follow_up": null,
+    "spatial_op": null,
+    "memo": null,
+    "notes": null,
+    "agent416_result": {
+      "grade": "정답",
+      "comment": "논산 5개 지점 9건 발령·변경·해제 시각·종류 전부 일치 (83초 · SQL 4회)"
+    },
+    "cq_original_416_result": "정답",
+    "source_line": 195,
+    "scope_note": null,
+    "answer_type": "record_list",
+    "judge_mode": "human",
+    "judge_reason": "원문 정답이 «…» 로 잘림 — 보이는 앞부분만 참고",
+    "answer_check_tokens": []
+  },
+  {
+    "id": "A-26-v1",
+    "cq_id": "A-26",
+    "cq_original": "2024년 7.8.~10. 호우 서천군 침수·피해가 발생한 읍면과 시설별 피해 내역은?",
+    "variant_kind": "표현·조건",
+    "variant_kind_raw": "표현·조건",
+    "question": "2024년 7월 호우 때 서천군 공공시설 피해를 시설유형별로 많은 순으로 보여줘.",
+    "question_source": null,
+    "query_context": null,
+    "condition_raw": "충청남도 서천군(4477000000) · 호우 · 2024-07-20 09:00",
+    "condition_parsed": {
+      "region_name": "충청남도 서천군",
+      "sido": "충청남도",
+      "sigungu": "서천군",
+      "admin_code": "4477000000",
+      "level": "SGG",
+      "disaster_types": [
+        "호우"
+      ],
+      "reference_time": "2024-07-20T09:00:00+09:00",
+      "active_warning": null,
+      "extra": []
+    },
+    "query_context_draft": {
+      "reference_time": "2024-07-20T09:00:00+09:00",
+      "region": {
+        "admin_code": "4477000000",
+        "name": "충청남도 서천군",
+        "level": "SGG"
+      },
+      "disaster_types": [
+        "호우"
+      ]
+    },
+    "expected_apis": [
+      "T3Q-01",
+      "T3Q-04",
+      "T3Q-13"
+    ],
+    "api_flow_raw": "T3Q-01 Agent 질의 → T3Q-04 유사사례 검색 → T3Q-13 피해·대응",
+    "cq_table_apis": [
+      "T3Q-01",
+      "T3Q-04",
+      "T3Q-13"
+    ],
+    "data_groups": [
+      "SIMILAR_EVENT"
+    ],
+    "cq_table_modes": [],
+    "expected_answer": "{\"항목\": 868, \"시설유형 상위\": {\"소규모시설\": 307, \"소하천\": 147, \"산사태\": 136, \"농림부기타\": 46, \"농어촌도로\": 39, \"도로\": 29}}",
+    "expected_answer_json": {
+      "항목": 868,
+      "시설유형 상위": {
+        "소규모시설": 307,
+        "소하천": 147,
+        "산사태": 136,
+        "농림부기타": 46,
+        "농어촌도로": 39,
+        "도로": 29
+      }
+    },
+    "expected_answer_truncated": false,
+    "check_sql": null,
+    "region": {
+      "sido": "충청남도",
+      "sigungu": "서천군",
+      "admin_code": "4477000000",
+      "level": "SGG"
+    },
+    "follow_up": null,
+    "spatial_op": null,
+    "memo": null,
+    "notes": null,
+    "agent416_result": {
+      "grade": "정답",
+      "comment": "7.8~19 호우 868건·소규모307·소하천147·산사태136 등 고친 expect 와 일치 (122초 · SQL 10회)"
+    },
+    "cq_original_416_result": "정답",
+    "source_line": 205,
+    "scope_note": null,
+    "answer_type": "nested_count_map",
+    "judge_mode": "auto",
+    "judge_reason": "두 자리 이상 정수·이름만 — 답 글 포함 여부로 판정",
+    "answer_check_tokens": [
+      "868",
+      "307",
+      "147",
+      "136",
+      "46",
+      "39",
+      "29"
+    ]
+  },
+  {
+    "id": "A-26-v2",
+    "cq_id": "A-26",
+    "cq_original": "2024년 7.8.~10. 호우 서천군 침수·피해가 발생한 읍면과 시설별 피해 내역은?",
+    "variant_kind": "지역·시점",
+    "variant_kind_raw": "지역",
+    "question": "같은 2024년 7월 호우로 부여군에서는 어떤 공공시설이 피해를 입었어?",
+    "question_source": null,
+    "query_context": null,
+    "condition_raw": "충청남도 부여군(4476000000) · 호우 · 2024-07-20 09:00",
+    "condition_parsed": {
+      "region_name": "충청남도 부여군",
+      "sido": "충청남도",
+      "sigungu": "부여군",
+      "admin_code": "4476000000",
+      "level": "SGG",
+      "disaster_types": [
+        "호우"
+      ],
+      "reference_time": "2024-07-20T09:00:00+09:00",
+      "active_warning": null,
+      "extra": []
+    },
+    "query_context_draft": {
+      "reference_time": "2024-07-20T09:00:00+09:00",
+      "region": {
+        "admin_code": "4476000000",
+        "name": "충청남도 부여군",
+        "level": "SGG"
+      },
+      "disaster_types": [
+        "호우"
+      ]
+    },
+    "expected_apis": [
+      "T3Q-01",
+      "T3Q-04",
+      "T3Q-13"
+    ],
+    "api_flow_raw": "T3Q-01 Agent 질의 → T3Q-04 유사사례 검색 → T3Q-13 피해·대응",
+    "cq_table_apis": [
+      "T3Q-01",
+      "T3Q-04",
+      "T3Q-13"
+    ],
+    "data_groups": [
+      "SIMILAR_EVENT"
+    ],
+    "cq_table_modes": [],
+    "expected_answer": "{\"항목\": 275, \"시설유형 상위\": {\"산사태\": 72, \"소규모시설\": 68, \"소하천\": 48, \"수리시설\": 31, \"하천 기본시설\": 21, \"도로\": 16}}",
+    "expected_answer_json": {
+      "항목": 275,
+      "시설유형 상위": {
+        "산사태": 72,
+        "소규모시설": 68,
+        "소하천": 48,
+        "수리시설": 31,
+        "하천 기본시설": 21,
+        "도로": 16
+      }
+    },
+    "expected_answer_truncated": false,
+    "check_sql": null,
+    "region": {
+      "sido": "충청남도",
+      "sigungu": "부여군",
+      "admin_code": "4476000000",
+      "level": "SGG"
+    },
+    "follow_up": {
+      "previous_id": "A-26-v1",
+      "previous_id_inferred": false
+    },
+    "spatial_op": null,
+    "memo": "이어서 묻기 — A-26-v1 다음 턴(지역만 바꿈)",
+    "notes": "메모: 이어서 묻기 — A-26-v1 다음 턴(지역만 바꿈)",
+    "agent416_result": {
+      "grade": "정답",
+      "comment": "7월 호우 275건·산사태72·소규모68·소하천48·수리31·하천21 고친 expect 와 일치 (126초 · SQL 12회)"
+    },
+    "cq_original_416_result": "정답",
+    "source_line": 213,
+    "scope_note": null,
+    "answer_type": "nested_count_map",
+    "judge_mode": "auto",
+    "judge_reason": "두 자리 이상 정수·이름만 — 답 글 포함 여부로 판정",
+    "answer_check_tokens": [
+      "275",
+      "72",
+      "68",
+      "48",
+      "31",
+      "21",
+      "16"
+    ]
+  },
+  {
+    "id": "A-27-v1",
+    "cq_id": "A-27",
+    "cq_original": "2024년 호우 시 서천군 인명피해(산사태)가 발생한 비인면 외 침수·매몰 피해 농경지·주택 위치는?",
+    "variant_kind": "표현·조건",
+    "variant_kind_raw": "표현·조건",
+    "question": "2024년 호우 때 서천군 비인면을 뺀 나머지 읍면의 농경지 매몰·유실과 주택 침수 피해 건수를 읍면별로.",
+    "question_source": null,
+    "query_context": null,
+    "condition_raw": "충청남도 서천군(4477000000) · 호우 · 2026-08-25 14:00",
+    "condition_parsed": {
+      "region_name": "충청남도 서천군",
+      "sido": "충청남도",
+      "sigungu": "서천군",
+      "admin_code": "4477000000",
+      "level": "SGG",
+      "disaster_types": [
+        "호우"
+      ],
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "active_warning": null,
+      "extra": []
+    },
+    "query_context_draft": {
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "region": {
+        "admin_code": "4477000000",
+        "name": "충청남도 서천군",
+        "level": "SGG"
+      },
+      "disaster_types": [
+        "호우"
+      ]
+    },
+    "expected_apis": [
+      "T3Q-01",
+      "T3Q-13"
+    ],
+    "api_flow_raw": "T3Q-01 Agent 질의 → T3Q-13 피해·대응",
+    "cq_table_apis": [
+      "T3Q-01",
+      "T3Q-13"
+    ],
+    "data_groups": [
+      "SIMILAR_EVENT"
+    ],
+    "cq_table_modes": [],
+    "expected_answer": "{\"서면\": {\"침수주택수리비\": 21, \"농경지 매몰\": 194, \"농경지 유실\": 18, \"유실수(묘목기준)-호두\": 1}, \"기산면\": {\"침수주택수리비\": 10, \"농경지 매몰\": 413, \"농경지 유실\": 136}, \"마산면\": {\"침수주택수리비\": 8, \"농경지 매몰\": 506, \"농경지 유실\": 51, \"유실수(묘목기준)-밤\": 22, \"유실수(묘목기준)-호두\": 1, \"유실수(묘목기준)-떫은감\": 2}, \"마서면\": {\"침수주택수리비\": 24, \"농경지 매몰\": 412, \"농경지 유실\": 171, \"유실수(묘목기준)-호두\": 1}, \"문산면\": {\"침수주택수리비\": 9, \"농경지 매몰\": 719, \"농경지 유실\": 146, \"유실수(묘목기준)-밤\": 2, \"유실수(묘목기준)-호두\": 2, \"유실수(묘목기준)-떫은감\": 3}, \"서천읍\": {\"침수주택수리비\": 51, \"농경지 매몰\": 368, \"농경지 유실\": 113, \"유실수(묘목기준)-떫은감\": 1}, \"시초면\": {\"침수주택수리비\": 8, \"농경지 매몰\": 363, \"농경지 유실\": 241}, \"장항읍\": {\"침수주택수리비\": 57, \"농경지 매몰\": 81, \"농경지 유실\": 18}, \"종 …",
+    "expected_answer_json": null,
+    "expected_answer_truncated": true,
+    "check_sql": null,
+    "region": {
+      "sido": "충청남도",
+      "sigungu": "서천군",
+      "admin_code": "4477000000",
+      "level": "SGG"
+    },
+    "follow_up": null,
+    "spatial_op": null,
+    "memo": null,
+    "notes": null,
+    "agent416_result": {
+      "grade": "정답",
+      "comment": "읍면별 매몰·유실·주택 침수(예: 서면 194·18·21) 고친 expect 와 일치 (156초 · SQL 16회)"
+    },
+    "cq_original_416_result": "정답",
+    "source_line": 224,
+    "scope_note": null,
+    "answer_type": "mixed",
+    "judge_mode": "human",
+    "judge_reason": "원문 정답이 «…» 로 잘림 — 보이는 앞부분만 참고",
+    "answer_check_tokens": []
+  },
+  {
+    "id": "A-27-g",
+    "cq_id": "A-27",
+    "cq_original": "2024년 호우 시 서천군 인명피해(산사태)가 발생한 비인면 외 침수·매몰 피해 농경지·주택 위치는?",
+    "variant_kind": "공간",
+    "variant_kind_raw": "공간",
+    "question": "2024년 서천군 주택 침수 피해를 지도에 법정동 단위로 찍어줘 — 피해가 많은 동 5곳과 각 동의 대표 위치(위경도).",
+    "question_source": null,
+    "query_context": null,
+    "condition_raw": "충청남도 서천군(4477000000) · 호우 · 2026-08-25 14:00",
+    "condition_parsed": {
+      "region_name": "충청남도 서천군",
+      "sido": "충청남도",
+      "sigungu": "서천군",
+      "admin_code": "4477000000",
+      "level": "SGG",
+      "disaster_types": [
+        "호우"
+      ],
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "active_warning": null,
+      "extra": []
+    },
+    "query_context_draft": {
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "region": {
+        "admin_code": "4477000000",
+        "name": "충청남도 서천군",
+        "level": "SGG"
+      },
+      "disaster_types": [
+        "호우"
+      ]
+    },
+    "expected_apis": [
+      "T3Q-01",
+      "T3Q-13"
+    ],
+    "api_flow_raw": "T3Q-01 Agent 질의 → T3Q-13 피해·대응",
+    "cq_table_apis": [
+      "T3Q-01",
+      "T3Q-13"
+    ],
+    "data_groups": [
+      "SIMILAR_EVENT"
+    ],
+    "cq_table_modes": [],
+    "expected_answer": "{\"피해 동\": 15, \"상위\": [{\"읍면동\": \"장항읍\", \"n\": 57, \"lat\": 36.01258, \"lon\": 126.69511}, {\"읍면동\": \"서천읍\", \"n\": 51, \"lat\": 36.08052, \"lon\": 126.69496}, {\"읍면동\": \"비인면\", \"n\": 51, \"lat\": 36.13859, \"lon\": 126.60426}, {\"읍면동\": \"종천면\", \"n\": 25, \"lat\": 36.10838, \"lon\": 126.65536}, {\"읍면동\": \"마서면\", \"n\": 24, \"lat\": 36.05323, \"lon\": 126.68835}]}",
+    "expected_answer_json": {
+      "피해 동": 15,
+      "상위": [
+        {
+          "읍면동": "장항읍",
+          "n": 57,
+          "lat": 36.01258,
+          "lon": 126.69511
+        },
+        {
+          "읍면동": "서천읍",
+          "n": 51,
+          "lat": 36.08052,
+          "lon": 126.69496
+        },
+        {
+          "읍면동": "비인면",
+          "n": 51,
+          "lat": 36.13859,
+          "lon": 126.60426
+        },
+        {
+          "읍면동": "종천면",
+          "n": 25,
+          "lat": 36.10838,
+          "lon": 126.65536
+        },
+        {
+          "읍면동": "마서면",
+          "n": 24,
+          "lat": 36.05323,
+          "lon": 126.68835
+        }
+      ]
+    },
+    "expected_answer_truncated": false,
+    "check_sql": null,
+    "region": {
+      "sido": "충청남도",
+      "sigungu": "서천군",
+      "admin_code": "4477000000",
+      "level": "SGG"
+    },
+    "follow_up": null,
+    "spatial_op": "법정동·읍면 중심점(gis.legal_dong_center·gis.emd_center — 건축물 점의 중앙값) — 피해 자료의 PNU 가 도로명 번호로 만들어져 건축물과 안 이어짐",
+    "memo": "법정동 단위 근사 — 피해 지번 정비(도로명→지번) 필요",
+    "notes": "메모: 법정동 단위 근사 — 피해 지번 정비(도로명→지번) 필요 | 공간 연산: 법정동·읍면 중심점(gis.legal_dong_center·gis.emd_center — 건축물 점의 중앙값) — 피해 자료의 PNU 가 도로명 번호로 만들어져 건축물과 안 이어짐",
+    "agent416_result": {
+      "grade": "정답",
+      "comment": "상위 5 읍면(장항57·비인52·서천51·종천25·마서24)·중심 위경도 일치(비인은 성내리 1건 합산) (169초 · SQL 18회)"
+    },
+    "cq_original_416_result": "정답",
+    "source_line": 232,
+    "scope_note": null,
+    "answer_type": "mixed",
+    "judge_mode": "auto_partial",
+    "judge_reason": "큰 수·이름은 자동, 한 자리 수·0·null·소수(반올림 표기)·서술 구절은 사람 확인",
+    "answer_check_tokens": [
+      "15",
+      "57",
+      "36.01258",
+      "126.69511",
+      "51",
+      "36.08052",
+      "126.69496",
+      "36.13859",
+      "126.60426",
+      "25",
+      "36.10838",
+      "126.65536",
+      "24",
+      "36.05323",
+      "126.68835",
+      "장항읍",
+      "서천읍",
+      "비인면",
+      "종천면",
+      "마서면"
+    ]
+  },
+  {
+    "id": "B-08-v1",
+    "cq_id": "B-08",
+    "cq_original": "서천군의 사면재해 위험지구는 어디인가?",
+    "variant_kind": "표현·조건",
+    "variant_kind_raw": "표현·조건",
+    "question": "서천군의 급경사지 붕괴위험지구 지정·해제 현황과 정비계획 대상을 알려줘.",
+    "question_source": null,
+    "query_context": null,
+    "condition_raw": "충청남도 서천군(4477000000) · 산사태 · 2026-08-25 14:00",
+    "condition_parsed": {
+      "region_name": "충청남도 서천군",
+      "sido": "충청남도",
+      "sigungu": "서천군",
+      "admin_code": "4477000000",
+      "level": "SGG",
+      "disaster_types": [
+        "산사태"
+      ],
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "active_warning": null,
+      "extra": []
+    },
+    "query_context_draft": {
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "region": {
+        "admin_code": "4477000000",
+        "name": "충청남도 서천군",
+        "level": "SGG"
+      },
+      "disaster_types": [
+        "산사태"
+      ]
+    },
+    "expected_apis": [
+      "T3Q-01",
+      "T3Q-05",
+      "T3Q-15"
+    ],
+    "api_flow_raw": "T3Q-01 Agent 질의 → T3Q-05 위험·취약 대상 목록 → T3Q-15 위험·취약 대상 상세",
+    "cq_table_apis": [
+      "T3Q-01",
+      "T3Q-05",
+      "T3Q-15"
+    ],
+    "data_groups": [
+      "RISK_AREA"
+    ],
+    "cq_table_modes": [],
+    "expected_answer": "{\"지정 상태\": {\"지정\": 12, \"지정해제\": 21}, \"붕괴위험지역 정비계획\": 9}",
+    "expected_answer_json": {
+      "지정 상태": {
+        "지정": 12,
+        "지정해제": 21
+      },
+      "붕괴위험지역 정비계획": 9
+    },
+    "expected_answer_truncated": false,
+    "check_sql": null,
+    "region": {
+      "sido": "충청남도",
+      "sigungu": "서천군",
+      "admin_code": "4477000000",
+      "level": "SGG"
+    },
+    "follow_up": null,
+    "spatial_op": null,
+    "memo": null,
+    "notes": null,
+    "agent416_result": {
+      "grade": "부분 정답",
+      "comment": "지정·해제를 13지구/10해제로 셈(실측 지정 행12·해제21, 고유 급경사지 10·15), 정비계획은 9지구 중 마량 3지구만 대상으로 제시 (162초 · SQL 17회)"
+    },
+    "cq_original_416_result": "부분 정답",
+    "source_line": 244,
+    "scope_note": null,
+    "answer_type": "nested_count_map",
+    "judge_mode": "auto_partial",
+    "judge_reason": "큰 수·이름은 자동, 한 자리 수·0·null·소수(반올림 표기)·서술 구절은 사람 확인",
+    "answer_check_tokens": [
+      "12",
+      "21"
+    ]
+  },
+  {
+    "id": "B-08-g",
+    "cq_id": "B-08",
+    "cq_original": "서천군의 사면재해 위험지구는 어디인가?",
+    "variant_kind": "공간",
+    "variant_kind_raw": "공간",
+    "question": "충청남도 급경사지 붕괴위험지역 지정 도면을 시군구별 개수와 면적으로 보여줘.",
+    "question_source": null,
+    "query_context": null,
+    "condition_raw": "충청남도 서천군(4477000000) · 산사태 · 2026-08-25 14:00",
+    "condition_parsed": {
+      "region_name": "충청남도 서천군",
+      "sido": "충청남도",
+      "sigungu": "서천군",
+      "admin_code": "4477000000",
+      "level": "SGG",
+      "disaster_types": [
+        "산사태"
+      ],
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "active_warning": null,
+      "extra": []
+    },
+    "query_context_draft": {
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "region": {
+        "admin_code": "4477000000",
+        "name": "충청남도 서천군",
+        "level": "SGG"
+      },
+      "disaster_types": [
+        "산사태"
+      ]
+    },
+    "expected_apis": [
+      "T3Q-01",
+      "T3Q-05"
+    ],
+    "api_flow_raw": "T3Q-01 Agent 질의 → T3Q-05 위험·취약 대상 목록",
+    "cq_table_apis": [
+      "T3Q-01",
+      "T3Q-05",
+      "T3Q-15"
+    ],
+    "data_groups": [
+      "RISK_AREA"
+    ],
+    "cq_table_modes": [],
+    "expected_answer": "{\"부여군\": {\"도면\": 8, \"면적 ㎡\": 166221}, \"공주시\": {\"도면\": 1, \"면적 ㎡\": 86}, \"논산시\": {\"도면\": 1, \"면적 ㎡\": 107904}, \"금산군\": {\"도면\": 1, \"면적 ㎡\": 44490}, \"예산군\": {\"도면\": 1, \"면적 ㎡\": 3058}, \"태안군\": {\"도면\": 1, \"면적 ㎡\": 976}}",
+    "expected_answer_json": {
+      "부여군": {
+        "도면": 8,
+        "면적 ㎡": 166221
+      },
+      "공주시": {
+        "도면": 1,
+        "면적 ㎡": 86
+      },
+      "논산시": {
+        "도면": 1,
+        "면적 ㎡": 107904
+      },
+      "금산군": {
+        "도면": 1,
+        "면적 ㎡": 44490
+      },
+      "예산군": {
+        "도면": 1,
+        "면적 ㎡": 3058
+      },
+      "태안군": {
+        "도면": 1,
+        "면적 ㎡": 976
+      }
+    },
+    "expected_answer_truncated": false,
+    "check_sql": null,
+    "region": {
+      "sido": "충청남도",
+      "sigungu": "서천군",
+      "admin_code": "4477000000",
+      "level": "SGG"
+    },
+    "follow_up": null,
+    "spatial_op": "폴리곤 면적(ST_Area, 5179 m²) — gis.collapse_risk_zone",
+    "memo": null,
+    "notes": "공간 연산: 폴리곤 면적(ST_Area, 5179 m²) — gis.collapse_risk_zone",
+    "agent416_result": {
+      "grade": "정답",
+      "comment": "충남 6개 시군 13도면·시군별 개수·면적(부여 8/166,221㎡ 등) 일치 (99초 · SQL 7회)"
+    },
+    "cq_original_416_result": "부분 정답",
+    "source_line": 252,
+    "scope_note": "질문 범위: 충청남도 전체(조건은 서천군)",
+    "answer_type": "nested_count_map",
+    "judge_mode": "auto_partial",
+    "judge_reason": "큰 수·이름은 자동, 한 자리 수·0·null·소수(반올림 표기)·서술 구절은 사람 확인",
+    "answer_check_tokens": [
+      "166221",
+      "86",
+      "107904",
+      "44490",
+      "3058",
+      "976",
+      "부여군",
+      "공주시",
+      "논산시",
+      "금산군",
+      "예산군",
+      "태안군"
+    ]
+  },
+  {
+    "id": "B-19-v1",
+    "cq_id": "B-19",
+    "cq_original": "세종특별자치시 전의면 읍내2지구의 내수침수 저감대책은 무엇인가?",
+    "variant_kind": "표현·조건",
+    "variant_kind_raw": "표현·조건",
+    "question": "세종시 전의면 «읍내» 자연재해위험개선지구의 사업 내용·기간·시행기관은?",
+    "question_source": null,
+    "query_context": null,
+    "condition_raw": "세종특별자치시(3611000000) · 호우 · 2026-08-25 14:00",
+    "condition_parsed": {
+      "region_name": "세종특별자치시",
+      "sido": "세종특별자치시",
+      "sigungu": null,
+      "admin_code": "3611000000",
+      "level": "SGG",
+      "disaster_types": [
+        "호우"
+      ],
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "active_warning": null,
+      "extra": []
+    },
+    "query_context_draft": {
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "region": {
+        "admin_code": "3611000000",
+        "name": "세종특별자치시",
+        "level": "SGG"
+      },
+      "disaster_types": [
+        "호우"
+      ]
+    },
+    "expected_apis": [
+      "T3Q-01",
+      "T3Q-06",
+      "T3Q-17"
+    ],
+    "api_flow_raw": "T3Q-01 Agent 질의 → T3Q-06 계획문서 목록 → T3Q-17 계획문서 상세",
+    "cq_table_apis": [
+      "T3Q-01",
+      "T3Q-06",
+      "T3Q-17"
+    ],
+    "data_groups": [
+      "PLAN",
+      "RISK_AREA"
+    ],
+    "cq_table_modes": [],
+    "expected_answer": "[{\"name\": \"읍내\", \"hazard_type\": \"침수위험\", \"project_start_year\": 2023, \"project_end_year\": 2029, \"implementing_agency\": \"세종시\", \"content\": \"우수관로 정비 598m, 펌프장 및 유수지 1개소, PC박스 2.0*2.0 180m 펌프장(Q=270m3/min) 및 유수지(V=2,600㎥)신설, 우수관로정비(2,050m), 하천제방보강(500m), 저지대성토(A=2,800㎡)\"}]",
+    "expected_answer_json": [
+      {
+        "name": "읍내",
+        "hazard_type": "침수위험",
+        "project_start_year": 2023,
+        "project_end_year": 2029,
+        "implementing_agency": "세종시",
+        "content": "우수관로 정비 598m, 펌프장 및 유수지 1개소, PC박스 2.0*2.0 180m 펌프장(Q=270m3/min) 및 유수지(V=2,600㎥)신설, 우수관로정비(2,050m), 하천제방보강(500m), 저지대성토(A=2,800㎡)"
+      }
+    ],
+    "expected_answer_truncated": false,
+    "check_sql": null,
+    "region": {
+      "sido": "세종특별자치시",
+      "sigungu": null,
+      "admin_code": "3611000000",
+      "level": "SGG"
+    },
+    "follow_up": null,
+    "spatial_op": null,
+    "memo": null,
+    "notes": null,
+    "agent416_result": {
+      "grade": "정답",
+      "comment": "읍내지구 사업내용·2023~2029·세종시 시행 일치 (59초 · SQL 4회)"
+    },
+    "cq_original_416_result": "정답",
+    "source_line": 263,
+    "scope_note": null,
+    "answer_type": "record_list",
+    "judge_mode": "human",
+    "judge_reason": "긴 서술 문장(사업 내용 등) — 표현 차이로 포함 판정 불가",
+    "answer_check_tokens": [
+      "2023",
+      "2029",
+      "읍내",
+      "세종시"
+    ]
+  },
+  {
+    "id": "B-19-v2",
+    "cq_id": "B-19",
+    "cq_original": "세종특별자치시 전의면 읍내2지구의 내수침수 저감대책은 무엇인가?",
+    "variant_kind": "지역·시점",
+    "variant_kind_raw": "지역",
+    "question": "세종시 조치원읍 «신흥» 개선지구는 어떤 저감대책이 계획돼 있어?",
+    "question_source": null,
+    "query_context": null,
+    "condition_raw": "세종특별자치시(3611000000) · 호우 · 2026-08-25 14:00",
+    "condition_parsed": {
+      "region_name": "세종특별자치시",
+      "sido": "세종특별자치시",
+      "sigungu": null,
+      "admin_code": "3611000000",
+      "level": "SGG",
+      "disaster_types": [
+        "호우"
+      ],
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "active_warning": null,
+      "extra": []
+    },
+    "query_context_draft": {
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "region": {
+        "admin_code": "3611000000",
+        "name": "세종특별자치시",
+        "level": "SGG"
+      },
+      "disaster_types": [
+        "호우"
+      ]
+    },
+    "expected_apis": [
+      "T3Q-01",
+      "T3Q-06",
+      "T3Q-17"
+    ],
+    "api_flow_raw": "T3Q-01 Agent 질의 → T3Q-06 계획문서 목록 → T3Q-17 계획문서 상세",
+    "cq_table_apis": [
+      "T3Q-01",
+      "T3Q-06",
+      "T3Q-17"
+    ],
+    "data_groups": [
+      "PLAN",
+      "RISK_AREA"
+    ],
+    "cq_table_modes": [],
+    "expected_answer": "[{\"name\": \"신흥\", \"location_text\": \"세종 세종시 조치원읍 죽림리 193-1일원\", \"hazard_type\": \"침수위험\", \"project_start_year\": 2020, \"project_end_year\": 2023, \"content\": \"교량재가설 1개소, 하천정비 0.7㎞\"}]",
+    "expected_answer_json": [
+      {
+        "name": "신흥",
+        "location_text": "세종 세종시 조치원읍 죽림리 193-1일원",
+        "hazard_type": "침수위험",
+        "project_start_year": 2020,
+        "project_end_year": 2023,
+        "content": "교량재가설 1개소, 하천정비 0.7㎞"
+      }
+    ],
+    "expected_answer_truncated": false,
+    "check_sql": null,
+    "region": {
+      "sido": "세종특별자치시",
+      "sigungu": null,
+      "admin_code": "3611000000",
+      "level": "SGG"
+    },
+    "follow_up": null,
+    "spatial_op": null,
+    "memo": null,
+    "notes": null,
+    "agent416_result": {
+      "grade": "정답",
+      "comment": "신흥지구 교량재가설 1·하천정비 0.7㎞·2020~2023 일치 (32초 · SQL 3회)"
+    },
+    "cq_original_416_result": "정답",
+    "source_line": 271,
+    "scope_note": null,
+    "answer_type": "record_list",
+    "judge_mode": "auto_partial",
+    "judge_reason": "큰 수·이름은 자동, 한 자리 수·0·null·소수(반올림 표기)·서술 구절은 사람 확인",
+    "answer_check_tokens": [
+      "2020",
+      "2023",
+      "신흥",
+      "세종 세종시 조치원읍 죽림리 193-1일원",
+      "교량재가설 1개소, 하천정비 0.7㎞"
+    ]
+  },
+  {
+    "id": "C-01-v1",
+    "cq_id": "C-01",
+    "cq_original": "지금 세종시 조천(상조천교 관측소)의 수위는 얼마이며, 관심·주의보·경보 기준수위 대비 어느 단계인가? 조천 외수위 상승 시 내수배제 불량으로 지정된 조치원읍 신흥1·신안 내수재해 지구의 현재 침수 위험을 판단하라.",
+    "variant_kind": "표현·조건",
+    "variant_kind_raw": "표현·조건",
+    "question": "AI 모드 점검 — 세종시 기준으로 상조천교 지점 홍수특보 이력과, 그 지점을 기준 관측소로 쓰는 홍수취약지구의 대응수위를 알려줘.",
+    "question_source": "AI_MODE",
+    "query_context": null,
+    "condition_raw": "세종특별자치시(3611000000) · 홍수 · 2026-08-25 14:00",
+    "condition_parsed": {
+      "region_name": "세종특별자치시",
+      "sido": "세종특별자치시",
+      "sigungu": null,
+      "admin_code": "3611000000",
+      "level": "SGG",
+      "disaster_types": [
+        "홍수"
+      ],
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "active_warning": null,
+      "extra": []
+    },
+    "query_context_draft": {
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "region": {
+        "admin_code": "3611000000",
+        "name": "세종특별자치시",
+        "level": "SGG"
+      },
+      "disaster_types": [
+        "홍수"
+      ]
+    },
+    "expected_apis": [
+      "T3Q-01",
+      "T3Q-29"
+    ],
+    "api_flow_raw": "T3Q-01 Agent 질의 → T3Q-29 AI 모드 상황 점검",
+    "cq_table_apis": [
+      "T3Q-01",
+      "T3Q-29"
+    ],
+    "data_groups": [],
+    "cq_table_modes": [
+      "(AI 모드)"
+    ],
+    "expected_answer": "{\"특보 이력\": 11, \"홍수취약지구\": [{\"facility_name\": \"남동제\", \"river_name\": \"조천\", \"response_level_07\": 33.26, \"response_level_09\": 33.66}, {\"facility_name\": \"남동제\", \"river_name\": \"조천\", \"response_level_07\": 33.26, \"response_level_09\": 33.66}]}",
+    "expected_answer_json": {
+      "특보 이력": 11,
+      "홍수취약지구": [
+        {
+          "facility_name": "남동제",
+          "river_name": "조천",
+          "response_level_07": 33.26,
+          "response_level_09": 33.66
+        },
+        {
+          "facility_name": "남동제",
+          "river_name": "조천",
+          "response_level_07": 33.26,
+          "response_level_09": 33.66
+        }
+      ]
+    },
+    "expected_answer_truncated": false,
+    "check_sql": null,
+    "region": {
+      "sido": "세종특별자치시",
+      "sigungu": null,
+      "admin_code": "3611000000",
+      "level": "SGG"
+    },
+    "follow_up": null,
+    "spatial_op": null,
+    "memo": null,
+    "notes": null,
+    "agent416_result": {
+      "grade": "정답",
+      "comment": "상조천교 특보 이력 11건·남동제 대응수위 33.26/33.66m 일치 (106초 · SQL 7회)"
+    },
+    "cq_original_416_result": "부분 정답",
+    "source_line": 281,
+    "scope_note": null,
+    "answer_type": "mixed",
+    "judge_mode": "auto_partial",
+    "judge_reason": "큰 수·이름은 자동, 한 자리 수·0·null·소수(반올림 표기)·서술 구절은 사람 확인",
+    "answer_check_tokens": [
+      "11",
+      "33.26",
+      "33.66",
+      "남동제",
+      "조천"
+    ]
+  },
+  {
+    "id": "C-01-v2",
+    "cq_id": "C-01",
+    "cq_original": "지금 세종시 조천(상조천교 관측소)의 수위는 얼마이며, 관심·주의보·경보 기준수위 대비 어느 단계인가? 조천 외수위 상승 시 내수배제 불량으로 지정된 조치원읍 신흥1·신안 내수재해 지구의 현재 침수 위험을 판단하라.",
+    "variant_kind": "지역·시점",
+    "variant_kind_raw": "지역",
+    "question": "AI 모드 점검 — 충주시 기준으로 «충주시(향산리)» 관측소를 기준으로 쓰는 홍수취약지구와 대응수위를 알려줘.",
+    "question_source": "AI_MODE",
+    "query_context": null,
+    "condition_raw": "충청북도 충주시(4313000000) · 홍수 · 2026-08-25 14:00",
+    "condition_parsed": {
+      "region_name": "충청북도 충주시",
+      "sido": "충청북도",
+      "sigungu": "충주시",
+      "admin_code": "4313000000",
+      "level": "SGG",
+      "disaster_types": [
+        "홍수"
+      ],
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "active_warning": null,
+      "extra": []
+    },
+    "query_context_draft": {
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "region": {
+        "admin_code": "4313000000",
+        "name": "충청북도 충주시",
+        "level": "SGG"
+      },
+      "disaster_types": [
+        "홍수"
+      ]
+    },
+    "expected_apis": [
+      "T3Q-01",
+      "T3Q-29"
+    ],
+    "api_flow_raw": "T3Q-01 Agent 질의 → T3Q-29 AI 모드 상황 점검",
+    "cq_table_apis": [
+      "T3Q-01",
+      "T3Q-29"
+    ],
+    "data_groups": [],
+    "cq_table_modes": [
+      "(AI 모드)"
+    ],
+    "expected_answer": "[{\"facility_name\": null, \"river_name\": \"달천\", \"maintenance_agency\": \"충주시\", \"response_level_07\": 78.22, \"response_level_09\": 81.13}, {\"facility_name\": null, \"river_name\": \"달천\", \"maintenance_agency\": \"충주시\", \"response_level_07\": 78.08, \"response_level_09\": 80.95}, {\"facility_name\": null, \"river_name\": \"설운천\", \"maintenance_agency\": \"충주시\", \"response_level_07\": 73.29, \"response_level_09\": 74.8}, {\"facility_name\": \"상수도취수장보\", \"river_name\": \"달천\", \"maintenance_agency\": \"충주시\", \"response_level_07\": 77.12, \"response_level_09\": 79.73}]",
+    "expected_answer_json": [
+      {
+        "facility_name": null,
+        "river_name": "달천",
+        "maintenance_agency": "충주시",
+        "response_level_07": 78.22,
+        "response_level_09": 81.13
+      },
+      {
+        "facility_name": null,
+        "river_name": "달천",
+        "maintenance_agency": "충주시",
+        "response_level_07": 78.08,
+        "response_level_09": 80.95
+      },
+      {
+        "facility_name": null,
+        "river_name": "설운천",
+        "maintenance_agency": "충주시",
+        "response_level_07": 73.29,
+        "response_level_09": 74.8
+      },
+      {
+        "facility_name": "상수도취수장보",
+        "river_name": "달천",
+        "maintenance_agency": "충주시",
+        "response_level_07": 77.12,
+        "response_level_09": 79.73
+      }
+    ],
+    "expected_answer_truncated": false,
+    "check_sql": null,
+    "region": {
+      "sido": "충청북도",
+      "sigungu": "충주시",
+      "admin_code": "4313000000",
+      "level": "SGG"
+    },
+    "follow_up": null,
+    "spatial_op": null,
+    "memo": null,
+    "notes": null,
+    "agent416_result": {
+      "grade": "정답",
+      "comment": "향산리 기준 4개 지구·대응수위(78.22/81.13 등) 전부 일치 (105초 · SQL 5회)"
+    },
+    "cq_original_416_result": "부분 정답",
+    "source_line": 289,
+    "scope_note": null,
+    "answer_type": "record_list",
+    "judge_mode": "auto_partial",
+    "judge_reason": "큰 수·이름은 자동, 한 자리 수·0·null·소수(반올림 표기)·서술 구절은 사람 확인",
+    "answer_check_tokens": [
+      "78.22",
+      "81.13",
+      "78.08",
+      "80.95",
+      "73.29",
+      "74.8",
+      "77.12",
+      "79.73",
+      "달천",
+      "충주시",
+      "설운천",
+      "상수도취수장보"
+    ]
+  },
+  {
+    "id": "C-06-v1",
+    "cq_id": "C-06",
+    "cq_original": "최근 24시간 내 홍수통제소가 발령한 홍수예보(주의보·경보) 중 서천군·세종 관할 하천 지점이 있는가? 있다면 해당 하천의 위험지구와 저감대책 시행 현황을 함께 제시하라.",
+    "variant_kind": "표현·조건",
+    "variant_kind_raw": "표현·조건",
+    "question": "2025년 7월 세종시 관할 하천 지점에 낸 홍수특보가 있었어? 있으면 그 하천의 홍수취약지구도.",
+    "question_source": "BRIEFING",
+    "query_context": null,
+    "condition_raw": "세종특별자치시(3611000000) · 홍수 · 2025-07-31 23:00",
+    "condition_parsed": {
+      "region_name": "세종특별자치시",
+      "sido": "세종특별자치시",
+      "sigungu": null,
+      "admin_code": "3611000000",
+      "level": "SGG",
+      "disaster_types": [
+        "홍수"
+      ],
+      "reference_time": "2025-07-31T23:00:00+09:00",
+      "active_warning": null,
+      "extra": []
+    },
+    "query_context_draft": {
+      "reference_time": "2025-07-31T23:00:00+09:00",
+      "region": {
+        "admin_code": "3611000000",
+        "name": "세종특별자치시",
+        "level": "SGG"
+      },
+      "disaster_types": [
+        "홍수"
+      ]
+    },
+    "expected_apis": [
+      "T3Q-01",
+      "T3Q-02"
+    ],
+    "api_flow_raw": "T3Q-01 Agent 질의 → T3Q-02 현재 상황 브리핑",
+    "cq_table_apis": [
+      "T3Q-01",
+      "T3Q-02"
+    ],
+    "data_groups": [
+      "RISK_AREA"
+    ],
+    "cq_table_modes": [
+      "(브리핑)"
+    ],
+    "expected_answer": "{\"특보\": [{\"issued_at\": \"2025-07-17T06:00:00\", \"name\": \"세종시(상조천교)\", \"river_name\": null, \"warning_kind\": \"경보\", \"action\": \"변경\"}, {\"issued_at\": \"2025-07-17T03:50:00\", \"name\": \"세종시(상조천교)\", \"river_name\": null, \"warning_kind\": \"주의보\", \"action\": \"발령\"}], \"조천(상조천교 기준) 홍수취약지구\": [\"남동제\", \"청람제\", \"청송제\", \"송성우안제\", \"청송제, 석곡우안제\", \"심중2제, 심중우안제\"]}",
+    "expected_answer_json": {
+      "특보": [
+        {
+          "issued_at": "2025-07-17T06:00:00",
+          "name": "세종시(상조천교)",
+          "river_name": null,
+          "warning_kind": "경보",
+          "action": "변경"
+        },
+        {
+          "issued_at": "2025-07-17T03:50:00",
+          "name": "세종시(상조천교)",
+          "river_name": null,
+          "warning_kind": "주의보",
+          "action": "발령"
+        }
+      ],
+      "조천(상조천교 기준) 홍수취약지구": [
+        "남동제",
+        "청람제",
+        "청송제",
+        "송성우안제",
+        "청송제, 석곡우안제",
+        "심중2제, 심중우안제"
+      ]
+    },
+    "expected_answer_truncated": false,
+    "check_sql": null,
+    "region": {
+      "sido": "세종특별자치시",
+      "sigungu": null,
+      "admin_code": "3611000000",
+      "level": "SGG"
+    },
+    "follow_up": null,
+    "spatial_op": null,
+    "memo": null,
+    "notes": null,
+    "agent416_result": {
+      "grade": "정답",
+      "comment": "2025-07-17 상조천교 주의보→경보 2건 일치, 질문의 «그 하천»(조천) 홍수취약지구 6곳(2025)/세종 관내 7곳(2026)을 제시 — 고친 expect 26 은 세종 전체·연도 이력 행 수라 범위가 더 넓음 (111초 · SQL 12회)"
+    },
+    "cq_original_416_result": "정답",
+    "source_line": 299,
+    "scope_note": null,
+    "answer_type": "mixed",
+    "judge_mode": "auto_partial",
+    "judge_reason": "큰 수·이름은 자동, 한 자리 수·0·null·소수(반올림 표기)·서술 구절은 사람 확인",
+    "answer_check_tokens": [
+      "세종시(상조천교)",
+      "남동제",
+      "청람제",
+      "청송제",
+      "송성우안제",
+      "청송제, 석곡우안제",
+      "심중2제, 심중우안제"
+    ]
+  },
+  {
+    "id": "C-06-v2",
+    "cq_id": "C-06",
+    "cq_original": "최근 24시간 내 홍수통제소가 발령한 홍수예보(주의보·경보) 중 서천군·세종 관할 하천 지점이 있는가? 있다면 해당 하천의 위험지구와 저감대책 시행 현황을 함께 제시하라.",
+    "variant_kind": "지역·시점",
+    "variant_kind_raw": "지역·시점",
+    "question": "2024년 7월 부여군 관할 하천 지점에 낸 홍수특보와, 부여군 홍수취약지구 수를 같이 브리핑해줘.",
+    "question_source": "BRIEFING",
+    "query_context": null,
+    "condition_raw": "충청남도 부여군(4476000000) · 홍수 · 2024-07-31 23:00",
+    "condition_parsed": {
+      "region_name": "충청남도 부여군",
+      "sido": "충청남도",
+      "sigungu": "부여군",
+      "admin_code": "4476000000",
+      "level": "SGG",
+      "disaster_types": [
+        "홍수"
+      ],
+      "reference_time": "2024-07-31T23:00:00+09:00",
+      "active_warning": null,
+      "extra": []
+    },
+    "query_context_draft": {
+      "reference_time": "2024-07-31T23:00:00+09:00",
+      "region": {
+        "admin_code": "4476000000",
+        "name": "충청남도 부여군",
+        "level": "SGG"
+      },
+      "disaster_types": [
+        "홍수"
+      ]
+    },
+    "expected_apis": [
+      "T3Q-01",
+      "T3Q-02"
+    ],
+    "api_flow_raw": "T3Q-01 Agent 질의 → T3Q-02 현재 상황 브리핑",
+    "cq_table_apis": [
+      "T3Q-01",
+      "T3Q-02"
+    ],
+    "data_groups": [
+      "RISK_AREA"
+    ],
+    "cq_table_modes": [
+      "(브리핑)"
+    ],
+    "expected_answer": "{\"특보\": [{\"issued_at\": \"2024-07-10T04:10:00\", \"name\": \"부여군(지천교)\", \"warning_kind\": \"주의보\", \"action\": \"발령\"}, {\"issued_at\": \"2024-07-10T18:20:00\", \"name\": \"부여군(지천교)\", \"warning_kind\": \"주의보\", \"action\": \"해제\"}], \"부여 홍수취약지구\": 22}",
+    "expected_answer_json": {
+      "특보": [
+        {
+          "issued_at": "2024-07-10T04:10:00",
+          "name": "부여군(지천교)",
+          "warning_kind": "주의보",
+          "action": "발령"
+        },
+        {
+          "issued_at": "2024-07-10T18:20:00",
+          "name": "부여군(지천교)",
+          "warning_kind": "주의보",
+          "action": "해제"
+        }
+      ],
+      "부여 홍수취약지구": 22
+    },
+    "expected_answer_truncated": false,
+    "check_sql": null,
+    "region": {
+      "sido": "충청남도",
+      "sigungu": "부여군",
+      "admin_code": "4476000000",
+      "level": "SGG"
+    },
+    "follow_up": null,
+    "spatial_op": null,
+    "memo": null,
+    "notes": null,
+    "agent416_result": {
+      "grade": "부분 정답",
+      "comment": "지천교 주의보 발령·해제 2건 일치, 홍수취약지구는 24건/고유 12개소로 답해 실측 22건과 다름 (121초 · SQL 10회)"
+    },
+    "cq_original_416_result": "정답",
+    "source_line": 307,
+    "scope_note": null,
+    "answer_type": "mixed",
+    "judge_mode": "auto",
+    "judge_reason": "두 자리 이상 정수·이름만 — 답 글 포함 여부로 판정",
+    "answer_check_tokens": [
+      "22",
+      "부여군(지천교)"
+    ]
+  },
+  {
+    "id": "C-08-g",
+    "cq_id": "C-08",
+    "cq_original": "세종시 미호천(미호교·월산교 관측소)의 현재 수위와 최근 24시간 추이는 어떠한가? 미호천 합류부 인근 연기면·연동면 하천재해 위험지구 중 \"하폭·제방여유고 부족\"으로 선정된 지구의 위험을 평가하라.",
+    "variant_kind": "공간",
+    "variant_kind_raw": "공간",
+    "question": "세종시 구간 미호강(하천망도)에 걸친 100년 빈도 국가하천 하천범람지도의 침수심 등급별 면적은?",
+    "question_source": null,
+    "query_context": null,
+    "condition_raw": "세종특별자치시(3611000000) · 홍수 · 2026-08-25 14:00",
+    "condition_parsed": {
+      "region_name": "세종특별자치시",
+      "sido": "세종특별자치시",
+      "sigungu": null,
+      "admin_code": "3611000000",
+      "level": "SGG",
+      "disaster_types": [
+        "홍수"
+      ],
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "active_warning": null,
+      "extra": []
+    },
+    "query_context_draft": {
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "region": {
+        "admin_code": "3611000000",
+        "name": "세종특별자치시",
+        "level": "SGG"
+      },
+      "disaster_types": [
+        "홍수"
+      ]
+    },
+    "expected_apis": [
+      "T3Q-01",
+      "T3Q-16",
+      "T3Q-36"
+    ],
+    "api_flow_raw": "T3Q-01 Agent 질의 → T3Q-16 하천 계획지식 → T3Q-36 침수지도 속성",
+    "cq_table_apis": [
+      "T3Q-01",
+      "T3Q-15",
+      "T3Q-16",
+      "T3Q-36"
+    ],
+    "data_groups": [
+      "FLOOD_MAP",
+      "RISK_AREA",
+      "RIVER"
+    ],
+    "cq_table_modes": [],
+    "expected_answer": "{\"0.5~1.0m\": 0.768, \"0.5m 미만\": 0.9, \"1.0~2.0m\": 1.511, \"2.0~5.0m\": 8.274, \"5.0m 이상\": 0.693}",
+    "expected_answer_json": {
+      "0.5~1.0m": 0.768,
+      "0.5m 미만": 0.9,
+      "1.0~2.0m": 1.511,
+      "2.0~5.0m": 8.274,
+      "5.0m 이상": 0.693
+    },
+    "expected_answer_truncated": false,
+    "check_sql": null,
+    "region": {
+      "sido": "세종특별자치시",
+      "sigungu": null,
+      "admin_code": "3611000000",
+      "level": "SGG"
+    },
+    "follow_up": null,
+    "spatial_op": "폴리곤 교차·버퍼(500m) — gis.river_network × gis.flood_map",
+    "memo": null,
+    "notes": "공간 연산: 폴리곤 교차·버퍼(500m) — gis.river_network × gis.flood_map",
+    "agent416_result": {
+      "grade": "정답",
+      "comment": "세종 국가하천 범람지도 등급별 면적 0.90·0.77·1.51·8.27·0.69㎢ 일치(하천망 직접 교차 면적은 덧붙임) (179초 · SQL 10회)"
+    },
+    "cq_original_416_result": "부분 정답",
+    "source_line": 317,
+    "scope_note": null,
+    "answer_type": "count_map",
+    "judge_mode": "auto_partial",
+    "judge_reason": "큰 수·이름은 자동, 한 자리 수·0·null·소수(반올림 표기)·서술 구절은 사람 확인",
+    "answer_check_tokens": [
+      "0.768",
+      "0.9",
+      "1.511",
+      "8.274",
+      "0.693"
+    ]
+  },
+  {
+    "id": "C-08-v1",
+    "cq_id": "C-08",
+    "cq_original": "세종시 미호천(미호교·월산교 관측소)의 현재 수위와 최근 24시간 추이는 어떠한가? 미호천 합류부 인근 연기면·연동면 하천재해 위험지구 중 \"하폭·제방여유고 부족\"으로 선정된 지구의 위험을 평가하라.",
+    "variant_kind": "표현·조건",
+    "variant_kind_raw": "표현·조건",
+    "question": "미호강(미호교·미호강교 기준) 홍수취약지구의 대응수위와 관할 기관은?",
+    "question_source": null,
+    "query_context": null,
+    "condition_raw": "세종특별자치시(3611000000) · 홍수 · 2026-08-25 14:00",
+    "condition_parsed": {
+      "region_name": "세종특별자치시",
+      "sido": "세종특별자치시",
+      "sigungu": null,
+      "admin_code": "3611000000",
+      "level": "SGG",
+      "disaster_types": [
+        "홍수"
+      ],
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "active_warning": null,
+      "extra": []
+    },
+    "query_context_draft": {
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "region": {
+        "admin_code": "3611000000",
+        "name": "세종특별자치시",
+        "level": "SGG"
+      },
+      "disaster_types": [
+        "홍수"
+      ]
+    },
+    "expected_apis": [
+      "T3Q-01",
+      "T3Q-15"
+    ],
+    "api_flow_raw": "T3Q-01 Agent 질의 → T3Q-15 위험·취약 대상 상세",
+    "cq_table_apis": [
+      "T3Q-01",
+      "T3Q-15",
+      "T3Q-16",
+      "T3Q-36"
+    ],
+    "data_groups": [
+      "FLOOD_MAP",
+      "RISK_AREA",
+      "RIVER"
+    ],
+    "cq_table_modes": [],
+    "expected_answer": "[{\"facility_name\": \"강외2제\", \"river_name\": \"미호강\", \"warning_station\": \"청주시(미호강교)\", \"river_authority\": \"금강유역환경청\", \"maintenance_agency\": \"청주시\", \"response_level_07\": 27.75, \"response_level_09\": 28.53}, {\"facility_name\": \"보통제\", \"river_name\": \"미호강\", \"warning_station\": \"세종시(미호교)\", \"river_authority\": \"금강유역환경청\", \"maintenance_agency\": \"세종특별자치시\", \"response_level_07\": 25.49, \"response_level_09\": 26.53}, {\"facility_name\": \"황탄제\", \"river_name\": \"미호강\", \"warning_station\": \"청주시(미호강교)\", \"river_authority\": \"금강유역환경청\", \"maintenance_agency\": \"청주시\", \"response_level_07\": 27.75, \"response_level_09\": 28.53}, {\"facility_na …",
+    "expected_answer_json": null,
+    "expected_answer_truncated": true,
+    "check_sql": null,
+    "region": {
+      "sido": "세종특별자치시",
+      "sigungu": null,
+      "admin_code": "3611000000",
+      "level": "SGG"
+    },
+    "follow_up": null,
+    "spatial_op": null,
+    "memo": null,
+    "notes": null,
+    "agent416_result": {
+      "grade": "정답",
+      "comment": "보통제·강외2제·황탄제 대응수위·관할청·유지관리기관 일치 (113초 · SQL 6회)"
+    },
+    "cq_original_416_result": "부분 정답",
+    "source_line": 326,
+    "scope_note": "질문 범위: 미호강 홍수취약지구(청주시 관할 포함, 조건은 세종)",
+    "answer_type": "record_list",
+    "judge_mode": "human",
+    "judge_reason": "원문 정답이 «…» 로 잘림 — 보이는 앞부분만 참고",
+    "answer_check_tokens": []
+  },
+  {
+    "id": "D-01-v1",
+    "cq_id": "D-01",
+    "cq_original": "2024년 7월 15일 공주시 집중호우 사건의 피해 규모, 발령된 경보 단계, 그리고 AI가 예측한 추가 피해는 어떻게 되나요?",
+    "variant_kind": "표현·조건",
+    "variant_kind_raw": "표현·조건",
+    "question": "2024년 7월 공주시 집중호우 사건을 열어줘 — 사건 기간, 전국 이재민·재산피해, 공주시 사유·공공시설 피해 건수.",
+    "question_source": null,
+    "query_context": null,
+    "condition_raw": "충청남도 공주시(4415000000) · 호우 · 2024-07-15 09:00",
+    "condition_parsed": {
+      "region_name": "충청남도 공주시",
+      "sido": "충청남도",
+      "sigungu": "공주시",
+      "admin_code": "4415000000",
+      "level": "SGG",
+      "disaster_types": [
+        "호우"
+      ],
+      "reference_time": "2024-07-15T09:00:00+09:00",
+      "active_warning": null,
+      "extra": []
+    },
+    "query_context_draft": {
+      "reference_time": "2024-07-15T09:00:00+09:00",
+      "region": {
+        "admin_code": "4415000000",
+        "name": "충청남도 공주시",
+        "level": "SGG"
+      },
+      "disaster_types": [
+        "호우"
+      ]
+    },
+    "expected_apis": [
+      "T3Q-01",
+      "T3Q-04",
+      "T3Q-10",
+      "T3Q-13"
+    ],
+    "api_flow_raw": "T3Q-01 Agent 질의 → T3Q-04 유사사례 검색 → T3Q-10 사건 상세 → T3Q-13 피해·대응",
+    "cq_table_apis": [
+      "T3Q-01",
+      "T3Q-04",
+      "T3Q-10",
+      "T3Q-13"
+    ],
+    "data_groups": [
+      "SIMILAR_EVENT"
+    ],
+    "cq_table_modes": [],
+    "expected_answer": "{\"사건\": [{\"event_id\": \"T10107-20240701-0001\", \"name\": \"2024년 7.1.~7.4. 호우\", \"start_date\": \"2024-07-01\", \"end_date\": \"2024-07-04\", \"displaced\": 237, \"property_damage\": 14732400000.0}, {\"event_id\": \"T10107-20240708-0001\", \"name\": \"2024년 7.8.~19. 호우\", \"start_date\": \"2024-07-08\", \"end_date\": \"2024-07-19\", \"displaced\": 9758, \"property_damage\": 318230900000.0}, {\"event_id\": \"T10107-20240720-0001\", \"name\": \"2024년 7.20.~21. 호우\", \"start_date\": \"2024-07-20\", \"end_date\": \"2024-07-21\", \"displaced\": null, \"property_damage\": 40900000.0}, {\"event_id\": \"T10107-20240722-0001\", \"name\": \"2024년 7.22.~23. 호우\", \"sta …",
+    "expected_answer_json": null,
+    "expected_answer_truncated": true,
+    "check_sql": null,
+    "region": {
+      "sido": "충청남도",
+      "sigungu": "공주시",
+      "admin_code": "4415000000",
+      "level": "SGG"
+    },
+    "follow_up": null,
+    "spatial_op": null,
+    "memo": null,
+    "notes": null,
+    "agent416_result": {
+      "grade": "정답",
+      "comment": "7.8~19 호우 기간·이재민 9,758·재산피해 3,182억·공공 3건 일치, 사유 524(+텍스트 12)건은 실측 526 과 근소 차 (98초 · SQL 11회)"
+    },
+    "cq_original_416_result": "정답",
+    "source_line": 336,
+    "scope_note": null,
+    "answer_type": "mixed",
+    "judge_mode": "human",
+    "judge_reason": "원문 정답이 «…» 로 잘림 — 보이는 앞부분만 참고",
+    "answer_check_tokens": []
+  },
+  {
+    "id": "D-01-v2",
+    "cq_id": "D-01",
+    "cq_original": "2024년 7월 15일 공주시 집중호우 사건의 피해 규모, 발령된 경보 단계, 그리고 AI가 예측한 추가 피해는 어떻게 되나요?",
+    "variant_kind": "지역·시점",
+    "variant_kind_raw": "지역",
+    "question": "같은 사건으로 논산시 피해는 어느 정도였어? 공공시설 복구 항목 수와 시설유형 상위.",
+    "question_source": null,
+    "query_context": null,
+    "condition_raw": "충청남도 논산시(4423000000) · 호우 · 2024-07-15 09:00",
+    "condition_parsed": {
+      "region_name": "충청남도 논산시",
+      "sido": "충청남도",
+      "sigungu": "논산시",
+      "admin_code": "4423000000",
+      "level": "SGG",
+      "disaster_types": [
+        "호우"
+      ],
+      "reference_time": "2024-07-15T09:00:00+09:00",
+      "active_warning": null,
+      "extra": []
+    },
+    "query_context_draft": {
+      "reference_time": "2024-07-15T09:00:00+09:00",
+      "region": {
+        "admin_code": "4423000000",
+        "name": "충청남도 논산시",
+        "level": "SGG"
+      },
+      "disaster_types": [
+        "호우"
+      ]
+    },
+    "expected_apis": [
+      "T3Q-01",
+      "T3Q-04",
+      "T3Q-13"
+    ],
+    "api_flow_raw": "T3Q-01 Agent 질의 → T3Q-04 유사사례 검색 → T3Q-13 피해·대응",
+    "cq_table_apis": [
+      "T3Q-01",
+      "T3Q-04",
+      "T3Q-10",
+      "T3Q-13"
+    ],
+    "data_groups": [
+      "SIMILAR_EVENT"
+    ],
+    "cq_table_modes": [],
+    "expected_answer": "{\"항목\": 199, \"시설유형 상위\": {\"산사태\": 56, \"소하천\": 43, \"하천 기본시설\": 26, \"수리시설\": 22, \"도로\": 15, \"문화재시설\": 7}}",
+    "expected_answer_json": {
+      "항목": 199,
+      "시설유형 상위": {
+        "산사태": 56,
+        "소하천": 43,
+        "하천 기본시설": 26,
+        "수리시설": 22,
+        "도로": 15,
+        "문화재시설": 7
+      }
+    },
+    "expected_answer_truncated": false,
+    "check_sql": null,
+    "region": {
+      "sido": "충청남도",
+      "sigungu": "논산시",
+      "admin_code": "4423000000",
+      "level": "SGG"
+    },
+    "follow_up": {
+      "previous_id": "D-01-v1",
+      "previous_id_inferred": false
+    },
+    "spatial_op": null,
+    "memo": "이어서 묻기 — D-01-v1 다음 턴",
+    "notes": "메모: 이어서 묻기 — D-01-v1 다음 턴",
+    "agent416_result": {
+      "grade": "정답",
+      "comment": "논산 복구 항목 199건·시설유형 상위(산사태56·소하천43·하천26·수리22·도로15·문화재7) 일치 (121초 · SQL 13회)"
+    },
+    "cq_original_416_result": "정답",
+    "source_line": 344,
+    "scope_note": null,
+    "answer_type": "nested_count_map",
+    "judge_mode": "auto_partial",
+    "judge_reason": "큰 수·이름은 자동, 한 자리 수·0·null·소수(반올림 표기)·서술 구절은 사람 확인",
+    "answer_check_tokens": [
+      "199",
+      "56",
+      "43",
+      "26",
+      "22",
+      "15"
+    ]
+  },
+  {
+    "id": "D-07-v1",
+    "cq_id": "D-07",
+    "cq_original": "충주 단월동 수해복구 공사현장에 홍수 위험이 발생하면 어디로 연락해야 하고, 현재 어떤 대책이 진행 중인가요?",
+    "variant_kind": "표현·조건",
+    "variant_kind_raw": "표현·조건",
+    "question": "충주 단월동 홍수취약지구의 관할 기관·유지관리 기관·기준 관측소를 알려줘.",
+    "question_source": null,
+    "query_context": null,
+    "condition_raw": "충청북도 충주시(4313000000) · 홍수 · 2026-08-25 14:00",
+    "condition_parsed": {
+      "region_name": "충청북도 충주시",
+      "sido": "충청북도",
+      "sigungu": "충주시",
+      "admin_code": "4313000000",
+      "level": "SGG",
+      "disaster_types": [
+        "홍수"
+      ],
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "active_warning": null,
+      "extra": []
+    },
+    "query_context_draft": {
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "region": {
+        "admin_code": "4313000000",
+        "name": "충청북도 충주시",
+        "level": "SGG"
+      },
+      "disaster_types": [
+        "홍수"
+      ]
+    },
+    "expected_apis": [
+      "T3Q-01",
+      "T3Q-15"
+    ],
+    "api_flow_raw": "T3Q-01 Agent 질의 → T3Q-15 위험·취약 대상 상세",
+    "cq_table_apis": [
+      "T3Q-01",
+      "T3Q-15",
+      "T3Q-36"
+    ],
+    "data_groups": [
+      "FLOOD_MAP",
+      "RISK_AREA"
+    ],
+    "cq_table_modes": [],
+    "expected_answer": "[{\"facility_name\": null, \"river_name\": \"달천\", \"river_authority\": \"원주지방환경청\", \"maintenance_agency\": \"충주시\", \"warning_station\": null}, {\"facility_name\": \"상수도취수장보\", \"river_name\": \"달천\", \"river_authority\": \"원주지방환경청\", \"maintenance_agency\": \"충주시\", \"warning_station\": \"충주시(향산리)(수공)\"}, {\"facility_name\": null, \"river_name\": \"달천\", \"river_authority\": \"원주지방환경청\", \"maintenance_agency\": \"충주시\", \"warning_station\": \"충주시(향산리)(수공)\"}, {\"facility_name\": \"상수도취수장보\", \"river_name\": \"달천\", \"river_authority\": \"원주지방환경청\", \"maintenance_agency\": \"충주시\", \"warning_station\": \"괴산군(목도교)\"}]",
+    "expected_answer_json": [
+      {
+        "facility_name": null,
+        "river_name": "달천",
+        "river_authority": "원주지방환경청",
+        "maintenance_agency": "충주시",
+        "warning_station": null
+      },
+      {
+        "facility_name": "상수도취수장보",
+        "river_name": "달천",
+        "river_authority": "원주지방환경청",
+        "maintenance_agency": "충주시",
+        "warning_station": "충주시(향산리)(수공)"
+      },
+      {
+        "facility_name": null,
+        "river_name": "달천",
+        "river_authority": "원주지방환경청",
+        "maintenance_agency": "충주시",
+        "warning_station": "충주시(향산리)(수공)"
+      },
+      {
+        "facility_name": "상수도취수장보",
+        "river_name": "달천",
+        "river_authority": "원주지방환경청",
+        "maintenance_agency": "충주시",
+        "warning_station": "괴산군(목도교)"
+      }
+    ],
+    "expected_answer_truncated": false,
+    "check_sql": null,
+    "region": {
+      "sido": "충청북도",
+      "sigungu": "충주시",
+      "admin_code": "4313000000",
+      "level": "SGG"
+    },
+    "follow_up": null,
+    "spatial_op": null,
+    "memo": null,
+    "notes": null,
+    "agent416_result": {
+      "grade": "정답",
+      "comment": "달천 지구 2곳·원주지방환경청·충주시·향산리(목도교 병기) 일치 (68초 · SQL 6회)"
+    },
+    "cq_original_416_result": "정답",
+    "source_line": 355,
+    "scope_note": null,
+    "answer_type": "record_list",
+    "judge_mode": "auto_partial",
+    "judge_reason": "큰 수·이름은 자동, 한 자리 수·0·null·소수(반올림 표기)·서술 구절은 사람 확인",
+    "answer_check_tokens": [
+      "달천",
+      "원주지방환경청",
+      "충주시",
+      "상수도취수장보",
+      "충주시(향산리)(수공)",
+      "괴산군(목도교)"
+    ]
+  },
+  {
+    "id": "D-07-g",
+    "cq_id": "D-07",
+    "cq_original": "충주 단월동 수해복구 공사현장에 홍수 위험이 발생하면 어디로 연락해야 하고, 현재 어떤 대책이 진행 중인가요?",
+    "variant_kind": "공간",
+    "variant_kind_raw": "공간",
+    "question": "충주시 단월동 건축물 가운데 100년 빈도 하천범람지도 침수구역에 드는 건 몇 동이고, 침수심 등급별로는?",
+    "question_source": null,
+    "query_context": null,
+    "condition_raw": "충청북도 충주시(4313000000) · 홍수 · 2026-08-25 14:00",
+    "condition_parsed": {
+      "region_name": "충청북도 충주시",
+      "sido": "충청북도",
+      "sigungu": "충주시",
+      "admin_code": "4313000000",
+      "level": "SGG",
+      "disaster_types": [
+        "홍수"
+      ],
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "active_warning": null,
+      "extra": []
+    },
+    "query_context_draft": {
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "region": {
+        "admin_code": "4313000000",
+        "name": "충청북도 충주시",
+        "level": "SGG"
+      },
+      "disaster_types": [
+        "홍수"
+      ]
+    },
+    "expected_apis": [
+      "T3Q-01",
+      "T3Q-36"
+    ],
+    "api_flow_raw": "T3Q-01 Agent 질의 → T3Q-36 침수지도 속성",
+    "cq_table_apis": [
+      "T3Q-01",
+      "T3Q-15",
+      "T3Q-36"
+    ],
+    "data_groups": [
+      "FLOOD_MAP",
+      "RISK_AREA"
+    ],
+    "cq_table_modes": [],
+    "expected_answer": "{\"단월동 건축물\": 790, \"침수구역 안(등급별)\": {\"0.5~1.0m\": 9, \"0.5m 미만\": 12, \"1.0~2.0m\": 18, \"2.0~5.0m\": 17}}",
+    "expected_answer_json": {
+      "단월동 건축물": 790,
+      "침수구역 안(등급별)": {
+        "0.5~1.0m": 9,
+        "0.5m 미만": 12,
+        "1.0~2.0m": 18,
+        "2.0~5.0m": 17
+      }
+    },
+    "expected_answer_truncated": false,
+    "check_sql": null,
+    "region": {
+      "sido": "충청북도",
+      "sigungu": "충주시",
+      "admin_code": "4313000000",
+      "level": "SGG"
+    },
+    "follow_up": null,
+    "spatial_op": "점-폴리곤 포함 — gis.building_point × gis.flood_map_part",
+    "memo": null,
+    "notes": "공간 연산: 점-폴리곤 포함 — gis.building_point × gis.flood_map_part",
+    "agent416_result": {
+      "grade": "정답",
+      "comment": "단월동 790동·침수구역 안 등급별 12·9·18·17 일치 (130초 · SQL 11회)"
+    },
+    "cq_original_416_result": "정답",
+    "source_line": 363,
+    "scope_note": null,
+    "answer_type": "nested_count_map",
+    "judge_mode": "auto_partial",
+    "judge_reason": "큰 수·이름은 자동, 한 자리 수·0·null·소수(반올림 표기)·서술 구절은 사람 확인",
+    "answer_check_tokens": [
+      "790",
+      "12",
+      "18",
+      "17"
+    ]
+  },
+  {
+    "id": "P01-03-v1",
+    "cq_id": "P01-03",
+    "cq_original": "2016~2024년 재난사건 가운데 여러 시도에 걸친 사건과 그 지역별 피해 규모는?",
+    "variant_kind": "지역·시점",
+    "variant_kind_raw": "지역·시점",
+    "question": "2023년에 여러 시도에 걸쳐 난 호우·태풍 사건과 각 사건의 시도 목록을 보여줘.",
+    "question_source": null,
+    "query_context": null,
+    "condition_raw": "부산광역시(2600000000) · 호우·태풍 · 2026-08-25 14:00",
+    "condition_parsed": {
+      "region_name": "부산광역시",
+      "sido": "부산광역시",
+      "sigungu": null,
+      "admin_code": "2600000000",
+      "level": "SIDO",
+      "disaster_types": [
+        "호우",
+        "태풍"
+      ],
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "active_warning": null,
+      "extra": []
+    },
+    "query_context_draft": {
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "region": {
+        "admin_code": "2600000000",
+        "name": "부산광역시",
+        "level": "SIDO"
+      },
+      "disaster_types": [
+        "호우",
+        "태풍"
+      ]
+    },
+    "expected_apis": [
+      "T3Q-01",
+      "T3Q-04",
+      "T3Q-10"
+    ],
+    "api_flow_raw": "T3Q-01 Agent 질의 → T3Q-04 유사사례 검색 → T3Q-10 사건 상세",
+    "cq_table_apis": [
+      "T3Q-01",
+      "T3Q-04",
+      "T3Q-10"
+    ],
+    "data_groups": [
+      "SIMILAR_EVENT"
+    ],
+    "cq_table_modes": [],
+    "expected_answer": "[{\"event_id\": \"T10107-20230504-0001\", \"name\": \"2023년 05.04.~05.06. 호우\", \"start_date\": \"2023-05-04\", \"시도수\": 4, \"시도\": \"전라남도·경상남도·강원특별자치도·대구광역시\"}, {\"event_id\": \"T10107-20230528-0001\", \"name\": \"2023년 05.28.~06.01. 호우\", \"start_date\": \"2023-05-28\", \"시도수\": 2, \"시도\": \"충청남도·경상북도\"}, {\"event_id\": \"T10107-20230608-0001\", \"name\": \"2023년 06.08.~06.15. 호우\", \"start_date\": \"2023-06-08\", \"시도수\": 5, \"시도\": \"경기도·경상남도·서울특별시·전북특별자치도·경상북도\"}, {\"event_id\": \"T10107-20230625-0001\", \"name\": \"2023년 06.25.~06.30. 호우\", \"start_date\": \"2023-06-25\", \"시도수\": 7, \"시도\": \"충청북도·인천광역시·경상남도·울산광역시·경상북도·경기도·광주광역시\"}, {\"event_id\": \"T10107-202 …",
+    "expected_answer_json": null,
+    "expected_answer_truncated": true,
+    "check_sql": null,
+    "region": {
+      "sido": "부산광역시",
+      "sigungu": null,
+      "admin_code": "2600000000",
+      "level": "SIDO"
+    },
+    "follow_up": null,
+    "spatial_op": null,
+    "memo": null,
+    "notes": null,
+    "agent416_result": {
+      "grade": "정답",
+      "comment": "2023 다시도 호우·태풍 10건과 시도 수·시도 목록 일치 (92초 · SQL 7회)"
+    },
+    "cq_original_416_result": "정답",
+    "source_line": 374,
+    "scope_note": "질문 범위: 전국 2023년 다시도 사건(조건은 부산광역시)",
+    "answer_type": "record_list",
+    "judge_mode": "human",
+    "judge_reason": "원문 정답이 «…» 로 잘림 — 보이는 앞부분만 참고",
+    "answer_check_tokens": []
+  },
+  {
+    "id": "P01-03-v2",
+    "cq_id": "P01-03",
+    "cq_original": "2016~2024년 재난사건 가운데 여러 시도에 걸친 사건과 그 지역별 피해 규모는?",
+    "variant_kind": "표현·조건",
+    "variant_kind_raw": "표현·조건",
+    "question": "부산광역시가 포함된 여러 시도 재난사건(2016~2024)은 몇 건이고 어떤 사건이야?",
+    "question_source": null,
+    "query_context": null,
+    "condition_raw": "부산광역시(2600000000) · 호우 · 2026-08-25 14:00",
+    "condition_parsed": {
+      "region_name": "부산광역시",
+      "sido": "부산광역시",
+      "sigungu": null,
+      "admin_code": "2600000000",
+      "level": "SIDO",
+      "disaster_types": [
+        "호우"
+      ],
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "active_warning": null,
+      "extra": []
+    },
+    "query_context_draft": {
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "region": {
+        "admin_code": "2600000000",
+        "name": "부산광역시",
+        "level": "SIDO"
+      },
+      "disaster_types": [
+        "호우"
+      ]
+    },
+    "expected_apis": [
+      "T3Q-01",
+      "T3Q-04",
+      "T3Q-10"
+    ],
+    "api_flow_raw": "T3Q-01 Agent 질의 → T3Q-04 유사사례 검색 → T3Q-10 사건 상세",
+    "cq_table_apis": [
+      "T3Q-01",
+      "T3Q-04",
+      "T3Q-10"
+    ],
+    "data_groups": [
+      "SIMILAR_EVENT"
+    ],
+    "cq_table_modes": [],
+    "expected_answer": "{\"건수\": 45, \"사건\": [\"2016년 7.1~7 호우\", \"2016년 9.12 지진\", \"2016년 10.3~6 태풍\", \"2017년 7.2~11 호우\", \"2017년 9.11~12 호우\", \"2017년 10.1~6 풍랑 강풍\", \"2017년 10.20~21 풍랑 강풍\", \"2017년 11.15 지진\", \"2018년 3.20~22 대설\", \"2018년 6.26~7.4 태풍 호우\", \"2018년 7.1 폭염\", \"2018년 8.22~25 태풍\", \"2018년 8.26~9.1 호우\", \"2018년 10.4~7 태풍\", \"운봉산 산불\", \"2019년 5.15~12.31 폭염\", \"2019년 6.29 호우\", \"2019년 7.19~20 태풍\", \"2019년 9.6~7 태풍\", \"2019년 9.21~23 태풍\", \"2019년 10.1~4 태풍\", \"2020년 1.7.~10. 강풍, 풍랑\", \"2020년 1.25.~2.1. 풍랑, 강풍\", \"2020년 6.29.~7.1. 강풍, 풍랑, 호우\", \"2020년 7.10. 호우\", \"2020년 7.12.~14. 호우\", \"2020년 7.23.~25. 호우, 강풍, 풍랑\", \"2020년 7.28.~8.11. 호우\", \" …",
+    "expected_answer_json": null,
+    "expected_answer_truncated": true,
+    "check_sql": null,
+    "region": {
+      "sido": "부산광역시",
+      "sigungu": null,
+      "admin_code": "2600000000",
+      "level": "SIDO"
+    },
+    "follow_up": null,
+    "spatial_op": null,
+    "memo": null,
+    "notes": null,
+    "agent416_result": {
+      "grade": "부분 정답",
+      "comment": "조건의 «호우»로 좁혀 16건만 열거, 전체 45건은 참고 수치로만 언급(사건 목록 없음) (101초 · SQL 7회)"
+    },
+    "cq_original_416_result": "정답",
+    "source_line": 382,
+    "scope_note": null,
+    "answer_type": "mixed",
+    "judge_mode": "human",
+    "judge_reason": "원문 정답이 «…» 로 잘림 — 보이는 앞부분만 참고",
+    "answer_check_tokens": []
+  },
+  {
+    "id": "P02-02-v1",
+    "cq_id": "P02-02",
+    "cq_original": "특정 호우특보의 발령부터 해제까지 지속시간과 주의보·경보 단계 상향·하향 이력은?",
+    "variant_kind": "지역·시점",
+    "variant_kind_raw": "지역·시점",
+    "question": "2026년 부산에 내려진 호우특보마다 발표부터 해제까지 몇 시간 갔는지, 평균과 최장은?",
+    "question_source": "AI_MODE",
+    "query_context": null,
+    "condition_raw": "부산광역시(2600000000) · 호우 · 2026-08-25 14:00",
+    "condition_parsed": {
+      "region_name": "부산광역시",
+      "sido": "부산광역시",
+      "sigungu": null,
+      "admin_code": "2600000000",
+      "level": "SIDO",
+      "disaster_types": [
+        "호우"
+      ],
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "active_warning": null,
+      "extra": []
+    },
+    "query_context_draft": {
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "region": {
+        "admin_code": "2600000000",
+        "name": "부산광역시",
+        "level": "SIDO"
+      },
+      "disaster_types": [
+        "호우"
+      ]
+    },
+    "expected_apis": [
+      "T3Q-01",
+      "T3Q-29"
+    ],
+    "api_flow_raw": "T3Q-01 Agent 질의 → T3Q-29 AI 모드 상황 점검",
+    "cq_table_apis": [
+      "T3Q-01",
+      "T3Q-29"
+    ],
+    "data_groups": [],
+    "cq_table_modes": [
+      "(AI 모드)"
+    ],
+    "expected_answer": "{\"발표\": 0, \"해제 짝\": 0, \"평균 시간\": null, \"최장 시간\": null}",
+    "expected_answer_json": {
+      "발표": 0,
+      "해제 짝": 0,
+      "평균 시간": null,
+      "최장 시간": null
+    },
+    "expected_answer_truncated": false,
+    "check_sql": null,
+    "region": {
+      "sido": "부산광역시",
+      "sigungu": null,
+      "admin_code": "2600000000",
+      "level": "SIDO"
+    },
+    "follow_up": null,
+    "spatial_op": null,
+    "memo": null,
+    "notes": null,
+    "agent416_result": {
+      "grade": "정답",
+      "comment": "부산 2026 호우특보 0건 — 고친 expect(발표 0)와 일치 (95초 · SQL 11회)"
+    },
+    "cq_original_416_result": "정답",
+    "source_line": 392,
+    "scope_note": null,
+    "answer_type": "count_map",
+    "judge_mode": "human",
+    "judge_reason": "정답이 0·null·한 자리 수뿐 — 포함 여부로 판정 불가",
+    "answer_check_tokens": []
+  },
+  {
+    "id": "P02-02-v2",
+    "cq_id": "P02-02",
+    "cq_original": "특정 호우특보의 발령부터 해제까지 지속시간과 주의보·경보 단계 상향·하향 이력은?",
+    "variant_kind": "지역·시점",
+    "variant_kind_raw": "지역·재난유형",
+    "question": "2026년 강원특별자치도에 내려진 대설특보는 발표부터 해제까지 평균 몇 시간 갔고, 가장 길었던 건?",
+    "question_source": "AI_MODE",
+    "query_context": null,
+    "condition_raw": "강원특별자치도(5100000000) · 대설 · 2026-08-25 14:00",
+    "condition_parsed": {
+      "region_name": "강원특별자치도",
+      "sido": "강원특별자치도",
+      "sigungu": null,
+      "admin_code": "5100000000",
+      "level": "SIDO",
+      "disaster_types": [
+        "대설"
+      ],
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "active_warning": null,
+      "extra": []
+    },
+    "query_context_draft": {
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "region": {
+        "admin_code": "5100000000",
+        "name": "강원특별자치도",
+        "level": "SIDO"
+      },
+      "disaster_types": [
+        "대설"
+      ]
+    },
+    "expected_apis": [
+      "T3Q-01",
+      "T3Q-29"
+    ],
+    "api_flow_raw": "T3Q-01 Agent 질의 → T3Q-29 AI 모드 상황 점검",
+    "cq_table_apis": [
+      "T3Q-01",
+      "T3Q-29"
+    ],
+    "data_groups": [],
+    "cq_table_modes": [
+      "(AI 모드)"
+    ],
+    "expected_answer": "{\"발표\": 112, \"해제 짝\": 112, \"평균 시간\": 9.8, \"최장 시간\": 56.5}",
+    "expected_answer_json": {
+      "발표": 112,
+      "해제 짝": 112,
+      "평균 시간": 9.8,
+      "최장 시간": 56.5
+    },
+    "expected_answer_truncated": false,
+    "check_sql": null,
+    "region": {
+      "sido": "강원특별자치도",
+      "sigungu": null,
+      "admin_code": "5100000000",
+      "level": "SIDO"
+    },
+    "follow_up": null,
+    "spatial_op": null,
+    "memo": null,
+    "notes": null,
+    "agent416_result": {
+      "grade": "정답",
+      "comment": "구역별 112건·평균 10.0h·최장 56.5h — 고친 expect 112·10.3h 와 일치, expect 최장 75h 는 «주의보 발표→경보 변경→경보 해제» 뒤 다음 주의보 해제(1/13)와 짝지은 결과라 답의 56.5h 가 맞음 (246초 · SQL 19회)"
+    },
+    "cq_original_416_result": "정답",
+    "source_line": 400,
+    "scope_note": null,
+    "answer_type": "count_map",
+    "judge_mode": "auto_partial",
+    "judge_reason": "큰 수·이름은 자동, 한 자리 수·0·null·소수(반올림 표기)·서술 구절은 사람 확인",
+    "answer_check_tokens": [
+      "112",
+      "9.8",
+      "56.5"
+    ]
+  },
+  {
+    "id": "P02-04-v1",
+    "cq_id": "P02-04",
+    "cq_original": "반복 발령된 긴급재난문자를 하나의 재난상황 단위로 묶으면 몇 건이며, 각 상황에 포함된 조치(통제·대피·주의)는 무엇인가?",
+    "variant_kind": "지역·시점",
+    "variant_kind_raw": "지역",
+    "question": "부산 지역에 보낸 긴급재난문자를 재난 상황 단위로 묶으면 몇 건이고, 대피 안내가 들어간 상황은 몇 건이야?",
+    "question_source": null,
+    "query_context": null,
+    "condition_raw": "부산광역시(2600000000) · 호우 · 2026-08-25 14:00",
+    "condition_parsed": {
+      "region_name": "부산광역시",
+      "sido": "부산광역시",
+      "sigungu": null,
+      "admin_code": "2600000000",
+      "level": "SIDO",
+      "disaster_types": [
+        "호우"
+      ],
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "active_warning": null,
+      "extra": []
+    },
+    "query_context_draft": {
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "region": {
+        "admin_code": "2600000000",
+        "name": "부산광역시",
+        "level": "SIDO"
+      },
+      "disaster_types": [
+        "호우"
+      ]
+    },
+    "expected_apis": [
+      "T3Q-01",
+      "T3Q-12"
+    ],
+    "api_flow_raw": "T3Q-01 Agent 질의 → T3Q-12 사건 타임라인",
+    "cq_table_apis": [
+      "T3Q-01",
+      "T3Q-12"
+    ],
+    "data_groups": [],
+    "cq_table_modes": [
+      "(타임라인)"
+    ],
+    "expected_answer": "{\"문자\": 260, \"상황(유형·시군구·하루)\": 225, \"대피 포함 상황\": 7}",
+    "expected_answer_json": {
+      "문자": 260,
+      "상황(유형·시군구·하루)": 225,
+      "대피 포함 상황": 7
+    },
+    "expected_answer_truncated": false,
+    "check_sql": null,
+    "region": {
+      "sido": "부산광역시",
+      "sigungu": null,
+      "admin_code": "2600000000",
+      "level": "SIDO"
+    },
+    "follow_up": null,
+    "spatial_op": null,
+    "memo": null,
+    "notes": null,
+    "agent416_result": {
+      "grade": "부분 정답",
+      "comment": "호우 문자로만 좁혀 67건→6상황·대피 3(질문은 전체 유형: 실측 260건·225상황·대피 7), 묶음 단위도 사건 기간 기준 (124초 · SQL 9회)"
+    },
+    "cq_original_416_result": "정답",
+    "source_line": 410,
+    "scope_note": null,
+    "answer_type": "count_map",
+    "judge_mode": "auto_partial",
+    "judge_reason": "큰 수·이름은 자동, 한 자리 수·0·null·소수(반올림 표기)·서술 구절은 사람 확인",
+    "answer_check_tokens": [
+      "260",
+      "225"
+    ]
+  },
+  {
+    "id": "P02-04-v2",
+    "cq_id": "P02-04",
+    "cq_original": "반복 발령된 긴급재난문자를 하나의 재난상황 단위로 묶으면 몇 건이며, 각 상황에 포함된 조치(통제·대피·주의)는 무엇인가?",
+    "variant_kind": "지역·시점",
+    "variant_kind_raw": "지역",
+    "question": "충청남도에 보낸 긴급재난문자를 재난 상황 단위로 묶으면 몇 건이고, 통제 안내가 들어간 상황은?",
+    "question_source": null,
+    "query_context": null,
+    "condition_raw": "충청남도 서천군(4477000000) · 호우 · 2026-08-25 14:00",
+    "condition_parsed": {
+      "region_name": "충청남도 서천군",
+      "sido": "충청남도",
+      "sigungu": "서천군",
+      "admin_code": "4477000000",
+      "level": "SGG",
+      "disaster_types": [
+        "호우"
+      ],
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "active_warning": null,
+      "extra": []
+    },
+    "query_context_draft": {
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "region": {
+        "admin_code": "4477000000",
+        "name": "충청남도 서천군",
+        "level": "SGG"
+      },
+      "disaster_types": [
+        "호우"
+      ]
+    },
+    "expected_apis": [
+      "T3Q-01",
+      "T3Q-12"
+    ],
+    "api_flow_raw": "T3Q-01 Agent 질의 → T3Q-12 사건 타임라인",
+    "cq_table_apis": [
+      "T3Q-01",
+      "T3Q-12"
+    ],
+    "data_groups": [],
+    "cq_table_modes": [
+      "(타임라인)"
+    ],
+    "expected_answer": "{\"문자\": 537, \"상황(유형·시군구·하루)\": 504, \"통제 포함 상황\": 141}",
+    "expected_answer_json": {
+      "문자": 537,
+      "상황(유형·시군구·하루)": 504,
+      "통제 포함 상황": 141
+    },
+    "expected_answer_truncated": false,
+    "check_sql": null,
+    "region": {
+      "sido": "충청남도",
+      "sigungu": "서천군",
+      "admin_code": "4477000000",
+      "level": "SGG"
+    },
+    "follow_up": null,
+    "spatial_op": null,
+    "memo": null,
+    "notes": null,
+    "agent416_result": {
+      "grade": "부분 정답",
+      "comment": "호우 문자 8건→3상황·통제 2로 좁힘(질문은 전체 유형: 실측 537건·504상황·통제 141) (117초 · SQL 9회)"
+    },
+    "cq_original_416_result": "정답",
+    "source_line": 418,
+    "scope_note": "질문 범위: 충청남도 전체(조건은 서천군)",
+    "answer_type": "count_map",
+    "judge_mode": "auto",
+    "judge_reason": "두 자리 이상 정수·이름만 — 답 글 포함 여부로 판정",
+    "answer_check_tokens": [
+      "537",
+      "504",
+      "141"
+    ]
+  },
+  {
+    "id": "P02-01-v1",
+    "cq_id": "P02-01",
+    "cq_original": "특정 지역에서 같은 기간에 중첩 발령된 기상특보·홍수특보·위기경보·긴급재난문자는 무엇인가?",
+    "variant_kind": "표현·조건",
+    "variant_kind_raw": "표현·조건",
+    "question": "2026년 서울에서 기상특보가 발효된 날 같은 시도에 보낸 재난문자는 몇 건이야?",
+    "question_source": null,
+    "query_context": null,
+    "condition_raw": "서울특별시 강남구(1168000000) · 호우 · 2026-08-25 14:00",
+    "condition_parsed": {
+      "region_name": "서울특별시 강남구",
+      "sido": "서울특별시",
+      "sigungu": "강남구",
+      "admin_code": "1168000000",
+      "level": "SGG",
+      "disaster_types": [
+        "호우"
+      ],
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "active_warning": null,
+      "extra": []
+    },
+    "query_context_draft": {
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "region": {
+        "admin_code": "1168000000",
+        "name": "서울특별시 강남구",
+        "level": "SGG"
+      },
+      "disaster_types": [
+        "호우"
+      ]
+    },
+    "expected_apis": [
+      "T3Q-01",
+      "T3Q-12"
+    ],
+    "api_flow_raw": "T3Q-01 Agent 질의 → T3Q-12 사건 타임라인",
+    "cq_table_apis": [
+      "T3Q-01",
+      "T3Q-12"
+    ],
+    "data_groups": [],
+    "cq_table_modes": [
+      "(타임라인)"
+    ],
+    "expected_answer": "{\"특보 발효 날\": 20, \"그날 서울 문자\": 29}",
+    "expected_answer_json": {
+      "특보 발효 날": 20,
+      "그날 서울 문자": 29
+    },
+    "expected_answer_truncated": false,
+    "check_sql": null,
+    "region": {
+      "sido": "서울특별시",
+      "sigungu": "강남구",
+      "admin_code": "1168000000",
+      "level": "SGG"
+    },
+    "follow_up": null,
+    "spatial_op": null,
+    "memo": null,
+    "notes": null,
+    "agent416_result": {
+      "grade": "정답",
+      "comment": "특보 발표 20일·그날 서울 문자 29건 일치 (201초 · SQL 16회)"
+    },
+    "cq_original_416_result": "정답",
+    "source_line": 428,
+    "scope_note": "질문 범위: 서울특별시(시도) 문자(조건은 강남구)",
+    "answer_type": "count_map",
+    "judge_mode": "auto",
+    "judge_reason": "두 자리 이상 정수·이름만 — 답 글 포함 여부로 판정",
+    "answer_check_tokens": [
+      "20",
+      "29"
+    ]
+  },
+  {
+    "id": "P02-01-v2",
+    "cq_id": "P02-01",
+    "cq_original": "특정 지역에서 같은 기간에 중첩 발령된 기상특보·홍수특보·위기경보·긴급재난문자는 무엇인가?",
+    "variant_kind": "지역·시점",
+    "variant_kind_raw": "지역",
+    "question": "부산에서 기상특보가 발효된 날 부산에 보낸 재난문자는 몇 건이야?",
+    "question_source": null,
+    "query_context": null,
+    "condition_raw": "부산광역시(2600000000) · 호우 · 2026-08-25 14:00",
+    "condition_parsed": {
+      "region_name": "부산광역시",
+      "sido": "부산광역시",
+      "sigungu": null,
+      "admin_code": "2600000000",
+      "level": "SIDO",
+      "disaster_types": [
+        "호우"
+      ],
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "active_warning": null,
+      "extra": []
+    },
+    "query_context_draft": {
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "region": {
+        "admin_code": "2600000000",
+        "name": "부산광역시",
+        "level": "SIDO"
+      },
+      "disaster_types": [
+        "호우"
+      ]
+    },
+    "expected_apis": [
+      "T3Q-01",
+      "T3Q-12"
+    ],
+    "api_flow_raw": "T3Q-01 Agent 질의 → T3Q-12 사건 타임라인",
+    "cq_table_apis": [
+      "T3Q-01",
+      "T3Q-12"
+    ],
+    "data_groups": [],
+    "cq_table_modes": [
+      "(타임라인)"
+    ],
+    "expected_answer": "{\"특보 발효 날\": 9, \"그날 부산 문자\": 54}",
+    "expected_answer_json": {
+      "특보 발효 날": 9,
+      "그날 부산 문자": 54
+    },
+    "expected_answer_truncated": false,
+    "check_sql": null,
+    "region": {
+      "sido": "부산광역시",
+      "sigungu": null,
+      "admin_code": "2600000000",
+      "level": "SIDO"
+    },
+    "follow_up": null,
+    "spatial_op": null,
+    "memo": null,
+    "notes": null,
+    "agent416_result": {
+      "grade": "부분 정답",
+      "comment": "해제·변경일까지 발효일로 넣어 21일·67건(고친 expect 9일·54건) (250초 · SQL 30회)"
+    },
+    "cq_original_416_result": "정답",
+    "source_line": 436,
+    "scope_note": null,
+    "answer_type": "count_map",
+    "judge_mode": "auto_partial",
+    "judge_reason": "큰 수·이름은 자동, 한 자리 수·0·null·소수(반올림 표기)·서술 구절은 사람 확인",
+    "answer_check_tokens": [
+      "54"
+    ]
+  },
+  {
+    "id": "P06-07-v1",
+    "cq_id": "P06-07",
+    "cq_original": "복구확정 피해내역 기준 시설유형별 피해액과 복구액은?",
+    "variant_kind": "지역·시점",
+    "variant_kind_raw": "지역·시점",
+    "question": "2022년 태풍 힌남노 때 영천시 공공시설 복구 항목을 시설유형별로 정리해줘.",
+    "question_source": null,
+    "query_context": null,
+    "condition_raw": "경상북도 영천시(4723000000) · 태풍 · 2022-09-07 09:00",
+    "condition_parsed": {
+      "region_name": "경상북도 영천시",
+      "sido": "경상북도",
+      "sigungu": "영천시",
+      "admin_code": "4723000000",
+      "level": "SGG",
+      "disaster_types": [
+        "태풍"
+      ],
+      "reference_time": "2022-09-07T09:00:00+09:00",
+      "active_warning": null,
+      "extra": []
+    },
+    "query_context_draft": {
+      "reference_time": "2022-09-07T09:00:00+09:00",
+      "region": {
+        "admin_code": "4723000000",
+        "name": "경상북도 영천시",
+        "level": "SGG"
+      },
+      "disaster_types": [
+        "태풍"
+      ]
+    },
+    "expected_apis": [
+      "T3Q-01",
+      "T3Q-13"
+    ],
+    "api_flow_raw": "T3Q-01 Agent 질의 → T3Q-13 피해·대응",
+    "cq_table_apis": [
+      "T3Q-01",
+      "T3Q-13"
+    ],
+    "data_groups": [
+      "SIMILAR_EVENT"
+    ],
+    "cq_table_modes": [],
+    "expected_answer": "{\"항목\": 54, \"시설유형 상위\": {\"소규모시설\": 25, \"소하천\": 16, \"도로\": 4, \"하천 기본시설\": 3, \"수리시설\": 3, \"농림부기타\": 2}}",
+    "expected_answer_json": {
+      "항목": 54,
+      "시설유형 상위": {
+        "소규모시설": 25,
+        "소하천": 16,
+        "도로": 4,
+        "하천 기본시설": 3,
+        "수리시설": 3,
+        "농림부기타": 2
+      }
+    },
+    "expected_answer_truncated": false,
+    "check_sql": null,
+    "region": {
+      "sido": "경상북도",
+      "sigungu": "영천시",
+      "admin_code": "4723000000",
+      "level": "SGG"
+    },
+    "follow_up": null,
+    "spatial_op": null,
+    "memo": null,
+    "notes": null,
+    "agent416_result": {
+      "grade": "정답",
+      "comment": "힌남노 영천 54건·소규모25·소하천16·도로4·하천3·수리3·농림2 일치 (119초 · SQL 12회)"
+    },
+    "cq_original_416_result": "정답",
+    "source_line": 446,
+    "scope_note": null,
+    "answer_type": "nested_count_map",
+    "judge_mode": "auto_partial",
+    "judge_reason": "큰 수·이름은 자동, 한 자리 수·0·null·소수(반올림 표기)·서술 구절은 사람 확인",
+    "answer_check_tokens": [
+      "54",
+      "25",
+      "16"
+    ]
+  },
+  {
+    "id": "P06-07-v2",
+    "cq_id": "P06-07",
+    "cq_original": "복구확정 피해내역 기준 시설유형별 피해액과 복구액은?",
+    "variant_kind": "지역·시점",
+    "variant_kind_raw": "지역·시점",
+    "question": "2020년 7~8월 호우 때 충주시 공공시설 복구 항목을 시설유형별로.",
+    "question_source": null,
+    "query_context": null,
+    "condition_raw": "충청북도 충주시(4313000000) · 호우 · 2020-08-11 09:00",
+    "condition_parsed": {
+      "region_name": "충청북도 충주시",
+      "sido": "충청북도",
+      "sigungu": "충주시",
+      "admin_code": "4313000000",
+      "level": "SGG",
+      "disaster_types": [
+        "호우"
+      ],
+      "reference_time": "2020-08-11T09:00:00+09:00",
+      "active_warning": null,
+      "extra": []
+    },
+    "query_context_draft": {
+      "reference_time": "2020-08-11T09:00:00+09:00",
+      "region": {
+        "admin_code": "4313000000",
+        "name": "충청북도 충주시",
+        "level": "SGG"
+      },
+      "disaster_types": [
+        "호우"
+      ]
+    },
+    "expected_apis": [
+      "T3Q-01",
+      "T3Q-13"
+    ],
+    "api_flow_raw": "T3Q-01 Agent 질의 → T3Q-13 피해·대응",
+    "cq_table_apis": [
+      "T3Q-01",
+      "T3Q-13"
+    ],
+    "data_groups": [
+      "SIMILAR_EVENT"
+    ],
+    "cq_table_modes": [],
+    "expected_answer": "{\"항목\": 767, \"시설유형 상위\": {\"소규모시설\": 207, \"산사태\": 196, \"소하천\": 128, \"수리시설\": 61, \"도로\": 49, \"하천 기본시설\": 26}}",
+    "expected_answer_json": {
+      "항목": 767,
+      "시설유형 상위": {
+        "소규모시설": 207,
+        "산사태": 196,
+        "소하천": 128,
+        "수리시설": 61,
+        "도로": 49,
+        "하천 기본시설": 26
+      }
+    },
+    "expected_answer_truncated": false,
+    "check_sql": null,
+    "region": {
+      "sido": "충청북도",
+      "sigungu": "충주시",
+      "admin_code": "4313000000",
+      "level": "SGG"
+    },
+    "follow_up": null,
+    "spatial_op": null,
+    "memo": null,
+    "notes": null,
+    "agent416_result": {
+      "grade": "정답",
+      "comment": "충주 767건·소규모207·산사태196·소하천128·수리61·도로49·하천26 일치 (108초 · SQL 9회)"
+    },
+    "cq_original_416_result": "정답",
+    "source_line": 454,
+    "scope_note": null,
+    "answer_type": "nested_count_map",
+    "judge_mode": "auto",
+    "judge_reason": "두 자리 이상 정수·이름만 — 답 글 포함 여부로 판정",
+    "answer_check_tokens": [
+      "767",
+      "207",
+      "196",
+      "128",
+      "61",
+      "49",
+      "26"
+    ]
+  },
+  {
+    "id": "P07-01-v1",
+    "cq_id": "P07-01",
+    "cq_original": "특정 시군구에 지정된 자연재해위험개선지구·인명피해우려지역·산사태취약지역·하수도정비 중점관리지역·급경사지 붕괴위험지역 목록은?",
+    "variant_kind": "지역·시점",
+    "variant_kind_raw": "지역",
+    "question": "부산 해운대구에 지정된 재난 위험지구·산사태취약지역·급경사지·지하차도 목록을 종류별 개수로 먼저 보여줘.",
+    "question_source": null,
+    "query_context": null,
+    "condition_raw": "부산광역시 해운대구(2635000000) · 호우 · 2026-08-25 14:00",
+    "condition_parsed": {
+      "region_name": "부산광역시 해운대구",
+      "sido": "부산광역시",
+      "sigungu": "해운대구",
+      "admin_code": "2635000000",
+      "level": "SGG",
+      "disaster_types": [
+        "호우"
+      ],
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "active_warning": null,
+      "extra": []
+    },
+    "query_context_draft": {
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "region": {
+        "admin_code": "2635000000",
+        "name": "부산광역시 해운대구",
+        "level": "SGG"
+      },
+      "disaster_types": [
+        "호우"
+      ]
+    },
+    "expected_apis": [
+      "T3Q-01",
+      "T3Q-05"
+    ],
+    "api_flow_raw": "T3Q-01 Agent 질의 → T3Q-05 위험·취약 대상 목록",
+    "cq_table_apis": [
+      "T3Q-01",
+      "T3Q-05"
+    ],
+    "data_groups": [
+      "RISK_AREA",
+      "RISK_FACTOR_FACILITY"
+    ],
+    "cq_table_modes": [],
+    "expected_answer": "{\"지구 종류별\": {\"홍수취약지구\": 4, \"자연재해위험개선지구\": 3, \"풍수해생활권 종합정비지구\": 1}, \"산사태취약지역\": 63, \"급경사지\": 84, \"지하차도\": 7}",
+    "expected_answer_json": {
+      "지구 종류별": {
+        "홍수취약지구": 4,
+        "자연재해위험개선지구": 3,
+        "풍수해생활권 종합정비지구": 1
+      },
+      "산사태취약지역": 63,
+      "급경사지": 84,
+      "지하차도": 7
+    },
+    "expected_answer_truncated": false,
+    "check_sql": null,
+    "region": {
+      "sido": "부산광역시",
+      "sigungu": "해운대구",
+      "admin_code": "2635000000",
+      "level": "SGG"
+    },
+    "follow_up": null,
+    "spatial_op": null,
+    "memo": null,
+    "notes": null,
+    "agent416_result": {
+      "grade": "부분 정답",
+      "comment": "산사태취약 63·지하차도 7·홍수취약 4·풍수해 1 일치, 개선지구를 해제 포함 7곳으로 셈(지정 중 3) (93초 · SQL 12회)"
+    },
+    "cq_original_416_result": "부분 정답",
+    "source_line": 464,
+    "scope_note": null,
+    "answer_type": "nested_count_map",
+    "judge_mode": "auto_partial",
+    "judge_reason": "큰 수·이름은 자동, 한 자리 수·0·null·소수(반올림 표기)·서술 구절은 사람 확인",
+    "answer_check_tokens": [
+      "63",
+      "84"
+    ]
+  },
+  {
+    "id": "P07-01-v2",
+    "cq_id": "P07-01",
+    "cq_original": "특정 시군구에 지정된 자연재해위험개선지구·인명피해우려지역·산사태취약지역·하수도정비 중점관리지역·급경사지 붕괴위험지역 목록은?",
+    "variant_kind": "지역·시점",
+    "variant_kind_raw": "지역",
+    "question": "인제군은 어떤 법정 위험지구·취약지역이 지정돼 있어?",
+    "question_source": null,
+    "query_context": null,
+    "condition_raw": "강원특별자치도 인제군(5181000000) · 호우 · 2026-08-25 14:00",
+    "condition_parsed": {
+      "region_name": "강원특별자치도 인제군",
+      "sido": "강원특별자치도",
+      "sigungu": "인제군",
+      "admin_code": "5181000000",
+      "level": "SGG",
+      "disaster_types": [
+        "호우"
+      ],
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "active_warning": null,
+      "extra": []
+    },
+    "query_context_draft": {
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "region": {
+        "admin_code": "5181000000",
+        "name": "강원특별자치도 인제군",
+        "level": "SGG"
+      },
+      "disaster_types": [
+        "호우"
+      ]
+    },
+    "expected_apis": [
+      "T3Q-01",
+      "T3Q-05"
+    ],
+    "api_flow_raw": "T3Q-01 Agent 질의 → T3Q-05 위험·취약 대상 목록",
+    "cq_table_apis": [
+      "T3Q-01",
+      "T3Q-05"
+    ],
+    "data_groups": [
+      "RISK_AREA",
+      "RISK_FACTOR_FACILITY"
+    ],
+    "cq_table_modes": [],
+    "expected_answer": "{\"지구 종류별\": {\"자연재해위험개선지구\": 14, \"붕괴위험지역(정비 중기계획)\": 42, \"풍수해생활권 종합정비지구\": 2, \"자연재해저감 종합계획 위험지구\": 138}, \"산사태취약지역\": 311, \"급경사지\": 311, \"지하차도\": 0}",
+    "expected_answer_json": {
+      "지구 종류별": {
+        "자연재해위험개선지구": 14,
+        "붕괴위험지역(정비 중기계획)": 42,
+        "풍수해생활권 종합정비지구": 2,
+        "자연재해저감 종합계획 위험지구": 138
+      },
+      "산사태취약지역": 311,
+      "급경사지": 311,
+      "지하차도": 0
+    },
+    "expected_answer_truncated": false,
+    "check_sql": null,
+    "region": {
+      "sido": "강원특별자치도",
+      "sigungu": "인제군",
+      "admin_code": "5181000000",
+      "level": "SGG"
+    },
+    "follow_up": null,
+    "spatial_op": null,
+    "memo": null,
+    "notes": null,
+    "agent416_result": {
+      "grade": "정답",
+      "comment": "개선지구14·붕괴위험 42·풍수해2·저감계획 138·산사태311·급경사지311·지하차도0 일치 (170초 · SQL 16회)"
+    },
+    "cq_original_416_result": "부분 정답",
+    "source_line": 472,
+    "scope_note": null,
+    "answer_type": "nested_count_map",
+    "judge_mode": "auto_partial",
+    "judge_reason": "큰 수·이름은 자동, 한 자리 수·0·null·소수(반올림 표기)·서술 구절은 사람 확인",
+    "answer_check_tokens": [
+      "14",
+      "42",
+      "138",
+      "311"
+    ]
+  },
+  {
+    "id": "P07-02-g",
+    "cq_id": "P07-02",
+    "cq_original": "같은 지점이 여러 법정 제도에 중복 지정된 곳은 어디인가?",
+    "variant_kind": "공간",
+    "variant_kind_raw": "공간",
+    "question": "급경사지 붕괴위험지역 지정 도면 안에 산사태취약지역도 함께 있는 곳은 시도별로 몇 곳이야? (같은 곳 두 제도 중복 지정)",
+    "question_source": null,
+    "query_context": null,
+    "condition_raw": "부산광역시(2600000000) · 산사태 · 2026-08-25 14:00",
+    "condition_parsed": {
+      "region_name": "부산광역시",
+      "sido": "부산광역시",
+      "sigungu": null,
+      "admin_code": "2600000000",
+      "level": "SIDO",
+      "disaster_types": [
+        "산사태"
+      ],
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "active_warning": null,
+      "extra": []
+    },
+    "query_context_draft": {
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "region": {
+        "admin_code": "2600000000",
+        "name": "부산광역시",
+        "level": "SIDO"
+      },
+      "disaster_types": [
+        "산사태"
+      ]
+    },
+    "expected_apis": [
+      "T3Q-01",
+      "T3Q-05",
+      "T3Q-18"
+    ],
+    "api_flow_raw": "T3Q-01 Agent 질의 → T3Q-05 위험·취약 대상 목록 → T3Q-18 객체관계",
+    "cq_table_apis": [
+      "T3Q-01",
+      "T3Q-05",
+      "T3Q-18"
+    ],
+    "data_groups": [
+      "RISK_AREA"
+    ],
+    "cq_table_modes": [],
+    "expected_answer": "{\"강원특별자치도\": 12, \"전북특별자치도\": 3, \"충청북도\": 3, \"경상남도\": 2, \"경상북도\": 2, \"경기도\": 2, \"전라남도\": 1}",
+    "expected_answer_json": {
+      "강원특별자치도": 12,
+      "전북특별자치도": 3,
+      "충청북도": 3,
+      "경상남도": 2,
+      "경상북도": 2,
+      "경기도": 2,
+      "전라남도": 1
+    },
+    "expected_answer_truncated": false,
+    "check_sql": null,
+    "region": {
+      "sido": "부산광역시",
+      "sigungu": null,
+      "admin_code": "2600000000",
+      "level": "SIDO"
+    },
+    "follow_up": null,
+    "spatial_op": "점-폴리곤(30m 버퍼) — gis.collapse_risk_zone × gis.landslide_area",
+    "memo": null,
+    "notes": "공간 연산: 점-폴리곤(30m 버퍼) — gis.collapse_risk_zone × gis.landslide_area",
+    "agent416_result": {
+      "grade": "부분 정답",
+      "comment": "도면 «내부» 기준(버퍼 없음)으로 5시도 12도면 — expect 는 30m 버퍼 7시도 25곳(강원 12·경기2·전남1 누락) (127초 · SQL 14회)"
+    },
+    "cq_original_416_result": "부분 정답",
+    "source_line": 482,
+    "scope_note": "질문 범위: 전국 시도별(조건은 부산광역시)",
+    "answer_type": "count_map",
+    "judge_mode": "auto_partial",
+    "judge_reason": "큰 수·이름은 자동, 한 자리 수·0·null·소수(반올림 표기)·서술 구절은 사람 확인",
+    "answer_check_tokens": [
+      "12",
+      "강원특별자치도",
+      "전북특별자치도",
+      "충청북도",
+      "경상남도",
+      "경상북도",
+      "경기도",
+      "전라남도"
+    ]
+  },
+  {
+    "id": "P07-02-v1",
+    "cq_id": "P07-02",
+    "cq_original": "같은 지점이 여러 법정 제도에 중복 지정된 곳은 어디인가?",
+    "variant_kind": "표현·조건",
+    "variant_kind_raw": "표현·조건",
+    "question": "강원특별자치도에서 같은 필지가 위험지구·산사태취약지역·급경사지 가운데 두 제도 이상에 걸친 곳은 몇 필지야?",
+    "question_source": null,
+    "query_context": null,
+    "condition_raw": "강원특별자치도(5100000000) · 산사태 · 2026-08-25 14:00",
+    "condition_parsed": {
+      "region_name": "강원특별자치도",
+      "sido": "강원특별자치도",
+      "sigungu": null,
+      "admin_code": "5100000000",
+      "level": "SIDO",
+      "disaster_types": [
+        "산사태"
+      ],
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "active_warning": null,
+      "extra": []
+    },
+    "query_context_draft": {
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "region": {
+        "admin_code": "5100000000",
+        "name": "강원특별자치도",
+        "level": "SIDO"
+      },
+      "disaster_types": [
+        "산사태"
+      ]
+    },
+    "expected_apis": [
+      "T3Q-01",
+      "T3Q-05",
+      "T3Q-18"
+    ],
+    "api_flow_raw": "T3Q-01 Agent 질의 → T3Q-05 위험·취약 대상 목록 → T3Q-18 객체관계",
+    "cq_table_apis": [
+      "T3Q-01",
+      "T3Q-05",
+      "T3Q-18"
+    ],
+    "data_groups": [
+      "RISK_AREA"
+    ],
+    "cq_table_modes": [],
+    "expected_answer": "{\"필지\": 8983, \"2개 제도 이상\": 119}",
+    "expected_answer_json": {
+      "필지": 8983,
+      "2개 제도 이상": 119
+    },
+    "expected_answer_truncated": false,
+    "check_sql": null,
+    "region": {
+      "sido": "강원특별자치도",
+      "sigungu": null,
+      "admin_code": "5100000000",
+      "level": "SIDO"
+    },
+    "follow_up": null,
+    "spatial_op": null,
+    "memo": null,
+    "notes": null,
+    "agent416_result": {
+      "grade": "정답",
+      "comment": "해제 이력 포함 누적 119필지 제시(expect 119 일치), 현재 유효 기준 84필지도 따로 제시 (141초 · SQL 10회)"
+    },
+    "cq_original_416_result": "부분 정답",
+    "source_line": 491,
+    "scope_note": null,
+    "answer_type": "count_map",
+    "judge_mode": "auto",
+    "judge_reason": "두 자리 이상 정수·이름만 — 답 글 포함 여부로 판정",
+    "answer_check_tokens": [
+      "8983",
+      "119"
+    ]
+  },
+  {
+    "id": "P07-03-g",
+    "cq_id": "P07-03",
+    "cq_original": "법정 재난취약지역 가운데 실제 재난 피해(침수흔적·피해이력·복구확정)가 발생한 곳은?",
+    "variant_kind": "공간",
+    "variant_kind_raw": "공간",
+    "question": "산사태취약지역 가운데 반경 200m 안에 침수흔적(범위)이 있었던 곳은 시도별로 몇 곳이야?",
+    "question_source": null,
+    "query_context": null,
+    "condition_raw": "부산광역시(2600000000) · 산사태·호우 · 2026-08-25 14:00",
+    "condition_parsed": {
+      "region_name": "부산광역시",
+      "sido": "부산광역시",
+      "sigungu": null,
+      "admin_code": "2600000000",
+      "level": "SIDO",
+      "disaster_types": [
+        "산사태",
+        "호우"
+      ],
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "active_warning": null,
+      "extra": []
+    },
+    "query_context_draft": {
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "region": {
+        "admin_code": "2600000000",
+        "name": "부산광역시",
+        "level": "SIDO"
+      },
+      "disaster_types": [
+        "산사태",
+        "호우"
+      ]
+    },
+    "expected_apis": [
+      "T3Q-01",
+      "T3Q-05",
+      "T3Q-30"
+    ],
+    "api_flow_raw": "T3Q-01 Agent 질의 → T3Q-05 위험·취약 대상 목록 → T3Q-30 침수흔적",
+    "cq_table_apis": [
+      "T3Q-01",
+      "T3Q-05",
+      "T3Q-30"
+    ],
+    "data_groups": [
+      "FLOOD_TRACE",
+      "RISK_AREA"
+    ],
+    "cq_table_modes": [],
+    "expected_answer": "{\"전북특별자치도\": 440, \"충청남도\": 362, \"충청북도\": 192, \"전남광주통합특별시\": 185, \"경상북도\": 181, \"서울특별시\": 126, \"경상남도\": 121, \"강원특별자치도\": 103, \"경기도\": 100, \"?\": 89, \"대전광역시\": 73, \"울산광역시\": 34, \"부산광역시\": 26, \"대구광역시\": 14, \"인천광역시\": 2}",
+    "expected_answer_json": {
+      "전북특별자치도": 440,
+      "충청남도": 362,
+      "충청북도": 192,
+      "전남광주통합특별시": 185,
+      "경상북도": 181,
+      "서울특별시": 126,
+      "경상남도": 121,
+      "강원특별자치도": 103,
+      "경기도": 100,
+      "?": 89,
+      "대전광역시": 73,
+      "울산광역시": 34,
+      "부산광역시": 26,
+      "대구광역시": 14,
+      "인천광역시": 2
+    },
+    "expected_answer_truncated": false,
+    "check_sql": null,
+    "region": {
+      "sido": "부산광역시",
+      "sigungu": null,
+      "admin_code": "2600000000",
+      "level": "SIDO"
+    },
+    "follow_up": null,
+    "spatial_op": "점-사각형 거리(200m) — gis.landslide_area × gis.flood_trace",
+    "memo": null,
+    "notes": "공간 연산: 점-사각형 거리(200m) — gis.landslide_area × gis.flood_trace",
+    "agent416_result": {
+      "grade": "부분 정답",
+      "comment": "흔적 정밀도를 bbox_suspect 만 빼고 전부 사용해 2,663곳(expect 는 geom_precision='bbox' 만 1,848), 시도 매핑도 location_text 보정으로 다름 (156초 · SQL 17회)"
+    },
+    "cq_original_416_result": "부분 정답",
+    "source_line": 501,
+    "scope_note": "질문 범위: 전국 시도별(조건은 부산광역시)",
+    "answer_type": "count_map",
+    "judge_mode": "auto_partial",
+    "judge_reason": "큰 수·이름은 자동, 한 자리 수·0·null·소수(반올림 표기)·서술 구절은 사람 확인",
+    "answer_check_tokens": [
+      "440",
+      "362",
+      "192",
+      "185",
+      "181",
+      "126",
+      "121",
+      "103",
+      "100",
+      "89",
+      "73",
+      "34",
+      "26",
+      "14",
+      "전북특별자치도",
+      "충청남도",
+      "충청북도",
+      "전남광주통합특별시",
+      "경상북도",
+      "서울특별시",
+      "경상남도",
+      "강원특별자치도",
+      "경기도",
+      "대전광역시",
+      "울산광역시",
+      "부산광역시",
+      "대구광역시",
+      "인천광역시"
+    ]
+  },
+  {
+    "id": "P07-03-v1",
+    "cq_id": "P07-03",
+    "cq_original": "법정 재난취약지역 가운데 실제 재난 피해(침수흔적·피해이력·복구확정)가 발생한 곳은?",
+    "variant_kind": "표현·조건",
+    "variant_kind_raw": "표현·조건",
+    "question": "강원특별자치도 법정 위험지구·취약지역으로 지정된 필지 가운데 상습침수 필지와 겹치는 곳은 몇 필지야?",
+    "question_source": null,
+    "query_context": null,
+    "condition_raw": "강원특별자치도(5100000000) · 호우 · 2026-08-25 14:00",
+    "condition_parsed": {
+      "region_name": "강원특별자치도",
+      "sido": "강원특별자치도",
+      "sigungu": null,
+      "admin_code": "5100000000",
+      "level": "SIDO",
+      "disaster_types": [
+        "호우"
+      ],
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "active_warning": null,
+      "extra": []
+    },
+    "query_context_draft": {
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "region": {
+        "admin_code": "5100000000",
+        "name": "강원특별자치도",
+        "level": "SIDO"
+      },
+      "disaster_types": [
+        "호우"
+      ]
+    },
+    "expected_apis": [
+      "T3Q-01",
+      "T3Q-05",
+      "T3Q-30"
+    ],
+    "api_flow_raw": "T3Q-01 Agent 질의 → T3Q-05 위험·취약 대상 목록 → T3Q-30 침수흔적",
+    "cq_table_apis": [
+      "T3Q-01",
+      "T3Q-05",
+      "T3Q-30"
+    ],
+    "data_groups": [
+      "FLOOD_TRACE",
+      "RISK_AREA"
+    ],
+    "cq_table_modes": [],
+    "expected_answer": "{\"지정 필지\": 8983, \"상습침수와 겹침\": 13}",
+    "expected_answer_json": {
+      "지정 필지": 8983,
+      "상습침수와 겹침": 13
+    },
+    "expected_answer_truncated": false,
+    "check_sql": null,
+    "region": {
+      "sido": "강원특별자치도",
+      "sigungu": null,
+      "admin_code": "5100000000",
+      "level": "SIDO"
+    },
+    "follow_up": null,
+    "spatial_op": null,
+    "memo": null,
+    "notes": null,
+    "agent416_result": {
+      "grade": "부분 정답",
+      "comment": "PNU 대조 대신 상습침수↔개선지구 연결표로 316필지(실측 PNU 겹침 13), 산사태·급경사지 제도는 빠짐 (187초 · SQL 22회)"
+    },
+    "cq_original_416_result": "부분 정답",
+    "source_line": 510,
+    "scope_note": null,
+    "answer_type": "count_map",
+    "judge_mode": "auto",
+    "judge_reason": "두 자리 이상 정수·이름만 — 답 글 포함 여부로 판정",
+    "answer_check_tokens": [
+      "8983",
+      "13"
+    ]
+  },
+  {
+    "id": "P07-04-v1",
+    "cq_id": "P07-04",
+    "cq_original": "법정 재난취약지역의 위험등급·안전점검 결과에 따른 점검·관리 우선순위는?",
+    "variant_kind": "지역·시점",
+    "variant_kind_raw": "지역",
+    "question": "서천군 급경사지를 최신 위험등급 나쁜 순으로 점검 우선순위를 매겨줘 — D·E 등급 급경사지 이름부터.",
+    "question_source": null,
+    "query_context": null,
+    "condition_raw": "충청남도 서천군(4477000000) · 산사태 · 2026-08-25 14:00",
+    "condition_parsed": {
+      "region_name": "충청남도 서천군",
+      "sido": "충청남도",
+      "sigungu": "서천군",
+      "admin_code": "4477000000",
+      "level": "SGG",
+      "disaster_types": [
+        "산사태"
+      ],
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "active_warning": null,
+      "extra": []
+    },
+    "query_context_draft": {
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "region": {
+        "admin_code": "4477000000",
+        "name": "충청남도 서천군",
+        "level": "SGG"
+      },
+      "disaster_types": [
+        "산사태"
+      ]
+    },
+    "expected_apis": [
+      "T3Q-01",
+      "T3Q-05",
+      "T3Q-15"
+    ],
+    "api_flow_raw": "T3Q-01 Agent 질의 → T3Q-05 위험·취약 대상 목록 → T3Q-15 위험·취약 대상 상세",
+    "cq_table_apis": [
+      "T3Q-01",
+      "T3Q-05",
+      "T3Q-15"
+    ],
+    "data_groups": [
+      "RISK_AREA"
+    ],
+    "cq_table_modes": [],
+    "expected_answer": "[{\"name\": \"성주4지구\", \"grade\": \"E\", \"location_text\": null}, {\"name\": \"공암지구\", \"grade\": \"D\", \"location_text\": null}, {\"name\": \"성주3지구\", \"grade\": \"D\", \"location_text\": null}, {\"name\": \"원수2지구\", \"grade\": \"D\", \"location_text\": null}]",
+    "expected_answer_json": [
+      {
+        "name": "성주4지구",
+        "grade": "E",
+        "location_text": null
+      },
+      {
+        "name": "공암지구",
+        "grade": "D",
+        "location_text": null
+      },
+      {
+        "name": "성주3지구",
+        "grade": "D",
+        "location_text": null
+      },
+      {
+        "name": "원수2지구",
+        "grade": "D",
+        "location_text": null
+      }
+    ],
+    "expected_answer_truncated": false,
+    "check_sql": null,
+    "region": {
+      "sido": "충청남도",
+      "sigungu": "서천군",
+      "admin_code": "4477000000",
+      "level": "SGG"
+    },
+    "follow_up": null,
+    "spatial_op": null,
+    "memo": null,
+    "notes": null,
+    "agent416_result": {
+      "grade": "정답",
+      "comment": "D·E 4곳(성주4 E·공암·성주3·원수2 D) 일치 (120초 · SQL 7회)"
+    },
+    "cq_original_416_result": "부분 정답",
+    "source_line": 520,
+    "scope_note": null,
+    "answer_type": "record_list",
+    "judge_mode": "auto_partial",
+    "judge_reason": "큰 수·이름은 자동, 한 자리 수·0·null·소수(반올림 표기)·서술 구절은 사람 확인",
+    "answer_check_tokens": [
+      "성주4지구",
+      "공암지구",
+      "성주3지구",
+      "원수2지구"
+    ]
+  },
+  {
+    "id": "P07-04-v2",
+    "cq_id": "P07-04",
+    "cq_original": "법정 재난취약지역의 위험등급·안전점검 결과에 따른 점검·관리 우선순위는?",
+    "variant_kind": "지역·시점",
+    "variant_kind_raw": "지역",
+    "question": "영천시 급경사지 가운데 최신 위험등급 D·E 인 곳부터 점검 우선순위로 보여줘.",
+    "question_source": null,
+    "query_context": null,
+    "condition_raw": "경상북도 영천시(4723000000) · 산사태 · 2026-08-25 14:00",
+    "condition_parsed": {
+      "region_name": "경상북도 영천시",
+      "sido": "경상북도",
+      "sigungu": "영천시",
+      "admin_code": "4723000000",
+      "level": "SGG",
+      "disaster_types": [
+        "산사태"
+      ],
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "active_warning": null,
+      "extra": []
+    },
+    "query_context_draft": {
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "region": {
+        "admin_code": "4723000000",
+        "name": "경상북도 영천시",
+        "level": "SGG"
+      },
+      "disaster_types": [
+        "산사태"
+      ]
+    },
+    "expected_apis": [
+      "T3Q-01",
+      "T3Q-05",
+      "T3Q-15"
+    ],
+    "api_flow_raw": "T3Q-01 Agent 질의 → T3Q-05 위험·취약 대상 목록 → T3Q-15 위험·취약 대상 상세",
+    "cq_table_apis": [
+      "T3Q-01",
+      "T3Q-05",
+      "T3Q-15"
+    ],
+    "data_groups": [
+      "RISK_AREA"
+    ],
+    "cq_table_modes": [],
+    "expected_answer": "[{\"name\": \"치산지구\", \"grade\": \"D\"}, {\"name\": \"당지지구\", \"grade\": \"D\"}]",
+    "expected_answer_json": [
+      {
+        "name": "치산지구",
+        "grade": "D"
+      },
+      {
+        "name": "당지지구",
+        "grade": "D"
+      }
+    ],
+    "expected_answer_truncated": false,
+    "check_sql": null,
+    "region": {
+      "sido": "경상북도",
+      "sigungu": "영천시",
+      "admin_code": "4723000000",
+      "level": "SGG"
+    },
+    "follow_up": null,
+    "spatial_op": null,
+    "memo": null,
+    "notes": null,
+    "agent416_result": {
+      "grade": "정답",
+      "comment": "D 등급 치산·당지 2곳·E 없음 일치 (101초 · SQL 10회)"
+    },
+    "cq_original_416_result": "부분 정답",
+    "source_line": 528,
+    "scope_note": null,
+    "answer_type": "record_list",
+    "judge_mode": "auto",
+    "judge_reason": "두 자리 이상 정수·이름만 — 답 글 포함 여부로 판정",
+    "answer_check_tokens": [
+      "치산지구",
+      "당지지구"
+    ]
+  },
+  {
+    "id": "P08-03-v1",
+    "cq_id": "P08-03",
+    "cq_original": "계획상 위험지구 가운데 실제 피해사례(침수흔적·복구확정)와 겹치는 곳은?",
+    "variant_kind": "표현·조건",
+    "variant_kind_raw": "표현·조건",
+    "question": "서천군 자연재해위험개선지구가 있는 읍면 가운데 실제로 침수흔적이 남은 적이 있는 곳은 어디고, 몇 년도에?",
+    "question_source": null,
+    "query_context": null,
+    "condition_raw": "충청남도 서천군(4477000000) · 호우 · 2026-08-25 14:00",
+    "condition_parsed": {
+      "region_name": "충청남도 서천군",
+      "sido": "충청남도",
+      "sigungu": "서천군",
+      "admin_code": "4477000000",
+      "level": "SGG",
+      "disaster_types": [
+        "호우"
+      ],
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "active_warning": null,
+      "extra": []
+    },
+    "query_context_draft": {
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "region": {
+        "admin_code": "4477000000",
+        "name": "충청남도 서천군",
+        "level": "SGG"
+      },
+      "disaster_types": [
+        "호우"
+      ]
+    },
+    "expected_apis": [
+      "T3Q-01",
+      "T3Q-05",
+      "T3Q-30"
+    ],
+    "api_flow_raw": "T3Q-01 Agent 질의 → T3Q-05 위험·취약 대상 목록 → T3Q-30 침수흔적",
+    "cq_table_apis": [
+      "T3Q-01",
+      "T3Q-05",
+      "T3Q-30",
+      "T3Q-36"
+    ],
+    "data_groups": [
+      "FLOOD_MAP",
+      "FLOOD_TRACE",
+      "RISK_AREA"
+    ],
+    "cq_table_modes": [],
+    "expected_answer": "{\"개선지구 읍면\": 5, \"흔적 있는 읍면(건수·연도)\": {\"한산면\": \"24건(2023·2024)\", \"시초면\": \"6건(2024)\", \"문산면\": \"15건(2024)\", \"종천면\": \"26건(2024)\", \"비인면\": \"73건(2024)\"}}",
+    "expected_answer_json": {
+      "개선지구 읍면": 5,
+      "흔적 있는 읍면(건수·연도)": {
+        "한산면": "24건(2023·2024)",
+        "시초면": "6건(2024)",
+        "문산면": "15건(2024)",
+        "종천면": "26건(2024)",
+        "비인면": "73건(2024)"
+      }
+    },
+    "expected_answer_truncated": false,
+    "check_sql": null,
+    "region": {
+      "sido": "충청남도",
+      "sigungu": "서천군",
+      "admin_code": "4477000000",
+      "level": "SGG"
+    },
+    "follow_up": null,
+    "spatial_op": null,
+    "memo": null,
+    "notes": null,
+    "agent416_result": {
+      "grade": "정답",
+      "comment": "개선지구 5개 읍면 모두 흔적 있음, 건수(한산 24=2023 2·2024 22, 비인 73, 종천 26, 문산 15, 시초 6)·연도 일치. 풍수해생활권 판교면은 참고로 따로 표시 (137초 · SQL 11회)"
+    },
+    "cq_original_416_result": "정답",
+    "source_line": 538,
+    "scope_note": null,
+    "answer_type": "mixed",
+    "judge_mode": "auto_partial",
+    "judge_reason": "큰 수·이름은 자동, 한 자리 수·0·null·소수(반올림 표기)·서술 구절은 사람 확인",
+    "answer_check_tokens": [
+      "24건(2023·2024)",
+      "6건(2024)",
+      "15건(2024)",
+      "26건(2024)",
+      "73건(2024)",
+      "한산면",
+      "시초면",
+      "문산면",
+      "종천면",
+      "비인면"
+    ]
+  },
+  {
+    "id": "P08-03-g",
+    "cq_id": "P08-03",
+    "cq_original": "계획상 위험지구 가운데 실제 피해사례(침수흔적·복구확정)와 겹치는 곳은?",
+    "variant_kind": "공간",
+    "variant_kind_raw": "공간",
+    "question": "서울 강남구 2022년 침수흔적 범위 가운데 100년 빈도 도시침수지도 침수구역과 겹치는 건 몇 건이야? (계획상 위험과 실제 피해 겹침)",
+    "question_source": null,
+    "query_context": null,
+    "condition_raw": "서울특별시 강남구(1168000000) · 호우 · 2022-08-09 09:00",
+    "condition_parsed": {
+      "region_name": "서울특별시 강남구",
+      "sido": "서울특별시",
+      "sigungu": "강남구",
+      "admin_code": "1168000000",
+      "level": "SGG",
+      "disaster_types": [
+        "호우"
+      ],
+      "reference_time": "2022-08-09T09:00:00+09:00",
+      "active_warning": null,
+      "extra": []
+    },
+    "query_context_draft": {
+      "reference_time": "2022-08-09T09:00:00+09:00",
+      "region": {
+        "admin_code": "1168000000",
+        "name": "서울특별시 강남구",
+        "level": "SGG"
+      },
+      "disaster_types": [
+        "호우"
+      ]
+    },
+    "expected_apis": [
+      "T3Q-01",
+      "T3Q-05",
+      "T3Q-30",
+      "T3Q-36"
+    ],
+    "api_flow_raw": "T3Q-01 Agent 질의 → T3Q-05 위험·취약 대상 목록 → T3Q-30 침수흔적 → T3Q-36 침수지도 속성",
+    "cq_table_apis": [
+      "T3Q-01",
+      "T3Q-05",
+      "T3Q-30",
+      "T3Q-36"
+    ],
+    "data_groups": [
+      "FLOOD_MAP",
+      "FLOOD_TRACE",
+      "RISK_AREA"
+    ],
+    "cq_table_modes": [],
+    "expected_answer": "{\"2022 흔적\": 190, \"도시침수 100년과 겹침\": 117}",
+    "expected_answer_json": {
+      "2022 흔적": 190,
+      "도시침수 100년과 겹침": 117
+    },
+    "expected_answer_truncated": false,
+    "check_sql": null,
+    "region": {
+      "sido": "서울특별시",
+      "sigungu": "강남구",
+      "admin_code": "1168000000",
+      "level": "SGG"
+    },
+    "follow_up": null,
+    "spatial_op": "사각형-폴리곤 교차 — gis.flood_trace × gis.flood_map_part",
+    "memo": null,
+    "notes": "공간 연산: 사각형-폴리곤 교차 — gis.flood_trace × gis.flood_map_part",
+    "agent416_result": {
+      "grade": "정답",
+      "comment": "2022 강남 흔적 190건 중 도시침수 100년 겹침 117건 일치 (88초 · SQL 8회)"
+    },
+    "cq_original_416_result": "정답",
+    "source_line": 546,
+    "scope_note": null,
+    "answer_type": "count_map",
+    "judge_mode": "auto",
+    "judge_reason": "두 자리 이상 정수·이름만 — 답 글 포함 여부로 판정",
+    "answer_check_tokens": [
+      "190",
+      "117"
+    ]
+  },
+  {
+    "id": "P09-01-v1",
+    "cq_id": "P09-01",
+    "cq_original": "지하차도 가운데 침수흔적·상습침수 구역 안에 있는 곳은?",
+    "variant_kind": "지역·시점",
+    "variant_kind_raw": "지역",
+    "question": "부산 지하차도 가운데 하천 500m 안에 있는 곳을 재해위험등급과 함께 보여줘.",
+    "question_source": null,
+    "query_context": null,
+    "condition_raw": "부산광역시(2600000000) · 호우 · 2026-08-25 14:00",
+    "condition_parsed": {
+      "region_name": "부산광역시",
+      "sido": "부산광역시",
+      "sigungu": null,
+      "admin_code": "2600000000",
+      "level": "SIDO",
+      "disaster_types": [
+        "호우"
+      ],
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "active_warning": null,
+      "extra": []
+    },
+    "query_context_draft": {
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "region": {
+        "admin_code": "2600000000",
+        "name": "부산광역시",
+        "level": "SIDO"
+      },
+      "disaster_types": [
+        "호우"
+      ]
+    },
+    "expected_apis": [
+      "T3Q-01",
+      "T3Q-05",
+      "T3Q-15"
+    ],
+    "api_flow_raw": "T3Q-01 Agent 질의 → T3Q-05 위험·취약 대상 목록 → T3Q-15 위험·취약 대상 상세",
+    "cq_table_apis": [
+      "T3Q-01",
+      "T3Q-05",
+      "T3Q-15",
+      "T3Q-36"
+    ],
+    "data_groups": [
+      "FLOOD_MAP",
+      "RISK_FACTOR_FACILITY"
+    ],
+    "cq_table_modes": [],
+    "expected_answer": "{\"지하차도\": 58, \"하천 500m 안\": 22, \"등급별(하천 인접)\": {\"3\": 1, \"2\": 1, \"4\": 20}}",
+    "expected_answer_json": {
+      "지하차도": 58,
+      "하천 500m 안": 22,
+      "등급별(하천 인접)": {
+        "2": 1,
+        "3": 1,
+        "4": 20
+      }
+    },
+    "expected_answer_truncated": false,
+    "check_sql": null,
+    "region": {
+      "sido": "부산광역시",
+      "sigungu": null,
+      "admin_code": "2600000000",
+      "level": "SIDO"
+    },
+    "follow_up": null,
+    "spatial_op": null,
+    "memo": null,
+    "notes": null,
+    "agent416_result": {
+      "grade": "정답",
+      "comment": "부산 지하차도 58·하천 500m 22·등급 2:1/3:1/4:20 일치 (81초 · SQL 6회)"
+    },
+    "cq_original_416_result": "정답",
+    "source_line": 557,
+    "scope_note": null,
+    "answer_type": "nested_count_map",
+    "judge_mode": "auto_partial",
+    "judge_reason": "큰 수·이름은 자동, 한 자리 수·0·null·소수(반올림 표기)·서술 구절은 사람 확인",
+    "answer_check_tokens": [
+      "58",
+      "22",
+      "20"
+    ]
+  },
+  {
+    "id": "P09-01-g",
+    "cq_id": "P09-01",
+    "cq_original": "지하차도 가운데 침수흔적·상습침수 구역 안에 있는 곳은?",
+    "variant_kind": "공간",
+    "variant_kind_raw": "공간",
+    "question": "서울 강남구 지하차도가 있는 법정동 가운데 100년 빈도 도시침수지도 침수심 0.5m 이상 구역이 있는 동은? (지하차도 좌표가 없어 동 단위)",
+    "question_source": null,
+    "query_context": null,
+    "condition_raw": "서울특별시 강남구(1168000000) · 호우 · 2026-08-25 14:00",
+    "condition_parsed": {
+      "region_name": "서울특별시 강남구",
+      "sido": "서울특별시",
+      "sigungu": "강남구",
+      "admin_code": "1168000000",
+      "level": "SGG",
+      "disaster_types": [
+        "호우"
+      ],
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "active_warning": null,
+      "extra": []
+    },
+    "query_context_draft": {
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "region": {
+        "admin_code": "1168000000",
+        "name": "서울특별시 강남구",
+        "level": "SGG"
+      },
+      "disaster_types": [
+        "호우"
+      ]
+    },
+    "expected_apis": [
+      "T3Q-01",
+      "T3Q-05",
+      "T3Q-36"
+    ],
+    "api_flow_raw": "T3Q-01 Agent 질의 → T3Q-05 위험·취약 대상 목록 → T3Q-36 침수지도 속성",
+    "cq_table_apis": [
+      "T3Q-01",
+      "T3Q-05",
+      "T3Q-15",
+      "T3Q-36"
+    ],
+    "data_groups": [
+      "FLOOD_MAP",
+      "RISK_FACTOR_FACILITY"
+    ],
+    "cq_table_modes": [],
+    "expected_answer": "{\"지하차도 있는 동\": 3, \"0.5m 이상 침수구역 있는 동\": [\"개포동\", \"수서동\", \"일원동\"]}",
+    "expected_answer_json": {
+      "지하차도 있는 동": 3,
+      "0.5m 이상 침수구역 있는 동": [
+        "개포동",
+        "수서동",
+        "일원동"
+      ]
+    },
+    "expected_answer_truncated": false,
+    "check_sql": null,
+    "region": {
+      "sido": "서울특별시",
+      "sigungu": "강남구",
+      "admin_code": "1168000000",
+      "level": "SGG"
+    },
+    "follow_up": null,
+    "spatial_op": "동 근사(건축물 볼록 껍질) × 침수지도 — 지하차도 좌표가 반입분에 없음",
+    "memo": "동 단위 근사 — 지하차도 위치 좌표 확보 필요",
+    "notes": "메모: 동 단위 근사 — 지하차도 위치 좌표 확보 필요 | 공간 연산: 동 근사(건축물 볼록 껍질) × 침수지도 — 지하차도 좌표가 반입분에 없음",
+    "agent416_result": {
+      "grade": "정답",
+      "comment": "지하차도 있는 동 3곳(개포·일원·수서) 모두 0.5m 이상 구역 포함 일치 (95초 · SQL 8회)"
+    },
+    "cq_original_416_result": "정답",
+    "source_line": 565,
+    "scope_note": null,
+    "answer_type": "mixed",
+    "judge_mode": "auto_partial",
+    "judge_reason": "큰 수·이름은 자동, 한 자리 수·0·null·소수(반올림 표기)·서술 구절은 사람 확인",
+    "answer_check_tokens": [
+      "개포동",
+      "수서동",
+      "일원동"
+    ]
+  },
+  {
+    "id": "P09-02-g1",
+    "cq_id": "P09-02",
+    "cq_original": "하천 인접 캠핑장과 그 주변의 하천범람·도시침수 위험은?",
+    "variant_kind": "공간",
+    "variant_kind_raw": "공간",
+    "question": "가평군 야영장 시설 가운데 하천구역이나 하천망도 하천에서 100m 안에 있는 곳은 몇 곳이야?",
+    "question_source": null,
+    "query_context": null,
+    "condition_raw": "경기도 가평군(4182000000) · 호우 · 2026-08-25 14:00",
+    "condition_parsed": {
+      "region_name": "경기도 가평군",
+      "sido": "경기도",
+      "sigungu": "가평군",
+      "admin_code": "4182000000",
+      "level": "SGG",
+      "disaster_types": [
+        "호우"
+      ],
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "active_warning": null,
+      "extra": []
+    },
+    "query_context_draft": {
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "region": {
+        "admin_code": "4182000000",
+        "name": "경기도 가평군",
+        "level": "SGG"
+      },
+      "disaster_types": [
+        "호우"
+      ]
+    },
+    "expected_apis": [
+      "T3Q-01",
+      "T3Q-05"
+    ],
+    "api_flow_raw": "T3Q-01 Agent 질의 → T3Q-05 위험·취약 대상 목록",
+    "cq_table_apis": [
+      "T3Q-01",
+      "T3Q-05",
+      "T3Q-36"
+    ],
+    "data_groups": [
+      "FLOOD_MAP",
+      "RISK_FACTOR_FACILITY"
+    ],
+    "cq_table_modes": [],
+    "expected_answer": "{\"야영장 건축물\": 634, \"하천 100m 안\": 403}",
+    "expected_answer_json": {
+      "야영장 건축물": 634,
+      "하천 100m 안": 403
+    },
+    "expected_answer_truncated": false,
+    "check_sql": null,
+    "region": {
+      "sido": "경기도",
+      "sigungu": "가평군",
+      "admin_code": "4182000000",
+      "level": "SGG"
+    },
+    "follow_up": null,
+    "spatial_op": "점-폴리곤 거리(100m) — gis.building_point(야영장) × gis.river_zone·gis.river_network",
+    "memo": null,
+    "notes": "공간 연산: 점-폴리곤 거리(100m) — gis.building_point(야영장) × gis.river_zone·gis.river_network",
+    "agent416_result": {
+      "grade": "정답",
+      "comment": "야영장 634동 중 하천구역·하천망도 100m 안 403동 일치(필지 170·읍면별도 덧붙임) (206초 · SQL 18회)"
+    },
+    "cq_original_416_result": "부분 정답",
+    "source_line": 577,
+    "scope_note": null,
+    "answer_type": "count_map",
+    "judge_mode": "auto",
+    "judge_reason": "두 자리 이상 정수·이름만 — 답 글 포함 여부로 판정",
+    "answer_check_tokens": [
+      "634",
+      "403"
+    ]
+  },
+  {
+    "id": "P09-02-g2",
+    "cq_id": "P09-02",
+    "cq_original": "하천 인접 캠핑장과 그 주변의 하천범람·도시침수 위험은?",
+    "variant_kind": "공간",
+    "variant_kind_raw": "공간",
+    "question": "그중 100년 빈도 하천범람지도 침수구역 안에 드는 야영장은? 침수심 등급별로.",
+    "question_source": null,
+    "query_context": null,
+    "condition_raw": "경기도 가평군(4182000000) · 호우 · 2026-08-25 14:00",
+    "condition_parsed": {
+      "region_name": "경기도 가평군",
+      "sido": "경기도",
+      "sigungu": "가평군",
+      "admin_code": "4182000000",
+      "level": "SGG",
+      "disaster_types": [
+        "호우"
+      ],
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "active_warning": null,
+      "extra": []
+    },
+    "query_context_draft": {
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "region": {
+        "admin_code": "4182000000",
+        "name": "경기도 가평군",
+        "level": "SGG"
+      },
+      "disaster_types": [
+        "호우"
+      ]
+    },
+    "expected_apis": [
+      "T3Q-01",
+      "T3Q-05",
+      "T3Q-36"
+    ],
+    "api_flow_raw": "T3Q-01 Agent 질의 → T3Q-05 위험·취약 대상 목록 → T3Q-36 침수지도 속성",
+    "cq_table_apis": [
+      "T3Q-01",
+      "T3Q-05",
+      "T3Q-36"
+    ],
+    "data_groups": [
+      "FLOOD_MAP",
+      "RISK_FACTOR_FACILITY"
+    ],
+    "cq_table_modes": [],
+    "expected_answer": "{\"0.5~1.0m\": 20, \"0.5m 미만\": 12, \"1.0~2.0m\": 7, \"2.0~5.0m\": 20, \"5.0m 이상\": 3}",
+    "expected_answer_json": {
+      "0.5~1.0m": 20,
+      "0.5m 미만": 12,
+      "1.0~2.0m": 7,
+      "2.0~5.0m": 20,
+      "5.0m 이상": 3
+    },
+    "expected_answer_truncated": false,
+    "check_sql": null,
+    "region": {
+      "sido": "경기도",
+      "sigungu": "가평군",
+      "admin_code": "4182000000",
+      "level": "SGG"
+    },
+    "follow_up": {
+      "previous_id": "P09-02-g1",
+      "previous_id_inferred": false
+    },
+    "spatial_op": "점-폴리곤 포함 — 야영장 × 하천범람지도",
+    "memo": "이어서 묻기 — P09-02-g1 다음 턴",
+    "notes": "메모: 이어서 묻기 — P09-02-g1 다음 턴 | 공간 연산: 점-폴리곤 포함 — 야영장 × 하천범람지도",
+    "agent416_result": {
+      "grade": "정답",
+      "comment": "하천범람 침수구역 안 야영장 등급별 12·20·7·20·3 일치 (145초 · SQL 14회)"
+    },
+    "cq_original_416_result": "부분 정답",
+    "source_line": 586,
+    "scope_note": null,
+    "answer_type": "count_map",
+    "judge_mode": "auto_partial",
+    "judge_reason": "큰 수·이름은 자동, 한 자리 수·0·null·소수(반올림 표기)·서술 구절은 사람 확인",
+    "answer_check_tokens": [
+      "20",
+      "12"
+    ]
+  },
+  {
+    "id": "P09-03-g",
+    "cq_id": "P09-03",
+    "cq_original": "반지하 주택 밀집 지역의 침수 위험은?",
+    "variant_kind": "공간",
+    "variant_kind_raw": "공간",
+    "question": "관악구에서 지하층이 있는 주택 가운데 100년 빈도 도시침수지도 침수심 0.5m 이상 구역에 있는 집은 몇 동이고, 많은 동은?",
+    "question_source": null,
+    "query_context": null,
+    "condition_raw": "서울특별시 관악구(1162000000) · 호우 · 2026-08-25 14:00",
+    "condition_parsed": {
+      "region_name": "서울특별시 관악구",
+      "sido": "서울특별시",
+      "sigungu": "관악구",
+      "admin_code": "1162000000",
+      "level": "SGG",
+      "disaster_types": [
+        "호우"
+      ],
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "active_warning": null,
+      "extra": []
+    },
+    "query_context_draft": {
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "region": {
+        "admin_code": "1162000000",
+        "name": "서울특별시 관악구",
+        "level": "SGG"
+      },
+      "disaster_types": [
+        "호우"
+      ]
+    },
+    "expected_apis": [
+      "T3Q-01",
+      "T3Q-05",
+      "T3Q-36"
+    ],
+    "api_flow_raw": "T3Q-01 Agent 질의 → T3Q-05 위험·취약 대상 목록 → T3Q-36 침수지도 속성",
+    "cq_table_apis": [
+      "T3Q-01",
+      "T3Q-05",
+      "T3Q-36"
+    ],
+    "data_groups": [
+      "FLOOD_MAP",
+      "RISK_FACTOR_FACILITY"
+    ],
+    "cq_table_modes": [],
+    "expected_answer": "{\"지하층 주택\": 19873, \"0.5m 이상 구역 안\": 176, \"동별\": {\"신림동\": 155, \"봉천동\": 21}}",
+    "expected_answer_json": {
+      "지하층 주택": 19873,
+      "0.5m 이상 구역 안": 176,
+      "동별": {
+        "신림동": 155,
+        "봉천동": 21
+      }
+    },
+    "expected_answer_truncated": false,
+    "check_sql": null,
+    "region": {
+      "sido": "서울특별시",
+      "sigungu": "관악구",
+      "admin_code": "1162000000",
+      "level": "SGG"
+    },
+    "follow_up": null,
+    "spatial_op": "점-폴리곤 포함 — 지하층 주택 × 도시침수지도(지하층 수로 반지하 근사)",
+    "memo": null,
+    "notes": "공간 연산: 점-폴리곤 포함 — 지하층 주택 × 도시침수지도(지하층 수로 반지하 근사)",
+    "agent416_result": {
+      "grade": "정답",
+      "comment": "지하층 주택 19,873·0.5m 이상 176동·신림 155/봉천 21 일치 (105초 · SQL 9회)"
+    },
+    "cq_original_416_result": "정답",
+    "source_line": 598,
+    "scope_note": null,
+    "answer_type": "nested_count_map",
+    "judge_mode": "auto",
+    "judge_reason": "두 자리 이상 정수·이름만 — 답 글 포함 여부로 판정",
+    "answer_check_tokens": [
+      "19873",
+      "176",
+      "155",
+      "21",
+      "신림동",
+      "봉천동"
+    ]
+  },
+  {
+    "id": "P09-03-v2",
+    "cq_id": "P09-03",
+    "cq_original": "반지하 주택 밀집 지역의 침수 위험은?",
+    "variant_kind": "지역·시점",
+    "variant_kind_raw": "지역",
+    "question": "영등포구는? 지하층 있는 주택 중 100년 빈도 도시침수지도 침수심 0.5m 이상 구역에 드는 수와 많은 동.",
+    "question_source": null,
+    "query_context": null,
+    "condition_raw": "서울특별시 영등포구(1156000000) · 호우 · 2026-08-25 14:00",
+    "condition_parsed": {
+      "region_name": "서울특별시 영등포구",
+      "sido": "서울특별시",
+      "sigungu": "영등포구",
+      "admin_code": "1156000000",
+      "level": "SGG",
+      "disaster_types": [
+        "호우"
+      ],
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "active_warning": null,
+      "extra": []
+    },
+    "query_context_draft": {
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "region": {
+        "admin_code": "1156000000",
+        "name": "서울특별시 영등포구",
+        "level": "SGG"
+      },
+      "disaster_types": [
+        "호우"
+      ]
+    },
+    "expected_apis": [
+      "T3Q-01",
+      "T3Q-05",
+      "T3Q-36"
+    ],
+    "api_flow_raw": "T3Q-01 Agent 질의 → T3Q-05 위험·취약 대상 목록 → T3Q-36 침수지도 속성",
+    "cq_table_apis": [
+      "T3Q-01",
+      "T3Q-05",
+      "T3Q-36"
+    ],
+    "data_groups": [
+      "FLOOD_MAP",
+      "RISK_FACTOR_FACILITY"
+    ],
+    "cq_table_modes": [],
+    "expected_answer": "{\"0.5m 이상 구역 안 지하층 주택\": 777, \"동별\": {\"신길동\": 494, \"도림동\": 212, \"대림동\": 71}}",
+    "expected_answer_json": {
+      "0.5m 이상 구역 안 지하층 주택": 777,
+      "동별": {
+        "신길동": 494,
+        "도림동": 212,
+        "대림동": 71
+      }
+    },
+    "expected_answer_truncated": false,
+    "check_sql": null,
+    "region": {
+      "sido": "서울특별시",
+      "sigungu": "영등포구",
+      "admin_code": "1156000000",
+      "level": "SGG"
+    },
+    "follow_up": {
+      "previous_id": "P09-03-g",
+      "previous_id_inferred": true
+    },
+    "spatial_op": "점-폴리곤 포함",
+    "memo": "이어서 묻기 — 지역만 바꿈",
+    "notes": "메모: 이어서 묻기 — 지역만 바꿈 | 공간 연산: 점-폴리곤 포함",
+    "agent416_result": {
+      "grade": "정답",
+      "comment": "775동·신길 492·도림 212·대림 71 — 실측 777·494 와 2 차, 순위 일치 (97초 · SQL 8회)"
+    },
+    "cq_original_416_result": "정답",
+    "source_line": 607,
+    "scope_note": null,
+    "answer_type": "nested_count_map",
+    "judge_mode": "auto",
+    "judge_reason": "두 자리 이상 정수·이름만 — 답 글 포함 여부로 판정",
+    "answer_check_tokens": [
+      "777",
+      "494",
+      "212",
+      "71",
+      "신길동",
+      "도림동",
+      "대림동"
+    ]
+  },
+  {
+    "id": "P09-04-g1",
+    "cq_id": "P09-04",
+    "cq_original": "급경사지 인접 산지 숙박시설과 그 위험도는?",
+    "variant_kind": "공간",
+    "variant_kind_raw": "공간",
+    "question": "가평군 숙박시설 가운데 급경사지에서 200m 안에 있는 곳은 몇 곳이고, 그 급경사지의 최신 위험등급 분포는?",
+    "question_source": null,
+    "query_context": null,
+    "condition_raw": "경기도 가평군(4182000000) · 산사태 · 2026-08-25 14:00",
+    "condition_parsed": {
+      "region_name": "경기도 가평군",
+      "sido": "경기도",
+      "sigungu": "가평군",
+      "admin_code": "4182000000",
+      "level": "SGG",
+      "disaster_types": [
+        "산사태"
+      ],
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "active_warning": null,
+      "extra": []
+    },
+    "query_context_draft": {
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "region": {
+        "admin_code": "4182000000",
+        "name": "경기도 가평군",
+        "level": "SGG"
+      },
+      "disaster_types": [
+        "산사태"
+      ]
+    },
+    "expected_apis": [
+      "T3Q-01",
+      "T3Q-05"
+    ],
+    "api_flow_raw": "T3Q-01 Agent 질의 → T3Q-05 위험·취약 대상 목록",
+    "cq_table_apis": [
+      "T3Q-01",
+      "T3Q-05"
+    ],
+    "data_groups": [
+      "RISK_AREA",
+      "RISK_FACTOR_FACILITY"
+    ],
+    "cq_table_modes": [],
+    "expected_answer": "{\"숙박시설\": 2106, \"급경사지 200m 안\": 388, \"가까운 급경사지 최악 등급\": {\"B\": 47, \"미평가\": 328, \"C\": 13}}",
+    "expected_answer_json": {
+      "숙박시설": 2106,
+      "급경사지 200m 안": 388,
+      "가까운 급경사지 최악 등급": {
+        "B": 47,
+        "미평가": 328,
+        "C": 13
+      }
+    },
+    "expected_answer_truncated": false,
+    "check_sql": null,
+    "region": {
+      "sido": "경기도",
+      "sigungu": "가평군",
+      "admin_code": "4182000000",
+      "level": "SGG"
+    },
+    "follow_up": null,
+    "spatial_op": "점-선 거리(ST_DWithin 200m) — 숙박시설 × gis.steep_slope(시점~종점 선)",
+    "memo": null,
+    "notes": "공간 연산: 점-선 거리(ST_DWithin 200m) — 숙박시설 × gis.steep_slope(시점~종점 선)",
+    "agent416_result": {
+      "grade": "정답",
+      "comment": "숙박시설 2,106·200m 안 388 일치, 최악 등급 분포 C13 일치·B52/미평가323(실측 47/328) 근소 차 (102초 · SQL 9회)"
+    },
+    "cq_original_416_result": "부분 정답",
+    "source_line": 619,
+    "scope_note": null,
+    "answer_type": "nested_count_map",
+    "judge_mode": "auto",
+    "judge_reason": "두 자리 이상 정수·이름만 — 답 글 포함 여부로 판정",
+    "answer_check_tokens": [
+      "2106",
+      "388",
+      "47",
+      "328",
+      "13"
+    ]
+  },
+  {
+    "id": "P09-04-g2",
+    "cq_id": "P09-04",
+    "cq_original": "급경사지 인접 산지 숙박시설과 그 위험도는?",
+    "variant_kind": "공간",
+    "variant_kind_raw": "공간",
+    "question": "인제군도 같은 기준(급경사지 200m 안 숙박시설)으로 보여줘.",
+    "question_source": null,
+    "query_context": null,
+    "condition_raw": "강원특별자치도 인제군(5181000000) · 산사태 · 2026-08-25 14:00",
+    "condition_parsed": {
+      "region_name": "강원특별자치도 인제군",
+      "sido": "강원특별자치도",
+      "sigungu": "인제군",
+      "admin_code": "5181000000",
+      "level": "SGG",
+      "disaster_types": [
+        "산사태"
+      ],
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "active_warning": null,
+      "extra": []
+    },
+    "query_context_draft": {
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "region": {
+        "admin_code": "5181000000",
+        "name": "강원특별자치도 인제군",
+        "level": "SGG"
+      },
+      "disaster_types": [
+        "산사태"
+      ]
+    },
+    "expected_apis": [
+      "T3Q-01",
+      "T3Q-05"
+    ],
+    "api_flow_raw": "T3Q-01 Agent 질의 → T3Q-05 위험·취약 대상 목록",
+    "cq_table_apis": [
+      "T3Q-01",
+      "T3Q-05"
+    ],
+    "data_groups": [
+      "RISK_AREA",
+      "RISK_FACTOR_FACILITY"
+    ],
+    "cq_table_modes": [],
+    "expected_answer": "{\"숙박시설\": 173, \"급경사지 200m 안\": 9}",
+    "expected_answer_json": {
+      "숙박시설": 173,
+      "급경사지 200m 안": 9
+    },
+    "expected_answer_truncated": false,
+    "check_sql": null,
+    "region": {
+      "sido": "강원특별자치도",
+      "sigungu": "인제군",
+      "admin_code": "5181000000",
+      "level": "SGG"
+    },
+    "follow_up": {
+      "previous_id": "P09-04-g1",
+      "previous_id_inferred": true
+    },
+    "spatial_op": "점-선 거리",
+    "memo": "이어서 묻기 — 지역만 바꿈",
+    "notes": "메모: 이어서 묻기 — 지역만 바꿈 | 공간 연산: 점-선 거리",
+    "agent416_result": {
+      "grade": "정답",
+      "comment": "숙박시설 200m 안 9동 일치 (164초 · SQL 10회)"
+    },
+    "cq_original_416_result": "부분 정답",
+    "source_line": 628,
+    "scope_note": null,
+    "answer_type": "count_map",
+    "judge_mode": "auto_partial",
+    "judge_reason": "큰 수·이름은 자동, 한 자리 수·0·null·소수(반올림 표기)·서술 구절은 사람 확인",
+    "answer_check_tokens": [
+      "173"
+    ]
+  },
+  {
+    "id": "P11-01-v1",
+    "cq_id": "P11-01",
+    "cq_original": "단일시기 홍수탐지 학습데이터의 사건별 라벨 현황은?",
+    "variant_kind": "표현·조건",
+    "variant_kind_raw": "표현·조건",
+    "question": "2022년 8월 집중호우의 홍수탐지(GeoAI) 침수구역을 시도별 개수와 면적으로 정리해줘.",
+    "question_source": null,
+    "query_context": null,
+    "condition_raw": "서울특별시 강남구(1168000000) · 호우 · 2022-08-09 09:00",
+    "condition_parsed": {
+      "region_name": "서울특별시 강남구",
+      "sido": "서울특별시",
+      "sigungu": "강남구",
+      "admin_code": "1168000000",
+      "level": "SGG",
+      "disaster_types": [
+        "호우"
+      ],
+      "reference_time": "2022-08-09T09:00:00+09:00",
+      "active_warning": null,
+      "extra": []
+    },
+    "query_context_draft": {
+      "reference_time": "2022-08-09T09:00:00+09:00",
+      "region": {
+        "admin_code": "1168000000",
+        "name": "서울특별시 강남구",
+        "level": "SGG"
+      },
+      "disaster_types": [
+        "호우"
+      ]
+    },
+    "expected_apis": [
+      "T3Q-01",
+      "T3Q-32"
+    ],
+    "api_flow_raw": "T3Q-01 Agent 질의 → T3Q-32 위성영상 메타",
+    "cq_table_apis": [
+      "T3Q-01",
+      "T3Q-32"
+    ],
+    "data_groups": [
+      "SIMILAR_EVENT"
+    ],
+    "cq_table_modes": [],
+    "expected_answer": "{\"서울특별시\": {\"구역\": 8527, \"면적 ㎡\": 5408486}, \"충청남도\": {\"구역\": 1551, \"면적 ㎡\": 5840710}, \"경기도\": {\"구역\": 847, \"면적 ㎡\": 1991114}, \"강원도\": {\"구역\": 62, \"면적 ㎡\": 676705}, \"제주특별자치도\": {\"구역\": 35, \"면적 ㎡\": 31167}, \"충청북도\": {\"구역\": 28, \"면적 ㎡\": 158405}, \"인천광역시\": {\"구역\": 15, \"면적 ㎡\": 39209}, \"세종특별자치시\": {\"구역\": 2, \"면적 ㎡\": 302}}",
+    "expected_answer_json": {
+      "서울특별시": {
+        "구역": 8527,
+        "면적 ㎡": 5408486
+      },
+      "충청남도": {
+        "구역": 1551,
+        "면적 ㎡": 5840710
+      },
+      "경기도": {
+        "구역": 847,
+        "면적 ㎡": 1991114
+      },
+      "강원도": {
+        "구역": 62,
+        "면적 ㎡": 676705
+      },
+      "제주특별자치도": {
+        "구역": 35,
+        "면적 ㎡": 31167
+      },
+      "충청북도": {
+        "구역": 28,
+        "면적 ㎡": 158405
+      },
+      "인천광역시": {
+        "구역": 15,
+        "면적 ㎡": 39209
+      },
+      "세종특별자치시": {
+        "구역": 2,
+        "면적 ㎡": 302
+      }
+    },
+    "expected_answer_truncated": false,
+    "check_sql": null,
+    "region": {
+      "sido": "서울특별시",
+      "sigungu": "강남구",
+      "admin_code": "1168000000",
+      "level": "SGG"
+    },
+    "follow_up": null,
+    "spatial_op": null,
+    "memo": null,
+    "notes": null,
+    "agent416_result": {
+      "grade": "정답",
+      "comment": "시도별 구역·면적(서울 8,517≈8,527·충남 1,551/5.84㎢·경기 848) 대체로 일치, 제주는 8.16~17 사상만 잡아 11(expect 35) (262초 · SQL 23회)"
+    },
+    "cq_original_416_result": "정답",
+    "source_line": 640,
+    "scope_note": "질문 범위: 전국 시도별(조건은 서울 강남구)",
+    "answer_type": "nested_count_map",
+    "judge_mode": "auto_partial",
+    "judge_reason": "큰 수·이름은 자동, 한 자리 수·0·null·소수(반올림 표기)·서술 구절은 사람 확인",
+    "answer_check_tokens": [
+      "8527",
+      "5408486",
+      "1551",
+      "5840710",
+      "847",
+      "1991114",
+      "62",
+      "676705",
+      "35",
+      "31167",
+      "28",
+      "158405",
+      "15",
+      "39209",
+      "302",
+      "서울특별시",
+      "충청남도",
+      "경기도",
+      "강원도",
+      "제주특별자치도",
+      "충청북도",
+      "인천광역시",
+      "세종특별자치시"
+    ]
+  },
+  {
+    "id": "P11-01-v2",
+    "cq_id": "P11-01",
+    "cq_original": "단일시기 홍수탐지 학습데이터의 사건별 라벨 현황은?",
+    "variant_kind": "지역·시점",
+    "variant_kind_raw": "지역·시점",
+    "question": "2020년 홍수탐지(GeoAI) 침수구역은 어떤 홍수 사건에 몇 개씩 붙어 있어?",
+    "question_source": null,
+    "query_context": null,
+    "condition_raw": "충청남도 공주시(4415000000) · 호우 · 2020-08-11 09:00",
+    "condition_parsed": {
+      "region_name": "충청남도 공주시",
+      "sido": "충청남도",
+      "sigungu": "공주시",
+      "admin_code": "4415000000",
+      "level": "SGG",
+      "disaster_types": [
+        "호우"
+      ],
+      "reference_time": "2020-08-11T09:00:00+09:00",
+      "active_warning": null,
+      "extra": []
+    },
+    "query_context_draft": {
+      "reference_time": "2020-08-11T09:00:00+09:00",
+      "region": {
+        "admin_code": "4415000000",
+        "name": "충청남도 공주시",
+        "level": "SGG"
+      },
+      "disaster_types": [
+        "호우"
+      ]
+    },
+    "expected_apis": [
+      "T3Q-01",
+      "T3Q-32"
+    ],
+    "api_flow_raw": "T3Q-01 Agent 질의 → T3Q-32 위성영상 메타",
+    "cq_table_apis": [
+      "T3Q-01",
+      "T3Q-32"
+    ],
+    "data_groups": [
+      "SIMILAR_EVENT"
+    ],
+    "cq_table_modes": [],
+    "expected_answer": "{\"2020.7.28 ~ 8.11 집중호우\": 1186, \"2020년 8월 집중호우\": 626, \"집중호우\": 532, \"2020.7.28~8.11침수피해\": 508, \"20.7.28. ~ 8.11. 집중호우\": 459, \"집중호우에의한침수\": 419}",
+    "expected_answer_json": {
+      "2020.7.28 ~ 8.11 집중호우": 1186,
+      "2020년 8월 집중호우": 626,
+      "집중호우": 532,
+      "2020.7.28~8.11침수피해": 508,
+      "20.7.28. ~ 8.11. 집중호우": 459,
+      "집중호우에의한침수": 419
+    },
+    "expected_answer_truncated": false,
+    "check_sql": null,
+    "region": {
+      "sido": "충청남도",
+      "sigungu": "공주시",
+      "admin_code": "4415000000",
+      "level": "SGG"
+    },
+    "follow_up": null,
+    "spatial_op": null,
+    "memo": null,
+    "notes": null,
+    "agent416_result": {
+      "grade": "부분 정답",
+      "comment": "전국 6,637구역·사건명 분산은 짚었으나 event_id 단위로 쪼개 이름별 합(1,186·626·532…)과 다르고 공주·충남 위주로 답함 (150초 · SQL 11회)"
+    },
+    "cq_original_416_result": "정답",
+    "source_line": 648,
+    "scope_note": "질문 범위: 전국 2020년(조건은 공주시)",
+    "answer_type": "count_map",
+    "judge_mode": "auto",
+    "judge_reason": "두 자리 이상 정수·이름만 — 답 글 포함 여부로 판정",
+    "answer_check_tokens": [
+      "1186",
+      "626",
+      "532",
+      "508",
+      "459",
+      "419"
+    ]
+  },
+  {
+    "id": "P13-01-g1",
+    "cq_id": "P13-01",
+    "cq_original": "위성영상 홍수 탐지 결과와 침수흔적도는 얼마나 일치하는가?",
+    "variant_kind": "공간",
+    "variant_kind_raw": "공간",
+    "question": "GeoAI 홍수탐지 침수구역과 침수흔적도(범위)는 공간적으로 얼마나 겹쳐? 겹치는 침수구역 비율을 사건 연도별로.",
+    "question_source": null,
+    "query_context": null,
+    "condition_raw": "서울특별시 강남구(1168000000) · 호우 · 2026-08-25 14:00",
+    "condition_parsed": {
+      "region_name": "서울특별시 강남구",
+      "sido": "서울특별시",
+      "sigungu": "강남구",
+      "admin_code": "1168000000",
+      "level": "SGG",
+      "disaster_types": [
+        "호우"
+      ],
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "active_warning": null,
+      "extra": []
+    },
+    "query_context_draft": {
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "region": {
+        "admin_code": "1168000000",
+        "name": "서울특별시 강남구",
+        "level": "SGG"
+      },
+      "disaster_types": [
+        "호우"
+      ]
+    },
+    "expected_apis": [
+      "T3Q-01",
+      "T3Q-30",
+      "T3Q-32"
+    ],
+    "api_flow_raw": "T3Q-01 Agent 질의 → T3Q-30 침수흔적 → T3Q-32 위성영상 메타",
+    "cq_table_apis": [
+      "T3Q-01",
+      "T3Q-30",
+      "T3Q-32",
+      "T3Q-36"
+    ],
+    "data_groups": [
+      "FLOOD_MAP",
+      "FLOOD_TRACE"
+    ],
+    "cq_table_modes": [],
+    "expected_answer": "{\"2019\": {\"구역\": 903, \"흔적과 겹침\": 862}, \"2020\": {\"구역\": 6636, \"흔적과 겹침\": 5049}, \"2021\": {\"구역\": 1231, \"흔적과 겹침\": 1175}, \"2022\": {\"구역\": 11703, \"흔적과 겹침\": 11675}}",
+    "expected_answer_json": {
+      "2019": {
+        "구역": 903,
+        "흔적과 겹침": 862
+      },
+      "2020": {
+        "구역": 6636,
+        "흔적과 겹침": 5049
+      },
+      "2021": {
+        "구역": 1231,
+        "흔적과 겹침": 1175
+      },
+      "2022": {
+        "구역": 11703,
+        "흔적과 겹침": 11675
+      }
+    },
+    "expected_answer_truncated": false,
+    "check_sql": null,
+    "region": {
+      "sido": "서울특별시",
+      "sigungu": "강남구",
+      "admin_code": "1168000000",
+      "level": "SGG"
+    },
+    "follow_up": null,
+    "spatial_op": "폴리곤-사각형 교차 — gis.geoai_flood_area × gis.flood_trace",
+    "memo": null,
+    "notes": "공간 연산: 폴리곤-사각형 교차 — gis.geoai_flood_area × gis.flood_trace",
+    "agent416_result": {
+      "grade": "부분 정답",
+      "comment": "2022 11,675/11,703 은 일치, 2019~2021 은 bbox_suspect 만 빼고 겹침을 세어 expect(bbox 만) 보다 큼(2020 6,623 vs 5,049) (146초 · SQL 12회)"
+    },
+    "cq_original_416_result": "부분 정답",
+    "source_line": 658,
+    "scope_note": "질문 범위: 전국(조건은 서울 강남구)",
+    "answer_type": "nested_count_map",
+    "judge_mode": "auto",
+    "judge_reason": "두 자리 이상 정수·이름만 — 답 글 포함 여부로 판정",
+    "answer_check_tokens": [
+      "903",
+      "862",
+      "6636",
+      "5049",
+      "1231",
+      "1175",
+      "11703",
+      "11675"
+    ]
+  },
+  {
+    "id": "P13-01-g2",
+    "cq_id": "P13-01",
+    "cq_original": "위성영상 홍수 탐지 결과와 침수흔적도는 얼마나 일치하는가?",
+    "variant_kind": "공간",
+    "variant_kind_raw": "공간",
+    "question": "GeoAI 홍수탐지 침수구역 면적 가운데 100년 빈도 침수지도 침수구역 안에 드는 몫은 몇 %야? 지도 종류(도시침수·지방하천·국가하천)별로.",
+    "question_source": null,
+    "query_context": null,
+    "condition_raw": "서울특별시 강남구(1168000000) · 호우 · 2026-08-25 14:00",
+    "condition_parsed": {
+      "region_name": "서울특별시 강남구",
+      "sido": "서울특별시",
+      "sigungu": "강남구",
+      "admin_code": "1168000000",
+      "level": "SGG",
+      "disaster_types": [
+        "호우"
+      ],
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "active_warning": null,
+      "extra": []
+    },
+    "query_context_draft": {
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "region": {
+        "admin_code": "1168000000",
+        "name": "서울특별시 강남구",
+        "level": "SGG"
+      },
+      "disaster_types": [
+        "호우"
+      ]
+    },
+    "expected_apis": [
+      "T3Q-01",
+      "T3Q-32",
+      "T3Q-36"
+    ],
+    "api_flow_raw": "T3Q-01 Agent 질의 → T3Q-32 위성영상 메타 → T3Q-36 침수지도 속성",
+    "cq_table_apis": [
+      "T3Q-01",
+      "T3Q-30",
+      "T3Q-32",
+      "T3Q-36"
+    ],
+    "data_groups": [
+      "FLOOD_MAP",
+      "FLOOD_TRACE"
+    ],
+    "cq_table_modes": [],
+    "expected_answer": "{\"GeoAI 면적 ㎢\": 195.23, \"지도 종류별\": {\"도시침수지도\": {\"겹친 ㎢\": 27.38, \"비율 %\": 14.0, \"겹친 구역 수\": 6920}, \"국가하천 하천범람지도\": {\"겹친 ㎢\": 73.75, \"비율 %\": 37.8, \"겹친 구역 수\": 4574}, \"지방하천 하천범람지도\": {\"겹친 ㎢\": 103.68, \"비율 %\": 53.1, \"겹친 구역 수\": 7211}}}",
+    "expected_answer_json": {
+      "GeoAI 면적 ㎢": 195.23,
+      "지도 종류별": {
+        "도시침수지도": {
+          "겹친 ㎢": 27.38,
+          "비율 %": 14,
+          "겹친 구역 수": 6920
+        },
+        "국가하천 하천범람지도": {
+          "겹친 ㎢": 73.75,
+          "비율 %": 37.8,
+          "겹친 구역 수": 4574
+        },
+        "지방하천 하천범람지도": {
+          "겹친 ㎢": 103.68,
+          "비율 %": 53.1,
+          "겹친 구역 수": 7211
+        }
+      }
+    },
+    "expected_answer_truncated": false,
+    "check_sql": null,
+    "region": {
+      "sido": "서울특별시",
+      "sigungu": "강남구",
+      "admin_code": "1168000000",
+      "level": "SGG"
+    },
+    "follow_up": null,
+    "spatial_op": "폴리곤 교집합 면적(ST_Intersection) — GeoAI × 침수지도, 지도 종류별(한 종류 안에서는 침수심 등급이 겹치지 않는다)",
+    "memo": null,
+    "notes": "공간 연산: 폴리곤 교집합 면적(ST_Intersection) — GeoAI × 침수지도, 지도 종류별(한 종류 안에서는 침수심 등급이 겹치지 않는다)",
+    "agent416_result": {
+      "grade": "부분 정답",
+      "comment": "기준지역 강남구로 좁혀 GeoAI 25.6ha 기준 도시 51.8%·지방 16.9%·국가 0% — 질문은 전국(GeoAI 195.23㎢, 도시 14.0·국가 37.8·지방 53.1%) (132초 · SQL 11회)"
+    },
+    "cq_original_416_result": "부분 정답",
+    "source_line": 667,
+    "scope_note": "질문 범위: 전국(조건은 서울 강남구)",
+    "answer_type": "nested_count_map",
+    "judge_mode": "auto_partial",
+    "judge_reason": "큰 수·이름은 자동, 한 자리 수·0·null·소수(반올림 표기)·서술 구절은 사람 확인",
+    "answer_check_tokens": [
+      "195.23",
+      "27.38",
+      "14",
+      "6920",
+      "73.75",
+      "37.8",
+      "4574",
+      "103.68",
+      "53.1",
+      "7211"
+    ]
+  },
+  {
+    "id": "PT-01-v1",
+    "cq_id": "PT-01",
+    "cq_original": "2025년 서울 강남권 집중호우와 유사한 재난 사례 보여줘.(제안서 예시 질문)",
+    "variant_kind": "표현·조건",
+    "variant_kind_raw": "표현·조건",
+    "question": "2022년 8월 서울 강남 침수와 비슷한 과거 사례를 보여줘 — 같은 강남·서초 법정동에 침수흔적이 있었던 해와 건수.",
+    "question_source": null,
+    "query_context": null,
+    "condition_raw": "서울특별시 강남구(1168000000) · 호우 · 2022-08-09 09:00 · 발효 호우경보",
+    "condition_parsed": {
+      "region_name": "서울특별시 강남구",
+      "sido": "서울특별시",
+      "sigungu": "강남구",
+      "admin_code": "1168000000",
+      "level": "SGG",
+      "disaster_types": [
+        "호우"
+      ],
+      "reference_time": "2022-08-09T09:00:00+09:00",
+      "active_warning": "호우경보",
+      "extra": []
+    },
+    "query_context_draft": {
+      "reference_time": "2022-08-09T09:00:00+09:00",
+      "region": {
+        "admin_code": "1168000000",
+        "name": "서울특별시 강남구",
+        "level": "SGG"
+      },
+      "disaster_types": [
+        "호우"
+      ],
+      "alert_stage": "경보",
+      "weather_alerts": [
+        {
+          "alert_type": "호우",
+          "alert_level": "경보",
+          "status": "발효"
+        }
+      ]
+    },
+    "expected_apis": [
+      "T3Q-01",
+      "T3Q-04",
+      "T3Q-11"
+    ],
+    "api_flow_raw": "T3Q-01 Agent 질의 → T3Q-04 유사사례 검색 → T3Q-11 유사도 근거",
+    "cq_table_apis": [
+      "T3Q-01",
+      "T3Q-04",
+      "T3Q-11",
+      "T3Q-30"
+    ],
+    "data_groups": [
+      "FLOOD_TRACE",
+      "SIMILAR_EVENT"
+    ],
+    "cq_table_modes": [],
+    "expected_answer": "{\"2010\": 771, \"2011\": 2157, \"2012\": 47, \"2014\": 4, \"2016\": 4, \"2018\": 6, \"2019\": 1, \"2020\": 3, \"2022\": 804, \"2023\": 6}",
+    "expected_answer_json": {
+      "2010": 771,
+      "2011": 2157,
+      "2012": 47,
+      "2014": 4,
+      "2016": 4,
+      "2018": 6,
+      "2019": 1,
+      "2020": 3,
+      "2022": 804,
+      "2023": 6
+    },
+    "expected_answer_truncated": false,
+    "check_sql": null,
+    "region": {
+      "sido": "서울특별시",
+      "sigungu": "강남구",
+      "admin_code": "1168000000",
+      "level": "SGG"
+    },
+    "follow_up": null,
+    "spatial_op": null,
+    "memo": null,
+    "notes": null,
+    "agent416_result": {
+      "grade": "정답",
+      "comment": "같은 11개 법정동 연도별 건수(2011 2,157·2010 771·2022 804 …) 전부 일치 (76초 · SQL 5회)"
+    },
+    "cq_original_416_result": "정답",
+    "source_line": 678,
+    "scope_note": null,
+    "answer_type": "count_map",
+    "judge_mode": "auto_partial",
+    "judge_reason": "큰 수·이름은 자동, 한 자리 수·0·null·소수(반올림 표기)·서술 구절은 사람 확인",
+    "answer_check_tokens": [
+      "771",
+      "2157",
+      "47",
+      "804"
+    ]
+  },
+  {
+    "id": "PT-01-g",
+    "cq_id": "PT-01",
+    "cq_original": "2025년 서울 강남권 집중호우와 유사한 재난 사례 보여줘.(제안서 예시 질문)",
+    "variant_kind": "공간",
+    "variant_kind_raw": "공간",
+    "question": "2022년 강남구 침수흔적 범위와 실제로 겹치는 과거(2010·2011) 침수흔적은 몇 건이야? 같은 자리에서 되풀이된 침수.",
+    "question_source": null,
+    "query_context": null,
+    "condition_raw": "서울특별시 강남구(1168000000) · 호우 · 2022-08-09 09:00",
+    "condition_parsed": {
+      "region_name": "서울특별시 강남구",
+      "sido": "서울특별시",
+      "sigungu": "강남구",
+      "admin_code": "1168000000",
+      "level": "SGG",
+      "disaster_types": [
+        "호우"
+      ],
+      "reference_time": "2022-08-09T09:00:00+09:00",
+      "active_warning": null,
+      "extra": []
+    },
+    "query_context_draft": {
+      "reference_time": "2022-08-09T09:00:00+09:00",
+      "region": {
+        "admin_code": "1168000000",
+        "name": "서울특별시 강남구",
+        "level": "SGG"
+      },
+      "disaster_types": [
+        "호우"
+      ]
+    },
+    "expected_apis": [
+      "T3Q-01",
+      "T3Q-04",
+      "T3Q-30"
+    ],
+    "api_flow_raw": "T3Q-01 Agent 질의 → T3Q-04 유사사례 검색 → T3Q-30 침수흔적",
+    "cq_table_apis": [
+      "T3Q-01",
+      "T3Q-04",
+      "T3Q-11",
+      "T3Q-30"
+    ],
+    "data_groups": [
+      "FLOOD_TRACE",
+      "SIMILAR_EVENT"
+    ],
+    "cq_table_modes": [],
+    "expected_answer": "{\"2010\": 42, \"2011\": 106}",
+    "expected_answer_json": {
+      "2010": 42,
+      "2011": 106
+    },
+    "expected_answer_truncated": false,
+    "check_sql": null,
+    "region": {
+      "sido": "서울특별시",
+      "sigungu": "강남구",
+      "admin_code": "1168000000",
+      "level": "SGG"
+    },
+    "follow_up": null,
+    "spatial_op": "사각형 교차 — gis.flood_trace 연도 간",
+    "memo": null,
+    "notes": "공간 연산: 사각형 교차 — gis.flood_trace 연도 간",
+    "agent416_result": {
+      "grade": "정답",
+      "comment": "2022 강남 흔적과 겹친 2010 42건·2011 106건 정확히 일치 (104초 · SQL 10회)"
+    },
+    "cq_original_416_result": "정답",
+    "source_line": 686,
+    "scope_note": null,
+    "answer_type": "count_map",
+    "judge_mode": "auto",
+    "judge_reason": "두 자리 이상 정수·이름만 — 답 글 포함 여부로 판정",
+    "answer_check_tokens": [
+      "42",
+      "106"
+    ]
+  },
+  {
+    "id": "PT-04-v1",
+    "cq_id": "PT-04",
+    "cq_original": "특정 재난 상황에 대한 대응 시나리오와 대응 우선순위를 추천하라.",
+    "variant_kind": "표현·조건",
+    "variant_kind_raw": "표현·조건",
+    "question": "서천군에 호우경보가 발효되면 먼저 확인할 대상 — 하천 500m 안 지하차도, D·E 등급 급경사지, 위험등급 개선지구를 우선순위로.",
+    "question_source": null,
+    "query_context": null,
+    "condition_raw": "충청남도 서천군(4477000000) · 호우 · 2026-08-25 14:00 · 발효 호우경보",
+    "condition_parsed": {
+      "region_name": "충청남도 서천군",
+      "sido": "충청남도",
+      "sigungu": "서천군",
+      "admin_code": "4477000000",
+      "level": "SGG",
+      "disaster_types": [
+        "호우"
+      ],
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "active_warning": "호우경보",
+      "extra": []
+    },
+    "query_context_draft": {
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "region": {
+        "admin_code": "4477000000",
+        "name": "충청남도 서천군",
+        "level": "SGG"
+      },
+      "disaster_types": [
+        "호우"
+      ],
+      "alert_stage": "경보",
+      "weather_alerts": [
+        {
+          "alert_type": "호우",
+          "alert_level": "경보",
+          "status": "발효"
+        }
+      ]
+    },
+    "expected_apis": [
+      "T3Q-01",
+      "T3Q-28",
+      "T3Q-05"
+    ],
+    "api_flow_raw": "T3Q-01 Agent 질의 → T3Q-28 행동매뉴얼 대응절차 → T3Q-05 위험·취약 대상 목록",
+    "cq_table_apis": [
+      "T3Q-01",
+      "T3Q-05",
+      "T3Q-28"
+    ],
+    "data_groups": [
+      "RISK_AREA",
+      "RISK_FACTOR_FACILITY"
+    ],
+    "cq_table_modes": [],
+    "expected_answer": "{\"하천 인접 지하차도\": [], \"D·E 급경사지\": 4, \"개선지구(지정 중)\": 2}",
+    "expected_answer_json": {
+      "하천 인접 지하차도": [],
+      "D·E 급경사지": 4,
+      "개선지구(지정 중)": 2
+    },
+    "expected_answer_truncated": false,
+    "check_sql": null,
+    "region": {
+      "sido": "충청남도",
+      "sigungu": "서천군",
+      "admin_code": "4477000000",
+      "level": "SGG"
+    },
+    "follow_up": null,
+    "spatial_op": null,
+    "memo": null,
+    "notes": null,
+    "agent416_result": {
+      "grade": "정답",
+      "comment": "하천 인접 지하차도 0·D·E 4곳·개선지구(NDIZ) 지정 중 2곳(종천·도마) 일치, 풍수해생활권 3곳은 추가 제시 (108초 · SQL 11회)"
+    },
+    "cq_original_416_result": "부분 정답",
+    "source_line": 697,
+    "scope_note": null,
+    "answer_type": "nested_count_map",
+    "judge_mode": "human",
+    "judge_reason": "정답이 0·null·한 자리 수뿐 — 포함 여부로 판정 불가",
+    "answer_check_tokens": []
+  },
+  {
+    "id": "PT-04-v2",
+    "cq_id": "PT-04",
+    "cq_original": "특정 재난 상황에 대한 대응 시나리오와 대응 우선순위를 추천하라.",
+    "variant_kind": "지역·시점",
+    "variant_kind_raw": "지역",
+    "question": "부산 해운대구에 호우경보가 발효되면 먼저 확인할 대상 — 하천 500m 안 지하차도, D·E 급경사지, 지정 중인 개선지구.",
+    "question_source": null,
+    "query_context": null,
+    "condition_raw": "부산광역시 해운대구(2635000000) · 호우 · 2026-08-25 14:00 · 발효 호우경보",
+    "condition_parsed": {
+      "region_name": "부산광역시 해운대구",
+      "sido": "부산광역시",
+      "sigungu": "해운대구",
+      "admin_code": "2635000000",
+      "level": "SGG",
+      "disaster_types": [
+        "호우"
+      ],
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "active_warning": "호우경보",
+      "extra": []
+    },
+    "query_context_draft": {
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "region": {
+        "admin_code": "2635000000",
+        "name": "부산광역시 해운대구",
+        "level": "SGG"
+      },
+      "disaster_types": [
+        "호우"
+      ],
+      "alert_stage": "경보",
+      "weather_alerts": [
+        {
+          "alert_type": "호우",
+          "alert_level": "경보",
+          "status": "발효"
+        }
+      ]
+    },
+    "expected_apis": [
+      "T3Q-01",
+      "T3Q-28",
+      "T3Q-05"
+    ],
+    "api_flow_raw": "T3Q-01 Agent 질의 → T3Q-28 행동매뉴얼 대응절차 → T3Q-05 위험·취약 대상 목록",
+    "cq_table_apis": [
+      "T3Q-01",
+      "T3Q-05",
+      "T3Q-28"
+    ],
+    "data_groups": [
+      "RISK_AREA",
+      "RISK_FACTOR_FACILITY"
+    ],
+    "cq_table_modes": [],
+    "expected_answer": "{\"하천 인접 지하차도\": [\"센텀지하차도\", \"용천지하차도\", \"센텀시티지하차도\", \"수영강변지하차도\"], \"D·E 급경사지\": 0, \"개선지구(지정 중)\": 3}",
+    "expected_answer_json": {
+      "하천 인접 지하차도": [
+        "센텀지하차도",
+        "용천지하차도",
+        "센텀시티지하차도",
+        "수영강변지하차도"
+      ],
+      "D·E 급경사지": 0,
+      "개선지구(지정 중)": 3
+    },
+    "expected_answer_truncated": false,
+    "check_sql": null,
+    "region": {
+      "sido": "부산광역시",
+      "sigungu": "해운대구",
+      "admin_code": "2635000000",
+      "level": "SGG"
+    },
+    "follow_up": null,
+    "spatial_op": null,
+    "memo": null,
+    "notes": null,
+    "agent416_result": {
+      "grade": "정답",
+      "comment": "하천 인접 지하차도 4곳(센텀·용천·센텀시티·수영강변)·D·E 0·NDIZ 지정 중 3 일치 (111초 · SQL 9회)"
+    },
+    "cq_original_416_result": "부분 정답",
+    "source_line": 705,
+    "scope_note": null,
+    "answer_type": "mixed",
+    "judge_mode": "auto_partial",
+    "judge_reason": "큰 수·이름은 자동, 한 자리 수·0·null·소수(반올림 표기)·서술 구절은 사람 확인",
+    "answer_check_tokens": [
+      "센텀지하차도",
+      "용천지하차도",
+      "센텀시티지하차도",
+      "수영강변지하차도"
+    ]
+  }
+]

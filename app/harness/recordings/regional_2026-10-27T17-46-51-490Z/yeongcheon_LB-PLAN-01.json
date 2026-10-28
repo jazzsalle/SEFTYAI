@@ -1,0 +1,199 @@
+{
+  "id": "yeongcheon:LB-PLAN-01",
+  "question": "경상북도 영천시의 자연재해위험개선지구 정비사업 내용·기간·시행기관을 정리해줘.",
+  "request": {
+    "question": "경상북도 영천시의 자연재해위험개선지구 정비사업 내용·기간·시행기관을 정리해줘.",
+    "question_source": "SUGGEST",
+    "query_context": {
+      "region": {
+        "admin_code": "4723000000",
+        "name": "경상북도 영천시",
+        "level": "SIGUNGU"
+      },
+      "disaster_types": [
+        "호우"
+      ]
+    }
+  },
+  "final": {
+    "schema_version": "2.0",
+    "request_id": "45c8a7b10108f9e370e1ca0a3f1a1ce4",
+    "correlation_id": "corr-45c8a7b10108f9e370e1ca0a3f1a1ce4",
+    "status": "SUCCESS",
+    "conversation_id": "CONV-20261028-d564cc",
+    "turn_no": 1,
+    "result": {
+      "response_id": "RES-20261028-2451bc",
+      "question": "경상북도 영천시의 자연재해위험개선지구 정비사업 내용·기간·시행기관을 정리해줘.",
+      "question_source": "SUGGEST",
+      "answer": "### 결론\n\n경상북도 영천시의 자연재해위험개선지구 및 풍수해생활권 종합정비지구 정비사업은 **총 19개 지구**(자연재해위험개선지구 16개소, 풍수해생활권 3개소)로 관리되고 있습니다.\n\n- **시행기관**: 19개 지구 중 **18개 지구는 영천시**가 직접 시행하며, 국가하천 내 지장물 제거 및 이주 사업이었던 **오수섬 1개소만 부산지방국토관리청(부산청)**이 시행하였습니다.\n- **사업 진행 상태**:\n  - **정비 완료 및 지정 해제 (8개소)**: 가수, 대기, 도동, 신대, 완산, 원곡, 작산, 오수섬\n  - **지정 유지 / 사업 추진 중 및 계획 (11개소)**: 삼부, 효정, 신양, 북안명주, 안천, 청통, 단포, 자천, 임고, 오산, 용호\n\n---\n\n### 1. 사업 추진 중 및 예정 지구 현황 (11개소, 미해제)\n\n현재 정비사업이 진행 중이거나 연차별 중기계획에 따라 추진 예정인 지구입니다.\n\n| ref | 지구명 | 구분 | 재해유형 (위험등급) | 사업 기간 | 사업 내용 (정비 규모) | 시행기관 | 총사업비 (백만원) |\n|---|---|---|---|---|---|---|---|\n| r2 | [삼부](#ref:r2) | NDIZ | 침수위험 (가등급) | 2020 ~ 2026 | 하천정비 L=6.57km, 교량 7개소 재가설 | 영천시 | 28,000 |\n| r2 | [효정](#ref:r2) | NDIZ | 침수위험 (가등급) | 2021 ~ 2027 | 하천정비 L=4.0km | 영천시 | 19,244 |\n| r5 | [신양](#ref:r5) | WLZ | 침수위험 (가등급) | 2022 ~ 2030 | 하천, 소하천, 우수관로 정비 등 | 영천시 | 49,000 |\n| r9 | [북안명주](#ref:r9) | WLZ | 침수위험 (가등급) | 2025 ~ 2030 | 하천정비 L=9.1km, 교량 개체 29개소 등 | 영천시 | 40,900 |\n| r6 | [안천](#ref:r6) | NDIZ | 침수위험 (나등급) | 2023 ~ 2028 | 지방하천정비 L=7.75km | 영천시 | 35,000 |\n| r13 | [청통](#ref:r13) | NDIZ | 침수위험 (나등급) | 2026 ~ 2028 | 지방하천정비 L=4.0km | 영천시 | 25,000 |\n| r1 | [단포](#ref:r1) | NDIZ | 침수위험 (나등급) | 2027 ~ 2030 | 배수펌프장 신설, 저류지 유입부 설치 | 영천시 | 38,200 |\n| r7 | [자천](#ref:r7) | WLZ | 침수위험 (나등급) | 2027 ~ 2030 | 하천정비 L=0.47km, 소하천 L=3.82km, 교량 개체 18개소 등 | 영천시 | 47,046 |\n| r11 | [임고](#ref:r11) | NDIZ | 침수위험 (나등급) | 2016 ~ 2020 | 하천정비 L=2.2km, 교량 2개소 | 영천시 | 7,200 |\n| r7 | [오산](#ref:r7) | NDIZ | 침수위험 (다등급) | 2021 ~ 2028 | 지방하천정비 L=4.93km, 소하천 정비 L=1.51km | 영천시 | 40,870 |\n| r9 | [용호](#ref:r9) | NDIZ | 침수위험 (다등급) | 2017 ~ 2020 | 축제 및 호안 L=2.8km, 교량 5개소 | 영천시 | 9,986 |\n\n> ※ 구분 설명: **NDIZ**는 자연재해위험개선지구, **WLZ**는 풍수해생활권 종합정비지구를 의미합니다.  \n> ※ [임고](#ref:r11) 및 [용호](#ref:r9) 지구는 계획된 공사 기간이 경과하였으나 대장상 해제 고시가 등록되지 않아 관리 대상에 포함되어 있습니다.\n\n---\n\n### 2. 정비 완료 및 해제 지구 현황 (8개소)\n\n정비사업이 완료되어 재해위험개선지구 지정이 해제된 지구입니다.\n\n| ref | 지구명 | 구분 | 재해유형 (위험등급) | 사업 기간 | 사업 내용 (정비 규모) | 시행기관 | 총사업비 (백만원) | 해제일자 |\n|---|---|---|---|---|---|---|---|---|\n| r1 | [가수](#ref:r1) | NDIZ | 유실위험 (다등급) | 2007 ~ 2012 | 하천정비 L=5.5km, 교량 7개소 | 영천시 | 19,524 | 2014-03-10 |\n| r2 | [대기](#ref:r2) | NDIZ | 유실위험 (다등급) | 2011 ~ 2014 | 하천정비 L=4.6km, 교량 3개소 | 영천시 | 15,160 | 2015-06-22 |\n| r3 | [도동](#ref:r3) | NDIZ | 침수위험 (다등급) | 2012 ~ 2013 | 배수로 L=2.0km, 배수펌프장 1식 | 영천시 | 5,000 | 2015-02-27 |\n| r4 | [신대](#ref:r4) | NDIZ | 유실위험 (가등급) | 2014 ~ 2017 | 교량 L=349m, 접속도로 L=321m | 영천시 | 13,034 | 2020-05-25 |\n| r8 | [완산](#ref:r8) | NDIZ | 침수위험 (다등급) | 2002 ~ 2004 | 배수펌프장 1식 | 영천시 | 2,830 | 2006-01-16 |\n| r10 | [원곡](#ref:r10) | NDIZ | 침수위험 (나등급) | 2015 ~ 2016 | 하천정비 L=2.4km | 영천시 | 2,700 | 2018-01-31 |\n| r12 | [작산](#ref:r12) | NDIZ | 침수위험 (다등급) | 1995 ~ 2003 | 하천정비 L=4.0km | 영천시 | 6,527 | 2006-01-16 |\n| r14 | [오수섬](#ref:r14) | NDIZ | 고립위험 (다등급) | 2003 ~ 2005 | 3가구 이주 및 오수섬 제거 | 부산청 | 1,956 | 2006-01-16 |\n\n---\n\n### 출처 및 근거\n- **데이터 출처**: 행정안전부 재난안전 데이터베이스(`mois_struct152` 도메인 모델)\n  - `hazard.zone`: 자연재해위험개선지구 및 풍수해생활권 공통 기준 제원\n  - `hazard.improvement_district`: 지구별 세부 정비사업 내용·기간·시행기관·시설등급\n  - `hazard.zone_investment`: 연차별·재원별 총사업비 투자 실적 및 계획 대장",
+      "answer_format": "MARKDOWN",
+      "entities": [],
+      "result_groups": [],
+      "evidence_refs": [],
+      "follow_up_questions": [],
+      "refs": [
+        {
+          "ref": "r2",
+          "entity_type": "REGION",
+          "display_name": "대기",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4723033000",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r5",
+          "entity_type": "REGION",
+          "display_name": "신양",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4723032000",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r9",
+          "entity_type": "REGION",
+          "display_name": "용호",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4723039000",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r6",
+          "entity_type": "REGION",
+          "display_name": "안천",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4723035000",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r13",
+          "entity_type": "REGION",
+          "display_name": "청통",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4723031000",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r1",
+          "entity_type": "REGION",
+          "display_name": "가수",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4723038000",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r7",
+          "entity_type": "REGION",
+          "display_name": "오산",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4723034000",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r11",
+          "entity_type": "REGION",
+          "display_name": "임고",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4723037000",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r3",
+          "entity_type": "REGION",
+          "display_name": "도동",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4723011100",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r4",
+          "entity_type": "REGION",
+          "display_name": "신대",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4723025000",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r8",
+          "entity_type": "REGION",
+          "display_name": "완산",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4723011300",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r10",
+          "entity_type": "REGION",
+          "display_name": "원곡",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4723000000",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r12",
+          "entity_type": "REGION",
+          "display_name": "작산",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4723011500",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r14",
+          "entity_type": "REGION",
+          "display_name": "오수섬",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4723012400",
+            "draw": "pin"
+          }
+        }
+      ],
+      "conversation_title": null,
+      "limitations": [
+        "유사사례는 예측·위험판단이 아닌 참고 정보"
+      ],
+      "context_used": {
+        "used_conditions": [],
+        "unused_conditions": [],
+        "reference_used": false
+      }
+    },
+    "data_gaps": [],
+    "warnings": [],
+    "meta": {
+      "source": "T3Q",
+      "base_time": "2026-10-28T03:22:34+09:00",
+      "quality_status": "VERIFIED",
+      "disclosure_level": "공개",
+      "elapsed_ms": 75412
+    }
+  },
+  "waitedMs": 77646,
+  "timeout": false
+}

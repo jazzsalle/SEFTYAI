@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useSession } from "@/lib/session";
 import { REGIONS } from "@/lib/config";
@@ -10,6 +10,12 @@ import type { Advisory } from "@/lib/contract/agent";
 import { advLabel, advTime, advTone } from "@/lib/wxref";
 import { SopProvider } from "@/lib/sopState";
 import SopBar from "./sop/SopBar";
+import { openHelp } from "./HelpCenter";
+import AiModeModal from "./explore/AiModeModal";
+import FontSize from "./FontSize";
+import { PasswordModal } from "./account/PasswordModal";
+import { MyInfoModal } from "./account/MyInfoModal";
+import { SessionExpiredModal } from "./account/SessionExpiredModal";
 
 const fmtT = (iso?: string) => {
   if (!iso) return "";
@@ -26,7 +32,8 @@ export function WxBar() {
   const region = cond.region;
   const mine = (weather?.advisories ?? []).filter((a) => a.status !== "해제" && a.status !== "변경" && (region === "national" || a.regionId === region));
   const top = [...mine].sort((a, b) => (b.level === "경보" ? 1 : 0) - (a.level === "경보" ? 1 : 0))[0];
-  const others = mine.length - (top ? 1 : 0);
+  // 지역 화면은 나머지 특보를 이름 그대로(유엔이가 센 건수는 보이지 않음, R25). 전국 화면만 건수
+  const rest = top ? mine.filter((a) => a !== top) : [];
   let tag: React.ReactNode, title: React.ReactNode, meta = "";
   if (!weather) {
     tag = <span className="tag fail">조회 중</span>;
@@ -38,7 +45,7 @@ export function WxBar() {
   } else if (top) {
     tag = <span className={`tag ${top.level === "경보" ? "" : "warn"}`}><IcSiren size={16} /> {top.level === "경보" ? "긴급" : "주의"}</span>;
     title = <>{top.area} {top.type}{top.level} 발효 중</>;
-    meta = `${fmtT(top.issuedAt)} 발표 · 기상청 ${fmtT(weather.status.fetchedAt)} 갱신${weather.mode === "scenario" ? " · 훈련 시나리오" : ""}`;
+    meta = `${fmtT(top.issuedAt)} 발표 · 기상청 ${fmtT(weather.status.fetchedAt)} 갱신`;
   } else {
     tag = <span className="tag none">특보 없음</span>;
     title = region === "national" ? "발효 중인 기상특보가 없습니다" : `${REGIONS[region].name}에 발효 중인 기상특보가 없습니다`;
@@ -54,7 +61,7 @@ export function WxBar() {
   };
   const onAsk = () => {
     if (aimOn) return;
-    if (!cands.length) return router.push("/explore?panel=wx");
+    if (!cands.length) return;
     if (cands.length === 1) return attach(cands[0]);
     setPick((v) => !v);
   };
@@ -62,7 +69,7 @@ export function WxBar() {
     <div className={`wxbar ${top && top.level === "경보" ? "danger" : ""}`}>
       {tag}
       <span className="tit">{title}</span>
-      {others > 0 && <span className="more">외 {others}건</span>}
+      {rest.length > 0 && <span className="more">외 {region === "national" ? `${rest.length}건` : rest.map(advLabel).join(" · ")}</span>}
       <span className="meta">{meta}</span>
       <span className="sp" />
       <div className="wxask">
@@ -74,8 +81,9 @@ export function WxBar() {
           aria-haspopup={cands.length > 1}
           aria-expanded={pick}
         >
-          {aimOn ? "AI 모드 · 특보 자동 반영" : wxRef ? `참조 중 · ${advLabel(wxRef)}` : "특보로 질문"} {!aimOn && <IcChevR size={14} />}
+          {aimOn ? "AI 모드 · 특보 자동 반영" : wxRef ? `참조 중 · ${advLabel(wxRef)}` : "특보로 질문"} {!aimOn && !wxRef && <IcChevR size={14} />}
         </button>
+        {wxRef && !aimOn && <button className="lnk xs" onClick={() => setWxRef(null)} aria-label="특보 참조 해제" title="특보 참조 해제">해제 ×</button>}
         {pick && (
           <div className="wxpick" role="menu">
             <div className="hd">질문에 참조할 특보를 고르세요</div>
@@ -93,11 +101,18 @@ export function WxBar() {
   );
 }
 
+/**
+ * 공통 헤더 (Figma 102001 기반, 사용자 지시 10) — Figma 의 3단(공식 배너·유틸리티·메인 메뉴, 200px)을 한 줄(56px)로 합쳤다.
+ * 로고 · 메인 메뉴 · 기준지역 · 도움말 · 글자 크기 · AI 모드 · 사용자. KRDS 공식 배너 띠는 생략(허용됨).
+ */
 export default function AppShell({ children }: { children: React.ReactNode }) {
-  const { ready, account, logout, cond, setCond, toastMsg, aimOn, setAimOn, mode, setMode, weather } = useSession();
+  const { ready, account, logout, cond, setCond, toastMsg, aimOn, setAimOn, weather, t3qOk, setWxRef } = useSession();
   const router = useRouter();
+  const path = usePathname();
   const [menu, setMenu] = useState(false);
-  const [sgg, setSgg] = useState<{ name: string }[]>([]);
+  const [modal, setModal] = useState<"pw" | "me" | null>(null);
+  // 기준지역 선택지(시·군·구 이름·코드, 읍·면·동 이름) — 사용자가 고르는 보기일 뿐 화면에 자료로 보이지 않는다
+  const [sgg, setSgg] = useState<{ code: string; name: string }[]>([]);
   const [emds, setEmds] = useState<Record<string, string[]>>({});
 
   useEffect(() => {
@@ -115,52 +130,56 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   }, []);
 
   if (!ready || !account) return null;
-  // 신호등 상태 (헤더 버튼 색)
   const mine = (weather?.advisories ?? []).filter((a) => a.status === "발효" && (cond.region === "national" || a.regionId === cond.region));
   const st = !aimOn ? "" : weather && !weather.status.ok ? "gray" : mine.some((a) => a.level === "경보") ? "red" : mine.length ? "yellow" : "green";
-  const emdList = cond.sigungu ? emds[cond.sigungu] ?? [] : [];
+  const sggName = cond.sigunguName ?? (sgg.length === 1 ? sgg[0].name : undefined);
+  const emdList = sggName ? emds[sggName] ?? [] : [];
+  const local = account.role === "지자체";
+  // 연락망·상황전파는 사용자 메뉴로 옮김(사용자 지시 2026-10-28)
+  const nav: [string, string][] = [["/explore", "통합 탐색"], ["/history", "대화 이력"], ...(account.role === "운영자" ? ([["/admin", "운영관리"]] as [string, string][]) : [])];
 
   return (
     <SopProvider>
     <div className="app">
-      <div className="nuri">
-        <svg className="flag" viewBox="0 0 36 24"><rect width="36" height="24" fill="#fff" /><circle cx="18" cy="12" r="6" fill="#cd2e3a" /><path d="M12 12a6 6 0 0 0 12 0 3 3 0 0 0-6 0 3 3 0 0 1-6 0" fill="#0047a0" /></svg>
-        이 누리집은 대한민국 공식 전자정부 누리집입니다.
-      </div>
-      <header className="gh">
-        <Link href="/explore?new=1" className="logo">
+      <header className="gh one">
+        <Link href="/explore" className="logo">
           <GovLogo />
-          행정안전부
+          <span>행정안전부 <small>재난안전 AI</small></span>
         </Link>
+        <nav className="gnb" aria-label="메인 메뉴">
+          {nav.map(([href, label]) => (
+            <Link key={href} href={href} className={path?.startsWith(href) ? "on" : ""}>{label}</Link>
+          ))}
+        </nav>
         <span className="sp" />
-        {/* 시연 데이터 전환 — 배포 주소를 받은 사람도 바로 알아보고 바꿀 수 있게 헤더에 노출 */}
-        <span className="demoLb">기상특보 데이터</span>
-        <div className="demoSw" role="group" aria-label="기상특보 데이터 (시연 모드)" title="훈련 시나리오 = 가상의 호우 상황(특보·강우·119 신고) · 실시간 = 기상청 실제 특보">
-          <button className={mode === "scenario" ? "on" : ""} onClick={() => setMode("scenario")} aria-pressed={mode === "scenario"}>훈련 시나리오</button>
-          <button className={mode === "live" ? "on" : ""} onClick={() => setMode("live")} aria-pressed={mode === "live"}>실시간(기상청)</button>
-        </div>
         <div className="scope">
-          기준지역
-          <select className="select sm" value={cond.region} onChange={(e) => setCond({ region: e.target.value as RegionId, sigungu: undefined, emd: undefined })} aria-label="기준지역">
+          <span className="xs muted">기준지역</span>
+          <select className="select sm" value={cond.region} disabled={local} title={local ? "지자체 계정은 관할 지역이 기준지역입니다" : undefined}
+            onChange={(e) => { setWxRef(null); setCond({ region: e.target.value as RegionId, sigungu: undefined, sigunguName: undefined, emd: undefined, emdName: undefined }); }} aria-label="기준지역">
             {(["national", "busan", "yeongcheon", "inje"] as RegionId[]).map((r) => (
               <option key={r} value={r}>{r === "national" ? "전국" : REGIONS[r].name.replace(/^(경상북도|강원특별자치도)\s/, "")}</option>
             ))}
           </select>
-          {cond.region !== "national" && (
-            <select className="select sm" value={cond.sigungu ?? ""} onChange={(e) => setCond({ sigungu: e.target.value || undefined, emd: undefined })} aria-label="시군구">
+          {cond.region !== "national" && sgg.length > 1 && (
+            <select className="select sm" value={cond.sigungu ?? ""} onChange={(e) => {
+              const o = sgg.find((x) => x.code === e.target.value);
+              setCond({ sigungu: o?.code, sigunguName: o?.name, emd: undefined, emdName: undefined });
+            }} aria-label="시군구">
               <option value="">시·군·구 전체</option>
-              {sgg.map((s) => <option key={s.name} value={s.name}>{s.name}</option>)}
+              {sgg.map((x) => <option key={x.code} value={x.code}>{x.name}</option>)}
             </select>
           )}
-          {cond.sigungu && emdList.length > 0 && (
-            <select className="select sm" value={cond.emd ?? ""} onChange={(e) => setCond({ emd: e.target.value || undefined })} aria-label="읍면동">
+          {emdList.length > 0 && (
+            <select className="select sm" value={cond.emdName ?? ""} onChange={(e) => setCond({ emdName: e.target.value || undefined, ...(sgg.length === 1 ? { sigungu: e.target.value ? sgg[0].code : undefined, sigunguName: e.target.value ? sgg[0].name : undefined } : {}) })} aria-label="읍면동">
               <option value="">읍·면·동 전체</option>
-              {emdList.map((s) => <option key={s} value={s}>{s}</option>)}
+              {emdList.map((x) => <option key={x} value={x}>{x}</option>)}
             </select>
           )}
         </div>
-        <button className={`ai-pill ${aimOn ? "on st-" + st : ""}`} onClick={() => { setAimOn(!aimOn); router.push("/explore"); }} aria-pressed={aimOn} title="AI 모드 — 기상특보 기반 상황 점검 전광판">
-          <i /> {aimOn ? "AI 모드 작동 중" : "AI 모드"}
+        <button className="hbtn" onClick={() => openHelp()}>도움말</button>
+        <FontSize />
+        <button className={`ai-pill ${aimOn ? "on st-" + st : ""}`} onClick={() => { setAimOn(!aimOn); if (!path?.startsWith("/explore")) router.push("/explore"); }} aria-pressed={aimOn} title="AI 모드 — 기상특보 기반 상황 점검">
+          <i /> {aimOn ? "AI 모드 실행 중" : "AI 모드"}
         </button>
         <div className="user">
           <button onClick={() => setMenu((m) => !m)} aria-expanded={menu}>
@@ -172,21 +191,25 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                 <b className="s">{account.name}</b>
                 <div className="xs muted">{account.org} {account.dept}</div>
               </div>
-              <Link href="/history" onClick={() => setMenu(false)}>대화 이력</Link>
+              <Link href="/contacts" onClick={() => setMenu(false)}>연락망·상황전파</Link>
               <Link href="/settings/briefing" onClick={() => setMenu(false)}>내 브리핑 항목</Link>
-              <Link href="/contacts" onClick={() => setMenu(false)}>연락망{account.role === "운영자" ? " (조회)" : ""}</Link>
-              <Link href="/settings/me" onClick={() => setMenu(false)}>내 권한 정보</Link>
-              {account.role === "운영자" && <Link href="/admin" onClick={() => setMenu(false)}>운영관리</Link>}
-              <button onClick={() => { logout(); router.push("/login"); }}>로그아웃</button>
+              <button onClick={() => { setMenu(false); setModal("me"); }}>내 권한 정보</button>
+              <button onClick={() => { setMenu(false); setModal("pw"); }}>비밀번호 변경</button>
+              <button onClick={async () => { await logout(); router.push("/login"); }}>로그아웃</button>
             </div>
           )}
         </div>
       </header>
+      {t3qOk === false && <div className="sysbar">에이전트 서버에 연결할 수 없습니다. 새 질문은 연결되면 처리되고, 이전 답변은 대화 이력에서 볼 수 있습니다.</div>}
       <WxBar />
-      {/* 행동매뉴얼 대응 단계 바 — 지자체 계정에만 모든 화면 고정 */}
       <SopBar />
       {children}
-      {toastMsg && <div className="toast">{toastMsg}</div>}
+      {aimOn && <AiModeModal />}
+      {modal === "pw" && <PasswordModal onClose={() => setModal(null)} />}
+      {account.mustChangePw && modal !== "pw" && <PasswordModal forced onClose={() => {}} onDone={() => window.location.reload()} />}
+      {modal === "me" && <MyInfoModal onClose={() => setModal(null)} />}
+      <SessionExpiredModal />
+      {toastMsg && <div className="toast" role="status">{toastMsg}</div>}
     </div>
     </SopProvider>
   );

@@ -1,144 +1,1051 @@
 "use client";
-/** 운영관리 (SCR-UNE-603001~604002) — 시스템 운영자 전용 · 시연판 */
-import { useEffect, useMemo, useState } from "react";
-import { useSession, readTrace, type TraceRow } from "@/lib/session";
-import VerifyTab from "@/components/admin/VerifyTab";
+/**
+ * 운영관리 (S7 · SCR-UNE-302001 운영설정 · 302002 추적로그 조회) — 시스템 운영자 전용
+ * 탭: 질의 현황(/api/admin/jobs · 강제 취소 · 원응답 JSON) · 브리핑 예열(/api/admin/warm) · 계정(/api/admin/accounts)
+ *     · 답변 평가(/api/admin/feedback) · 추적로그(/api/trace)
+ * 원응답은 저장된 JSON 을 들여쓰기만 해서 그대로 보여 준다 — 응답 원문 검증용(R0). 가공·요약하지 않는다.
+ */
+import "./admin.css";
+import { statusKo } from "@/lib/labels";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { api, ApiError } from "@/lib/api";
+import { useSession } from "@/lib/session";
+import { ACCOUNTS } from "@/lib/config";
+import { DEFAULT_BRIEFING, fillText, libById } from "@/lib/library";
+import { PILOT_T3Q } from "@/lib/t3q/region";
+import { SOURCE_LABEL, STATE_LABEL, isActive, type JobSource, type JobState, type JobSummary } from "@/lib/jobTypes";
+import {
+  WARM_REGIONS,
+  type AdminAccountRow,
+  type AdminFeedbackResponse,
+  type AdminJobRow,
+  type AdminJobsResponse,
+  type T3qHealth,
+  type WarmItem,
+  type WarmJob,
+  type WarmRegion,
+  type WarmResponse,
+} from "@/lib/adminTypes";
+import { Dialog, Portal } from "@/components/account/Dialog";
 
-interface Acct { id: string; org: string; dept: string; role: string; status: "사용" | "잠금" | "중지" | "초기"; issued: string; last: string; hist: [string, string, string, string][] }
-const SEED: Acct[] = [
-  { id: "mois_dsd01", org: "중앙정부(행정안전부·NIA)", dept: "재난안전 AI 시범서비스 담당", role: "정부기관 공무원", status: "사용", issued: "2026-08-25", last: "2026-10-03 08:40", hist: [["2026-08-25 09:50", "발급", "admin01", "중앙정부 담당자 공용 계정(행정안전부·NIA)"]] },
-  { id: "bs_safety01", org: "부산광역시", dept: "시민안전실 자연재난과", role: "지자체 공무원", status: "사용", issued: "2026-08-25", last: "2026-10-03 09:02", hist: [["2026-08-25 10:00", "발급", "admin01", "시범지역 담당자 사전 발급"]] },
-  { id: "yc_safety02", org: "경상북도 영천시", dept: "안전재난하천과", role: "지자체 공무원", status: "사용", issued: "2026-08-25", last: "2026-10-02 18:40", hist: [["2026-08-25 10:02", "발급", "admin01", "시범지역 담당자 사전 발급"]] },
-  { id: "ij_safety01", org: "강원특별자치도 인제군", dept: "안전교통과", role: "지자체 공무원", status: "사용", issued: "2026-08-25", last: "2026-10-03 07:11", hist: [["2026-08-25 10:03", "발급", "admin01", "시범지역 담당자 사전 발급"]] },
-  { id: "locked01", org: "부산광역시", dept: "해운대구 안전총괄과", role: "지자체 공무원", status: "잠금", issued: "2026-09-01", last: "2026-10-02 22:15", hist: [["2026-09-01 09:00", "발급", "admin01", "구 담당자 추가"], ["2026-10-02 22:15", "잠금", "system", "비밀번호 5회 연속 실패"]] },
-  { id: "newbie01", org: "경상북도 영천시", dept: "건설과", role: "지자체 공무원", status: "초기", issued: "2026-10-01", last: "—", hist: [["2026-10-01 14:20", "발급", "admin01", "지하차도 담당 추가(초기 비밀번호 변경 필요)"]] },
-  { id: "retired07", org: "강원특별자치도 인제군", dept: "안전교통과", role: "지자체 공무원", status: "중지", issued: "2026-08-25", last: "2026-09-10 17:00", hist: [["2026-08-25 10:05", "발급", "admin01", "사전 발급"], ["2026-09-15 09:00", "사용중지", "admin01", "인사이동 · 권한 회수"]] },
-  { id: "admin01", org: "유엔이 운영지원", dept: "시범서비스 운영", role: "시스템 운영자", status: "사용", issued: "2026-08-20", last: "2026-10-03 09:30", hist: [["2026-08-20 09:00", "발급", "system", "운영자 계정"]] },
-];
-const SAMPLE_TRACE: TraceRow[] = [
-  { at: "2026-10-03T03:41:12.000Z", account: "bs_safety01", api: "T3Q-04 위험·취약지역 조회", intent: "risk", status: "TIMEOUT", ms: 30000, q: "초량 지하차도 지금 통제해야 하나요?", requestId: "REQ-sample-01", datasets: [] },
-  { at: "2026-10-03T03:12:02.000Z", account: "yc_safety02", api: "T3Q-09 행동매뉴얼 대응절차", intent: "manual", status: "ok", ms: 1840, q: "호우주의보 단계에서 할 일", requestId: "REQ-sample-02", datasets: ["풍수해 현장조치 행동매뉴얼"] },
-];
-const mask = (q: string) => (q.length <= 6 ? "●●●" : q.slice(0, 4) + "●".repeat(Math.min(12, q.length - 6)) + q.slice(-2));
+type Tab = "jobs" | "warm" | "accounts" | "feedback" | "trace";
+const TABS: [Tab, string][] = [["jobs", "질의 현황"], ["warm", "브리핑 예열"], ["accounts", "계정"], ["feedback", "답변 평가"], ["trace", "추적로그"]];
+const STATES: JobState[] = ["QUEUED", "SUBMITTED", "RUNNING", "DONE", "FAILED", "CANCELLED", "LOST", "TIMEOUT"];
+const STATE_TONE: Record<JobState, string> = { QUEUED: "neutral", SUBMITTED: "info", RUNNING: "info", DONE: "ok", FAILED: "danger", CANCELLED: "neutral", LOST: "warn", TIMEOUT: "danger" };
+const ROLE_LABEL: Record<string, string> = { 지자체: "지자체", 중앙정부: "정부기관", 운영자: "운영자" };
+
+const errMsg = (e: unknown) => (e instanceof ApiError ? e.message : "서버에 연결하지 못했습니다. 잠시 후 다시 시도하세요.");
+const p2 = (n: number) => String(n).padStart(2, "0");
+const toDate = (iso?: string | null) => {
+  if (!iso) return null;
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? null : d;
+};
+const fmtDT = (iso?: string | null) => {
+  const d = toDate(iso);
+  return d ? `${p2(d.getMonth() + 1)}-${p2(d.getDate())} ${p2(d.getHours())}:${p2(d.getMinutes())}:${p2(d.getSeconds())}` : "—";
+};
+const fmtHM = (iso?: string | null) => {
+  const d = toDate(iso);
+  return d ? `${p2(d.getHours())}:${p2(d.getMinutes())}` : "—";
+};
+function fmtDur(ms?: number | null) {
+  if (ms == null || !Number.isFinite(ms) || ms < 0) return "—";
+  if (ms < 60_000) return `${(ms / 1000).toFixed(ms < 10_000 ? 1 : 0)}초`;
+  const m = Math.floor(ms / 60_000), s = Math.floor((ms % 60_000) / 1000);
+  return s ? `${m}분 ${s}초` : `${m}분`;
+}
+const fmtBytes = (n: number) => (n < 1024 ? `${n}B` : n < 1024 * 1024 ? `${(n / 1024).toFixed(1)}KB` : `${(n / 1024 / 1024).toFixed(2)}MB`);
+/** 진행 중이면 접수부터 지금까지, 끝났으면 접수~완료 */
+const respTime = (j: { state: JobState; created_at: string; elapsed_ms: number | null; cached_from: string | null }, now: number) => {
+  if (isActive(j.state)) {
+    const c = toDate(j.created_at)?.getTime();
+    return `경과 ${fmtDur(c ? Math.max(0, now - c) : null)}`;
+  }
+  return j.cached_from ? "즉시(캐시)" : fmtDur(j.elapsed_ms);
+};
+
+function useNow(ms: number) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), ms);
+    return () => clearInterval(t);
+  }, [ms]);
+  return now;
+}
+
+function Fact({ l, v, n, bad }: { l: string; v: React.ReactNode; n?: React.ReactNode; bad?: boolean }) {
+  return (
+    <div className={`fact ${bad ? "bad" : ""}`}>
+      <div className="l">{l}</div>
+      <div className="v">{v}</div>
+      {n && <div className="n">{n}</div>}
+    </div>
+  );
+}
+
+/* ───────────────────────── 질의 현황 데이터 (모든 탭 공용) ───────────────────────── */
+
+function useAdminJobs(enabled: boolean) {
+  const [data, setData] = useState<AdminJobsResponse | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const seq = useRef(0);
+  const dataRef = useRef(data);
+  dataRef.current = data;
+
+  const load = useCallback(async () => {
+    const my = ++seq.current;
+    try {
+      const r = await api<AdminJobsResponse>("/api/admin/jobs");
+      if (my === seq.current) {
+        setData(r);
+        setError(null);
+      }
+    } catch (e) {
+      if (my === seq.current) setError(errMsg(e));
+    }
+  }, []);
+
+  // 현황 — 10초마다
+  useEffect(() => {
+    if (!enabled) return;
+    load();
+    const t = setInterval(() => {
+      if (!document.hidden) load();
+    }, 10_000);
+    return () => clearInterval(t);
+  }, [enabled, load]);
+
+  // 진행 중 작업 상태 조회 — 5초마다. 이 조회 때 서버가 T3Q 를 폴링(작업당 2.5초 스로틀)하고 대기열(QUEUED)을 슬롯이 나는 대로 제출한다.
+  // 그래서 예열 문항은 지역 담당자가 접속하기 전에도 이 화면이 완료까지 진행시킨다.
+  const activeKey = (data?.active ?? []).map((j) => j.id).join(",");
+  useEffect(() => {
+    if (!enabled || !activeKey) return;
+    const ids = activeKey.split(",").slice(0, 12);
+    let running = false;
+    const tick = async () => {
+      if (running || document.hidden) return;
+      running = true;
+      try {
+        const got = await Promise.all(ids.map((id) => api<{ job: JobSummary }>(`/api/agent/jobs/${encodeURIComponent(id)}`).then((r) => r.job, () => null)));
+        const before = new Map((dataRef.current?.active ?? []).map((j) => [j.id, j.state]));
+        if (got.some((j) => j && before.get(j.id) !== j.state)) await load();
+      } finally {
+        running = false;
+      }
+    };
+    const t = setInterval(tick, 5000);
+    return () => clearInterval(t);
+  }, [enabled, activeKey, load]);
+
+  return { data, error, load };
+}
+type JobsHook = ReturnType<typeof useAdminJobs>;
+
+/* ───────────────────────── 페이지 ───────────────────────── */
 
 export default function AdminPage() {
-  const { account, toast } = useSession();
-  const [tab, setTab] = useState<"acct" | "trace" | "verify">("acct");
-  const [accts, setAccts] = useState(SEED);
-  const [sel, setSel] = useState<Acct | null>(null);
-  const [act, setAct] = useState<{ a: Acct; kind: string } | null>(null);
-  const [why, setWhy] = useState("");
-  const [trace, setTrace] = useState<TraceRow[]>([]);
-  const [tsel, setTsel] = useState<TraceRow | null>(null);
+  const { ready, account } = useSession();
+  const op = account?.role === "운영자";
+  const [tab, setTabState] = useState<Tab>("jobs");
+  const [detail, setDetail] = useState<string | null>(null);
+  const [warm, setWarm] = useState<WarmResponse | null>(null);
+  const jobs = useAdminJobs(op);
+
   useEffect(() => {
-    readTrace().then((l) => setTrace([...l, ...SAMPLE_TRACE]));
-  }, [tab]);
-  const stats = useMemo(() => ({ ok: trace.filter((t) => t.status === "ok").length, fail: trace.filter((t) => t.status !== "ok" && t.status !== "clarify").length, avg: trace.length ? Math.round(trace.reduce((n, t) => n + t.ms, 0) / trace.length) : 0 }), [trace]);
+    const t = new URLSearchParams(window.location.search).get("tab");
+    if (t && TABS.some(([k]) => k === t)) setTabState(t as Tab);
+  }, []);
+  const setTab = (t: Tab) => {
+    setTabState(t);
+    const u = new URL(window.location.href);
+    u.searchParams.set("tab", t);
+    window.history.replaceState(window.history.state, "", u.toString());
+  };
+  const onTabKey = (e: React.KeyboardEvent) => {
+    if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+    e.preventDefault();
+    const i = TABS.findIndex(([k]) => k === tab);
+    const next = TABS[(i + (e.key === "ArrowRight" ? 1 : TABS.length - 1)) % TABS.length][0];
+    setTab(next);
+    document.getElementById(`adm-tab-${next}`)?.focus();
+  };
 
-  if (account?.role !== "운영자") return <div className="page"><div className="page-in"><div className="notice danger">운영관리는 시스템 운영자만 이용할 수 있습니다.</div></div></div>;
+  if (!ready || !account) return null;
+  if (!op)
+    return (
+      <div className="page">
+        <div className="page-in">
+          <div className="ph"><div><h1>운영관리</h1></div></div>
+          <div className="notice danger" role="alert">운영관리는 시스템 운영자만 이용할 수 있습니다. 권한이 필요하면 시스템 운영자에게 문의하세요.</div>
+        </div>
+      </div>
+    );
 
-  const apply = () => {
-    if (!act || !why.trim()) return;
-    const now = new Date().toISOString().slice(0, 16).replace("T", " ");
-    const to: Acct["status"] = act.kind === "잠금 해제" ? "사용" : act.kind === "사용중지" ? "중지" : "초기";
-    setAccts((l) => l.map((x) => (x.id === act.a.id ? { ...x, status: to, hist: [...x.hist, [now, act.kind, account.id, why]] } : x)));
-    setSel((s) => (s && s.id === act.a.id ? { ...s, status: to, hist: [...s.hist, [now, act.kind, account.id, why]] } : s));
-    setAct(null);
-    setWhy("");
-    toast(`${act.kind} 처리했습니다.`);
+  const activeN = jobs.data?.active.length ?? 0;
+  return (
+    <div className="page adm">
+      <div className="page-in">
+        <div className="ph">
+          <div>
+            <h1>운영관리</h1>
+            <p>질의 현황·강제 취소·원응답 검증, 브리핑 예열, 계정 잠금 해제, 답변 평가, 추적로그 (시스템 운영자 전용)</p>
+          </div>
+          <span className="sp" />
+          <T3qPill h={jobs.data?.t3q} />
+        </div>
+        <div className="subtabs adm-tabs" role="tablist" aria-label="운영관리 메뉴" onKeyDown={onTabKey}>
+          {TABS.map(([k, l]) => (
+            <button
+              key={k}
+              id={`adm-tab-${k}`}
+              role="tab"
+              aria-selected={tab === k}
+              aria-controls="adm-panel"
+              tabIndex={tab === k ? 0 : -1}
+              className={tab === k ? "on" : ""}
+              onClick={() => setTab(k)}
+            >
+              {l}
+              {k === "jobs" && activeN > 0 && <span className="cnt" aria-label={`진행 중 ${activeN}건`}>{activeN}</span>}
+            </button>
+          ))}
+        </div>
+        <div id="adm-panel" role="tabpanel" aria-labelledby={`adm-tab-${tab}`}>
+          {tab === "jobs" && <JobsTab jobs={jobs} onOpen={setDetail} />}
+          {tab === "warm" && <WarmTab jobs={jobs} warm={warm} setWarm={setWarm} onOpen={setDetail} />}
+          {tab === "accounts" && <AccountsTab />}
+          {tab === "feedback" && <FeedbackTab onOpen={setDetail} />}
+          {tab === "trace" && <TraceTab />}
+        </div>
+      </div>
+      {detail && <JobDetail id={detail} onClose={() => setDetail(null)} onOpen={setDetail} />}
+    </div>
+  );
+}
+
+function T3qPill({ h }: { h?: T3qHealth }) {
+  const cls = h ? (h.ok ? "ok" : "bad") : "";
+  const label = h ? (h.ok ? "정상" : "연결 불가") : "확인 중";
+  return (
+    <span className={`adm-pill ${cls}`} title={h?.detail ?? undefined} role="status">
+      <i aria-hidden />
+      에이전트 서버 {label}
+      {h?.version ? ` · v${h.version}` : ""}
+      {h?.mode === "replay" ? " · 녹화 재생" : ""}
+    </span>
+  );
+}
+
+/* ───────────────────────── 질의 현황 ───────────────────────── */
+
+function JobsTab({ jobs, onOpen }: { jobs: JobsHook; onOpen: (id: string) => void }) {
+  const { toast } = useSession();
+  const now = useNow(5000);
+  const [acc, setAcc] = useState("");
+  const [st, setSt] = useState<"" | JobState>("");
+  const [kw, setKw] = useState("");
+  const [target, setTarget] = useState<AdminJobRow | null>(null);
+  const [cancelling, setCancelling] = useState(false);
+  const d = jobs.data;
+
+  const accounts = useMemo(() => Array.from(new Set([...ACCOUNTS.map((a) => a.id), ...(d?.recent ?? []).map((j) => j.account_id)])), [d]);
+  const list = useMemo(() => {
+    const k = kw.trim().toLowerCase();
+    return (d?.recent ?? []).filter(
+      (j) =>
+        (!acc || j.account_id === acc) &&
+        (!st || j.state === st) &&
+        (!k || j.question_user.toLowerCase().includes(k) || j.id.toLowerCase().includes(k) || (j.t3q_request_id ?? "").toLowerCase().includes(k)),
+    );
+  }, [d, acc, st, kw]);
+
+  const doCancel = async () => {
+    if (!target) return;
+    setCancelling(true);
+    try {
+      const r = await api<{ job: JobSummary }>(`/api/agent/jobs/${encodeURIComponent(target.id)}/cancel`, { method: "POST" });
+      toast(r.job.state === "CANCELLED" ? "질의를 강제 취소했습니다." : `이미 끝난 질의입니다 (${STATE_LABEL[r.job.state] ?? r.job.state}).`);
+      setTarget(null);
+      await jobs.load();
+    } catch (e) {
+      toast(errMsg(e));
+    } finally {
+      setCancelling(false);
+    }
+  };
+
+  if (!d) return jobs.error ? <div className="notice danger" role="alert">{jobs.error}</div> : <p className="xs mute2">불러오는 중…</p>;
+  const cnt = (s: JobState) => d.counts.find((c) => c.state === s);
+  const sum = (f: "total" | "last24h") => d.counts.reduce((n, c) => n + c[f], 0);
+  const processing = d.active.filter((j) => j.state !== "QUEUED").length;
+  const t = d.timing;
+
+  return (
+    <>
+      {jobs.error && <div className="notice danger" role="alert" style={{ marginBottom: 12 }}>{jobs.error} — 마지막으로 받은 값을 보여 줍니다.</div>}
+      <div className="adm-kpis">
+        <Fact
+          l="에이전트 서버 연결"
+          v={d.t3q.ok ? "정상" : "연결 불가"}
+          bad={!d.t3q.ok}
+          n={d.t3q.ok ? `${d.t3q.version ? `v${d.t3q.version} · ` : ""}${d.t3q.mode === "replay" ? "녹화 재생" : "실연동"} · ${fmtHM(d.t3q.checkedAt)} 확인` : d.t3q.detail ?? "상태 확인 실패"}
+        />
+        <Fact l="진행 중" v={<>{d.active.length}<small>건</small></>} n={`대기열 ${cnt("QUEUED")?.total ?? 0} · 처리 중 ${processing}`} />
+        <Fact
+          l="동시 처리 슬롯"
+          v={<>{d.slots.running + d.slots.cooling}<small>/ {d.slots.global}</small></>}
+          bad={d.slots.running + d.slots.cooling >= d.slots.global}
+          n={`취소 후 120초 ${d.slots.cooling}건 포함 · 계정당 ${d.slots.perAccount}건`}
+        />
+        <Fact l="평균 응답 시간" v={fmtDur(t.avgMs)} n={`최근 ${t.windowDays}일 완료 ${t.n}건(캐시 제외) · 대기열 평균 ${fmtDur(t.avgWaitMs)}`} />
+        <Fact l="중앙값 응답 시간" v={fmtDur(t.p50Ms)} n={`p90 ${fmtDur(t.p90Ms)} · 최대 ${fmtDur(t.maxMs)}`} />
+        <Fact l="예상 대기" v={fmtDur(d.expectedMs)} n="최근 완료 20건 중앙값 · 질문 화면에 표시되는 값" />
+      </div>
+
+      <section className="adm-sec">
+        <h2>상태별 개수</h2>
+        <div className="adm-scroll" style={{ maxHeight: "none" }}>
+          <table className="tbl adm-counts">
+            <thead>
+              <tr>
+                <th>구분</th>
+                {STATES.map((s) => <th key={s}>{STATE_LABEL[s]}</th>)}
+                <th>합계</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>최근 24시간</td>
+                {STATES.map((s) => <td key={s} className="num">{cnt(s)?.last24h ?? 0}</td>)}
+                <td className="num b">{sum("last24h")}</td>
+              </tr>
+              <tr>
+                <td>전체</td>
+                {STATES.map((s) => <td key={s} className="num">{cnt(s)?.total ?? 0}</td>)}
+                <td className="num b">{sum("total")}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section className="adm-sec">
+        <h2>진행 중 <small>{d.active.length}건 · 5초마다 상태 확인</small></h2>
+        <JobTable rows={d.active} now={now} onOpen={onOpen} onCancel={setTarget} empty="진행 중인 질의가 없습니다." />
+      </section>
+
+      <section className="adm-sec">
+        <h2>
+          최근 질의 <small>전체 계정 최근 {d.recent.length}건 중 {list.length}건 · {fmtHM(d.at)} 기준</small>
+          <span className="sp" />
+          <button type="button" className="btn sm" onClick={() => jobs.load()}>새로고침</button>
+        </h2>
+        <div className="adm-filter">
+          <select className="select sm" value={acc} onChange={(e) => setAcc(e.target.value)} aria-label="계정">
+            <option value="">계정 전체</option>
+            {accounts.map((a) => <option key={a} value={a}>{a}</option>)}
+          </select>
+          <select className="select sm" value={st} onChange={(e) => setSt(e.target.value as "" | JobState)} aria-label="상태">
+            <option value="">상태 전체</option>
+            {STATES.map((s) => <option key={s} value={s}>{STATE_LABEL[s]}</option>)}
+          </select>
+          <input className="input sm" placeholder="질문 · 작업 ID · 요청 ID 검색" value={kw} onChange={(e) => setKw(e.target.value)} aria-label="검색어" />
+        </div>
+        <JobTable rows={list} now={now} onOpen={onOpen} onCancel={setTarget} empty={d.recent.length ? "조건에 맞는 질의가 없습니다." : "아직 질의가 없습니다."} />
+        <p className="adm-note">행을 누르면 에이전트 원응답·보낸 요청·자동 조회 데이터·위치 도형을 저장된 그대로(원본 데이터 형식) 봅니다.</p>
+      </section>
+
+      {target && (
+        <Dialog
+          title="질의를 강제 취소할까요?"
+          desc="에이전트는 서버에서 잠시 더 처리할 수 있어, 취소 후 120초 동안 동시 처리 슬롯을 차지합니다."
+          onClose={() => setTarget(null)}
+          busy={cancelling}
+          size="sm"
+          footer={
+            <>
+              <button type="button" className="acm-btn" onClick={() => setTarget(null)} disabled={cancelling}>닫기</button>
+              <button type="button" className="acm-btn danger" onClick={doCancel} disabled={cancelling}>{cancelling ? "취소 중…" : "강제 취소"}</button>
+            </>
+          }
+        >
+          <p className="acm-sub">
+            <b>{target.account_id}</b> · {SOURCE_LABEL[target.source] ?? target.source} · {STATE_LABEL[target.state] ?? target.state}
+            <br />
+            {target.question_user}
+          </p>
+        </Dialog>
+      )}
+    </>
+  );
+}
+
+function JobTable({ rows, now, onOpen, onCancel, empty }: { rows: AdminJobRow[]; now: number; onOpen: (id: string) => void; onCancel?: (j: AdminJobRow) => void; empty: string }) {
+  return (
+    <div className="adm-scroll">
+      <table className="tbl adm-tbl">
+        <thead>
+          <tr>
+            <th>접수</th>
+            <th>계정</th>
+            <th>출처</th>
+            <th>질문</th>
+            <th>상태</th>
+            <th>응답 상태</th>
+            <th>응답 시간</th>
+            <th>비고</th>
+            <th><span className="sr-only">동작</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          {!rows.length && (
+            <tr><td colSpan={9} className="adm-empty">{empty}</td></tr>
+          )}
+          {rows.map((j) => {
+            const act = isActive(j.state);
+            const notes = [j.cached_from && "캐시 적중", j.retry_of && "자동 재제출", j.error_code].filter(Boolean).join(" · ");
+            return (
+              <tr key={j.id} className="click" onClick={() => onOpen(j.id)}>
+                <td className="num xs nowrap">{fmtDT(j.created_at)}</td>
+                <td className="xs nowrap">{j.account_id}</td>
+                <td className="xs nowrap">
+                  {SOURCE_LABEL[j.source] ?? j.source}
+                  {j.library_id && <div className="mute2">{j.library_id}</div>}
+                </td>
+                <td className="adm-q">
+                  <span className="clamp" title={j.question_user}>{j.question_user}</span>
+                  {j.sent_differs && <span className="badge sq neutral">실제 전송 질문 다름</span>}
+                </td>
+                <td className="nowrap"><span className={`badge ${STATE_TONE[j.state] ?? "neutral"}`}>{STATE_LABEL[j.state] ?? j.state}</span></td>
+                <td className="xs nowrap">
+                  {j.t3q_status ? statusKo(j.t3q_status) : "—"}
+                  {j.http_status != null && <div className="mute2">HTTP {j.http_status}</div>}
+                </td>
+                <td className="num xs nowrap">{respTime(j, now)}</td>
+                <td className="xs">{notes || "—"}</td>
+                <td onClick={(e) => e.stopPropagation()}>
+                  <div className="adm-acts">
+                    <button type="button" className="btn xs" onClick={() => onOpen(j.id)}>원문</button>
+                    {act && onCancel && <button type="button" className="btn xs adm-danger" onClick={() => onCancel(j)}>강제 취소</button>}
+                  </div>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+/* ───────────────────────── 브리핑 예열 ───────────────────────── */
+
+interface PlanRow { r: WarmRegion; libraryId: string; question: string; accountId: string }
+/** 예열 문항 — 부산·인제·영천 × 기본 브리핑(DEFAULT_BRIEFING), 지역 이름을 채운 글 (서버 /api/admin/warm 과 같은 규칙) */
+const PLAN: PlanRow[] = WARM_REGIONS.flatMap((r) =>
+  DEFAULT_BRIEFING.flatMap((id) => {
+    const q = libById(id);
+    return q ? [{ r, libraryId: id, question: fillText(q, PILOT_T3Q[r].name), accountId: ACCOUNTS.find((a) => a.role === "지자체" && a.region === r)?.id ?? "—" }] : [];
+  }),
+);
+const OUTCOME: Record<WarmItem["outcome"], [string, string]> = {
+  CACHED: ["캐시 적중 · 즉시 표시", "ok"],
+  JOINED: ["진행 중인 같은 질의에 합류", "info"],
+  NEW: ["새로 접수", "info"],
+  SKIPPED: ["미접수(시간 한도)", "warn"],
+  ERROR: ["접수 실패", "danger"],
+};
+
+function WarmTab({ jobs, warm, setWarm, onOpen }: { jobs: JobsHook; warm: WarmResponse | null; setWarm: (w: WarmResponse) => void; onOpen: (id: string) => void }) {
+  const { toast } = useSession();
+  const now = useNow(5000);
+  const [regions, setRegions] = useState<WarmRegion[]>(WARM_REGIONS);
+  const [force, setForce] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const t3qDown = jobs.data?.t3q.ok === false;
+  const live = (id: string): AdminJobRow | WarmJob | undefined => jobs.data?.recent.find((j) => j.id === id) ?? jobs.data?.active.find((j) => j.id === id);
+
+  const run = async () => {
+    if (!regions.length || busy) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const r = await api<WarmResponse>("/api/admin/warm", { method: "POST", json: { regions, force } });
+      setWarm(r);
+      const n = (o: WarmItem["outcome"]) => r.items.filter((i) => i.outcome === o).length;
+      const miss = n("SKIPPED") + n("ERROR");
+      toast(`브리핑 예열 접수 — 새로 ${n("NEW")} · 캐시 ${n("CACHED")} · 합류 ${n("JOINED")}${miss ? ` · 미접수 ${miss}` : ""}`);
+      await jobs.load();
+    } catch (e) {
+      setError(errMsg(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const states = (warm?.items ?? []).map((i) => (i.job ? (live(i.job.id) ?? i.job).state : null));
+  const done = states.filter((s) => s === "DONE").length;
+  const running = states.filter((s) => s && isActive(s)).length;
+  const failed = states.filter((s) => s && !isActive(s) && s !== "DONE").length;
+
+  return (
+    <>
+      <section className="panel">
+        <h2 style={{ fontSize: 19 }}>브리핑 예열</h2>
+        <p className="xs muted" style={{ margin: "6px 0 0", lineHeight: 1.7 }}>
+          부산·인제·영천 × 기본 브리핑 {DEFAULT_BRIEFING.length}문항을 각 지역 담당자 계정 명의로 미리 질의합니다.{" "}
+          <b>예열한 답은 24시간 동안 같은 질문에 즉시 표시됩니다.</b>
+          <br />
+          같은 질문 = 질문 글·브리핑 출처·기준지역·재난유형이 같고 특보 조건이 붙지 않은 질의입니다. 업무 시작·시연 전에 실행하세요.
+        </p>
+        <div className="adm-warm-ctl">
+          <div className="grp" role="group" aria-label="예열 지역">
+            {WARM_REGIONS.map((r) => (
+              <label key={r} className="chk">
+                <input
+                  type="checkbox"
+                  checked={regions.includes(r)}
+                  onChange={(e) => setRegions((p) => (e.target.checked ? WARM_REGIONS.filter((x) => x === r || p.includes(x)) : p.filter((x) => x !== r)))}
+                />
+                {PILOT_T3Q[r].name}
+              </label>
+            ))}
+          </div>
+          <label className="chk">
+            <input type="checkbox" checked={force} onChange={(e) => setForce(e.target.checked)} />
+            캐시 무시하고 새로 질의
+          </label>
+          <span className="sp" />
+          <button type="button" className="btn pri" onClick={run} disabled={busy || !regions.length || t3qDown}>
+            {busy ? "접수 중… (최대 1분)" : `브리핑 예열 시작 (${regions.length * DEFAULT_BRIEFING.length}건)`}
+          </button>
+        </div>
+        {t3qDown && <div className="notice danger" style={{ marginTop: 12 }}>에이전트 서버 연결 불가 — {jobs.data?.t3q.detail ?? "상태 확인 실패"}. 연결이 돌아오면 예열하세요.</div>}
+        {error && <div className="notice danger" role="alert" style={{ marginTop: 12 }}>{error}</div>}
+        <p className="adm-note">
+          에이전트 동시 처리 한도(전체 {jobs.data?.slots.global ?? 8}건·계정당 {jobs.data?.slots.perAccount ?? 4}건)를 넘는 문항은 대기열에 들어갑니다. 이 화면을 열어 두면 대기 문항을 차례로
+          보내고 완료까지 상태를 확인합니다. 1문항에 보통 1~2분 걸립니다.
+        </p>
+      </section>
+
+      <section className="adm-sec">
+        <h2>
+          예열 문항{" "}
+          <small>{warm ? `${fmtHM(warm.at)} 실행 · 완료 ${done} · 진행 중 ${running}${failed ? ` · 실패·취소 ${failed}` : ""}` : "아직 실행하지 않았습니다"}</small>
+        </h2>
+        <div className="adm-scroll">
+          <table className="tbl adm-tbl">
+            <thead>
+              <tr>
+                <th>지역</th>
+                <th>계정</th>
+                <th>문항</th>
+                <th>질문</th>
+                <th>접수</th>
+                <th>상태</th>
+                <th>응답 시간</th>
+                <th><span className="sr-only">동작</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              {PLAN.map((p) => {
+                const it = warm?.items.find((i) => i.region === p.r && i.libraryId === p.libraryId);
+                const j = it?.job ? live(it.job.id) ?? it.job : null;
+                return (
+                  <tr key={`${p.r}-${p.libraryId}`} className={j ? "click" : ""} onClick={j ? () => onOpen(j.id) : undefined}>
+                    <td className="xs nowrap">{PILOT_T3Q[p.r].name}</td>
+                    <td className="xs nowrap">{p.accountId}</td>
+                    <td className="xs nowrap">{p.libraryId}</td>
+                    <td className="adm-q"><span className="clamp" title={p.question}>{p.question}</span></td>
+                    <td className="xs">
+                      {it ? <span className={`badge ${OUTCOME[it.outcome][1]}`}>{OUTCOME[it.outcome][0]}</span> : "—"}
+                      {it?.error && <div className="mute2" style={{ marginTop: 4 }}>{it.error}</div>}
+                    </td>
+                    <td className="nowrap">{j ? <span className={`badge ${STATE_TONE[j.state] ?? "neutral"}`}>{STATE_LABEL[j.state] ?? j.state}</span> : "—"}</td>
+                    <td className="num xs nowrap">{j ? respTime(j, now) : "—"}</td>
+                    <td onClick={(e) => e.stopPropagation()}>
+                      {j && <div className="adm-acts"><button type="button" className="btn xs" onClick={() => onOpen(j.id)}>원문</button></div>}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </>
+  );
+}
+
+/* ───────────────────────── 계정 ───────────────────────── */
+
+function AccountsTab() {
+  const { toast } = useSession();
+  const [rows, setRows] = useState<AdminAccountRow[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [busyId, setBusyId] = useState<string | null>(null);
+
+  const load = useCallback(async () => {
+    try {
+      const r = await api<{ accounts: AdminAccountRow[] }>("/api/admin/accounts");
+      setRows(r.accounts);
+      setError(null);
+    } catch (e) {
+      setError(errMsg(e));
+    }
+  }, []);
+  useEffect(() => {
+    load();
+    const t = setInterval(() => {
+      if (!document.hidden) load();
+    }, 30_000);
+    return () => clearInterval(t);
+  }, [load]);
+
+  const unlock = async (a: AdminAccountRow) => {
+    setBusyId(a.id);
+    try {
+      await api<{ ok: true }>("/api/admin/accounts/unlock", { method: "POST", json: { id: a.id } });
+      toast(`${a.id} 계정의 잠금을 해제했습니다.`);
+      await load();
+    } catch (e) {
+      toast(errMsg(e));
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const status = (a: AdminAccountRow): [string, string] =>
+    !a.issued ? ["미발급", "neutral"] : a.status !== "ACTIVE" ? [`사용 중지 (${a.status ?? "—"})`, "neutral"] : a.locked ? [`잠김 · ${fmtHM(a.locked_until)}까지`, "danger"] : ["사용", "ok"];
+
+  return (
+    <>
+      {error && <div className="notice danger" role="alert" style={{ marginBottom: 12 }}>{error}</div>}
+      <section className="adm-sec" style={{ marginTop: 0 }}>
+        <h2>
+          계정 <small>사전 발급 5계정 · 30초마다 갱신</small>
+          <span className="sp" />
+          <button type="button" className="btn sm" onClick={() => load()}>새로고침</button>
+        </h2>
+        <div className="adm-scroll">
+          <table className="tbl adm-tbl">
+            <thead>
+              <tr>
+                <th>계정 ID</th>
+                <th>이름 · 소속</th>
+                <th>역할</th>
+                <th>상태</th>
+                <th>연속 실패</th>
+                <th>최근 로그인</th>
+                <th>접속</th>
+                <th><span className="sr-only">동작</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              {!rows && <tr><td colSpan={8} className="adm-empty">{error ? "계정 목록을 불러오지 못했습니다." : "불러오는 중…"}</td></tr>}
+              {rows?.map((a) => {
+                const [label, tone] = status(a);
+                const canUnlock = a.issued && (a.locked || a.failed_count > 0);
+                return (
+                  <tr key={a.id}>
+                    <td className="nowrap"><code>{a.id}</code>{!a.known && <div className="xs mute2">설정에 없는 계정</div>}</td>
+                    <td>{a.name}<div className="xs mute2">{a.org}{a.dept ? ` ${a.dept}` : ""}</div></td>
+                    <td className="xs nowrap">{ROLE_LABEL[a.role] ?? a.role}</td>
+                    <td className="nowrap"><span className={`badge ${tone}`}>{label}</span></td>
+                    <td className="num xs">{a.issued ? `${a.failed_count}회` : "—"}</td>
+                    <td className="num xs nowrap">{fmtDT(a.last_login_at)}</td>
+                    <td className="xs nowrap">
+                      {a.session_seen_at ? (
+                        <>
+                          <span className="badge ok">접속 중</span>
+                          <div className="mute2">마지막 활동 {fmtHM(a.session_seen_at)}</div>
+                        </>
+                      ) : "—"}
+                    </td>
+                    <td>
+                      <div className="adm-acts">
+                        <button type="button" className="btn xs" disabled={!canUnlock || busyId === a.id} onClick={() => unlock(a)}>
+                          {busyId === a.id ? "해제 중…" : "잠금 해제"}
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+        <p className="adm-note">
+          비밀번호를 5회 연속 잘못 입력하면 15분 동안 잠깁니다. [잠금 해제]는 잠금과 연속 실패 횟수를 함께 0으로 되돌립니다. 같은 계정으로 새로 로그인하면 기존 접속은 종료됩니다.
+          <br />
+          계정 발급·비밀번호 재설정은 운영 스크립트 <code>app/scripts/seed_accounts.mjs</code>(서버 SEED_SECRET 필요)로 합니다.
+        </p>
+      </section>
+    </>
+  );
+}
+
+/* ───────────────────────── 답변 평가 ───────────────────────── */
+
+const RATING: Record<string, [string, string]> = { GOOD: ["좋아요", "ok"], BAD: ["아쉬워요", "danger"] };
+
+function FeedbackTab({ onOpen }: { onOpen: (id: string) => void }) {
+  const [d, setD] = useState<AdminFeedbackResponse | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [rating, setRating] = useState("");
+
+  const load = useCallback(async () => {
+    try {
+      setD(await api<AdminFeedbackResponse>("/api/admin/feedback"));
+      setError(null);
+    } catch (e) {
+      setError(errMsg(e));
+    }
+  }, []);
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const n = (r: string) => d?.summary.find((s) => s.rating === r)?.n ?? 0;
+  const total = (d?.summary ?? []).reduce((s, x) => s + x.n, 0);
+  const rows = (d?.rows ?? []).filter((r) => !rating || r.rating === rating);
+
+  return (
+    <>
+      {error && <div className="notice danger" role="alert" style={{ marginBottom: 12 }}>{error}</div>}
+      <div className="adm-kpis">
+        <Fact l="전체 평가" v={<>{total}<small>건</small></>} n="에이전트 평가 전송 + 서버 저장" />
+        <Fact l="좋아요" v={<>{n("GOOD")}<small>건</small></>} n={total ? `${Math.round((n("GOOD") / total) * 100)}%` : "—"} />
+        <Fact l="아쉬워요" v={<>{n("BAD")}<small>건</small></>} n={total ? `${Math.round((n("BAD") / total) * 100)}%` : "—"} />
+      </div>
+      <section className="adm-sec" style={{ marginTop: 0 }}>
+        <h2>
+          답변 평가 <small>최근 {d?.rows.length ?? 0}건</small>
+          <span className="sp" />
+          <select className="select sm" value={rating} onChange={(e) => setRating(e.target.value)} aria-label="평가">
+            <option value="">평가 전체</option>
+            <option value="GOOD">좋아요</option>
+            <option value="BAD">아쉬워요</option>
+          </select>
+          <button type="button" className="btn sm" onClick={() => load()}>새로고침</button>
+        </h2>
+        <div className="adm-scroll">
+          <table className="tbl adm-tbl">
+            <thead>
+              <tr>
+                <th>평가 시각</th>
+                <th>계정</th>
+                <th>평가</th>
+                <th>질문</th>
+                <th>의견</th>
+                <th>에이전트 전송</th>
+                <th><span className="sr-only">동작</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              {!d && <tr><td colSpan={7} className="adm-empty">{error ? "답변 평가를 불러오지 못했습니다." : "불러오는 중…"}</td></tr>}
+              {d && !rows.length && <tr><td colSpan={7} className="adm-empty">{d.rows.length ? "조건에 맞는 평가가 없습니다." : "아직 답변 평가가 없습니다."}</td></tr>}
+              {rows.map((r) => {
+                const [label, tone] = RATING[r.rating] ?? [r.rating, "neutral"];
+                return (
+                  <tr key={r.job_id} className="click" onClick={() => onOpen(r.job_id)}>
+                    <td className="num xs nowrap">{fmtDT(r.rated_at)}</td>
+                    <td className="xs nowrap">{r.account_id}</td>
+                    <td className="nowrap"><span className={`badge ${tone}`}>{label}</span></td>
+                    <td className="adm-q">
+                      <span className="clamp" title={r.question_user ?? undefined}>{r.question_user ?? "(질의 기록 없음)"}</span>
+                      {r.source && <div className="xs mute2">{SOURCE_LABEL[r.source as JobSource] ?? r.source} · {fmtDT(r.asked_at)} 질의</div>}
+                    </td>
+                    <td className="xs" style={{ maxWidth: 320, whiteSpace: "pre-wrap" }}>{r.comment || "—"}</td>
+                    <td className="xs nowrap">
+                      {r.t3q_feedback_status ? <span className={`badge ${r.t3q_feedback_status === "SUCCESS" ? "ok" : "warn"}`}>{statusKo(r.t3q_feedback_status)}</span> : <span className="mute2">기록 없음</span>}
+                    </td>
+                    <td onClick={(e) => e.stopPropagation()}>
+                      <div className="adm-acts"><button type="button" className="btn xs" onClick={() => onOpen(r.job_id)}>원문</button></div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </>
+  );
+}
+
+/* ───────────────────────── 추적로그 (기존 /api/trace) ───────────────────────── */
+
+interface TraceRow { at: string; account: string; api: string; intent: string; status: string; ms: number; q: string; requestId: string; datasets: string[] }
+const mask = (q: string) => (q.length <= 6 ? "●●●" : q.slice(0, 4) + "●".repeat(Math.min(12, q.length - 6)) + q.slice(-2));
+
+function TraceTab() {
+  const [rows, setRows] = useState<TraceRow[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [sel, setSel] = useState<TraceRow | null>(null);
+
+  const load = useCallback(async () => {
+    try {
+      setRows(await api<TraceRow[]>("/api/trace"));
+      setError(null);
+    } catch (e) {
+      setError(errMsg(e));
+    }
+  }, []);
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const list = useMemo(() => rows ?? [], [rows]);
+  const stats = useMemo(
+    () => ({
+      ok: list.filter((t) => t.status === "ok").length,
+      fail: list.filter((t) => t.status !== "ok" && t.status !== "clarify").length,
+      avg: list.length ? Math.round(list.reduce((n, t) => n + (t.ms || 0), 0) / list.length) : null,
+    }),
+    [list],
+  );
+
+  return (
+    <>
+      {error && <div className="notice danger" role="alert" style={{ marginBottom: 12 }}>{error}</div>}
+      <div className="adm-kpis">
+        <Fact l="호출" v={<>{list.length}<small>건</small></>} n="최근 300건" />
+        <Fact l="정상" v={<>{stats.ok}<small>건</small></>} />
+        <Fact l="오류·지연" v={<>{stats.fail}<small>건</small></>} bad={stats.fail > 0} />
+        <Fact l="평균 응답" v={fmtDur(stats.avg)} />
+      </div>
+      <div className={sel ? "adm-split" : ""}>
+        <div className="adm-scroll">
+          <table className="tbl adm-tbl">
+            <thead>
+              <tr>
+                <th>시각</th>
+                <th>계정</th>
+                <th>API</th>
+                <th>의도</th>
+                <th>결과</th>
+                <th>응답</th>
+                <th>질의(마스킹)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {!rows && <tr><td colSpan={7} className="adm-empty">{error ? "추적로그를 불러오지 못했습니다." : "불러오는 중…"}</td></tr>}
+              {rows && !rows.length && <tr><td colSpan={7} className="adm-empty">추적로그가 없습니다.</td></tr>}
+              {list.map((t, i) => (
+                <tr key={`${t.requestId}-${i}`} className={`click ${sel === t ? "sel" : ""}`} onClick={() => setSel(t)}>
+                  <td className="num xs nowrap">{fmtDT(t.at)}</td>
+                  <td className="xs nowrap">{t.account}</td>
+                  <td className="xs">{t.api}</td>
+                  <td className="xs">{t.intent}</td>
+                  <td className="nowrap"><span className={`badge ${t.status === "ok" ? "ok" : t.status === "clarify" ? "info" : "danger"}`}>{t.status}</span></td>
+                  <td className="num xs nowrap">{fmtDur(t.ms)}</td>
+                  <td className="xs">{mask(t.q ?? "")}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        {sel && (
+          <div className="panel">
+            <div className="row">
+              <h3 style={{ fontSize: 16 }}>추적로그 상세</h3>
+              <span className="sp" />
+              <button type="button" className="btn xs ghost" onClick={() => setSel(null)}>닫기</button>
+            </div>
+            <dl className="kv" style={{ marginTop: 10 }}>
+              <dt>요청 ID</dt><dd><code>{sel.requestId}</code></dd>
+              <dt>시각</dt><dd>{toDate(sel.at)?.toLocaleString("ko-KR") ?? "—"}</dd>
+              <dt>계정</dt><dd>{sel.account}</dd>
+              <dt>API</dt><dd>{sel.api}</dd>
+              <dt>결과</dt><dd>{sel.status}</dd>
+              <dt>응답 시간</dt><dd>{sel.ms}ms</dd>
+              <dt>질의 원문</dt><dd>{mask(sel.q ?? "")} <span className="xs mute2">(개인정보 마스킹)</span></dd>
+              <dt>조회 데이터</dt><dd>{sel.datasets?.join(", ") || "—"}</dd>
+            </dl>
+          </div>
+        )}
+      </div>
+      <p className="adm-note">
+        ※ 서버 연계 추적로그 최근 300건입니다. 요청 ID로 서버 로그와 대조할 수 있습니다. 새 질의 경로의 작업 기록과 에이전트 원응답은 [질의 현황] 탭에서 확인합니다.
+      </p>
+    </>
+  );
+}
+
+/* ───────────────────────── 원응답 서랍 ───────────────────────── */
+
+interface FullJob {
+  id: string;
+  account_id: string;
+  conv_id: string | null;
+  turn_no: number | null;
+  source: JobSource;
+  library_id: string | null;
+  question_user: string;
+  question_sent: string;
+  state: JobState;
+  t3q_status: string | null;
+  http_status: number | null;
+  cached_from: string | null;
+  retry_of: string | null;
+  error_code: string | null;
+  t3q_request_id: string | null;
+  t3q_conversation_id: string | null;
+  created_at: string;
+  submitted_at: string | null;
+  finished_at: string | null;
+  elapsed_ms: number | null;
+  request: unknown;
+  raw: unknown;
+  preview: unknown;
+  geo: unknown;
+}
+type View = "raw" | "request" | "preview" | "geo";
+const VIEWS: [View, string][] = [["raw", "원응답 raw"], ["request", "보낸 요청 request"], ["preview", "자동 조회 preview"], ["geo", "도형 geo"]];
+
+function JobDetail({ id, onClose, onOpen }: { id: string; onClose: () => void; onOpen: (id: string) => void }) {
+  const { toast } = useSession();
+  const [job, setJob] = useState<FullJob | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [view, setView] = useState<View>("raw");
+  const closeRef = useRef(onClose);
+  closeRef.current = onClose;
+
+  const load = useCallback(async () => {
+    try {
+      const r = await api<{ job: FullJob }>(`/api/agent/jobs/${encodeURIComponent(id)}?full=1`);
+      setJob(r.job);
+      setError(null);
+    } catch (e) {
+      setError(errMsg(e));
+    }
+  }, [id]);
+  useEffect(() => {
+    setJob(null);
+    setError(null);
+    setView("raw");
+    load();
+  }, [load]);
+
+  // Esc 로 닫기, 닫으면 초점을 원래 자리로
+  useEffect(() => {
+    const prev = document.activeElement as HTMLElement | null;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closeRef.current();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      if (prev && prev.isConnected) prev.focus();
+    };
+  }, []);
+
+  const text = useMemo(() => {
+    const v = job?.[view];
+    return v == null ? null : JSON.stringify(v, null, 2);
+  }, [job, view]);
+  const sizes = useMemo(() => {
+    const enc = new TextEncoder();
+    return Object.fromEntries(VIEWS.map(([k]) => [k, job?.[k] == null ? null : enc.encode(JSON.stringify(job[k])).length])) as Record<View, number | null>;
+  }, [job]);
+
+  const copy = async () => {
+    if (!text) return;
+    try {
+      await navigator.clipboard.writeText(text);
+      toast("JSON을 복사했습니다.");
+    } catch {
+      toast("복사하지 못했습니다. 직접 선택해 복사하세요.");
+    }
+  };
+  const download = () => {
+    if (!text || !job) return;
+    const url = URL.createObjectURL(new Blob([text], { type: "application/json" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${job.id}.${view}.json`;
+    a.click();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
 
   return (
-    <div className="page">
-      <div className="page-in">
-        <div className="ph"><div><h1>운영관리</h1><p>계정 발급·잠금 해제·사용중지, T3Q 연계 추적로그, 응답 정합성 검증 (시스템 운영자 전용)</p></div></div>
-        <div className="subtabs" style={{ maxWidth: 600, marginTop: 0, marginBottom: 18 }}>
-          <button className={tab === "acct" ? "on" : ""} onClick={() => setTab("acct")}>계정 관리</button>
-          <button className={tab === "trace" ? "on" : ""} onClick={() => setTab("trace")}>연계 추적로그</button>
-          <button className={tab === "verify" ? "on" : ""} onClick={() => setTab("verify")}>응답 검증</button>
+    <Portal>
+      <div className="ovl" onClick={onClose} />
+      <aside className="drawer adm-drawer" role="dialog" aria-modal="true" aria-labelledby="adm-detail-t">
+        <div className="hd">
+          <h2 id="adm-detail-t">질의 원문</h2>
+          <code>{id}</code>
+          <span className="sp" />
+          <button type="button" className="btn xs" onClick={() => load()}>새로고침</button>
+          <button type="button" className="btn xs ghost" onClick={onClose} autoFocus>닫기 (Esc)</button>
         </div>
-
-        {tab === "acct" && (
-          <div className="grid2" style={{ gridTemplateColumns: sel ? "1.4fr 1fr" : "1fr", alignItems: "start" }}>
-            <table className="tbl">
-              <thead><tr><th>계정 ID</th><th>소속</th><th>역할</th><th>상태</th><th>발급일</th><th>최종 접속</th></tr></thead>
-              <tbody>
-                {accts.map((a) => (
-                  <tr key={a.id} className="click" onClick={() => setSel(a)} style={sel?.id === a.id ? { background: "#f5f8ff" } : undefined}>
-                    <td><code>{a.id}</code></td><td>{a.org}<div className="xs mute2">{a.dept}</div></td><td className="xs">{a.role}</td>
-                    <td><span className={`badge ${a.status === "사용" ? "ok" : a.status === "잠금" ? "danger" : a.status === "초기" ? "info" : "neutral"}`}>{a.status}</span></td>
-                    <td className="num xs">{a.issued}</td><td className="num xs">{a.last}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            {sel && (
-              <div className="panel">
-                <div className="row"><h3 style={{ fontSize: 18 }}>{sel.id}</h3><span className="sp" /><button className="btn xs ghost" onClick={() => setSel(null)}>닫기</button></div>
-                <dl className="kv" style={{ marginTop: 10 }}>
-                  <dt>소속</dt><dd>{sel.org} {sel.dept}</dd><dt>역할</dt><dd>{sel.role}</dd><dt>상태</dt><dd>{sel.status}</dd><dt>발급일</dt><dd>{sel.issued}</dd>
-                </dl>
-                <div className="row w" style={{ margin: "14px 0" }}>
-                  {sel.status === "잠금" && <button className="btn sm pri" onClick={() => setAct({ a: sel, kind: "잠금 해제" })}>잠금 해제</button>}
-                  {sel.status !== "중지" && sel.role !== "시스템 운영자" && <button className="btn sm" onClick={() => setAct({ a: sel, kind: "사용중지" })}>사용중지</button>}
-                  <button className="btn sm" onClick={() => setAct({ a: sel, kind: "비밀번호 초기화" })}>비밀번호 초기화</button>
-                </div>
-                <h4 className="xs muted" style={{ marginBottom: 6 }}>관리이력</h4>
-                <table className="tbl"><tbody>{[...sel.hist].reverse().map((h, i) => <tr key={i}><td className="num xs">{h[0]}</td><td className="xs b">{h[1]}</td><td className="xs">{h[2]}</td><td className="xs">{h[3]}</td></tr>)}</tbody></table>
-              </div>
-            )}
-          </div>
-        )}
-
-        {tab === "verify" && <VerifyTab />}
-
-        {tab === "trace" && (
-          <>
-            <div className="grid3" style={{ gridTemplateColumns: "repeat(4,1fr)", marginBottom: 14 }}>
-              {[["호출", trace.length, "건"], ["정상", stats.ok, "건"], ["오류·지연", stats.fail, "건"], ["평균 응답", (stats.avg / 1000).toFixed(1), "초"]].map(([l, v, u]) => <div key={l as string} className="fact"><div className="l">{l}</div><div className="v">{v}<small>{u}</small></div></div>)}
-            </div>
-            <div className="grid2" style={{ gridTemplateColumns: tsel ? "1.5fr 1fr" : "1fr", alignItems: "start" }}>
-              <table className="tbl">
-                <thead><tr><th>시각</th><th>계정</th><th>API</th><th>의도</th><th>결과</th><th>응답</th><th>질의(마스킹)</th></tr></thead>
-                <tbody>
-                  {trace.map((t, i) => (
-                    <tr key={i} className="click" onClick={() => setTsel(t)}>
-                      <td className="num xs">{new Date(t.at).toLocaleString("ko-KR", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit" })}</td>
-                      <td className="xs">{t.account}</td><td className="xs">{t.api}</td><td className="xs">{t.intent}</td>
-                      <td><span className={`badge ${t.status === "ok" ? "ok" : t.status === "clarify" ? "info" : "danger"}`}>{t.status}</span></td>
-                      <td className="num xs">{(t.ms / 1000).toFixed(1)}s</td><td className="xs">{mask(t.q)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              {tsel && (
-                <div className="panel">
-                  <div className="row"><h3 style={{ fontSize: 16 }}>추적로그 상세</h3><span className="sp" /><button className="btn xs ghost" onClick={() => setTsel(null)}>닫기</button></div>
-                  <dl className="kv" style={{ marginTop: 10 }}>
-                    <dt>요청 ID</dt><dd><code>{tsel.requestId}</code></dd><dt>시각</dt><dd>{new Date(tsel.at).toLocaleString("ko-KR")}</dd><dt>계정</dt><dd>{tsel.account}</dd><dt>API</dt><dd>{tsel.api}</dd>
-                    <dt>결과</dt><dd>{tsel.status}{tsel.status === "TIMEOUT" ? " — 응답 지연, 사용자에게 [다시 시도] 안내" : ""}</dd><dt>응답 시간</dt><dd>{tsel.ms}ms</dd>
-                    <dt>질의 원문</dt><dd>{mask(tsel.q)} <span className="xs mute2">(개인정보 마스킹)</span></dd><dt>조회 데이터</dt><dd>{tsel.datasets.join(", ") || "—"}</dd>
-                  </dl>
-                </div>
+        <div className="bd">
+          {error && <div className="notice danger" role="alert">{error}</div>}
+          {!job && !error && <p className="xs mute2">불러오는 중…</p>}
+          {job && (
+            <>
+              <dl className="kv two">
+                <dt>계정</dt><dd>{job.account_id}</dd>
+                <dt>출처</dt><dd>{SOURCE_LABEL[job.source] ?? job.source}{job.library_id ? ` · ${job.library_id}` : ""}</dd>
+                <dt>상태</dt>
+                <dd>
+                  <span className={`badge ${STATE_TONE[job.state] ?? "neutral"}`}>{STATE_LABEL[job.state] ?? job.state}</span>
+                  {job.error_code && <span className="xs mute2"> {job.error_code}</span>}
+                </dd>
+                <dt>응답 상태</dt><dd>{job.t3q_status ? statusKo(job.t3q_status) : "—"}{job.http_status != null ? ` · HTTP ${job.http_status}` : ""}</dd>
+                <dt>요청 ID</dt><dd><code>{job.t3q_request_id ?? "—"}</code></dd>
+                <dt>에이전트 대화 ID</dt><dd><code>{job.t3q_conversation_id ?? "—"}</code>{job.turn_no != null ? ` · ${job.turn_no}턴` : ""}</dd>
+                <dt>접수</dt><dd>{fmtDT(job.created_at)}</dd>
+                <dt>제출</dt><dd>{fmtDT(job.submitted_at)}</dd>
+                <dt>완료</dt><dd>{fmtDT(job.finished_at)}</dd>
+                <dt>응답 시간</dt><dd>{job.cached_from ? "즉시(캐시)" : fmtDur(job.elapsed_ms)}</dd>
+                {job.cached_from && (
+                  <>
+                    <dt>캐시 원본</dt>
+                    <dd><code>{job.cached_from}</code><button type="button" className="btn xs" onClick={() => onOpen(job.cached_from!)}>열기</button></dd>
+                  </>
+                )}
+                {job.retry_of && (
+                  <>
+                    <dt>재제출 원본</dt>
+                    <dd><code>{job.retry_of}</code><button type="button" className="btn xs" onClick={() => onOpen(job.retry_of!)}>열기</button></dd>
+                  </>
+                )}
+              </dl>
+              <p className="adm-qlb">사용자 질문</p>
+              <div className="adm-qbox">{job.question_user}</div>
+              {job.question_sent !== job.question_user && (
+                <>
+                  <p className="adm-qlb">실제 전송 질문</p>
+                  <div className="adm-qbox">{job.question_sent}</div>
+                </>
               )}
-            </div>
-            <p className="xs mute2" style={{ marginTop: 12 }}>※ 이 브라우저에서 발생한 호출 기록입니다. 요청 ID로 서버 로그와 대조할 수 있습니다.</p>
-          </>
-        )}
-      </div>
-      {act && (
-        <div className="ovl" onClick={() => setAct(null)}>
-          <div className="modal" style={{ width: 460 }} onClick={(e) => e.stopPropagation()}>
-            <div className="modal-hd"><h2>{act.kind} — {act.a.id}</h2></div>
-            <div className="modal-bd">
-              <label className="xs b">처리 사유 (필수)</label>
-              <textarea className="input" style={{ width: "100%", height: 80, padding: 10, marginTop: 6 }} value={why} onChange={(e) => setWhy(e.target.value)} placeholder="예) 본인 확인 완료 후 잠금 해제 요청" />
-              <p className="xs mute2">적용일시는 처리 시각으로 기록되며 관리이력에 남습니다.</p>
-            </div>
-            <div className="modal-ft"><span className="sp" /><button className="btn" onClick={() => setAct(null)}>취소</button><button className="btn pri" disabled={!why.trim()} onClick={apply}>처리</button></div>
-          </div>
+              <div className="adm-views" role="group" aria-label="원문 종류">
+                {VIEWS.map(([k, l]) => (
+                  <button key={k} type="button" aria-pressed={view === k} onClick={() => setView(k)}>
+                    {l}
+                    <small>{sizes[k] == null ? "없음" : fmtBytes(sizes[k]!)}</small>
+                  </button>
+                ))}
+                <span className="sp" />
+                <button type="button" onClick={copy} disabled={!text}>복사</button>
+                <button type="button" onClick={download} disabled={!text}>내려받기</button>
+              </div>
+              {text ? (
+                <pre className="adm-pre" tabIndex={0} aria-label={`${VIEWS.find(([k]) => k === view)?.[1]} JSON`}>{text}</pre>
+              ) : (
+                <div className="adm-pre none">저장된 값이 없습니다 (null)</div>
+              )}
+              <p className="adm-note">
+                ※ 저장된 값을 들여쓰기만 해서 그대로 보여 줍니다. 저장 방식 때문에 항목 순서는 응답 원문과 다를 수 있습니다(값은 같음).
+              </p>
+            </>
+          )}
         </div>
-      )}
-    </div>
+      </aside>
+    </Portal>
   );
 }

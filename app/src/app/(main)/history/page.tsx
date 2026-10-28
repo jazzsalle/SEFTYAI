@@ -1,4 +1,5 @@
 "use client";
+import { SOURCE_LABEL } from "@/lib/jobTypes";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "@/lib/session";
@@ -16,6 +17,7 @@ export default function HistoryPage() {
   const [q, setQ] = useState("");
   const [qApplied, setQApplied] = useState("");
   const [period, setPeriod] = useState("전체");
+  
   const [dt, setDt] = useState("전체");
   const [rg, setRg] = useState("전체");
   const [sel, setSel] = useState<string[]>([]);
@@ -27,7 +29,7 @@ export default function HistoryPage() {
     const now = Date.now();
     const lim = period === "오늘" ? 864e5 : period === "1주일" ? 7 * 864e5 : period === "1개월" ? 30 * 864e5 : Infinity;
     return [...convs]
-      .filter((c) => (!qApplied || c.title.includes(qApplied) || c.turns.some((t) => t.q.includes(qApplied))) && now - new Date(c.updatedAt).getTime() <= lim && (dt === "전체" || c.disasterType === dt) && (rg === "전체" || c.region === rg))
+      .filter((c) => (!qApplied || c.title.includes(qApplied) || c.turns.some((t) => t.q.includes(qApplied))) && now - new Date(c.updatedAt).getTime() <= lim && (dt === "전체" || (c.disasterType ?? "전체") === dt) && (rg === "전체" || c.region === rg))
       .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
   }, [convs, qApplied, period, dt, rg]);
   const pages = Math.max(1, Math.ceil(list.length / size));
@@ -48,8 +50,8 @@ export default function HistoryPage() {
           <b className="xs">기간</b>
           {["전체", "오늘", "1주일", "1개월"].map((p) => <button key={p} className={`chip ${period === p ? "on" : ""}`} onClick={() => { setPeriod(p); setPage(1); }}>{p}</button>)}
           <b className="xs">재난유형</b>
-          <select className="select sm" value={dt} onChange={(e) => { setDt(e.target.value); setPage(1); }}>
-            {["전체", "호우", "태풍", "홍수", "침수", "산사태"].map((x) => <option key={x}>{x}</option>)}
+          <select className="select sm" value={dt} onChange={(e) => { setDt(e.target.value); setPage(1); }} aria-label="재난유형">
+            {["전체", "호우", "태풍", "홍수", "침수", "산사태", "대설", "강풍"].map((x) => <option key={x}>{x}</option>)}
           </select>
           <b className="xs">기준지역</b>
           <select className="select sm" value={rg} onChange={(e) => { setRg(e.target.value); setPage(1); }}>
@@ -71,7 +73,7 @@ export default function HistoryPage() {
           <thead>
             <tr>
               <th style={{ width: 40 }}><input type="checkbox" aria-label="전체 선택" checked={view.length > 0 && view.every((c) => sel.includes(c.id))} onChange={(e) => setSel(e.target.checked ? view.map((c) => c.id) : [])} /></th>
-              <th>대화 제목</th><th style={{ width: 90 }}>재난유형</th><th style={{ width: 170 }}>기준지역</th><th style={{ width: 70 }}>질문</th><th style={{ width: 150 }}>최종 대화일시 ▼</th>
+              <th>대화 제목</th><th style={{ width: 90 }}>재난유형</th><th style={{ width: 150 }}>질문 방식</th><th style={{ width: 170 }}>기준지역</th><th style={{ width: 70 }}>질문</th><th style={{ width: 150 }}>최종 대화일시 ▼</th>
             </tr>
           </thead>
           <tbody>
@@ -79,7 +81,8 @@ export default function HistoryPage() {
               <tr key={c.id} className="click" onClick={() => router.push(`/explore?c=${c.id}`)}>
                 <td onClick={(e) => e.stopPropagation()}><input type="checkbox" checked={sel.includes(c.id)} onChange={(e) => setSel((s) => (e.target.checked ? [...s, c.id] : s.filter((x) => x !== c.id)))} aria-label="선택" /></td>
                 <td><b>{c.title}</b><div className="xs mute2" style={{ marginTop: 2 }}>{c.turns.map((t) => t.q).slice(0, 2).join(" · ")}</div></td>
-                <td>{c.disasterType}</td>
+                <td>{c.disasterType && c.disasterType !== "전체" ? c.disasterType : "전체"}</td>
+                <td>{c.v === 2 ? [...new Set(c.turns.map((t) => SOURCE_LABEL[t.source] ?? "-"))].join(", ") : "이전 버전(표시 불가)"}</td>
                 <td>{REGIONS[c.region].name}</td>
                 <td>{c.turns.length}</td>
                 <td className="num">{fmt(c.updatedAt)}</td>

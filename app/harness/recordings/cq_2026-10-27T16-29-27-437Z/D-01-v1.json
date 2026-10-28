@@ -1,0 +1,90 @@
+{
+  "id": "D-01-v1",
+  "question": "2024년 7월 공주시 집중호우 사건을 열어줘 — 사건 기간, 전국 이재민·재산피해, 공주시 사유·공공시설 피해 건수.",
+  "request": {
+    "question": "2024년 7월 공주시 집중호우 사건을 열어줘 — 사건 기간, 전국 이재민·재산피해, 공주시 사유·공공시설 피해 건수.",
+    "question_source": "USER",
+    "query_context": {
+      "reference_time": "2024-07-15T09:00:00+09:00",
+      "region": {
+        "admin_code": "4415000000",
+        "name": "충청남도 공주시",
+        "level": "SIGUNGU"
+      },
+      "disaster_types": [
+        "호우"
+      ]
+    }
+  },
+  "final": {
+    "schema_version": "2.0",
+    "request_id": "ded7acaa8947706b152cad37794d94ba",
+    "correlation_id": "corr-ded7acaa8947706b152cad37794d94ba",
+    "status": "SUCCESS",
+    "conversation_id": "CONV-20261028-b98476",
+    "turn_no": 1,
+    "result": {
+      "response_id": "RES-20261028-28c8d7",
+      "question": "2024년 7월 공주시 집중호우 사건을 열어줘 — 사건 기간, 전국 이재민·재산피해, 공주시 사유·공공시설 피해 건수.",
+      "question_source": "USER",
+      "answer": "### 2024년 7월 호우 사건 개요 및 공주시 피해 현황\n\n---\n\n### 1. 사건 개요 (전국 기준)\n\n- **사건명**: 2024년 7.8.~19. 호우 (`사건ID: T10107-20240708-0001`)\n- **사건 기간**: **2024년 7월 8일 ~ 2024년 7월 19일**\n- **전국 이재민 수**: **9,758명**\n- **전국 재산피해액**: **3,182억 3,090만 원** (318,230,900,000원)\n\n---\n\n### 2. 공주시 시설 피해 현황\n\n#### ① 사유시설 피해\n- **피해 건수**: **524건** (도로명주소 텍스트 기반 미매핑 12건 포함 시 총 **536건**)\n- **피해 금액**: 약 **2억 203만 원** (202,034,000원, 미매핑 포함 시 약 2억 1,167만 원)\n- **주요 피해 내역**:\n  - 일반작물(수도작) 병해충방제: 119건\n  - 농경지 매몰: 102건\n  - 채소류 병해충방제: 80건\n  - 농경지 유실: 61건\n  - 과수류 병해충방제: 56건\n  - 기타 일반작물(53건), 인삼(27건), 소상공인 피해(5건), 침수주택(5건) 등\n\n#### ② 공공시설 피해\n- **피해 건수**: **3건**\n- **피해 금액**: **793만 4천 원** (7,934,000원)\n- **세부 피해 시설 목록**:\n\n| 번호 | 시설 위치 | 피해 내용 요약 | 피해금액 |\n|:---:|---|---|---:|\n| 1 | [충청남도 공주시 산성동 덕성공원빌리지아파트 102동 000호](#ref:r3) | 7. 8. 집중호우로 인하여 엘리베이터 2대 침수 | 2,700,000원 |\n| 2 | [충청남도 공주시 계룡면 유평리](#ref:r2) | U형플륨관 규격 협소로 인한 침수피해 및 배수구 불량(L=100m) | 5,234,000원 |\n| 3 | [충청남도 공주시 이인면 달산리](#ref:r1) | 토사측구 막힘 및 우수 월류(L=60m) | 0원 |\n\n---\n\n### 출처 및 근거\n- **사건 기본 제원**: `disaster.event` (2024_재해연보, T10107-20240708-0001)\n- **피해 상세 대장**: `disaster.named_disaster`, `disaster.private_damage` (복구확정 사유시설), `disaster.public_damage` (복구확정 공공시설 침수 피해)",
+      "answer_format": "MARKDOWN",
+      "entities": [],
+      "result_groups": [],
+      "evidence_refs": [],
+      "follow_up_questions": [],
+      "refs": [
+        {
+          "ref": "r3",
+          "entity_type": "REGION",
+          "display_name": null,
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4415010500",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r2",
+          "entity_type": "REGION",
+          "display_name": null,
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4415033037",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r1",
+          "entity_type": "REGION",
+          "display_name": null,
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4415031031",
+            "draw": "pin"
+          }
+        }
+      ],
+      "conversation_title": null,
+      "limitations": [
+        "유사사례는 예측·위험판단이 아닌 참고 정보"
+      ],
+      "context_used": {
+        "used_conditions": [],
+        "unused_conditions": [],
+        "reference_used": false
+      }
+    },
+    "data_gaps": [],
+    "warnings": [],
+    "meta": {
+      "source": "T3Q",
+      "base_time": "2026-10-28T01:52:22+09:00",
+      "quality_status": "VERIFIED",
+      "disclosure_level": "공개",
+      "elapsed_ms": 125623
+    }
+  },
+  "waitedMs": 126947,
+  "timeout": false
+}

@@ -1,3 +1,4 @@
+import type { Advisory, RegionId, WeatherResponse } from "./contract/agent";
 
 /** [특보로 질문] 빠른질의 (목업 QQ-01~03) — 참조 특보와 함께 전송, presetKey 로 의도 고정 */
 export const WX_QQ = [
@@ -14,3 +15,21 @@ export const advTime = (iso: string) => {
   return `${d.getMonth() + 1}.${d.getDate()}. ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
 };
 export const advTone = (a: { level: string }) => (a.level === "경보" ? "w" : a.level === "주의보" ? "a" : "p");
+
+/** 지금 발효 중인 특보(해제 제외) — 기준지역이 전국이면 전체 */
+export function activeAdvisories(weather: WeatherResponse | null | undefined, region: RegionId): Advisory[] {
+  return (weather?.advisories ?? []).filter((a) => a.status !== "해제" && (region === "national" || a.regionId === region));
+}
+
+/**
+ * 기상청 특보 → 에이전트 질의 weather_warnings (원문 항목 그대로).
+ * 수집 상태·수집 시각은 실제 조회 결과로(조회 실패면 FAILED) — 꾸미지 않는다(R6).
+ */
+export function warningsPayload(weather: WeatherResponse | null | undefined, advs: Advisory[]) {
+  return {
+    collect_status: weather?.status.ok ? "COLLECTED" : "FAILED",
+    collected_at: weather?.status.fetchedAt ?? null,
+    source: "기상청 기상특보 조회서비스",
+    items: advs.map((a) => ({ warning_key: a.id, kind: a.type, level: a.level, area: a.area, announced_at: a.issuedAt, effective_at: a.issuedAt, change: a.status })),
+  };
+}

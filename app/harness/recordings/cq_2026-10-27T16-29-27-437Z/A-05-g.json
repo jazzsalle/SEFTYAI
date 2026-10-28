@@ -1,0 +1,120 @@
+{
+  "id": "A-05-g",
+  "question": "서천군 2024년 침수흔적 범위 안에 들어가는 건축물은 몇 동이고, 많은 법정동 5곳은?",
+  "request": {
+    "question": "서천군 2024년 침수흔적 범위 안에 들어가는 건축물은 몇 동이고, 많은 법정동 5곳은?",
+    "question_source": "USER",
+    "query_context": {
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "region": {
+        "admin_code": "4477000000",
+        "name": "충청남도 서천군",
+        "level": "SIGUNGU"
+      },
+      "disaster_types": [
+        "호우"
+      ]
+    }
+  },
+  "final": {
+    "schema_version": "2.0",
+    "request_id": "55d53b4af996a1e2c22eb18f8ddcd86d",
+    "correlation_id": "corr-55d53b4af996a1e2c22eb18f8ddcd86d",
+    "status": "SUCCESS",
+    "conversation_id": "CONV-20261028-b2e5ba",
+    "turn_no": 1,
+    "result": {
+      "response_id": "RES-20261028-67f10c",
+      "question": "서천군 2024년 침수흔적 범위 안에 들어가는 건축물은 몇 동이고, 많은 법정동 5곳은?",
+      "question_source": "USER",
+      "answer": "### 결론\n\n충청남도 서천군 관내 **2024년 침수흔적(총 353개 침수흔적 구역)** 범위 안에 들어가는 건축물은 총 **323동**입니다.\n\n침수흔적 범위 내 건축물이 많은 **법정동(법정리 기준)** 상위 5곳은 다음과 같습니다(공동 순위 포함 6곳).\n\n| 순위 | 법정동명 (법정리) | 법정동코드 | 건축물 수 | 비중(%) |\n|:---:|:---|:---:|:---:|:---:|\n| **1위** | [충청남도 서천군 비인면 성내리](#ref:r7) | `4477040021` | **82동** | 25.4% |\n| **2위** | [충청남도 서천군 장항읍 신창리](#ref:r4) | `4477025024` | **33동** | 10.2% |\n| **3위 (공동)** | [충청남도 서천군 서천읍 사곡리](#ref:r8) | `4477025322` | **16동** | 5.0% |\n| **3위 (공동)** | [충청남도 서천군 장항읍 성주리](#ref:r3) | `4477025023` | **16동** | 5.0% |\n| **5위 (공동)** | [충청남도 서천군 서면 도둔리](#ref:r9) | `4477041028` | **12동** | 3.7% |\n| **5위 (공동)** | [충청남도 서천군 한산면 지현리](#ref:r10) | `4477034021` | **12동** | 3.7% |\n\n*(참고: 읍·면 행정구역 단위 집계 시 **비인면(98동)** > **장항읍(79동)** > **서천읍(36동)** > **서면(31동)** > **한산면(20동)** 순입니다.)*\n\n---\n\n### 분석 근거 및 세부 현황\n\n#### 1. 대상 데이터 및 분석 기준\n- **침수흔적 자료 (`flood.trace`, `gis.flood_trace`)**:\n  - 서천군 관내 2024년 침수 사건(`2024년 7월 8일 집중호우`, 2024-07-10 전후 발생)으로 작성된 침수흔적 공간 데이터 353건을 대상으로 공간 분석(`ST_Intersects`)을 수행했습니다.\n  - 침수 원인은 방재시설 용량부족, 도로노면수 유입, 배후지 우수 및 토사 유입 등이 복합적으로 작용했습니다.\n- **건축물 위치 자료 (`gis.building_point`, `bldg.building`)**:\n  - 서천군 내 건축물 표제부 위치 점(Point) 데이터를 침수흔적 공간 폴리곤과 중첩하여 중복 없는 고유 건축물(`bdst_ldgr_unq_no` 기준 323동)을 추출했습니다.\n\n#### 2. 침수흔적 내 건축물 주용도 현황\n침수흔적에 포함된 323동의 주용도 분포는 다음과 같이 주거 및 생활밀접 시설에 집중되어 있습니다.\n- **주거용(단독·공동주택)**: 209동 (64.7%)\n- **근린생활시설(제1·2종)**: 64동 (19.8%)\n- **공장·창고시설**: 18동 (5.6%)\n- **판매시설**: 18동 (5.6%)\n- **기타(문화집회, 노유자시설 등)**: 14동 (4.3%)\n\n---\n\n### 대응 및 확인 제언사항\n1. **성내리·신창리 집중 관리**: 비인면 성내리(82동) 및 장항읍 신창리(33동)는 침수흔적 내 건축물의 35% 이상이 밀집된 최우선 관리 구역이므로, 호우 특보 발효 시 차수판 설치 및 빗물받이·배수펌프 가동 상태를 우선 점검해야 합니다.\n2. **반지하 및 노후 주거시설 대피 점검**: 주거용 건축물이 209동으로 대다수를 차지하므로, 저지대 독거노인·취약가구에 대한 비상 연락망 및 사전 대피소 안내가 요구됩니다.",
+      "answer_format": "MARKDOWN",
+      "entities": [],
+      "result_groups": [],
+      "evidence_refs": [],
+      "follow_up_questions": [],
+      "refs": [
+        {
+          "ref": "r7",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 비인면 성내리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477040021",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r4",
+          "entity_type": "REGION",
+          "display_name": null,
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477025024",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r8",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 서천읍 사곡리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477025322",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r3",
+          "entity_type": "REGION",
+          "display_name": null,
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477025023",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r9",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 서면 도둔리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477041028",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r10",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 한산면 지현리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477034021",
+            "draw": "pin"
+          }
+        }
+      ],
+      "conversation_title": null,
+      "limitations": [
+        "유사사례는 예측·위험판단이 아닌 참고 정보"
+      ],
+      "context_used": {
+        "used_conditions": [],
+        "unused_conditions": [],
+        "reference_used": false
+      }
+    },
+    "data_gaps": [],
+    "warnings": [],
+    "meta": {
+      "source": "T3Q",
+      "base_time": "2026-10-28T01:36:38+09:00",
+      "quality_status": "VERIFIED",
+      "disclosure_level": "공개",
+      "elapsed_ms": 145582
+    }
+  },
+  "waitedMs": 148496,
+  "timeout": false
+}

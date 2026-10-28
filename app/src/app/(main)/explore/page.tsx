@@ -1,462 +1,499 @@
 "use client";
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import type { Advisory, AgentResponse, Citation, EntityRef, QueryContext, RegionId } from "@/lib/contract/agent";
-import { useSession, uid, type Conversation, type Turn } from "@/lib/session";
-import { ExploreContext, type ExploreApi, type PanelTab } from "@/components/explore/ExploreCtx";
-import AnswerView from "@/components/explore/AnswerView";
-import Composer, { type ScenarioItem } from "@/components/explore/Composer";
-import StartScreen from "@/components/explore/StartScreen";
-import { advLabel, advTone } from "@/lib/wxref";
-import RightPanel from "@/components/explore/RightPanel";
-import AimOverlay from "@/components/explore/AimOverlay";
-import LibraryDrawer from "@/components/explore/LibraryDrawer";
-import { IcEdit, IcList, IcMap, IcPlus } from "@/components/Icons";
+import { useSession, uid, type Conversation, type SubmitArgs, type Turn } from "@/lib/session";
 import { useSop } from "@/lib/sopState";
+import { useBriefItems } from "@/lib/briefing";
+import { fillText, libById, type LibraryQuestion } from "@/lib/library";
+import { REGIONS } from "@/lib/config";
+import { api } from "@/lib/api";
+import type { Citation } from "@/lib/contract/agent";
+import { activeAdvisories, warningsPayload } from "@/lib/wxref";
+import { joinName } from "@/lib/t3q/region";
+import { SOURCE_LABEL, type JobSummary, type T3qRef } from "@/lib/jobTypes";
+import { ExploreContext, type ExploreApi, type PanelTab } from "@/components/explore/ExploreCtx";
+import RightPanel from "@/components/explore/RightPanel";
+import Composer from "@/components/explore/Composer";
+import StartScreen from "@/components/explore/StartScreen";
+import LibraryDrawer from "@/components/explore/LibraryDrawer";
+import BriefBoard, { type BriefGroup } from "@/components/explore/BriefBoard";
+import QueuePanel from "@/components/queue/QueuePanel";
+import AnswerCard from "@/components/answer/AnswerCard";
+import DataCard from "@/components/answer/DataCard";
+import type { MapFeature } from "@/components/map/MapView";
+import { IcChevL } from "@/components/Icons";
 
-/** 지자체 계정의 고정 탭 — 닫을 수 없고 우측 패널 맨 앞에 항상 있음 */
 const SOP_TAB: PanelTab = { key: "sop", kind: "sop", title: "대응절차", pinned: true };
+const MAP_TAB: PanelTab = { key: "map", kind: "map", title: "지도" };
+type AskArgs = Omit<SubmitArgs, "convId" | "turnNo">;
 
-const LOADING_STEPS = ["질문과 재난상황 조건 해석", "재난안전 데이터 조회", "매뉴얼·계획문서 근거 확인", "답변 구성"];
-
-function Loading() {
-  const [n, setN] = useState(0);
-  useEffect(() => {
-    const t = setInterval(() => setN((v) => Math.min(v + 1, LOADING_STEPS.length - 1)), 380);
-    return () => clearInterval(t);
-  }, []);
+export default function ExplorePage() {
   return (
-    <div className="acard">
-      <ul className="steps-loading">
-        {LOADING_STEPS.map((s, i) => (
-          <li key={s} className={i < n ? "done" : ""} style={{ opacity: i > n ? 0.35 : 1 }}>{i < n ? "✓" : i === n ? <span className="spin" /> : "·"} {s}</li>
-        ))}
-      </ul>
-    </div>
+    <Suspense fallback={null}>
+      <Explore />
+    </Suspense>
   );
 }
-
-interface AskOpts { region?: RegionId; baseTime?: string; prev?: string; scenario?: ScenarioItem; ref?: EntityRef | null; wx?: Advisory | null; aim?: boolean }
 
 function Explore() {
   const s = useSession();
   const sop = useSop();
-  const router = useRouter();
   const sp = useSearchParams();
-  const [conv, setConvS] = useState<Conversation | null>(null);
-  const convRef = useRef<Conversation | null>(null);
-  const setConv = (c: Conversation | null) => { convRef.current = c; setConvS(c); };
-  const lastFocus = useRef<EntityRef | null>(null);
-  const [tabs, setTabs] = useState<PanelTab[]>([]);
-  const [active, setActive] = useState("");
-  const [hovered, setHovered] = useState<string | null>(null);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [mapExtra, setMapExtra] = useState<EntityRef[]>([]);
-  const [mapHl, setMapHl] = useState<string[]>([]);
-  const [focusToken, setFocusToken] = useState(0);
-  const [areaToken, setAreaToken] = useState(0);
-  const [editTitle, setEditTitle] = useState(false);
-  const [aimCollapsed, setAimCollapsed] = useState(false);
-  const [lib, setLib] = useState(false);
-  const [flowRun, setFlowRun] = useState<{ i: number; n: number } | null>(null);
-  const [regionNotice, setRegionNotice] = useState<{ from: RegionId; to: RegionId } | null>(null);
-  const [noMore, setNoMore] = useState(false);
-  const [mapEpoch, setMapEpoch] = useState(0); // 새 대화마다 지도·우측 패널을 새로 그림 (주제도 누적 방지)
+  const router = useRouter();
+  const briefItems = useBriefItems();
+  const [conv, setConv] = useState<Conversation | null>(null);
+  const [queueOpen, setQueueOpen] = useState(true);
+  const [libOpen, setLibOpen] = useState(false);
+  const [panelOpen, setPanelOpen] = useState(false);
+  const [tabs, setTabs] = useState<PanelTab[]>([MAP_TAB]);
+  const [active, setActive] = useState("map");
   const [sopFocus, setSopFocus] = useState<{ id: string; n: number } | undefined>(undefined);
-  // 대화창 ↔ 지도 패널 폭 조절 (대화창 비율 %, 브라우저별 기억)
-  const [chatW, setChatW] = useState(46);
-  const [dragging, setDragging] = useState(false);
-  const workRef = useRef<HTMLElement>(null);
-  useEffect(() => {
-    try { const v = Number(localStorage.getItem("sa.chatW")); if (v >= 25 && v <= 75) setChatW(v); } catch {}
-  }, []);
-  const saveChatW = (v: number) => { setChatW(v); try { localStorage.setItem("sa.chatW", String(v)); } catch {} };
-  const onSplitDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    (e.target as HTMLElement).setPointerCapture(e.pointerId);
-    setDragging(true);
-  };
-  const onSplitMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!dragging || !workRef.current) return;
-    const r = workRef.current.getBoundingClientRect();
-    setChatW(Math.min(75, Math.max(25, ((e.clientX - r.left) / r.width) * 100)));
-  };
-  const onSplitUp = () => { if (!dragging) return; setDragging(false); saveChatW(Math.round(chatW * 10) / 10); };
-  const busy = !!conv?.turns.some((t) => t.pending);
+  const [mapJob, setMapJob] = useState<string | null>(null);
+  const [selectedKey, setSelectedKey] = useState<string | null>(null);
+  const [focusToken, setFocusToken] = useState(0);
+  const [follow, setFollow] = useState<{ jobId: string; refs: T3qRef[]; label: string } | null>(null);
+  const endRef = useRef<HTMLDivElement>(null);
+  // 지금 보고 있는 대화 + 대화별 최신본(연달아 보낼 때 앞선 턴이 지워지지 않게 — 항상 최신본에 붙인다)
+  const convRef = useRef<Conversation | null>(null);
+  convRef.current = conv;
+  const latest = useRef(new Map<string, Conversation>());
+  const sRef = useRef(s);
+  sRef.current = s;
 
+  const regionName = s.cond.region === "national" ? "전국" : joinName(REGIONS[s.cond.region].name, s.cond.sigunguName, s.cond.emdName);
+
+  // 이력에서 연 대화 (?c=) — 그 id 로 한 번만 연다(이후 새 대화를 시작해도 되돌아가지 않게)
+  const openedC = useRef<string | null>(null);
   useEffect(() => {
-    const cid = sp.get("c");
-    if (cid) {
-      const c = s.convs.find((x) => x.id === cid);
-      if (c) setConv(c);
+    const id = sp.get("c");
+    if (!id || openedC.current === id) return;
+    const c = s.convs.find((x) => x.id === id);
+    if (c && c.v === 2) {
+      openedC.current = id;
+      setConv(latest.current.get(c.id) ?? c);
     }
-    if (sp.get("panel") === "wx") openTab({ key: "wx", kind: "wx", title: "기상특보" });
-    if (sp.get("panel") === "sop") sop.requestOpen();
-    if (sp.get("new")) newChat();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sp]);
-  // 단계 바 [대응절차 전체]·[다음 조치] → 우측 「대응절차」 탭 열기 (다른 화면에서 왔으면 이동 후 처리)
+  }, [sp, s.convs]);
+
+  // 대화를 바꾸면 이어서 묻기 해제
+  useEffect(() => {
+    setFollow((f) => (f && !(conv?.turns ?? []).some((t) => t.jobId === f.jobId) ? null : f));
+  }, [conv?.id, conv?.turns]);
+
+  // 대응절차 탭 열기 요청(대응 단계 바)
   useEffect(() => {
     if (!sop.openReq || !sop.enabled) return;
-    openTab(SOP_TAB);
+    setPanelOpen(true);
+    setActive("sop");
     const f = sop.openReq.focus;
     if (f) setSopFocus((p) => ({ id: f, n: (p?.n ?? 0) + 1 }));
     sop.clearOpen();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sop.openReq, sop.enabled]);
-  // 기준지역(시도·시군구·읍면동) 변경 → 지도를 열고 해당 행정경계로 이동
-  const areaRef = useRef<string | null>(null);
+
+  // 대화의 작업 상태 따라가기 + 완료되면 원응답 받기
+  const turnJobIds = useMemo(() => new Set((conv?.turns ?? []).map((t) => t.jobId).filter(Boolean)), [conv]);
   useEffect(() => {
-    const k = `${s.cond.region}|${s.cond.sigungu ?? ""}|${s.cond.emd ?? ""}`;
-    if (areaRef.current === null) { areaRef.current = k; return; }
-    if (areaRef.current === k) return;
-    const prevRegion = areaRef.current.split("|")[0];
-    areaRef.current = k;
-    // 전국 ↔ 시·도(광역) 단위가 바뀌면 새 대화로 시작 — 이전 지역의 지도 주제도·결과가 섞이지 않게 (이전 대화는 대화 목록에 저장됨)
-    if (prevRegion !== s.cond.region && convRef.current?.turns.length) {
-      newChat();
-      let hide = false;
-      try { hide = localStorage.getItem("sa.hideRegionNotice") === "1"; } catch {}
-      if (!hide) setRegionNotice({ from: prevRegion as RegionId, to: s.cond.region });
-    }
-    setAreaToken((t) => t + 1);
-    setSelectedId(null);
-    openTab({ key: "map", kind: "map", title: "지도" });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [s.cond.region, s.cond.sigungu, s.cond.emd]);
-  const askedQ = useRef<string | null>(null);
-  useEffect(() => {
-    const q = sp.get("q");
-    if (q && s.weather && askedQ.current !== q) {
-      askedQ.current = q;
-      ask(q);
+    for (const t of conv?.turns ?? []) {
+      if (!t.jobId) continue;
+      const j = s.jobs[t.jobId];
+      if (!j) s.watch(t.jobId);
+      else if (!["QUEUED", "SUBMITTED", "RUNNING"].includes(j.state) && (!s.full[t.jobId] || s.full[t.jobId].state !== j.state)) s.loadFull(t.jobId);
+      else if (j.hasPreview && !s.full[t.jobId]) s.loadFull(t.jobId);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sp, s.weather]);
+  }, [conv, s.jobs]);
+
   useEffect(() => {
-    if (s.aimOn) setAimCollapsed(!!conv);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [s.aimOn]);
+    endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  }, [conv?.turns.length]);
 
-  const registry = useMemo(() => {
-    const ents = new Map<string, EntityRef>();
-    const cites = new Map<string, Citation>();
-    conv?.turns.forEach((t) => t.res?.entities.forEach((e) => ents.set(e.id, e)));
-    conv?.turns.forEach((t) => t.res?.citations.forEach((c) => cites.set(c.id, c)));
-    const last = conv?.turns.filter((t) => t.res).at(-1)?.res;
-    last?.citations.forEach((c) => cites.set(c.id, c));
-    mapExtra.forEach((e) => ents.set(e.id, { ...ents.get(e.id), ...e }));
-    return { ents, cites };
-  }, [conv, mapExtra]);
-
-  const mapPoints = useMemo(() => {
-    const last = conv?.turns.filter((t) => t.res).at(-1)?.res;
-    const m = new Map<string, EntityRef>();
-    last?.entities.filter((e) => e.lon != null).forEach((e) => m.set(e.id, e));
-    mapExtra.filter((e) => e.lon != null).forEach((e) => m.set(e.id, e));
-    return [...m.values()];
-  }, [conv, mapExtra]);
-
-  const riverHighlight = useMemo(() => {
-    const ids = new Set<string>();
-    const last = conv?.turns.filter((t) => t.res).at(-1)?.res;
-    last?.entities.filter((e) => e.type === "river").forEach((e) => ids.add(e.id));
-    const h = hovered && registry.ents.get(hovered);
-    if (h && h.type === "river") ids.add(h.id);
-    const sel = tabs.find((t) => t.key === active)?.entity;
-    if (sel?.type === "river") ids.add(sel.id);
-    return [...ids];
-  }, [conv, hovered, registry, tabs, active]);
-
-  const openTab = useCallback((t: PanelTab) => {
-    setTabs((prev) => {
-      const ex = prev.find((p) => p.key === t.key);
-      if (ex) return prev.map((p) => (p.key === t.key ? { ...p, ...t } : p));
-      const base = prev.some((p) => p.kind === "map") || t.kind === "map" || t.kind === "sop" ? prev : [{ key: "map", kind: "map" as const, title: "지도" }, ...prev];
-      const next = [...base, t];
-      while (next.length > 6) next.splice(next.findIndex((p) => p.kind !== "map" && !p.pinned), 1);
-      return next;
-    });
-    setActive(t.key);
+  /** 대화 저장 — 최신본 갱신, 보고 있는 대화면 화면에도 반영 */
+  const commit = useCallback((c: Conversation, show: boolean) => {
+    latest.current.set(c.id, c);
+    if (show || convRef.current?.id === c.id) {
+      convRef.current = c;
+      setConv(c);
+    }
+    sRef.current.saveConv(c);
+    return c;
   }, []);
+  const current = (id: string) => latest.current.get(id) ?? (convRef.current?.id === id ? convRef.current : null) ?? sRef.current.convs.find((c) => c.id === id) ?? null;
 
-  const api: ExploreApi = {
-    hovered,
-    selectedId,
-    hover: setHovered,
-    entityById: (id) => registry.ents.get(id),
-    citationById: (id) => registry.cites.get(id),
-    openDetail: (e, sub) => {
-      setSelectedId(e.id);
-      lastFocus.current = e;
-      if (e.lon != null) setMapExtra((m) => (m.some((x) => x.id === e.id) ? m : [...m, e]));
-      setFocusToken((t) => t + 1);
-      openTab({ key: `d:${e.type}:${e.id}`, kind: "detail", title: e.name, entity: e, sub });
+  /** 턴 붙이기 — baseId 가 없으면 새 대화 */
+  const appendTurns = useCallback(
+    (title: string, add: Turn[], baseId: string | null) => {
+      const now = new Date().toISOString();
+      const base = baseId ? current(baseId) : null;
+      const c: Conversation = base
+        ? { ...base, turns: [...base.turns, ...add], updatedAt: now }
+        : { id: uid("c"), title: title.slice(0, 60), region: sRef.current.cond.region, disasterType: sRef.current.cond.disasterType, createdAt: now, updatedAt: now, turns: add, v: 2 };
+      return commit(c, !baseId);
     },
-    openList: (label, groupKey, items) => {
-      setMapExtra((m) => [...m.filter((x) => !items.some((i) => i.id === x.id)), ...items]);
-      openTab({ key: `l:${groupKey}`, kind: "list", title: `전체 목록 · ${label}`, list: { label, items, groupKey } });
+    [commit],
+  );
+  /** 턴 고치기(접수 결과 반영 등) — 그 대화의 최신본에서 */
+  const patchTurn = useCallback(
+    (convId: string, turnId: string, patch: Partial<Turn>) => {
+      const c = current(convId);
+      if (!c) return;
+      commit({ ...c, turns: c.turns.map((t) => (t.id === turnId ? { ...t, ...patch } : t)), updatedAt: new Date().toISOString() }, false);
     },
-    openCitation: (c) => openTab({ key: `c:${c.docId}:${c.page ?? c.locator ?? ""}`, kind: "doc", title: `근거 · ${c.title}`, citation: c }),
-    openMap: (ids, extra) => {
-      if (extra) setMapExtra((m) => [...m.filter((x) => !extra.some((i) => i.id === x.id)), ...extra]);
-      setMapHl(ids ?? []);
-      setSelectedId(null);
-      setFocusToken((t) => t + 1);
-      openTab({ key: "map", kind: "map", title: "지도" });
-    },
-    openWx: () => openTab({ key: "wx", kind: "wx", title: "기상특보" }),
-    ask: (q, presetKey, ref) => { ask(q, presetKey, { ref }); },
-  };
+    [commit],
+  );
 
-  const newChat = () => {
-    setConv(null);
-    setMapEpoch((n) => n + 1);
-    setTabs([]);
-    setActive("");
-    setMapExtra([]);
-    setMapHl([]);
-    setSelectedId(null);
-    lastFocus.current = null;
-    router.replace("/explore");
-  };
-
-  const scenarioBase = s.weather?.scenario && s.mode === "scenario" ? s.weather.scenario.baseTime : null;
-  const fmt = (iso: string) => new Date(iso).toLocaleString("ko-KR", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" });
-  const baseTimeLabel = s.cond.baseTime ? fmt(s.cond.baseTime) : scenarioBase ? fmt(scenarioBase) : "현재 시각";
-
-  async function ask(q: string, presetKey?: string, o: AskOpts = {}): Promise<AgentResponse | null> {
-    const cur = convRef.current;
-    if (cur?.turns.some((t) => t.pending)) return null;
-    // 전광판은 접지 않음 — 띄워 둔 채(필요하면 옮겨서) 대화를 이어감. 전광판 안의 질문·브리핑 버튼은 스스로 접음
-    const now = new Date().toISOString();
-    // 참조 특보 : 객체를 직접 참조한 질문(이 객체로 질문)·AI 점검에는 싣지 않음
-    // AI 모드 켜짐 = 현재 발효 특보를 함께 전달 · 꺼짐 = 사용자 입력 조건(+특보 참조)만
-    const aim = presetKey === "check" ? true : o.aim ?? s.aimOn;
-    const wxSel = aim ? null : o.wx !== undefined ? o.wx : s.wxRef;
-    const wxr = wxSel && !o.ref && presetKey !== "check" ? wxSel : null;
-    const turn: Turn = { id: uid("t"), q: presetKey === "check" ? `AI 상황 점검 · ${fmt(o.baseTime ?? now)}` : q, at: now, presetKey, pending: true, refAdv: wxr ? { type: wxr.type, level: wxr.level, area: wxr.area, issuedAt: wxr.issuedAt } : undefined };
-    const sc = o.scenario;
-    const region = o.region ?? (sc && sc.region !== "national" ? sc.region : s.cond.region);
-    const explicitRef = o.ref ?? undefined;
-    const base: Conversation = cur ?? { id: uid("cv"), title: q.slice(0, 40), region, disasterType: sc?.disasterType ?? s.cond.disasterType, createdAt: now, updatedAt: now, turns: [] };
-    const working: Conversation = { ...base, refEntity: explicitRef ? { type: explicitRef.type, id: explicitRef.id, name: explicitRef.name } : base.refEntity, turns: [...base.turns, turn], updatedAt: now };
-    setConv(working);
-    setTimeout(() => document.getElementById(`turn-${turn.id}`)?.scrollIntoView({ behavior: "smooth", block: "start" }), 60);
-    const top = aim ? s.weather?.advisories.find((a) => a.status === "발효" && (region === "national" || a.regionId === region)) : undefined;
-    const refE = explicitRef ?? (wxr ? lastFocus.current : working.refEntity ? (working.refEntity as EntityRef) : lastFocus.current);
-    const context: QueryContext = {
-      region,
-      sigungu: sc ? undefined : s.cond.sigungu,
-      emd: sc ? undefined : s.cond.emd,
-      disasterType: sc?.disasterType ?? s.cond.disasterType,
-      baseTime: o.baseTime ?? (s.cond.baseTime ? new Date(s.cond.baseTime).toISOString() : scenarioBase ?? now),
-      endTime: s.cond.endTime ? new Date(s.cond.endTime).toISOString() : undefined,
-      mode: s.mode,
-      advisory: top ? { type: top.type, level: top.level, issuedAt: top.issuedAt, area: top.area } : undefined,
-      aiMode: aim || undefined,
-      refEntity: refE ? { type: refE.type, id: refE.id, name: refE.name } : undefined,
-      hydro: sc ? sc.hydro : s.cond.hydro,
-      keywords: sc ? sc.keywords : s.cond.keywords,
-      situationKind: sc ? (sc.advisory ? { type: sc.advisory.type, level: sc.advisory.level } : undefined) : s.cond.situationKind,
-      scenarioId: sc?.id ?? s.cond.scenarioId,
-      prevCheckAt: o.prev,
-      refAdvisory: wxr ? { id: wxr.id, type: wxr.type, level: wxr.level, area: wxr.area, issuedAt: wxr.issuedAt, regionId: wxr.regionId } : undefined,
-    };
-    let res: AgentResponse | null = null;
-    try {
-      const r = await fetch("/api/agent/query", { method: "POST", headers: { "content-type": "application/json", "x-sa-account": s.account?.id ?? "" }, body: JSON.stringify({ sessionId: working.id, question: q, presetKey, context }) });
-      res = await r.json();
-      if (!r.ok || !res?.blocks) throw new Error("응답 오류");
-      const done: Conversation = { ...working, title: base.turns.length === 0 ? res.title : working.title, turns: working.turns.map((t) => (t.id === turn.id ? { ...t, pending: false, res: res!, req: { question: q, presetKey, context } } : t)), updatedAt: new Date().toISOString() };
-      setConv(done);
-      s.saveConv(done);
-      if (res.focusEntity) lastFocus.current = res.focusEntity;
-      const located = res.entities.filter((e) => e.lon != null);
-      setMapExtra([]);
-      setSelectedId(null);
-      const manualCite = ["manual", "reporting", "message"].includes(res.intent) ? res.citations.find((c) => c.kind === "매뉴얼") : undefined;
-      if (manualCite) {
-        openTab({ key: `c:${manualCite.docId}:${manualCite.page ?? ""}`, kind: "doc", title: `근거 · ${manualCite.title}`, citation: manualCite });
-      } else if (located.length || res.entities.some((e) => e.type === "river")) {
-        setMapHl(res.mapFocus?.entityIds ?? []);
-        setFocusToken((t) => t + 1);
-        openTab({ key: "map", kind: "map", title: "지도" });
+  /** 접수 — 자리(보내는 중) 턴을 먼저 붙이고, 응답이 오면 작업 ID 를, 실패하면 실패 문구를 채운다 */
+  const submitInto = useCallback(
+    async (convId: string, turnId: string, a: AskArgs, turnNo: number) => {
+      try {
+        const job = await sRef.current.submit({ ...a, convId, turnNo });
+        patchTurn(convId, turnId, { jobId: job.id, pending: undefined, error: undefined });
+        return job;
+      } catch (e) {
+        patchTurn(convId, turnId, { pending: undefined, error: (e as Error).message });
+        throw e;
       }
-    } catch {
-      setConv({ ...working, turns: working.turns.map((t) => (t.id === turn.id ? { ...t, pending: false, failed: "AI 에이전트 연계 지연(TIMEOUT). 잠시 후 다시 시도해 주세요." } : t)) });
-    }
-    setTimeout(() => document.getElementById(`turn-${turn.id}`)?.scrollIntoView({ behavior: "smooth", block: "start" }), 120);
-    return res;
-  }
+    },
+    [patchTurn],
+  );
 
-  const applyScenario = (sc: ScenarioItem) => {
-    s.setCond({
-      region: sc.region !== "national" ? sc.region : s.cond.region, sigungu: undefined, emd: undefined, disasterType: sc.disasterType, hydro: sc.hydro, keywords: sc.keywords,
-      situationKind: sc.advisory ? { type: sc.advisory.type, level: sc.advisory.level } : undefined, scenarioId: sc.id, scenarioTitle: sc.title,
+  /** 질문 보내기 */
+  const ask = useCallback(
+    async (a: AskArgs, extra?: Partial<Turn>, newConv = false) => {
+      const tid = uid("t");
+      const t: Turn = { id: tid, jobId: "", pending: true, q: a.question, source: a.source, libraryId: a.libraryId ?? null, at: new Date().toISOString(), args: a, ...extra };
+      const c = appendTurns(a.question, [t], newConv ? null : convRef.current?.id ?? null);
+      return submitInto(c.id, tid, a, c.turns.length);
+    },
+    [appendTurns, submitInto],
+  );
+  const toastErr = (e: unknown) => s.toast((e as Error).message);
+
+  /** 지금 기준지역에서 발효 중인 특보(AI 모드 질의·브리핑에 원문 그대로) */
+  const liveWarnings = () => warningsPayload(s.weather, activeAdvisories(s.weather, s.cond.region));
+
+  const askText = async (q: string) => {
+    if (follow) {
+      await ask({ question: q, source: "FOLLOW_UP", followUp: { jobId: follow.jobId, refs: follow.refs.map((r) => ({ display_name: r.display_name, entity_type: r.entity_type })) } });
+      setFollow(null);
+      return;
+    }
+    const ref = s.wxRef;
+    // 참조 특보가 그사이 해제됐으면 떼고 보낸다(해제된 특보를 현재 특보로 보내지 않게)
+    const still = ref ? activeAdvisories(s.weather, s.cond.region).find((a) => a.id === ref.id) : undefined;
+    if (ref && !still) {
+      s.setWxRef(null);
+      s.toast("참조한 특보가 해제되어 특보 참조 없이 보냅니다.");
+    }
+    await ask(
+      { question: q, source: still ? "QUICK" : "USER", warnings: still ? warningsPayload(s.weather, [still]) : null },
+      still ? { refAdv: { type: still.type, level: still.level, area: still.area, issuedAt: still.issuedAt } } : undefined,
+    );
+  };
+  const askLib = (q: LibraryQuestion, source: "LIBRARY" | "BRIEFING" = "LIBRARY") =>
+    ask({ question: fillText(q, regionName), source, libraryId: q.id, quickQueryId: q.quickQueryId ?? null, warnings: source === "BRIEFING" && s.aimOn ? liveWarnings() : null }, undefined, source === "BRIEFING").catch(toastErr);
+  /** 브리핑 항목 하나 질의 (시작 화면 타일 · AI 모드 타일) — q 는 질의문 원형 */
+  const askBrief = (q: string, preset?: string) => {
+    const lib = preset ? libById(preset) : undefined;
+    if (lib && lib.text === q) return askLib(lib, "BRIEFING");
+    return ask({ question: q.replaceAll("{지역}", regionName), source: "BRIEFING", warnings: s.aimOn ? liveWarnings() : null }, undefined, true).catch(toastErr);
+  };
+
+  /** 브리핑 세트 — 항목마다 자리 턴을 먼저 만들고(실패해도 자리 유지) 동시에 보낸다(R2) */
+  const startBriefing = async () => {
+    const items = briefItems;
+    if (!items.length) return s.toast("브리핑 항목이 없습니다. 브리핑 항목 설정에서 고르세요.");
+    const gid = uid("b");
+    const now = new Date().toISOString();
+    const warnings = s.aimOn ? liveWarnings() : null;
+    const plan = items.map((it, i) => {
+      const lib = it.preset ? libById(it.preset) : undefined;
+      const useLib = lib && it.q === lib.text;
+      const a: AskArgs = {
+        question: it.q.replaceAll("{지역}", regionName), source: "BRIEFING", libraryId: useLib ? lib.id : null, quickQueryId: useLib ? lib.quickQueryId ?? null : null,
+        briefing: { preset_id: "MY-BRIEFING", briefing_item_id: it.key, item_no: i + 1, item_total: items.length }, warnings,
+      };
+      // 현황판(D1)용 — 브리핑 설정의 항목 이름·보낸 기준지역 이름을 턴에 함께 둔다(요청에는 넣지 않음)
+      const group: BriefGroup = { id: gid, no: i + 1, total: items.length, title: "현재 상황 브리핑", label: it.label?.trim() || undefined, region: regionName };
+      const t: Turn = { id: uid("t"), jobId: "", pending: true, q: a.question, source: "BRIEFING", libraryId: a.libraryId ?? null, at: now, args: a, group };
+      return { a, t };
     });
-    return sc;
-  };
-  const runFlow = async (steps: string[], sc?: ScenarioItem, wx?: { type: string; level: string; regionId: RegionId }) => {
-    if (sc) applyScenario(sc);
-    // 특보 참조 흐름 : 발효 중인 해당 특보를 참조로 걸고 시작 (새 대화)
-    const adv = wx ? s.weather?.advisories.find((a) => a.type === wx.type && a.level === wx.level && a.regionId === wx.regionId && a.status === "발효") ?? null : undefined;
-    if (wx) {
-      if (!adv) { s.toast(`${wx.type}${wx.level}가 현재 발효 중이 아닙니다`); return; }
-      if (s.aimOn) s.setAimOn(false);
-      newChat();
-      s.setWxRef(adv);
-      await new Promise((ok) => setTimeout(ok, 50));
-    }
-    for (let i = 0; i < steps.length; i++) {
-      setFlowRun({ i: i + 1, n: steps.length });
-      const r = await ask(steps[i], undefined, { scenario: sc, ...(adv ? { wx: adv, aim: false } : {}) });
-      if (!r) break;
-      await new Promise((ok) => setTimeout(ok, 1600));
-    }
-    setFlowRun(null);
+    const c = appendTurns("현재 상황 브리핑", plan.map((p) => p.t), null);
+    await Promise.all(plan.map((p, i) => submitInto(c.id, p.t.id, p.a, i + 1).catch(() => null)));
   };
 
-  const retry = (t: Turn) => {
-    const c = convRef.current;
-    if (c) setConv({ ...c, turns: c.turns.filter((x) => x.id !== t.id) });
-    setTimeout(() => ask(t.q, t.presetKey), 0);
+  /** 실패한 턴 다시 보내기 — 접수 실패면 같은 내용으로, 답 실패·유실이면 서버가 같은 요청(문맥 포함)을 다시 보낸다 */
+  const retryTurn = useCallback(
+    async (convId: string, t: Turn) => {
+      if (!t.jobId) {
+        if (!t.args) return;
+        patchTurn(convId, t.id, { pending: true, error: undefined });
+        const c = current(convId);
+        await submitInto(convId, t.id, t.args, (c?.turns.findIndex((x) => x.id === t.id) ?? 0) + 1).catch(toastErr);
+        return;
+      }
+      try {
+        const r = await api<{ job: JobSummary }>(`/api/agent/jobs/${t.jobId}/retry`, { method: "POST" });
+        sRef.current.watch(r.job.id);
+        patchTurn(convId, t.id, { jobId: r.job.id });
+      } catch (e) {
+        toastErr(e);
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [patchTurn, submitInto],
+  );
+
+  // AI 모드 창의 [브리핑 시작]·브리핑 타일 (AiModeModal → 이벤트), 도움말 예시 질문·다른 화면에서 온 요청(?q= · ?brief=1)
+  const briefRef = useRef(startBriefing);
+  briefRef.current = startBriefing;
+  const askBriefRef = useRef(askBrief);
+  askBriefRef.current = askBrief;
+  const askRef = useRef(ask);
+  askRef.current = ask;
+  useEffect(() => {
+    const onBrief = () => briefRef.current().catch(toastErr);
+    const onAsk = (e: Event) => { const d = (e as CustomEvent<{ q: string; preset?: string }>).detail; askBriefRef.current(d.q, d.preset); };
+    window.addEventListener("sa:briefing", onBrief);
+    window.addEventListener("sa:ask-brief", onAsk);
+    return () => { window.removeEventListener("sa:briefing", onBrief); window.removeEventListener("sa:ask-brief", onAsk); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const handledQ = useRef<string | null>(null);
+  useEffect(() => {
+    if (!s.account) return;
+    const q = sp.get("q"), brief = sp.get("brief"), bq = sp.get("bq");
+    const key = `${q}|${brief}|${bq}`;
+    if ((!q && !brief && !bq) || handledQ.current === key) return;
+    handledQ.current = key;
+    if (q) askRef.current({ question: q, source: "USER" }, undefined, true).catch(toastErr);
+    else if (brief) briefRef.current().catch(toastErr);
+    else if (bq) askBriefRef.current(bq, sp.get("bp") ?? undefined);
+    router.replace("/explore");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sp, s.account]);
+
+  const askMany = async (qs: LibraryQuestion[]) => {
+    setLibOpen(false);
+    for (const q of qs) await askLib(q);
   };
 
-  const split = tabs.length > 0;
+  // ── 지도: 대화의 완료 답 refs + 서버가 미리 받은 도형(geo) ──
+  const features = useMemo(() => {
+    const out: MapFeature[] = [];
+    for (const t of conv?.turns ?? []) {
+      if (!t.jobId) continue;
+      const f = s.full[t.jobId];
+      const refs = (f?.raw?.result?.refs ?? []) as T3qRef[];
+      const feats = f?.geo?.result?.features ?? [];
+      // EXT-01 은 같은 key·value 를 한 번만 돌려준다(마지막 ref 로) — 같은 대상을 가리키는 ref 모두에 그 도형을 쓴다
+      const byKV = new Map(feats.map((ft) => [`${ft.properties.key}|${ft.properties.value}`, ft]));
+      for (const r of refs) {
+        const ft = byKV.get(`${r.map.key}|${r.map.value}`);
+        if (!ft) continue;
+        out.push({ key: `${t.jobId}:${r.ref}`, ref: r.ref, jobId: t.jobId, entityType: r.entity_type, displayName: r.display_name, draw: r.map.draw, precision: ft.properties.precision ?? null, geometry: ft.geometry });
+      }
+    }
+    return out;
+  }, [conv, s.full]);
+
+  const openTab = (t: PanelTab) => {
+    setTabs((p) => (p.some((x) => x.key === t.key) ? p : [...p, t]));
+    setActive(t.key);
+    setPanelOpen(true);
+  };
+  const x: ExploreApi = {
+    openCitation: (c: Citation) => openTab({ key: `doc:${c.docId}:${c.page ?? ""}`, kind: "doc", title: c.title, citation: c }),
+    openDetail: (api, id, label, ctx) => openTab({ key: `d:${api}:${id}`, kind: "detail", title: label, detail: { api, id, label, ctx } }),
+    showOnMap: (jobId, ref) => {
+      setMapJob(jobId);
+      setSelectedKey(ref ? `${jobId}:${ref}` : null);
+      setFocusToken((n) => n + 1);
+      setActive("map");
+      setPanelOpen(true);
+    },
+    selectedKey,
+    followUp: (jobId, refs) => {
+      const j = s.jobs[jobId];
+      setFollow({ jobId, refs, label: `"${(j?.question_user ?? "").slice(0, 40)}"${refs.length ? ` · 참조 대상 ${refs.map((r) => r.display_name ?? r.ref).join(", ")}` : ""}` });
+    },
+    retry: (jobId) => {
+      const c = convRef.current;
+      const t = c?.turns.find((x) => x.jobId === jobId);
+      if (c && t) retryTurn(c.id, t);
+    },
+  };
+
+  const pickFromQueue = (j: JobSummary) => {
+    const c = convRef.current?.turns.some((t) => t.jobId === j.id) ? convRef.current : s.convs.find((cv) => cv.turns.some((t) => t.jobId === j.id));
+    if (c) setConv(latest.current.get(c.id) ?? c);
+    // 대화에 없는 작업(다른 기기·운영자 예열 등) — 그 질문 하나로 새 대화를 연다
+    else appendTurns(j.question_user, [{ id: uid("t"), jobId: j.id, q: j.question_user, source: j.source, libraryId: j.library_id, at: j.created_at }], null);
+    setTimeout(() => document.getElementById(`job-${j.id}`)?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+  };
+
+  const panelTabs = sop.enabled ? [MAP_TAB, SOP_TAB, ...tabs.filter((t) => t.kind !== "map" && t.kind !== "sop")] : tabs.filter((t) => t.kind !== "sop");
+
+  // 턴을 브리핑 묶음 단위로
+  const blocks = useMemo(() => {
+    const out: { group?: Turn["group"]; turns: Turn[] }[] = [];
+    for (const t of conv?.turns ?? []) {
+      const last = out[out.length - 1];
+      if (t.group && last?.group?.id === t.group.id) last.turns.push(t);
+      else out.push({ group: t.group, turns: [t] });
+    }
+    return out;
+  }, [conv]);
+
   return (
-    <ExploreContext.Provider value={api}>
-      <main ref={workRef} className={`work ${split ? "split" : ""} ${dragging ? "dragging" : ""} ${s.aimOn && aimCollapsed ? "aim-pad" : ""}`} style={{ ["--chat-w" as string]: `${chatW}%` }}>
-        {s.aimOn && !aimCollapsed && (
-          <AimOverlay
-            region={s.cond.region}
-            mode={s.mode}
-            collapsed={aimCollapsed}
-            setCollapsed={setAimCollapsed}
-            onAsk={(q, preset, region) => ask(q, preset, { region })}
-            onCheck={(at, prev) => ask("상황점검", "check", { baseTime: at, prev })}
-            onClose={() => s.setAimOn(false)}
-          />
-        )}
-        <section className="chatcol">
-          {s.aimOn && aimCollapsed && (
-            <AimOverlay
-              region={s.cond.region}
-              mode={s.mode}
-              collapsed
-              setCollapsed={setAimCollapsed}
-              onAsk={(q, preset, region) => ask(q, preset, { region })}
-              onCheck={(at, prev) => ask("상황점검", "check", { baseTime: at, prev })}
-              onClose={() => s.setAimOn(false)}
+    <ExploreContext.Provider value={x}>
+      <div className={`explore ${panelOpen ? "with-panel" : ""} ${queueOpen ? "with-queue" : ""}`}>
+        <QueuePanel open={queueOpen} setOpen={setQueueOpen} onPick={pickFromQueue} currentJobIds={turnJobIds} />
+        <main className="ex-main">
+          {!panelOpen && (
+            <button className="btn panel-open" onClick={() => setPanelOpen(true)}><IcChevL size={14} /> 패널 펼치기</button>
+          )}
+          {conv ? (
+            <div className="thread">
+              <div className="thread-h">
+                <TitleEdit
+                  title={conv.title}
+                  onSave={(title) => {
+                    const c = current(conv.id) ?? conv;
+                    commit({ ...c, title: title.slice(0, 60), updatedAt: new Date().toISOString() }, true);
+                  }}
+                />
+                <span className="sp" />
+                <button className="btn sm" onClick={() => { setConv(null); setFollow(null); router.replace("/explore"); }}>＋ 새 대화</button>
+              </div>
+              {blocks.map((b, bi) =>
+                b.group ? (
+                  <section key={`${b.group.id}:${bi}`} className="brief-block">
+                    <div className="qbubble">
+                      <ol>{b.turns.map((t) => <li key={t.id}>{t.q}</li>)}</ol>
+                    </div>
+                    {/* 기준지역 — 보낼 때 남긴 이름(group.region)이 없는 예전 브리핑은 이 대화의 기준지역(지금 고른 지역이 아니라) */}
+                    <BriefBoard
+                      turns={b.turns}
+                      regionName={conv.region === "national" ? "전국" : (REGIONS[conv.region]?.name ?? regionName)}
+                      renderBody={(t) => <TurnBody t={t} compact onRetry={() => retryTurn(conv.id, t)} />}
+                    />
+                  </section>
+                ) : (
+                  b.turns.map((t) => (
+                    <section key={t.id} className="turn" id={t.jobId ? `job-${t.jobId}` : undefined}>
+                      <div className="qbubble">
+                        <div className="qb-meta xs">{SOURCE_LABEL[t.source]}{t.refAdv ? ` · 참조 특보 ${t.refAdv.area} ${t.refAdv.type}${t.refAdv.level}` : ""}</div>
+                        {t.q}
+                        {t.jobId && <SentQuestion jobId={t.jobId} shown={t.q} />}
+                      </div>
+                      <TurnBody t={t} onRetry={() => retryTurn(conv.id, t)} />
+                    </section>
+                  ))
+                ),
+              )}
+              <div ref={endRef} />
+            </div>
+          ) : (
+            <StartScreen
+              regionName={regionName}
+              onBriefing={() => startBriefing().catch(toastErr)}
+              onAskBrief={askBrief}
+              onAskLib={askLib}
             />
           )}
-          <div className="chathd">
-            <button className="btn sm" onClick={() => router.push("/history")}><IcList size={14} /> 대화 목록</button>
-            {editTitle && conv ? (
-              <input className="input sm" autoFocus defaultValue={conv.title} onBlur={(e) => { const c = { ...conv, title: e.target.value || conv.title }; setConv(c); s.saveConv(c); setEditTitle(false); }} onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()} />
-            ) : (
-              <span className="ttl">{conv ? conv.title : "새 대화"}</span>
-            )}
-            {conv && !editTitle && <button className="iconbtn" title="제목 변경" onClick={() => setEditTitle(true)}><IcEdit size={14} /></button>}
-            <span className="sp" />
-            {flowRun && <span className="badge info">연속 질의 {flowRun.i}/{flowRun.n}</span>}
-            {conv?.refEntity && <span className="refpill">참조대상 · {conv.refEntity.name}<button onClick={() => setConv({ ...conv, refEntity: undefined })} aria-label="참조 해제">×</button></span>}
-            {!split && <button className="btn sm" onClick={() => api.openMap()}><IcMap size={14} /> 지도</button>}
-            {conv && <button className="btn sm line" onClick={newChat}><IcPlus size={14} /> 새 대화</button>}
-          </div>
-          <div className="scroll">
-            <div className="thread">
-              {!conv ? (
-                <StartScreen onBriefing={() => ask("재난상황 조건 브리핑", "briefing")} onLibrary={() => setLib(true)} />
-              ) : (
-                conv.turns.map((t) => (
-                  <div key={t.id} id={`turn-${t.id}`} style={{ scrollMarginTop: 12 }}>
-                    <div className="turn-q">
-                      {t.refAdv && <button className="qref" onClick={() => api.openWx()} title="특보 상세 보기"><span className="rl">참조</span><span className={`lvb ${advTone(t.refAdv)}`}>{advLabel(t.refAdv)}</span>{t.refAdv.area}</button>}
-                      <div className="bubble">{t.q}</div>
-                    </div>
-                    <div className="turn-a">
-                      <div className="who">재난안전 AI</div>
-                      {t.pending && <Loading />}
-                      {t.failed && (
-                        <div className="acard">
-                          <div className="ablk"><div className="notice danger">{t.failed}</div></div>
-                          <div className="ablk"><button className="btn sm" onClick={() => retry(t)}>다시 시도</button></div>
-                        </div>
-                      )}
-                      {t.res && <AnswerView res={t.res} baseLabel={t.presetKey === "check" ? "자동 점검" : s.mode === "scenario" ? `${baseTimeLabel} 기준` : undefined} onReport={() => window.open(`/report?c=${conv.id}&t=${t.id}`, "_blank")} />}
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-          <Composer onSend={(q, p) => ask(q, p)} busy={busy} baseLabel={baseTimeLabel} onLibrary={() => setLib(true)} onScenario={(sc) => ask(applyScenario(sc).question, undefined, { scenario: sc })} />
-        </section>
-        {split && (
-          <div
-            className="splitter"
-            role="separator"
-            aria-orientation="vertical"
-            aria-label="대화창과 지도 폭 조절"
-            aria-valuenow={Math.round(chatW)}
-            aria-valuemin={25}
-            aria-valuemax={75}
-            tabIndex={0}
-            title="드래그해서 폭 조절 · 더블클릭하면 기본 폭"
-            onPointerDown={onSplitDown}
-            onPointerMove={onSplitMove}
-            onPointerUp={onSplitUp}
-            onPointerCancel={onSplitUp}
-            onDoubleClick={() => saveChatW(46)}
-            onKeyDown={(e) => {
-              if (e.key === "ArrowLeft") saveChatW(Math.max(25, chatW - 3));
-              else if (e.key === "ArrowRight") saveChatW(Math.min(75, chatW + 3));
-            }}
-          >
-            <span className="grip" />
-          </div>
-        )}
-        {split && (
+          <Composer
+            onAsk={askText}
+            onBriefing={() => startBriefing().catch(toastErr)}
+            onLibrary={() => setLibOpen(true)}
+            followUpLabel={follow?.label}
+            clearFollowUp={() => setFollow(null)}
+          />
+        </main>
+        {panelOpen && (
           <RightPanel
-            key={mapEpoch}
-            tabs={sop.enabled ? [SOP_TAB, ...tabs.filter((t) => t.kind !== "sop")] : tabs.filter((t) => t.kind !== "sop")}
-            sopFocus={sopFocus}
-            active={active}
+            tabs={panelTabs}
+            active={panelTabs.some((t) => t.key === active) ? active : "map"}
             setActive={setActive}
-            close={(k) => setTabs((prev) => { const n = prev.filter((p) => p.key !== k); if (active === k) setActive(n.at(-1)?.key ?? ""); return n; })}
-            closeAll={() => setTabs([])}
-            mapPoints={mapPoints}
-            mapHighlight={mapHl}
+            close={(k) => { setTabs((p) => p.filter((t) => t.key !== k)); if (active === k) setActive("map"); }}
+            closeAll={() => setPanelOpen(false)}
+            features={features}
+            activeJobId={mapJob}
             focusToken={focusToken}
-            areaToken={areaToken}
-            riverHighlight={riverHighlight}
+            sopFocus={sopFocus}
           />
         )}
-      </main>
-      {regionNotice && (
-        <div className="ovl" onClick={() => setRegionNotice(null)}>
-          <div className="modal" style={{ width: "min(460px,100%)" }} onClick={(e) => e.stopPropagation()} role="alertdialog" aria-modal aria-label="새 대화 안내">
-            <div className="modal-hd"><h2>새 대화로 시작합니다</h2></div>
-            <div className="modal-bd">
-              <p style={{ margin: 0, lineHeight: 1.6 }}>지역 단위가 바뀌면 새 대화창으로 시작합니다.</p>
-              <p className="xs mute2" style={{ margin: "8px 0 0" }}>이전 대화는 [대화 목록]에서 다시 볼 수 있습니다.</p>
-              <label className="row xs" style={{ marginTop: 14, gap: 6, cursor: "pointer" }}>
-                <input type="checkbox" checked={noMore} onChange={(e) => setNoMore(e.target.checked)} /> 다시 보지 않기
-              </label>
-            </div>
-            <div className="modal-ft">
-              <span className="sp" />
-              <button className="btn pri" onClick={() => { if (noMore) { try { localStorage.setItem("sa.hideRegionNotice", "1"); } catch {} } setRegionNotice(null); }}>확인</button>
-            </div>
-          </div>
-        </div>
-      )}
-      {lib && <LibraryDrawer region={s.cond.region} onClose={() => setLib(false)} onAsk={(q, p) => ask(q, p)} onScenario={(sc) => ask(applyScenario(sc).question, undefined, { scenario: sc })} onFlow={(steps, sc, wx) => runFlow(steps, sc, wx)} />}
+        {libOpen && (
+          <LibraryDrawer
+            regionName={regionName}
+            onClose={() => setLibOpen(false)}
+            onAsk={(q) => { setLibOpen(false); askLib(q); }}
+            onAskMany={askMany}
+            onAskT3q={(text) => { setLibOpen(false); ask({ question: text, source: "SUGGEST" }).catch(toastErr); }}
+          />
+        )}
+      </div>
     </ExploreContext.Provider>
   );
 }
 
-export default function ExplorePage() {
-  return <Suspense><Explore /></Suspense>;
+/** 한 턴의 본문 — 보내는 중 · 접수 실패 · 자동 조회 데이터(있으면) + 에이전트 답 */
+function TurnBody({ t, compact, onRetry }: { t: Turn; compact?: boolean; onRetry: () => void }) {
+  const s = useSession();
+  if (t.error)
+    return (
+      <div className="acard err">
+        <div className="acard-h"><b>재난안전 AI</b> <span className="badge danger">접수 실패</span></div>
+        <div className="s" style={{ marginTop: 8 }}>{t.error}</div>
+        <div className="row" style={{ marginTop: 10 }}><button className="btn sm primary" onClick={onRetry}>다시 보내기</button></div>
+      </div>
+    );
+  if (t.pending || !t.jobId) return <div className="acard loading" aria-busy="true"><span className="ai-dot spin" /> 질문을 보내는 중…</div>;
+  const job = s.jobs[t.jobId];
+  const full = s.full[t.jobId];
+  if (!job) return <div className="acard loading" aria-busy="true"><span className="ai-dot spin" /> 불러오는 중…</div>;
+  return (
+    <>
+      {full?.preview && full.preview.length > 0 && <DataCard items={full.preview} />}
+      <AnswerCard job={job} full={full} compact={compact} />
+    </>
+  );
+}
+
+/** 대화 제목 보기·수정 (Figma 203001 대화 제목 수정) */
+function TitleEdit({ title, onSave }: { title: string; onSave: (t: string) => void }) {
+  const [edit, setEdit] = useState(false);
+  const [v, setV] = useState(title);
+  useEffect(() => setV(title), [title]);
+  if (!edit)
+    return (
+      <>
+        <b>{title}</b>
+        <button className="lnk xs" onClick={() => setEdit(true)}>수정</button>
+      </>
+    );
+  const save = () => {
+    if (v.trim()) onSave(v.trim());
+    setEdit(false);
+  };
+  return (
+    <span className="row" style={{ gap: 6 }}>
+      <input className="input" value={v} maxLength={60} autoFocus onChange={(e) => setV(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") save(); if (e.key === "Escape") setEdit(false); }} aria-label="대화 제목" />
+      <button className="btn xs primary" onClick={save}>저장</button>
+      <button className="btn xs" onClick={() => setEdit(false)}>취소</button>
+    </span>
+  );
+}
+
+/** 이어서 묻기 등으로 실제 전송 질문이 화면 질문과 다를 때 공개 (R4) */
+function SentQuestion({ jobId, shown }: { jobId: string; shown: string }) {
+  const s = useSession();
+  const sent = s.jobs[jobId]?.question_sent;
+  const [open, setOpen] = useState(false);
+  if (!sent || sent === shown) return null;
+  return (
+    <div className="sentq">
+      <button className="lnk xs" onClick={() => setOpen((v) => !v)}>{open ? "실제 전송 질문 닫기" : "실제 전송 질문 보기"}</button>
+      {open && <pre className="xs">{sent}</pre>}
+    </div>
+  );
 }

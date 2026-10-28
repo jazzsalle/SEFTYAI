@@ -1,0 +1,62 @@
+/* =====================================================================
+   현재 상황 브리핑 — 현황판(D1) · 새로 도착(D2)
+   칸: 번호 · 항목 이름 / 상태(기호 + 글) · 처리 시간 / 정보 부족 있음 · 경고 있음 · 재사용 표시
+   현황판이 대화 위로 지나가면 40px 한 줄(.bb-mini)이 붙는다. 빨강 없음 — 주의는 노랑
+   ===================================================================== */
+
+/* 브리핑 안에서 위에 붙는(sticky) 것들의 top — 접힌 한 줄(40px) 바로 아래.
+   붙는 것은 대화 상자 위 여백(--thread-pt)만큼 아래에 붙으므로 그만큼 뺀다 */
+.brief-card { --brief-stick: calc(40px - var(--thread-pt, 0px)); }
+
+/* ── 현황판 ── */
+.bb { padding: 14px 22px 16px; border-bottom: 1px solid var(--c-line); }
+.bb-cells { display: grid; grid-template-columns: repeat(auto-fit, minmax(176px, 1fr)); gap: 12px 10px; margin: 0; padding: 0; list-style: none; }
+.bb-cells > li { display: flex; min-width: 0; }
+.bb-cell { position: relative; flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 7px; padding: 10px 12px 11px; border: 1px solid var(--c-line); border-radius: 10px; background: #fff; color: var(--c-text); font: inherit; text-align: left; cursor: pointer; }
+.bb-cell:hover { border-color: var(--c-primary-bd); background: var(--c-surface); }
+.bb-cell.new { border-color: var(--c-primary); box-shadow: inset 0 0 0 1px var(--c-primary); }
+.bb-head { display: flex; align-items: flex-start; gap: 7px; min-width: 0; max-width: 100%; font-size: var(--fs-xs); font-weight: 700; line-height: 22px; }
+.bb-no { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 4px; background: var(--c-primary); color: #fff; font-size: 12px; font-weight: 800; line-height: 1; }
+.bb-lab { min-width: 0; overflow-wrap: anywhere; }
+.bb-new { position: absolute; top: -10px; right: 10px; height: 19px; padding: 0 8px; border-radius: 999px; background: var(--c-primary); color: #fff; font-size: 11px; font-weight: 700; line-height: 19px; white-space: nowrap; }
+
+/* 상태 — 기호 + 글(색만으로 뜻을 전하지 않음) */
+.bb-st { display: inline-flex; align-items: center; gap: 5px; max-width: 100%; font-size: var(--fs-xs); font-weight: 700; color: var(--c-text); white-space: nowrap; }
+.bb-st.err { color: var(--c-warn-dk); }
+.bb-st.off { color: var(--c-sub); }
+.bb-t { font-weight: 500; color: var(--c-text); font-variant-numeric: tabular-nums; }
+.bb-ic { flex: none; width: 14px; height: 14px; }
+.bb-spin { flex: none; display: inline-block; width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--c-primary-bd); border-top-color: var(--c-primary); animation: sa-spin .9s linear infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .bb-spin { animation: none; border-color: var(--c-primary); border-right-color: var(--c-primary-bd); }
+}
+
+/* 판단 표시 — 주의(노랑) */
+.bb-marks { display: flex; flex-wrap: wrap; gap: 4px; }
+.bb-mark { display: inline-flex; align-items: center; height: 22px; padding: 0 7px; border-radius: var(--r-s); border: 1px solid #f5dea0; background: var(--c-warn-sub); color: var(--c-warn-dk); font-size: var(--fs-2xs); font-weight: 700; white-space: nowrap; }
+
+/* ── 접힌 한 줄(40px) — 현황판 바로 뒤에 겹쳐 두고(자리 차지 없음) 현황판이 위로 지나가면 보인다 ── */
+.bb-mini { position: sticky; top: calc(0px - var(--thread-pt, 0px)); z-index: 4; height: 40px; margin-top: -40px; display: flex; align-items: center; gap: 10px; padding-left: 16px; background: #fff; border-bottom: 1px solid var(--c-bd); box-shadow: 0 2px 4px rgba(15, 20, 28, .06); visibility: hidden; }
+.bb-mini.on { visibility: visible; }
+.bb-mini-lab { flex: none; font-size: var(--fs-xs); font-weight: 800; color: var(--c-navy); }
+.bb-mini-in { flex: 1; min-width: 0; height: 100%; display: flex; align-items: center; gap: 6px; padding-right: 16px; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; }
+.bb-mini-in::-webkit-scrollbar { display: none; }
+.bb-mini.ovf::after { content: ""; position: absolute; top: 0; right: 0; bottom: 0; width: 32px; background: linear-gradient(90deg, rgba(255, 255, 255, 0), #fff 85%); pointer-events: none; }
+.bb-pill { flex: none; display: inline-flex; align-items: center; gap: 5px; height: 28px; padding: 0 9px 0 3px; border: 1px solid var(--c-line); border-radius: 999px; background: #fff; color: var(--c-text); font: inherit; font-size: 12.5px; white-space: nowrap; cursor: pointer; }
+.bb-pill:hover { border-color: var(--c-primary-bd); }
+.bb-pill.new { border-color: var(--c-primary); background: var(--c-primary-sub); }
+.bb-pill .bb-no { width: 20px; height: 20px; border-radius: 50%; font-size: 11px; }
+.bb-pill .bb-st { font-size: 12.5px; }
+.bb-pill .bb-new-t { color: var(--c-primary-dk); font-weight: 700; }
+.bb-pill .bb-mark { height: 20px; padding: 0 6px; font-size: 11.5px; }
+
+/* ── 항목 — 칸을 누르면 그 항목 머리가 붙은 한 줄 아래에 오게 ── */
+.brief-item { scroll-margin-top: 48px; }
+/* 답변 대상 거르기(C3)도 목록 머리가 붙은 한 줄에 가리지 않게 */
+.brief-card .refbox { scroll-margin-top: 48px; }
+.brief-item-h:focus { outline: none; }
+.brief-item-h:focus-visible { outline: 2px solid var(--c-primary); outline-offset: 3px; border-radius: 4px; }
+
+@media print {
+  .bb-mini { display: none !important; }
+}

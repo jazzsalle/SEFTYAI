@@ -1,0 +1,2228 @@
+[
+ {
+  "method": "POST",
+  "path": "/similar-events/search",
+  "body": {
+   "query_context": {
+    "reference_time": "2026-08-25T16:00:00+09:00",
+    "region": {
+     "admin_code": "2600000000",
+     "name": "부산광역시",
+     "level": "SIDO"
+    },
+    "disaster_types": [
+     "호우"
+    ],
+    "period": {
+     "from": "2026-08-25T14:00:00+09:00",
+     "to": null
+    },
+    "detail": {
+     "warning_kind": "호우",
+     "warning_level": "경보",
+     "keywords": [
+      "호우",
+      "침수"
+     ],
+     "conditions": [
+      {
+       "item": "RAIN_1H",
+       "label": "1시간 강우",
+       "value": 68,
+       "unit": "mm",
+       "source_type": "MANUAL"
+      }
+     ]
+    }
+   },
+   "page": {
+    "page": 1,
+    "size": 20
+   }
+  },
+  "response": {
+   "schema_version": "2.0",
+   "request_id": "aa5dfd571fa1ec35919b09428c8eab10",
+   "correlation_id": "corr-aa5dfd571fa1ec35919b09428c8eab10",
+   "status": "SUCCESS",
+   "result": {
+    "total_count": 20,
+    "items": [
+     {
+      "event_master_id": "T10107-20210825-0001",
+      "display_name": "2021년 08.25~08.25 호우",
+      "disaster_types": [
+       "호우"
+      ],
+      "lifecycle_status": "CLOSED",
+      "started_at": "2021-08-25",
+      "ended_at": "2021-08-25",
+      "time_precision": "DATE",
+      "similarity": {
+       "rank": 1,
+       "score": 96.67,
+       "scale": "0~100",
+       "algorithm_version": "sim-0.1.0",
+       "coverage": 0.75
+      },
+      "representative_admin_area": {
+       "admin_code": "2600000000",
+       "name": "부산광역시"
+      },
+      "crisis_alert_level": null,
+      "has_geometry": false
+     },
+     {
+      "event_master_id": "T10107-20160731-0001",
+      "display_name": "2016년 7.31~8.1 호우",
+      "disaster_types": [
+       "호우"
+      ],
+      "lifecycle_status": "CLOSED",
+      "started_at": "2016-07-31",
+      "ended_at": "2016-08-01",
+      "time_precision": "DATE",
+      "similarity": {
+       "rank": 2,
+       "score": 90.91,
+       "scale": "0~100",
+       "algorithm_version": "sim-0.1.0",
+       "coverage": 0.55
+      },
+      "representative_admin_area": null,
+      "crisis_alert_level": null,
+      "has_geometry": false
+     },
+     {
+      "event_master_id": "T10107-20200710-0001",
+      "display_name": "2020년 7.10. 호우",
+      "disaster_types": [
+       "호우"
+      ],
+      "lifecycle_status": "CLOSED",
+      "started_at": "2020-07-10",
+      "ended_at": "2020-07-10",
+      "time_precision": "DATE",
+      "similarity": {
+       "rank": 3,
+       "score": 80,
+       "scale": "0~100",
+       "algorithm_version": "sim-0.1.0",
+       "coverage": 0.75
+      },
+      "representative_admin_area": null,
+      "crisis_alert_level": null,
+      "has_geometry": false
+     },
+     {
+      "event_master_id": "T10107-20170911-0001",
+      "display_name": "2017년 9.11~12 호우",
+      "disaster_types": [
+       "호우"
+      ],
+      "lifecycle_status": "CLOSED",
+      "started_at": "2017-09-11",
+      "ended_at": "2017-09-12",
+      "time_precision": "DATE",
+      "similarity": {
+       "rank": 4,
+       "score": 75.56,
+       "scale": "0~100",
+       "algorithm_version": "sim-0.1.0",
+       "coverage": 0.75
+      },
+      "representative_admin_area": null,
+      "crisis_alert_level": null,
+      "has_geometry": false
+     },
+     {
+      "event_master_id": "T10107-20190629-0001",
+      "display_name": "2019년 6.29 호우",
+      "disaster_types": [
+       "호우"
+      ],
+      "lifecycle_status": "CLOSED",
+      "started_at": "2019-06-29",
+      "ended_at": "2019-06-29",
+      "time_precision": "DATE",
+      "similarity": {
+       "rank": 5,
+       "score": 72.22,
+       "scale": "0~100",
+       "algorithm_version": "sim-0.1.0",
+       "coverage": 0.75
+      },
+      "representative_admin_area": null,
+      "crisis_alert_level": null,
+      "has_geometry": false
+     },
+     {
+      "event_master_id": "T10107-20230821-0001",
+      "display_name": "2023년 08.21.~09.21. 호우",
+      "disaster_types": [
+       "호우"
+      ],
+      "lifecycle_status": "CLOSED",
+      "started_at": "2023-08-21",
+      "ended_at": "2023-09-21",
+      "time_precision": "DATE",
+      "similarity": {
+       "rank": 6,
+       "score": 72.22,
+       "scale": "0~100",
+       "algorithm_version": "sim-0.1.0",
+       "coverage": 0.75
+      },
+      "representative_admin_area": null,
+      "crisis_alert_level": null,
+      "has_geometry": false
+     },
+     {
+      "event_master_id": "T10107-20240722-0001",
+      "display_name": "2024년 7.22.~23. 호우",
+      "disaster_types": [
+       "호우"
+      ],
+      "lifecycle_status": "CLOSED",
+      "started_at": "2024-07-22",
+      "ended_at": "2024-07-23",
+      "time_precision": "DATE",
+      "similarity": {
+       "rank": 7,
+       "score": 72,
+       "scale": "0~100",
+       "algorithm_version": "sim-0.1.0",
+       "coverage": 0.75
+      },
+      "representative_admin_area": null,
+      "crisis_alert_level": null,
+      "has_geometry": false
+     },
+     {
+      "event_master_id": "T10107-20180826-0001",
+      "display_name": "2018년 8.26~9.1 호우",
+      "disaster_types": [
+       "호우"
+      ],
+      "lifecycle_status": "CLOSED",
+      "started_at": "2018-08-26",
+      "ended_at": "2018-09-01",
+      "time_precision": "DATE",
+      "similarity": {
+       "rank": 8,
+       "score": 71.57,
+       "scale": "0~100",
+       "algorithm_version": "sim-0.1.0",
+       "coverage": 0.75
+      },
+      "representative_admin_area": null,
+      "crisis_alert_level": null,
+      "has_geometry": false
+     },
+     {
+      "event_master_id": "T10107-20160826-0001",
+      "display_name": "2016년 8.26~9.1 호우",
+      "disaster_types": [
+       "호우"
+      ],
+      "lifecycle_status": "CLOSED",
+      "started_at": "2016-08-26",
+      "ended_at": "2016-09-01",
+      "time_precision": "DATE",
+      "similarity": {
+       "rank": 9,
+       "score": 70,
+       "scale": "0~100",
+       "algorithm_version": "sim-0.1.0",
+       "coverage": 0.75
+      },
+      "representative_admin_area": null,
+      "crisis_alert_level": null,
+      "has_geometry": false
+     },
+     {
+      "event_master_id": "T10107-20170810-0001",
+      "display_name": "2017년 8.10~11 호우",
+      "disaster_types": [
+       "호우"
+      ],
+      "lifecycle_status": "CLOSED",
+      "started_at": "2017-08-10",
+      "ended_at": "2017-08-11",
+      "time_precision": "DATE",
+      "similarity": {
+       "rank": 10,
+       "score": 70,
+       "scale": "0~100",
+       "algorithm_version": "sim-0.1.0",
+       "coverage": 0.75
+      },
+      "representative_admin_area": null,
+      "crisis_alert_level": null,
+      "has_geometry": false
+     },
+     {
+      "event_master_id": "T10107-20170814-0001",
+      "display_name": "2017년 8.14~18 호우",
+      "disaster_types": [
+       "호우"
+      ],
+      "lifecycle_status": "CLOSED",
+      "started_at": "2017-08-14",
+      "ended_at": "2017-08-18",
+      "time_precision": "DATE",
+      "similarity": {
+       "rank": 11,
+       "score": 70,
+       "scale": "0~100",
+       "algorithm_version": "sim-0.1.0",
+       "coverage": 0.75
+      },
+      "representative_admin_area": null,
+      "crisis_alert_level": null,
+      "has_geometry": false
+     },
+     {
+      "event_master_id": "T10107-20170819-0001",
+      "display_name": "2017년 8.19 호우",
+      "disaster_types": [
+       "호우"
+      ],
+      "lifecycle_status": "CLOSED",
+      "started_at": "2017-08-19",
+      "ended_at": "2017-08-19",
+      "time_precision": "DATE",
+      "similarity": {
+       "rank": 12,
+       "score": 70,
+       "scale": "0~100",
+       "algorithm_version": "sim-0.1.0",
+       "coverage": 0.75
+      },
+      "representative_admin_area": null,
+      "crisis_alert_level": null,
+      "has_geometry": false
+     },
+     {
+      "event_master_id": "T10107-20170820-0001",
+      "display_name": "2017년 8.20~23 호우",
+      "disaster_types": [
+       "호우"
+      ],
+      "lifecycle_status": "CLOSED",
+      "started_at": "2017-08-20",
+      "ended_at": "2017-08-23",
+      "time_precision": "DATE",
+      "similarity": {
+       "rank": 13,
+       "score": 70,
+       "scale": "0~100",
+       "algorithm_version": "sim-0.1.0",
+       "coverage": 0.75
+      },
+      "representative_admin_area": null,
+      "crisis_alert_level": null,
+      "has_geometry": false
+     },
+     {
+      "event_master_id": "T10107-20170824-0001",
+      "display_name": "2017년 8.24~25 호우",
+      "disaster_types": [
+       "호우"
+      ],
+      "lifecycle_status": "CLOSED",
+      "started_at": "2017-08-24",
+      "ended_at": "2017-08-25",
+      "time_precision": "DATE",
+      "similarity": {
+       "rank": 14,
+       "score": 70,
+       "scale": "0~100",
+       "algorithm_version": "sim-0.1.0",
+       "coverage": 0.75
+      },
+      "representative_admin_area": null,
+      "crisis_alert_level": null,
+      "has_geometry": false
+     },
+     {
+      "event_master_id": "T10107-20170828-0001",
+      "display_name": "2017년 8.28~29 호우",
+      "disaster_types": [
+       "호우"
+      ],
+      "lifecycle_status": "CLOSED",
+      "started_at": "2017-08-28",
+      "ended_at": "2017-08-29",
+      "time_precision": "DATE",
+      "similarity": {
+       "rank": 15,
+       "score": 70,
+       "scale": "0~100",
+       "algorithm_version": "sim-0.1.0",
+       "coverage": 0.75
+      },
+      "representative_admin_area": null,
+      "crisis_alert_level": null,
+      "has_geometry": false
+     },
+     {
+      "event_master_id": "T10107-20180806-0001",
+      "display_name": "2018년 8.6~7 호우",
+      "disaster_types": [
+       "호우"
+      ],
+      "lifecycle_status": "CLOSED",
+      "started_at": "2018-08-06",
+      "ended_at": "2018-08-07",
+      "time_precision": "DATE",
+      "similarity": {
+       "rank": 16,
+       "score": 70,
+       "scale": "0~100",
+       "algorithm_version": "sim-0.1.0",
+       "coverage": 0.75
+      },
+      "representative_admin_area": {
+       "admin_code": "5100000000",
+       "name": "강원특별자치도"
+      },
+      "crisis_alert_level": null,
+      "has_geometry": false
+     },
+     {
+      "event_master_id": "T10107-20190817-0001",
+      "display_name": "2019년 8.17 호우",
+      "disaster_types": [
+       "호우"
+      ],
+      "lifecycle_status": "CLOSED",
+      "started_at": "2019-08-17",
+      "ended_at": "2019-08-17",
+      "time_precision": "DATE",
+      "similarity": {
+       "rank": 17,
+       "score": 70,
+       "scale": "0~100",
+       "algorithm_version": "sim-0.1.0",
+       "coverage": 0.75
+      },
+      "representative_admin_area": {
+       "admin_code": "4100000000",
+       "name": "경기도"
+      },
+      "crisis_alert_level": null,
+      "has_geometry": false
+     },
+     {
+      "event_master_id": "T10107-20190827-0001",
+      "display_name": "2019년 8.27~29 호우",
+      "disaster_types": [
+       "호우"
+      ],
+      "lifecycle_status": "CLOSED",
+      "started_at": "2019-08-27",
+      "ended_at": "2019-08-29",
+      "time_precision": "DATE",
+      "similarity": {
+       "rank": 18,
+       "score": 70,
+       "scale": "0~100",
+       "algorithm_version": "sim-0.1.0",
+       "coverage": 0.75
+      },
+      "representative_admin_area": null,
+      "crisis_alert_level": null,
+      "has_geometry": false
+     },
+     {
+      "event_master_id": "T10107-20200814-0001",
+      "display_name": "2020년 8.14.~15. 호우",
+      "disaster_types": [
+       "호우"
+      ],
+      "lifecycle_status": "CLOSED",
+      "started_at": "2020-08-14",
+      "ended_at": "2020-08-15",
+      "time_precision": "DATE",
+      "similarity": {
+       "rank": 19,
+       "score": 70,
+       "scale": "0~100",
+       "algorithm_version": "sim-0.1.0",
+       "coverage": 0.75
+      },
+      "representative_admin_area": null,
+      "crisis_alert_level": null,
+      "has_geometry": false
+     },
+     {
+      "event_master_id": "T10107-20200822-0001",
+      "display_name": "2020년 8.22.~23. 호우",
+      "disaster_types": [
+       "호우"
+      ],
+      "lifecycle_status": "CLOSED",
+      "started_at": "2020-08-22",
+      "ended_at": "2020-08-23",
+      "time_precision": "DATE",
+      "similarity": {
+       "rank": 20,
+       "score": 70,
+       "scale": "0~100",
+       "algorithm_version": "sim-0.1.0",
+       "coverage": 0.75
+      },
+      "representative_admin_area": null,
+      "crisis_alert_level": null,
+      "has_geometry": false
+     }
+    ]
+   },
+   "data_gaps": [
+    {
+     "component": "similarity.factors.rain",
+     "reason": "NOT_IN_SOURCE"
+    },
+    {
+     "component": "similarity.factors.warning",
+     "reason": "NOT_IN_SOURCE"
+    }
+   ],
+   "warnings": [
+    {
+     "code": "CONDITION_NOT_USED",
+     "message": "유사도에 쓰지 않은 조건: RAIN_1H — 152 에 사건별 강우·수위 관측이 없어 견주지 않음",
+     "retryable": false
+    },
+    {
+     "code": "CONDITION_NOT_USED",
+     "message": "유사도에 쓰지 않은 조건: warning_level — 사건 기간의 기상특보 원천이 없어 견주지 않음",
+     "retryable": false
+    },
+    {
+     "code": "SIMILARITY_NOTE",
+     "message": "질의에 없는 요인(점수에서 빠짐): ['피해 규모', '인명피해', '기간']",
+     "retryable": false
+    }
+   ],
+   "meta": {
+    "source": "T3Q",
+    "base_time": "2026-10-20T00:00:00+09:00",
+    "quality_status": "VERIFIED",
+    "disclosure_level": "공개",
+    "elapsed_ms": 748
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/events/T10107-20210825-0001",
+  "body": null,
+  "response": {
+   "schema_version": "2.0",
+   "request_id": "5ca74ce7658dd33707fbf1bdb615851a",
+   "correlation_id": "corr-5ca74ce7658dd33707fbf1bdb615851a",
+   "status": "SUCCESS",
+   "result": {
+    "event_master_id": "T10107-20210825-0001",
+    "display_name": "2021년 08.25~08.25 호우",
+    "disaster_types": [
+     "호우"
+    ],
+    "disaster_type_code": "T10107",
+    "source_disaster_type_text": "호우",
+    "lifecycle_status": "CLOSED",
+    "time_profile": {
+     "started_at": "2021-08-25",
+     "ended_at": "2021-08-25",
+     "time_precision": "DATE",
+     "source_timezone": null,
+     "source_time_raw": {
+      "start": "2021-08-25",
+      "end": "2021-08-25"
+     }
+    },
+    "representative_admin_area": {
+     "admin_code": "2600000000",
+     "name": "부산광역시"
+    },
+    "affected_admin_areas": [
+     {
+      "admin_code": "2600000000",
+      "name": "부산광역시"
+     }
+    ],
+    "affected_admin_areas_more": false,
+    "crisis_alert_level": null,
+    "cdb_stage": null,
+    "lead_agency": "행정안전부",
+    "event_summary": "호우 · 부산 · 이재민 3명 · 재산피해 506,300,000원",
+    "available_sections": {
+     "similarity": true,
+     "timeline": false,
+     "damage_response": true,
+     "report": false,
+     "evidence": true,
+     "satellite": false
+    },
+    "evidence_refs": [
+     "EV-EVT-T10107-20210825-0001",
+     "EV-DMG-T10107-20210825-0001"
+    ]
+   },
+   "data_gaps": [
+    {
+     "component": "crisis_alert_level",
+     "reason": "NOT_IN_SOURCE"
+    },
+    {
+     "component": "cdb_stage",
+     "reason": "NOT_IN_SOURCE"
+    }
+   ],
+   "warnings": [],
+   "meta": {
+    "source": "T3Q",
+    "base_time": "2026-10-20T00:00:00+09:00",
+    "quality_status": "VERIFIED",
+    "disclosure_level": "공개",
+    "elapsed_ms": 460
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/events/T10107-20160731-0001",
+  "body": null,
+  "response": {
+   "schema_version": "2.0",
+   "request_id": "8b04da8f5242e5ce80a3fc7e33f97a01",
+   "correlation_id": "corr-8b04da8f5242e5ce80a3fc7e33f97a01",
+   "status": "SUCCESS",
+   "result": {
+    "event_master_id": "T10107-20160731-0001",
+    "display_name": "2016년 7.31~8.1 호우",
+    "disaster_types": [
+     "호우"
+    ],
+    "disaster_type_code": "T10107",
+    "source_disaster_type_text": "호우",
+    "lifecycle_status": "CLOSED",
+    "time_profile": {
+     "started_at": "2016-07-31",
+     "ended_at": "2016-08-01",
+     "time_precision": "DATE",
+     "source_timezone": null,
+     "source_time_raw": {
+      "start": "2016-07-31",
+      "end": "2016-08-01"
+     }
+    },
+    "representative_admin_area": null,
+    "affected_admin_areas": [],
+    "affected_admin_areas_more": false,
+    "crisis_alert_level": null,
+    "cdb_stage": null,
+    "lead_agency": "행정안전부",
+    "event_summary": "호우 · 재산피해 16,000,000원",
+    "available_sections": {
+     "similarity": true,
+     "timeline": false,
+     "damage_response": true,
+     "report": false,
+     "evidence": true,
+     "satellite": false
+    },
+    "evidence_refs": [
+     "EV-EVT-T10107-20160731-0001",
+     "EV-DMG-T10107-20160731-0001"
+    ]
+   },
+   "data_gaps": [
+    {
+     "component": "crisis_alert_level",
+     "reason": "NOT_IN_SOURCE"
+    },
+    {
+     "component": "cdb_stage",
+     "reason": "NOT_IN_SOURCE"
+    }
+   ],
+   "warnings": [],
+   "meta": {
+    "source": "T3Q",
+    "base_time": "2026-10-20T00:00:00+09:00",
+    "quality_status": "VERIFIED",
+    "disclosure_level": "공개",
+    "elapsed_ms": 459
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/events/T10107-20200710-0001",
+  "body": null,
+  "response": {
+   "schema_version": "2.0",
+   "request_id": "44c2439e64f564eb4cf6b291b384e221",
+   "correlation_id": "corr-44c2439e64f564eb4cf6b291b384e221",
+   "status": "SUCCESS",
+   "result": {
+    "event_master_id": "T10107-20200710-0001",
+    "display_name": "2020년 7.10. 호우",
+    "disaster_types": [
+     "호우"
+    ],
+    "disaster_type_code": "T10107",
+    "source_disaster_type_text": "호우",
+    "lifecycle_status": "CLOSED",
+    "time_profile": {
+     "started_at": "2020-07-10",
+     "ended_at": "2020-07-10",
+     "time_precision": "DATE",
+     "source_timezone": null,
+     "source_time_raw": {
+      "start": "2020-07-10",
+      "end": "2020-07-10"
+     }
+    },
+    "representative_admin_area": null,
+    "affected_admin_areas": [
+     {
+      "admin_code": "2600000000",
+      "name": "부산광역시"
+     },
+     {
+      "admin_code": "4600000000",
+      "name": "전라남도"
+     }
+    ],
+    "affected_admin_areas_more": false,
+    "crisis_alert_level": null,
+    "cdb_stage": null,
+    "lead_agency": "행정안전부",
+    "event_summary": "호우 · 부산, 전남 · 이재민 9명 · 재산피해 5,585,500,000원",
+    "available_sections": {
+     "similarity": true,
+     "timeline": false,
+     "damage_response": true,
+     "report": false,
+     "evidence": true,
+     "satellite": false
+    },
+    "evidence_refs": [
+     "EV-EVT-T10107-20200710-0001",
+     "EV-DMG-T10107-20200710-0001"
+    ]
+   },
+   "data_gaps": [
+    {
+     "component": "crisis_alert_level",
+     "reason": "NOT_IN_SOURCE"
+    },
+    {
+     "component": "cdb_stage",
+     "reason": "NOT_IN_SOURCE"
+    }
+   ],
+   "warnings": [],
+   "meta": {
+    "source": "T3Q",
+    "base_time": "2026-10-20T00:00:00+09:00",
+    "quality_status": "VERIFIED",
+    "disclosure_level": "공개",
+    "elapsed_ms": 490
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/events/T10107-20170911-0001",
+  "body": null,
+  "response": {
+   "schema_version": "2.0",
+   "request_id": "8d9857246d3d7fcf5bcdd7edd03bca90",
+   "correlation_id": "corr-8d9857246d3d7fcf5bcdd7edd03bca90",
+   "status": "SUCCESS",
+   "result": {
+    "event_master_id": "T10107-20170911-0001",
+    "display_name": "2017년 9.11~12 호우",
+    "disaster_types": [
+     "호우"
+    ],
+    "disaster_type_code": "T10107",
+    "source_disaster_type_text": "호우",
+    "lifecycle_status": "CLOSED",
+    "time_profile": {
+     "started_at": "2017-09-11",
+     "ended_at": "2017-09-12",
+     "time_precision": "DATE",
+     "source_timezone": null,
+     "source_time_raw": {
+      "start": "2017-09-11",
+      "end": "2017-09-12"
+     }
+    },
+    "representative_admin_area": null,
+    "affected_admin_areas": [
+     {
+      "admin_code": "2600000000",
+      "name": "부산광역시"
+     },
+     {
+      "admin_code": "4300000000",
+      "name": "충청북도"
+     },
+     {
+      "admin_code": "4800000000",
+      "name": "경상남도"
+     }
+    ],
+    "affected_admin_areas_more": false,
+    "crisis_alert_level": null,
+    "cdb_stage": null,
+    "lead_agency": "행정안전부",
+    "event_summary": "호우 · 부산, 충북, 경남 · 이재민 3명 · 재산피해 4,883,000,000원",
+    "available_sections": {
+     "similarity": true,
+     "timeline": false,
+     "damage_response": true,
+     "report": false,
+     "evidence": true,
+     "satellite": false
+    },
+    "evidence_refs": [
+     "EV-EVT-T10107-20170911-0001",
+     "EV-DMG-T10107-20170911-0001"
+    ]
+   },
+   "data_gaps": [
+    {
+     "component": "crisis_alert_level",
+     "reason": "NOT_IN_SOURCE"
+    },
+    {
+     "component": "cdb_stage",
+     "reason": "NOT_IN_SOURCE"
+    }
+   ],
+   "warnings": [],
+   "meta": {
+    "source": "T3Q",
+    "base_time": "2026-10-20T00:00:00+09:00",
+    "quality_status": "VERIFIED",
+    "disclosure_level": "공개",
+    "elapsed_ms": 425
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/events/T10107-20190629-0001",
+  "body": null,
+  "response": {
+   "schema_version": "2.0",
+   "request_id": "1957b5601d46b1b623bb4ae9eaac5777",
+   "correlation_id": "corr-1957b5601d46b1b623bb4ae9eaac5777",
+   "status": "SUCCESS",
+   "result": {
+    "event_master_id": "T10107-20190629-0001",
+    "display_name": "2019년 6.29 호우",
+    "disaster_types": [
+     "호우"
+    ],
+    "disaster_type_code": "T10107",
+    "source_disaster_type_text": "호우",
+    "lifecycle_status": "CLOSED",
+    "time_profile": {
+     "started_at": "2019-06-29",
+     "ended_at": "2019-06-29",
+     "time_precision": "DATE",
+     "source_timezone": null,
+     "source_time_raw": {
+      "start": "2019-06-29",
+      "end": "2019-06-29"
+     }
+    },
+    "representative_admin_area": null,
+    "affected_admin_areas": [
+     {
+      "admin_code": "2600000000",
+      "name": "부산광역시"
+     },
+     {
+      "admin_code": "4800000000",
+      "name": "경상남도"
+     },
+     {
+      "admin_code": "5200000000",
+      "name": "전북특별자치도"
+     }
+    ],
+    "affected_admin_areas_more": false,
+    "crisis_alert_level": null,
+    "cdb_stage": null,
+    "lead_agency": "행정안전부",
+    "event_summary": "호우 · 부산, 전북, 경남 · 재산피해 23,000,000원",
+    "available_sections": {
+     "similarity": true,
+     "timeline": false,
+     "damage_response": true,
+     "report": false,
+     "evidence": true,
+     "satellite": false
+    },
+    "evidence_refs": [
+     "EV-EVT-T10107-20190629-0001",
+     "EV-DMG-T10107-20190629-0001"
+    ]
+   },
+   "data_gaps": [
+    {
+     "component": "crisis_alert_level",
+     "reason": "NOT_IN_SOURCE"
+    },
+    {
+     "component": "cdb_stage",
+     "reason": "NOT_IN_SOURCE"
+    }
+   ],
+   "warnings": [],
+   "meta": {
+    "source": "T3Q",
+    "base_time": "2026-10-20T00:00:00+09:00",
+    "quality_status": "VERIFIED",
+    "disclosure_level": "공개",
+    "elapsed_ms": 570
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/events/T10107-20230821-0001",
+  "body": null,
+  "response": {
+   "schema_version": "2.0",
+   "request_id": "d61e8da8d52d06881c1527bf95ba13cc",
+   "correlation_id": "corr-d61e8da8d52d06881c1527bf95ba13cc",
+   "status": "SUCCESS",
+   "result": {
+    "event_master_id": "T10107-20230821-0001",
+    "display_name": "2023년 08.21.~09.21. 호우",
+    "disaster_types": [
+     "호우"
+    ],
+    "disaster_type_code": "T10107",
+    "source_disaster_type_text": "호우",
+    "lifecycle_status": "CLOSED",
+    "time_profile": {
+     "started_at": "2023-08-21",
+     "ended_at": "2023-09-21",
+     "time_precision": "DATE",
+     "source_timezone": null,
+     "source_time_raw": {
+      "start": "2023-08-21",
+      "end": "2023-09-21"
+     }
+    },
+    "representative_admin_area": null,
+    "affected_admin_areas": [
+     {
+      "admin_code": "2600000000",
+      "name": "부산광역시"
+     },
+     {
+      "admin_code": "2800000000",
+      "name": "인천광역시"
+     },
+     {
+      "admin_code": "3000000000",
+      "name": "대전광역시"
+     },
+     {
+      "admin_code": "3100000000",
+      "name": "울산광역시"
+     },
+     {
+      "admin_code": "4100000000",
+      "name": "경기도"
+     },
+     {
+      "admin_code": "4300000000",
+      "name": "충청북도"
+     },
+     {
+      "admin_code": "4400000000",
+      "name": "충청남도"
+     },
+     {
+      "admin_code": "4600000000",
+      "name": "전라남도"
+     },
+     {
+      "admin_code": "4700000000",
+      "name": "경상북도"
+     },
+     {
+      "admin_code": "4800000000",
+      "name": "경상남도"
+     },
+     {
+      "admin_code": "5000000000",
+      "name": "제주특별자치도"
+     },
+     {
+      "admin_code": "5200000000",
+      "name": "전북특별자치도"
+     }
+    ],
+    "affected_admin_areas_more": false,
+    "crisis_alert_level": null,
+    "cdb_stage": null,
+    "lead_agency": "행정안전부",
+    "event_summary": "호우 · 부산, 인천, 대전, 울산, 경기, 충북, 충남, 전북, 전남, 경북, 경남, 제주 · 이재민 59명 · 재산피해 14,088,700,000원",
+    "available_sections": {
+     "similarity": true,
+     "timeline": true,
+     "damage_response": true,
+     "report": false,
+     "evidence": true,
+     "satellite": false
+    },
+    "evidence_refs": [
+     "EV-EVT-T10107-20230821-0001"
+    ]
+   },
+   "data_gaps": [
+    {
+     "component": "crisis_alert_level",
+     "reason": "NOT_IN_SOURCE"
+    },
+    {
+     "component": "cdb_stage",
+     "reason": "NOT_IN_SOURCE"
+    }
+   ],
+   "warnings": [],
+   "meta": {
+    "source": "T3Q",
+    "base_time": "2026-10-20T00:00:00+09:00",
+    "quality_status": "VERIFIED",
+    "disclosure_level": "공개",
+    "elapsed_ms": 554
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/events/T10107-20240722-0001",
+  "body": null,
+  "response": {
+   "schema_version": "2.0",
+   "request_id": "b46c16066825a5fedbcf0a6c19898f1e",
+   "correlation_id": "corr-b46c16066825a5fedbcf0a6c19898f1e",
+   "status": "SUCCESS",
+   "result": {
+    "event_master_id": "T10107-20240722-0001",
+    "display_name": "2024년 7.22.~23. 호우",
+    "disaster_types": [
+     "호우"
+    ],
+    "disaster_type_code": "T10107",
+    "source_disaster_type_text": "호우",
+    "lifecycle_status": "CLOSED",
+    "time_profile": {
+     "started_at": "2024-07-22",
+     "ended_at": "2024-07-23",
+     "time_precision": "DATE",
+     "source_timezone": null,
+     "source_time_raw": {
+      "start": "2024-07-22",
+      "end": "2024-07-23"
+     }
+    },
+    "representative_admin_area": null,
+    "affected_admin_areas": [
+     {
+      "admin_code": "2600000000",
+      "name": "부산광역시"
+     },
+     {
+      "admin_code": "2800000000",
+      "name": "인천광역시"
+     },
+     {
+      "admin_code": "4100000000",
+      "name": "경기도"
+     },
+     {
+      "admin_code": "4600000000",
+      "name": "전라남도"
+     },
+     {
+      "admin_code": "5100000000",
+      "name": "강원특별자치도"
+     }
+    ],
+    "affected_admin_areas_more": false,
+    "crisis_alert_level": null,
+    "cdb_stage": null,
+    "lead_agency": "행정안전부",
+    "event_summary": "호우 · 부산, 인천, 경기, 전남, 강원 · 이재민 7명 · 재산피해 781,200,000원",
+    "available_sections": {
+     "similarity": true,
+     "timeline": true,
+     "damage_response": true,
+     "report": false,
+     "evidence": true,
+     "satellite": false
+    },
+    "evidence_refs": [
+     "EV-EVT-T10107-20240722-0001",
+     "EV-DMG-T10107-20240722-0001"
+    ]
+   },
+   "data_gaps": [
+    {
+     "component": "crisis_alert_level",
+     "reason": "NOT_IN_SOURCE"
+    },
+    {
+     "component": "cdb_stage",
+     "reason": "NOT_IN_SOURCE"
+    }
+   ],
+   "warnings": [],
+   "meta": {
+    "source": "T3Q",
+    "base_time": "2026-10-20T00:00:00+09:00",
+    "quality_status": "VERIFIED",
+    "disclosure_level": "공개",
+    "elapsed_ms": 460
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/events/T10107-20180826-0001",
+  "body": null,
+  "response": {
+   "schema_version": "2.0",
+   "request_id": "f0c90b756fd4db76232f1fc5be635a17",
+   "correlation_id": "corr-f0c90b756fd4db76232f1fc5be635a17",
+   "status": "SUCCESS",
+   "result": {
+    "event_master_id": "T10107-20180826-0001",
+    "display_name": "2018년 8.26~9.1 호우",
+    "disaster_types": [
+     "호우"
+    ],
+    "disaster_type_code": "T10107",
+    "source_disaster_type_text": "호우",
+    "lifecycle_status": "CLOSED",
+    "time_profile": {
+     "started_at": "2018-08-26",
+     "ended_at": "2018-09-01",
+     "time_precision": "DATE",
+     "source_timezone": null,
+     "source_time_raw": {
+      "start": "2018-08-26",
+      "end": "2018-09-01"
+     }
+    },
+    "representative_admin_area": null,
+    "affected_admin_areas": [
+     {
+      "admin_code": "1100000000",
+      "name": "서울특별시"
+     },
+     {
+      "admin_code": "2600000000",
+      "name": "부산광역시"
+     },
+     {
+      "admin_code": "2700000000",
+      "name": "대구광역시"
+     },
+     {
+      "admin_code": "2800000000",
+      "name": "인천광역시"
+     },
+     {
+      "admin_code": "2900000000",
+      "name": "광주광역시"
+     },
+     {
+      "admin_code": "3000000000",
+      "name": "대전광역시"
+     },
+     {
+      "admin_code": "3100000000",
+      "name": "울산광역시"
+     },
+     {
+      "admin_code": "3600000000",
+      "name": "세종특별자치시"
+     },
+     {
+      "admin_code": "4100000000",
+      "name": "경기도"
+     },
+     {
+      "admin_code": "4300000000",
+      "name": "충청북도"
+     },
+     {
+      "admin_code": "4400000000",
+      "name": "충청남도"
+     },
+     {
+      "admin_code": "4600000000",
+      "name": "전라남도"
+     },
+     {
+      "admin_code": "4700000000",
+      "name": "경상북도"
+     },
+     {
+      "admin_code": "4800000000",
+      "name": "경상남도"
+     },
+     {
+      "admin_code": "5000000000",
+      "name": "제주특별자치도"
+     },
+     {
+      "admin_code": "5100000000",
+      "name": "강원특별자치도"
+     },
+     {
+      "admin_code": "5200000000",
+      "name": "전북특별자치도"
+     }
+    ],
+    "affected_admin_areas_more": false,
+    "crisis_alert_level": null,
+    "cdb_stage": null,
+    "lead_agency": "행정안전부",
+    "event_summary": "호우 · 서울, 부산, 대구, 인천, 광주, 대전, 울산, 세종, 경기, 강원, 충북, 충남, 전북, 전남, 경북, 경남, 제주 · 이재민 10명 · 재산피해 41,471,400,000원",
+    "available_sections": {
+     "similarity": true,
+     "timeline": true,
+     "damage_response": true,
+     "report": false,
+     "evidence": true,
+     "satellite": false
+    },
+    "evidence_refs": [
+     "EV-EVT-T10107-20180826-0001",
+     "EV-DMG-T10107-20180826-0001"
+    ]
+   },
+   "data_gaps": [
+    {
+     "component": "crisis_alert_level",
+     "reason": "NOT_IN_SOURCE"
+    },
+    {
+     "component": "cdb_stage",
+     "reason": "NOT_IN_SOURCE"
+    }
+   ],
+   "warnings": [],
+   "meta": {
+    "source": "T3Q",
+    "base_time": "2026-10-20T00:00:00+09:00",
+    "quality_status": "VERIFIED",
+    "disclosure_level": "공개",
+    "elapsed_ms": 549
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/events/T10107-20160826-0001",
+  "body": null,
+  "response": {
+   "schema_version": "2.0",
+   "request_id": "be075fbb42c3c9751702fabab69db797",
+   "correlation_id": "corr-be075fbb42c3c9751702fabab69db797",
+   "status": "SUCCESS",
+   "result": {
+    "event_master_id": "T10107-20160826-0001",
+    "display_name": "2016년 8.26~9.1 호우",
+    "disaster_types": [
+     "호우"
+    ],
+    "disaster_type_code": "T10107",
+    "source_disaster_type_text": "호우",
+    "lifecycle_status": "CLOSED",
+    "time_profile": {
+     "started_at": "2016-08-26",
+     "ended_at": "2016-09-01",
+     "time_precision": "DATE",
+     "source_timezone": null,
+     "source_time_raw": {
+      "start": "2016-08-26",
+      "end": "2016-09-01"
+     }
+    },
+    "representative_admin_area": null,
+    "affected_admin_areas": [
+     {
+      "admin_code": "2800000000",
+      "name": "인천광역시"
+     },
+     {
+      "admin_code": "4100000000",
+      "name": "경기도"
+     },
+     {
+      "admin_code": "4400000000",
+      "name": "충청남도"
+     },
+     {
+      "admin_code": "4600000000",
+      "name": "전라남도"
+     },
+     {
+      "admin_code": "5100000000",
+      "name": "강원특별자치도"
+     },
+     {
+      "admin_code": "5200000000",
+      "name": "전북특별자치도"
+     }
+    ],
+    "affected_admin_areas_more": false,
+    "crisis_alert_level": null,
+    "cdb_stage": null,
+    "lead_agency": "행정안전부",
+    "event_summary": "호우 · 인천, 경기, 강원, 충남, 전남, 전북 · 재산피해 6,967,000,000원",
+    "available_sections": {
+     "similarity": true,
+     "timeline": false,
+     "damage_response": true,
+     "report": false,
+     "evidence": true,
+     "satellite": false
+    },
+    "evidence_refs": [
+     "EV-EVT-T10107-20160826-0001",
+     "EV-DMG-T10107-20160826-0001"
+    ]
+   },
+   "data_gaps": [
+    {
+     "component": "crisis_alert_level",
+     "reason": "NOT_IN_SOURCE"
+    },
+    {
+     "component": "cdb_stage",
+     "reason": "NOT_IN_SOURCE"
+    }
+   ],
+   "warnings": [],
+   "meta": {
+    "source": "T3Q",
+    "base_time": "2026-10-20T00:00:00+09:00",
+    "quality_status": "VERIFIED",
+    "disclosure_level": "공개",
+    "elapsed_ms": 481
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/events/T10107-20170810-0001",
+  "body": null,
+  "response": {
+   "schema_version": "2.0",
+   "request_id": "fc2846708406963822b3adfee222fb11",
+   "correlation_id": "corr-fc2846708406963822b3adfee222fb11",
+   "status": "SUCCESS",
+   "result": {
+    "event_master_id": "T10107-20170810-0001",
+    "display_name": "2017년 8.10~11 호우",
+    "disaster_types": [
+     "호우"
+    ],
+    "disaster_type_code": "T10107",
+    "source_disaster_type_text": "호우",
+    "lifecycle_status": "CLOSED",
+    "time_profile": {
+     "started_at": "2017-08-10",
+     "ended_at": "2017-08-11",
+     "time_precision": "DATE",
+     "source_timezone": null,
+     "source_time_raw": {
+      "start": "2017-08-10",
+      "end": "2017-08-11"
+     }
+    },
+    "representative_admin_area": null,
+    "affected_admin_areas": [
+     {
+      "admin_code": "4100000000",
+      "name": "경기도"
+     },
+     {
+      "admin_code": "5100000000",
+      "name": "강원특별자치도"
+     }
+    ],
+    "affected_admin_areas_more": false,
+    "crisis_alert_level": null,
+    "cdb_stage": null,
+    "lead_agency": "행정안전부",
+    "event_summary": "호우 · 경기, 강원 · 이재민 6명 · 재산피해 4,000,000원",
+    "available_sections": {
+     "similarity": true,
+     "timeline": false,
+     "damage_response": true,
+     "report": false,
+     "evidence": true,
+     "satellite": false
+    },
+    "evidence_refs": [
+     "EV-EVT-T10107-20170810-0001",
+     "EV-DMG-T10107-20170810-0001"
+    ]
+   },
+   "data_gaps": [
+    {
+     "component": "crisis_alert_level",
+     "reason": "NOT_IN_SOURCE"
+    },
+    {
+     "component": "cdb_stage",
+     "reason": "NOT_IN_SOURCE"
+    }
+   ],
+   "warnings": [],
+   "meta": {
+    "source": "T3Q",
+    "base_time": "2026-10-20T00:00:00+09:00",
+    "quality_status": "VERIFIED",
+    "disclosure_level": "공개",
+    "elapsed_ms": 489
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/events/T10107-20170814-0001",
+  "body": null,
+  "response": {
+   "schema_version": "2.0",
+   "request_id": "0ac125dbe25f25dd0b1733cc06ba63b9",
+   "correlation_id": "corr-0ac125dbe25f25dd0b1733cc06ba63b9",
+   "status": "SUCCESS",
+   "result": {
+    "event_master_id": "T10107-20170814-0001",
+    "display_name": "2017년 8.14~18 호우",
+    "disaster_types": [
+     "호우"
+    ],
+    "disaster_type_code": "T10107",
+    "source_disaster_type_text": "호우",
+    "lifecycle_status": "CLOSED",
+    "time_profile": {
+     "started_at": "2017-08-14",
+     "ended_at": "2017-08-18",
+     "time_precision": "DATE",
+     "source_timezone": null,
+     "source_time_raw": {
+      "start": "2017-08-14",
+      "end": "2017-08-18"
+     }
+    },
+    "representative_admin_area": null,
+    "affected_admin_areas": [
+     {
+      "admin_code": "2800000000",
+      "name": "인천광역시"
+     },
+     {
+      "admin_code": "4100000000",
+      "name": "경기도"
+     },
+     {
+      "admin_code": "4700000000",
+      "name": "경상북도"
+     },
+     {
+      "admin_code": "5100000000",
+      "name": "강원특별자치도"
+     }
+    ],
+    "affected_admin_areas_more": false,
+    "crisis_alert_level": null,
+    "cdb_stage": null,
+    "lead_agency": "행정안전부",
+    "event_summary": "호우 · 인천, 경기, 강원, 경북 · 이재민 13명 · 재산피해 54,000,000원",
+    "available_sections": {
+     "similarity": true,
+     "timeline": false,
+     "damage_response": true,
+     "report": false,
+     "evidence": true,
+     "satellite": false
+    },
+    "evidence_refs": [
+     "EV-EVT-T10107-20170814-0001"
+    ]
+   },
+   "data_gaps": [
+    {
+     "component": "crisis_alert_level",
+     "reason": "NOT_IN_SOURCE"
+    },
+    {
+     "component": "cdb_stage",
+     "reason": "NOT_IN_SOURCE"
+    }
+   ],
+   "warnings": [],
+   "meta": {
+    "source": "T3Q",
+    "base_time": "2026-10-20T00:00:00+09:00",
+    "quality_status": "VERIFIED",
+    "disclosure_level": "공개",
+    "elapsed_ms": 448
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/events/T10107-20170819-0001",
+  "body": null,
+  "response": {
+   "schema_version": "2.0",
+   "request_id": "976c28db0250623820d401e159b5bcbc",
+   "correlation_id": "corr-976c28db0250623820d401e159b5bcbc",
+   "status": "SUCCESS",
+   "result": {
+    "event_master_id": "T10107-20170819-0001",
+    "display_name": "2017년 8.19 호우",
+    "disaster_types": [
+     "호우"
+    ],
+    "disaster_type_code": "T10107",
+    "source_disaster_type_text": "호우",
+    "lifecycle_status": "CLOSED",
+    "time_profile": {
+     "started_at": "2017-08-19",
+     "ended_at": "2017-08-19",
+     "time_precision": "DATE",
+     "source_timezone": null,
+     "source_time_raw": {
+      "start": "2017-08-19",
+      "end": "2017-08-19"
+     }
+    },
+    "representative_admin_area": null,
+    "affected_admin_areas": [
+     {
+      "admin_code": "4100000000",
+      "name": "경기도"
+     },
+     {
+      "admin_code": "5000000000",
+      "name": "제주특별자치도"
+     }
+    ],
+    "affected_admin_areas_more": false,
+    "crisis_alert_level": null,
+    "cdb_stage": null,
+    "lead_agency": "행정안전부",
+    "event_summary": "호우 · 경기, 제주 · 재산피해 22,000,000원",
+    "available_sections": {
+     "similarity": true,
+     "timeline": false,
+     "damage_response": true,
+     "report": false,
+     "evidence": true,
+     "satellite": false
+    },
+    "evidence_refs": [
+     "EV-EVT-T10107-20170819-0001",
+     "EV-DMG-T10107-20170819-0001"
+    ]
+   },
+   "data_gaps": [
+    {
+     "component": "crisis_alert_level",
+     "reason": "NOT_IN_SOURCE"
+    },
+    {
+     "component": "cdb_stage",
+     "reason": "NOT_IN_SOURCE"
+    }
+   ],
+   "warnings": [],
+   "meta": {
+    "source": "T3Q",
+    "base_time": "2026-10-20T00:00:00+09:00",
+    "quality_status": "VERIFIED",
+    "disclosure_level": "공개",
+    "elapsed_ms": 456
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/events/T10107-20170820-0001",
+  "body": null,
+  "response": {
+   "schema_version": "2.0",
+   "request_id": "598caeeac14903ee31abb6384cb9a4a1",
+   "correlation_id": "corr-598caeeac14903ee31abb6384cb9a4a1",
+   "status": "SUCCESS",
+   "result": {
+    "event_master_id": "T10107-20170820-0001",
+    "display_name": "2017년 8.20~23 호우",
+    "disaster_types": [
+     "호우"
+    ],
+    "disaster_type_code": "T10107",
+    "source_disaster_type_text": "호우",
+    "lifecycle_status": "CLOSED",
+    "time_profile": {
+     "started_at": "2017-08-20",
+     "ended_at": "2017-08-23",
+     "time_precision": "DATE",
+     "source_timezone": null,
+     "source_time_raw": {
+      "start": "2017-08-20",
+      "end": "2017-08-23"
+     }
+    },
+    "representative_admin_area": null,
+    "affected_admin_areas": [
+     {
+      "admin_code": "4100000000",
+      "name": "경기도"
+     },
+     {
+      "admin_code": "4600000000",
+      "name": "전라남도"
+     },
+     {
+      "admin_code": "4800000000",
+      "name": "경상남도"
+     }
+    ],
+    "affected_admin_areas_more": false,
+    "crisis_alert_level": null,
+    "cdb_stage": null,
+    "lead_agency": "행정안전부",
+    "event_summary": "호우 · 경기, 전남, 경남 · 재산피해 140,000,000원",
+    "available_sections": {
+     "similarity": true,
+     "timeline": false,
+     "damage_response": true,
+     "report": false,
+     "evidence": true,
+     "satellite": false
+    },
+    "evidence_refs": [
+     "EV-EVT-T10107-20170820-0001",
+     "EV-DMG-T10107-20170820-0001"
+    ]
+   },
+   "data_gaps": [
+    {
+     "component": "crisis_alert_level",
+     "reason": "NOT_IN_SOURCE"
+    },
+    {
+     "component": "cdb_stage",
+     "reason": "NOT_IN_SOURCE"
+    }
+   ],
+   "warnings": [],
+   "meta": {
+    "source": "T3Q",
+    "base_time": "2026-10-20T00:00:00+09:00",
+    "quality_status": "VERIFIED",
+    "disclosure_level": "공개",
+    "elapsed_ms": 468
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/events/T10107-20170824-0001",
+  "body": null,
+  "response": {
+   "schema_version": "2.0",
+   "request_id": "ede566ba61f083789a870d98f16faa7c",
+   "correlation_id": "corr-ede566ba61f083789a870d98f16faa7c",
+   "status": "SUCCESS",
+   "result": {
+    "event_master_id": "T10107-20170824-0001",
+    "display_name": "2017년 8.24~25 호우",
+    "disaster_types": [
+     "호우"
+    ],
+    "disaster_type_code": "T10107",
+    "source_disaster_type_text": "호우",
+    "lifecycle_status": "CLOSED",
+    "time_profile": {
+     "started_at": "2017-08-24",
+     "ended_at": "2017-08-25",
+     "time_precision": "DATE",
+     "source_timezone": null,
+     "source_time_raw": {
+      "start": "2017-08-24",
+      "end": "2017-08-25"
+     }
+    },
+    "representative_admin_area": null,
+    "affected_admin_areas": [
+     {
+      "admin_code": "2900000000",
+      "name": "광주광역시"
+     },
+     {
+      "admin_code": "4100000000",
+      "name": "경기도"
+     },
+     {
+      "admin_code": "4400000000",
+      "name": "충청남도"
+     },
+     {
+      "admin_code": "5000000000",
+      "name": "제주특별자치도"
+     },
+     {
+      "admin_code": "5100000000",
+      "name": "강원특별자치도"
+     },
+     {
+      "admin_code": "5200000000",
+      "name": "전북특별자치도"
+     }
+    ],
+    "affected_admin_areas_more": false,
+    "crisis_alert_level": null,
+    "cdb_stage": null,
+    "lead_agency": "행정안전부",
+    "event_summary": "호우 · 광주, 경기, 강원, 충남, 전북, 제주 · 이재민 9명 · 재산피해 883,000,000원",
+    "available_sections": {
+     "similarity": true,
+     "timeline": false,
+     "damage_response": true,
+     "report": false,
+     "evidence": true,
+     "satellite": false
+    },
+    "evidence_refs": [
+     "EV-EVT-T10107-20170824-0001",
+     "EV-DMG-T10107-20170824-0001"
+    ]
+   },
+   "data_gaps": [
+    {
+     "component": "crisis_alert_level",
+     "reason": "NOT_IN_SOURCE"
+    },
+    {
+     "component": "cdb_stage",
+     "reason": "NOT_IN_SOURCE"
+    }
+   ],
+   "warnings": [],
+   "meta": {
+    "source": "T3Q",
+    "base_time": "2026-10-20T00:00:00+09:00",
+    "quality_status": "VERIFIED",
+    "disclosure_level": "공개",
+    "elapsed_ms": 440
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/events/T10107-20170828-0001",
+  "body": null,
+  "response": {
+   "schema_version": "2.0",
+   "request_id": "2230e98579caa6d43b009af7e056aafa",
+   "correlation_id": "corr-2230e98579caa6d43b009af7e056aafa",
+   "status": "SUCCESS",
+   "result": {
+    "event_master_id": "T10107-20170828-0001",
+    "display_name": "2017년 8.28~29 호우",
+    "disaster_types": [
+     "호우"
+    ],
+    "disaster_type_code": "T10107",
+    "source_disaster_type_text": "호우",
+    "lifecycle_status": "CLOSED",
+    "time_profile": {
+     "started_at": "2017-08-28",
+     "ended_at": "2017-08-29",
+     "time_precision": "DATE",
+     "source_timezone": null,
+     "source_time_raw": {
+      "start": "2017-08-28",
+      "end": "2017-08-29"
+     }
+    },
+    "representative_admin_area": null,
+    "affected_admin_areas": [
+     {
+      "admin_code": "3600000000",
+      "name": "세종특별자치시"
+     },
+     {
+      "admin_code": "5100000000",
+      "name": "강원특별자치도"
+     }
+    ],
+    "affected_admin_areas_more": false,
+    "crisis_alert_level": null,
+    "cdb_stage": null,
+    "lead_agency": "행정안전부",
+    "event_summary": "호우 · 세종, 강원 · 재산피해 3,000,000원",
+    "available_sections": {
+     "similarity": true,
+     "timeline": false,
+     "damage_response": true,
+     "report": false,
+     "evidence": true,
+     "satellite": false
+    },
+    "evidence_refs": [
+     "EV-EVT-T10107-20170828-0001",
+     "EV-DMG-T10107-20170828-0001"
+    ]
+   },
+   "data_gaps": [
+    {
+     "component": "crisis_alert_level",
+     "reason": "NOT_IN_SOURCE"
+    },
+    {
+     "component": "cdb_stage",
+     "reason": "NOT_IN_SOURCE"
+    }
+   ],
+   "warnings": [],
+   "meta": {
+    "source": "T3Q",
+    "base_time": "2026-10-20T00:00:00+09:00",
+    "quality_status": "VERIFIED",
+    "disclosure_level": "공개",
+    "elapsed_ms": 433
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/events/T10107-20180806-0001",
+  "body": null,
+  "response": {
+   "schema_version": "2.0",
+   "request_id": "3121f297e8deb523bdb94c8c0bb20e57",
+   "correlation_id": "corr-3121f297e8deb523bdb94c8c0bb20e57",
+   "status": "SUCCESS",
+   "result": {
+    "event_master_id": "T10107-20180806-0001",
+    "display_name": "2018년 8.6~7 호우",
+    "disaster_types": [
+     "호우"
+    ],
+    "disaster_type_code": "T10107",
+    "source_disaster_type_text": "호우",
+    "lifecycle_status": "CLOSED",
+    "time_profile": {
+     "started_at": "2018-08-06",
+     "ended_at": "2018-08-07",
+     "time_precision": "DATE",
+     "source_timezone": null,
+     "source_time_raw": {
+      "start": "2018-08-06",
+      "end": "2018-08-07"
+     }
+    },
+    "representative_admin_area": {
+     "admin_code": "5100000000",
+     "name": "강원특별자치도"
+    },
+    "affected_admin_areas": [
+     {
+      "admin_code": "5100000000",
+      "name": "강원특별자치도"
+     }
+    ],
+    "affected_admin_areas_more": false,
+    "crisis_alert_level": null,
+    "cdb_stage": null,
+    "lead_agency": "행정안전부",
+    "event_summary": "호우 · 강원 · 이재민 2명 · 재산피해 177,000,000원",
+    "available_sections": {
+     "similarity": true,
+     "timeline": false,
+     "damage_response": true,
+     "report": false,
+     "evidence": true,
+     "satellite": false
+    },
+    "evidence_refs": [
+     "EV-EVT-T10107-20180806-0001",
+     "EV-DMG-T10107-20180806-0001"
+    ]
+   },
+   "data_gaps": [
+    {
+     "component": "crisis_alert_level",
+     "reason": "NOT_IN_SOURCE"
+    },
+    {
+     "component": "cdb_stage",
+     "reason": "NOT_IN_SOURCE"
+    }
+   ],
+   "warnings": [],
+   "meta": {
+    "source": "T3Q",
+    "base_time": "2026-10-20T00:00:00+09:00",
+    "quality_status": "VERIFIED",
+    "disclosure_level": "공개",
+    "elapsed_ms": 521
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/events/T10107-20190817-0001",
+  "body": null,
+  "response": {
+   "schema_version": "2.0",
+   "request_id": "e6d58cf4933296100e81117bf45d56e6",
+   "correlation_id": "corr-e6d58cf4933296100e81117bf45d56e6",
+   "status": "SUCCESS",
+   "result": {
+    "event_master_id": "T10107-20190817-0001",
+    "display_name": "2019년 8.17 호우",
+    "disaster_types": [
+     "호우"
+    ],
+    "disaster_type_code": "T10107",
+    "source_disaster_type_text": "호우",
+    "lifecycle_status": "CLOSED",
+    "time_profile": {
+     "started_at": "2019-08-17",
+     "ended_at": "2019-08-17",
+     "time_precision": "DATE",
+     "source_timezone": null,
+     "source_time_raw": {
+      "start": "2019-08-17",
+      "end": "2019-08-17"
+     }
+    },
+    "representative_admin_area": {
+     "admin_code": "4100000000",
+     "name": "경기도"
+    },
+    "affected_admin_areas": [
+     {
+      "admin_code": "4100000000",
+      "name": "경기도"
+     }
+    ],
+    "affected_admin_areas_more": false,
+    "crisis_alert_level": null,
+    "cdb_stage": null,
+    "lead_agency": "행정안전부",
+    "event_summary": "호우 · 경기 · 이재민 3명 · 재산피해 5,400,000원",
+    "available_sections": {
+     "similarity": true,
+     "timeline": false,
+     "damage_response": true,
+     "report": false,
+     "evidence": true,
+     "satellite": false
+    },
+    "evidence_refs": [
+     "EV-EVT-T10107-20190817-0001",
+     "EV-DMG-T10107-20190817-0001"
+    ]
+   },
+   "data_gaps": [
+    {
+     "component": "crisis_alert_level",
+     "reason": "NOT_IN_SOURCE"
+    },
+    {
+     "component": "cdb_stage",
+     "reason": "NOT_IN_SOURCE"
+    }
+   ],
+   "warnings": [],
+   "meta": {
+    "source": "T3Q",
+    "base_time": "2026-10-20T00:00:00+09:00",
+    "quality_status": "VERIFIED",
+    "disclosure_level": "공개",
+    "elapsed_ms": 447
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/events/T10107-20190827-0001",
+  "body": null,
+  "response": {
+   "schema_version": "2.0",
+   "request_id": "6a2d591fb6e992b5cde5d8c29b2aee3d",
+   "correlation_id": "corr-6a2d591fb6e992b5cde5d8c29b2aee3d",
+   "status": "SUCCESS",
+   "result": {
+    "event_master_id": "T10107-20190827-0001",
+    "display_name": "2019년 8.27~29 호우",
+    "disaster_types": [
+     "호우"
+    ],
+    "disaster_type_code": "T10107",
+    "source_disaster_type_text": "호우",
+    "lifecycle_status": "CLOSED",
+    "time_profile": {
+     "started_at": "2019-08-27",
+     "ended_at": "2019-08-29",
+     "time_precision": "DATE",
+     "source_timezone": null,
+     "source_time_raw": {
+      "start": "2019-08-27",
+      "end": "2019-08-29"
+     }
+    },
+    "representative_admin_area": null,
+    "affected_admin_areas": [
+     {
+      "admin_code": "2800000000",
+      "name": "인천광역시"
+     },
+     {
+      "admin_code": "5000000000",
+      "name": "제주특별자치도"
+     }
+    ],
+    "affected_admin_areas_more": false,
+    "crisis_alert_level": null,
+    "cdb_stage": null,
+    "lead_agency": "행정안전부",
+    "event_summary": "호우 · 인천, 제주 · 이재민 49명 · 재산피해 6,300,000원",
+    "available_sections": {
+     "similarity": true,
+     "timeline": false,
+     "damage_response": true,
+     "report": false,
+     "evidence": true,
+     "satellite": false
+    },
+    "evidence_refs": [
+     "EV-EVT-T10107-20190827-0001",
+     "EV-DMG-T10107-20190827-0001"
+    ]
+   },
+   "data_gaps": [
+    {
+     "component": "crisis_alert_level",
+     "reason": "NOT_IN_SOURCE"
+    },
+    {
+     "component": "cdb_stage",
+     "reason": "NOT_IN_SOURCE"
+    }
+   ],
+   "warnings": [],
+   "meta": {
+    "source": "T3Q",
+    "base_time": "2026-10-20T00:00:00+09:00",
+    "quality_status": "VERIFIED",
+    "disclosure_level": "공개",
+    "elapsed_ms": 487
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/events/T10107-20200814-0001",
+  "body": null,
+  "response": {
+   "schema_version": "2.0",
+   "request_id": "0a9bc1d4eb9edb83fc3ea71bc7dc8ca8",
+   "correlation_id": "corr-0a9bc1d4eb9edb83fc3ea71bc7dc8ca8",
+   "status": "SUCCESS",
+   "result": {
+    "event_master_id": "T10107-20200814-0001",
+    "display_name": "2020년 8.14.~15. 호우",
+    "disaster_types": [
+     "호우"
+    ],
+    "disaster_type_code": "T10107",
+    "source_disaster_type_text": "호우",
+    "lifecycle_status": "CLOSED",
+    "time_profile": {
+     "started_at": "2020-08-14",
+     "ended_at": "2020-08-15",
+     "time_precision": "DATE",
+     "source_timezone": null,
+     "source_time_raw": {
+      "start": "2020-08-14",
+      "end": "2020-08-15"
+     }
+    },
+    "representative_admin_area": null,
+    "affected_admin_areas": [
+     {
+      "admin_code": "1100000000",
+      "name": "서울특별시"
+     },
+     {
+      "admin_code": "2900000000",
+      "name": "광주광역시"
+     },
+     {
+      "admin_code": "4100000000",
+      "name": "경기도"
+     },
+     {
+      "admin_code": "4700000000",
+      "name": "경상북도"
+     },
+     {
+      "admin_code": "5100000000",
+      "name": "강원특별자치도"
+     },
+     {
+      "admin_code": "5200000000",
+      "name": "전북특별자치도"
+     }
+    ],
+    "affected_admin_areas_more": false,
+    "crisis_alert_level": null,
+    "cdb_stage": null,
+    "lead_agency": "행정안전부",
+    "event_summary": "호우 · 서울, 광주, 경기, 강원, 전북, 경북 · 재산피해 915,200,000원",
+    "available_sections": {
+     "similarity": true,
+     "timeline": false,
+     "damage_response": true,
+     "report": false,
+     "evidence": true,
+     "satellite": false
+    },
+    "evidence_refs": [
+     "EV-EVT-T10107-20200814-0001",
+     "EV-DMG-T10107-20200814-0001"
+    ]
+   },
+   "data_gaps": [
+    {
+     "component": "crisis_alert_level",
+     "reason": "NOT_IN_SOURCE"
+    },
+    {
+     "component": "cdb_stage",
+     "reason": "NOT_IN_SOURCE"
+    }
+   ],
+   "warnings": [],
+   "meta": {
+    "source": "T3Q",
+    "base_time": "2026-10-20T00:00:00+09:00",
+    "quality_status": "VERIFIED",
+    "disclosure_level": "공개",
+    "elapsed_ms": 415
+   }
+  }
+ },
+ {
+  "method": "GET",
+  "path": "/events/T10107-20200822-0001",
+  "body": null,
+  "response": {
+   "schema_version": "2.0",
+   "request_id": "e7e10a6a9d721c3ac3ccb0e34d419116",
+   "correlation_id": "corr-e7e10a6a9d721c3ac3ccb0e34d419116",
+   "status": "SUCCESS",
+   "result": {
+    "event_master_id": "T10107-20200822-0001",
+    "display_name": "2020년 8.22.~23. 호우",
+    "disaster_types": [
+     "호우"
+    ],
+    "disaster_type_code": "T10107",
+    "source_disaster_type_text": "호우",
+    "lifecycle_status": "CLOSED",
+    "time_profile": {
+     "started_at": "2020-08-22",
+     "ended_at": "2020-08-23",
+     "time_precision": "DATE",
+     "source_timezone": null,
+     "source_time_raw": {
+      "start": "2020-08-22",
+      "end": "2020-08-23"
+     }
+    },
+    "representative_admin_area": null,
+    "affected_admin_areas": [
+     {
+      "admin_code": "1100000000",
+      "name": "서울특별시"
+     },
+     {
+      "admin_code": "4100000000",
+      "name": "경기도"
+     },
+     {
+      "admin_code": "5100000000",
+      "name": "강원특별자치도"
+     }
+    ],
+    "affected_admin_areas_more": false,
+    "crisis_alert_level": null,
+    "cdb_stage": null,
+    "lead_agency": "행정안전부",
+    "event_summary": "호우 · 서울, 경기, 강원 · 이재민 135명 · 재산피해 140,800,000원",
+    "available_sections": {
+     "similarity": true,
+     "timeline": false,
+     "damage_response": true,
+     "report": false,
+     "evidence": true,
+     "satellite": false
+    },
+    "evidence_refs": [
+     "EV-EVT-T10107-20200822-0001",
+     "EV-DMG-T10107-20200822-0001"
+    ]
+   },
+   "data_gaps": [
+    {
+     "component": "crisis_alert_level",
+     "reason": "NOT_IN_SOURCE"
+    },
+    {
+     "component": "cdb_stage",
+     "reason": "NOT_IN_SOURCE"
+    }
+   ],
+   "warnings": [],
+   "meta": {
+    "source": "T3Q",
+    "base_time": "2026-10-20T00:00:00+09:00",
+    "quality_status": "VERIFIED",
+    "disclosure_level": "공개",
+    "elapsed_ms": 509
+   }
+  }
+ }
+]

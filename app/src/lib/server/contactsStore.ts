@@ -1,6 +1,6 @@
 import "server-only";
+import { sampleBundle } from "../contactsSample";
 import { checkBundle, type Bundle, type BundleRev } from "../contactsCore";
-import { seedBundle } from "../contactsSeed";
 import { audit, db, ensureSchema } from "./db";
 
 /** 연락망 서버 저장 — 기관별 통째 읽기·쓰기 (판 rev 로 동시 수정 충돌 확인). 처음 읽을 때 예시 연락망으로 채움 */
@@ -53,12 +53,9 @@ export async function getBundle(orgId: string): Promise<BundleRev> {
   const sql = db();
   let meta = (await sql.query("select rev, updated_at, updated_by from sa_contact_orgs where org_id = $1", [orgId])) as Row[];
   if (!meta.length) {
-    // 처음 — 예시 연락망으로 채움 (동시에 두 요청이 와도 한쪽만 채움)
-    const seed = seedBundle(orgId);
-    const res = await sql.transaction([
-      sql.query("insert into sa_contact_orgs (org_id, rev, seeded_at) values ($1, 1, now()) on conflict do nothing returning org_id", [orgId]),
-    ]);
-    if ((res[0] as Row[]).length) await sql.transaction(writeAll(orgId, seed));
+    // 처음 — [샘플] 연락망으로 채움(구성 예시, 샘플 표시). 동시에 두 요청이 와도 한쪽만 채움
+    const res = (await sql.query("insert into sa_contact_orgs (org_id, rev, seeded_at) values ($1, 1, now()) on conflict do nothing returning org_id", [orgId])) as Row[];
+    if (res.length) await sql.transaction(writeAll(orgId, sampleBundle(orgId)));
     meta = (await sql.query("select rev, updated_at, updated_by from sa_contact_orgs where org_id = $1", [orgId])) as Row[];
   }
   const b = await readAll(orgId);

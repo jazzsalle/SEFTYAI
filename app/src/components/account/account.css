@@ -1,0 +1,88 @@
+/* =====================================================================
+   계정 모달 — 비밀번호 변경(101006) · 세션 만료(101005) · 내 권한정보(101007)
+   KRDS modal: 560 폭 · 제목 24 Bold · 설명 17 · 입력 48 · 버튼 48 오른쪽 정렬
+   (globals.css 토큰만 쓰고, 클래스는 모두 acm- 접두로 이 파일 안에서만)
+   ===================================================================== */
+.acm-ovl {
+  position: fixed; inset: 0; z-index: 400; display: grid; place-items: center; padding: 24px; overflow-y: auto;
+  background: rgba(19, 20, 22, .6); animation: acm-fade .12s ease both;
+}
+.acm-dlg {
+  position: relative; width: min(560px, 100%); max-height: calc(100vh - 48px); overflow-y: auto;
+  padding: 40px 40px 32px; border-radius: var(--r-xl); background: #fff; color: var(--c-text);
+  box-shadow: 0 12px 40px rgba(15, 20, 28, .22); text-align: left; word-break: keep-all; overflow-wrap: break-word;
+}
+.acm-dlg.sm { width: min(460px, 100%); }
+.acm-dlg h2 { font-size: var(--fs-hm); line-height: 1.4; padding-right: 36px; }
+.acm-desc { margin: 12px 0 0; font-size: var(--fs-m); line-height: 1.55; }
+.acm-sub { margin: 10px 0 0; font-size: var(--fs-s); line-height: 1.6; color: var(--c-sub); }
+.acm-x {
+  position: absolute; top: 20px; right: 20px; width: 40px; height: 40px; display: grid; place-items: center;
+  border: 0; border-radius: var(--r-m); background: transparent; color: var(--c-text);
+}
+.acm-x:hover { background: var(--c-sec-sub); }
+.acm-ft { display: flex; justify-content: flex-end; gap: 8px; margin-top: 28px; }
+.acm-btn {
+  height: 48px; min-width: 80px; padding: 0 20px; border: 1px solid var(--c-input-bd); border-radius: var(--r-l);
+  background: #fff; color: var(--c-text); font-size: var(--fs-m); font-weight: 500; white-space: nowrap;
+}
+.acm-btn:hover:not(:disabled) { background: var(--c-surface); }
+.acm-btn.pri { border-color: var(--c-primary); background: var(--c-primary); color: #fff; font-weight: 700; }
+.acm-btn.pri:hover:not(:disabled) { border-color: var(--c-primary-dk); background: var(--c-primary-dk); }
+.acm-btn.danger { border-color: var(--c-dang); background: var(--c-dang); color: #fff; font-weight: 700; }
+.acm-btn.danger:hover:not(:disabled) { border-color: var(--c-dang-dk); background: var(--c-dang-dk); }
+.acm-btn:disabled { border-color: var(--c-line); background: var(--c-line); color: var(--c-dis); cursor: not-allowed; }
+
+/* 입력 */
+.acm-field { margin-top: 20px; }
+.acm-field > label { display: block; margin-bottom: 8px; font-size: var(--fs-s); }
+.acm-hint { margin: -2px 0 8px; font-size: var(--fs-xs); color: var(--c-sub); }
+.acm-pw { position: relative; }
+.acm-pw input {
+  width: 100%; height: 48px; padding: 0 52px 0 16px; border: 1px solid var(--c-input-bd); border-radius: var(--r-l);
+  background: #fff; font-size: var(--fs-m);
+}
+.acm-pw input::placeholder { color: var(--c-dis); }
+.acm-pw input:focus { outline: none; border-color: var(--c-primary); box-shadow: inset 0 0 0 1px var(--c-primary); }
+.acm-pw input[aria-invalid="true"] { border-color: var(--c-dang); box-shadow: inset 0 0 0 1px var(--c-dang); }
+.acm-eye {
+  position: absolute; top: 50%; right: 6px; width: 40px; height: 40px; transform: translateY(-50%);
+  display: grid; place-items: center; border: 0; border-radius: var(--r-m); background: transparent; color: var(--c-text);
+}
+.acm-eye:hover { background: var(--c-sec-sub); }
+.acm-err { display: flex; align-items: flex-start; gap: 6px; margin: 8px 0 0; font-size: var(--fs-xs); color: var(--c-dang-dk); }
+.acm-err::before {
+  content: "!"; flex: none; display: inline-grid; place-items: center; width: 16px; height: 16px; margin-top: 1px;
+  border-radius: 50%; background: var(--c-dang); color: #fff; font-size: 11px; font-weight: 800;
+}
+.acm-rules { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 8px; font-size: var(--fs-xs); color: var(--c-mute); }
+.acm-rules li { display: inline-flex; align-items: center; gap: 4px; }
+.acm-rules li::before { content: "·"; font-weight: 800; }
+.acm-rules li.ok { color: var(--c-ok); font-weight: 600; }
+.acm-rules li.ok::before { content: "✓"; }
+.acm-alert {
+  margin-top: 20px; padding: 12px 14px; border: 1px solid #f8cdc9; border-radius: var(--r-l);
+  background: var(--c-dang-sub); color: var(--c-dang-dk); font-size: var(--fs-s);
+}
+
+/* 내 권한정보 */
+.acm-kv { margin: 20px 0 0; }
+.acm-kv > div { display: grid; grid-template-columns: 150px 1fr; gap: 16px; padding: 14px 0; border-bottom: 1px solid var(--c-line); font-size: var(--fs-m); }
+.acm-kv dt { color: var(--c-text); }
+.acm-kv dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+.acm-kv dd small { display: block; margin-top: 2px; font-size: var(--fs-xs); color: var(--c-sub); }
+.acm-kv code { font-family: ui-monospace, "SFMono-Regular", Consolas, monospace; font-size: .94em; }
+.acm-perm li { display: flex; justify-content: space-between; gap: 12px; padding: 2px 0; font-size: var(--fs-s); }
+.acm-perm .nm::before { display: inline-block; width: 18px; font-weight: 800; }
+.acm-perm li.on .nm::before { content: "✓"; color: var(--c-ok); }
+.acm-perm li.off .nm::before { content: "–"; color: var(--c-dis); }
+.acm-perm .lv { color: var(--c-sub); text-align: right; }
+.acm-perm li.off .nm, .acm-perm li.off .lv { color: var(--c-dis); }
+
+@keyframes acm-fade { from { opacity: 0; } to { opacity: 1; } }
+@media (max-width: 520px) {
+  .acm-dlg { padding: 32px 20px 20px; }
+  .acm-x { top: 12px; right: 12px; }
+  .acm-kv > div { grid-template-columns: 1fr; gap: 2px; }
+  .acm-ft .acm-btn { flex: 1; }
+}

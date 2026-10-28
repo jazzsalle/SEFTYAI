@@ -2,13 +2,12 @@ import "server-only";
 import type { Account } from "../config";
 import type { Conversation } from "../session";
 import { db, ensureSchema } from "./db";
-import { fixtureConversations } from "./fixtureConvs";
 
 /**
  * 대화 이력 서버 저장 (UFR-006-001-06, D38) — 계정별, 본인 대화만 조회·관리
  *  · 저장 전 민감정보 마스킹 (질문·제목의 전화번호·주민등록번호·이메일)
  *  · 계정당 최근 MAX 개만 보관 (오래된 것부터 정리)
- *  · 처음 조회하는 계정은 시연용 대화 이력으로 채움
+ *  · 미리 채워 두는 대화는 없다(2026-10-28 개편 — 시연용 대화 삭제)
  */
 export const CONV_MAX = 60;
 const MAX_BYTES = 2_000_000; // 대화 하나 최대 크기 (답변 블록 포함)
@@ -26,19 +25,14 @@ function clean(c: Conversation): Conversation {
   return {
     ...c,
     title: maskSensitive(String(c.title ?? "").slice(0, 200)),
-    // 대기 중·실패한 턴은 저장하지 않음 (응답이 온 턴만)
-    turns: (c.turns ?? []).filter((t) => !t.pending).map((t) => ({ ...t, q: maskSensitive(String(t.q ?? "")), req: t.req ? { ...t.req, question: maskSensitive(t.req.question) } : t.req })),
+    // 턴은 작업 참조(jobId)만 — 답은 sa_agent_jobs.raw 에 (DB 설계 §3)
+    turns: (c.turns ?? []).map((t) => ({ ...t, q: maskSensitive(String(t.q ?? "")) })),
   };
 }
 
 export async function listConvs(acc: Account): Promise<Conversation[]> {
   await ensureSchema();
   const sql = db();
-  const seeded = (await sql.query("insert into sa_conv_accounts (account_id) values ($1) on conflict do nothing returning account_id", [acc.id])) as Row[];
-  if (seeded.length) {
-    const fx = fixtureConversations(acc) as unknown as Conversation[];
-    await putConvs(acc.id, fx);
-  }
   const rows = (await sql.query("select data from sa_conversations where account_id = $1 order by updated_at desc limit $2", [acc.id, CONV_MAX])) as Row[];
   return rows.map((r) => r.data as Conversation);
 }

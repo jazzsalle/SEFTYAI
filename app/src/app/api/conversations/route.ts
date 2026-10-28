@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 
 /** GET /api/conversations — 내 대화 이력 · ?all=1 은 시스템 운영자만(응답 검증용, 모든 계정) */
 export async function GET(req: Request) {
-  const who = whoami(req);
+  const who = await whoami(req);
   if (!who) return fail(401, "로그인이 필요합니다.");
   if (!hasDb()) return fail(503, "서버 DB가 연결되지 않았습니다.");
   if (new URL(req.url).searchParams.get("all")) {
@@ -19,7 +19,7 @@ export async function GET(req: Request) {
 
 /** PUT /api/conversations — 내 대화 저장 {convs: Conversation[]} (새 대화·이어서 질문·제목 변경·브라우저 이력 옮기기) */
 export async function PUT(req: Request) {
-  const who = whoami(req);
+  const who = await whoami(req);
   if (!who) return fail(401, "로그인이 필요합니다.");
   if (!hasDb()) return fail(503, "서버 DB가 연결되지 않았습니다.");
   const body = (await req.json().catch(() => null)) as { convs?: Conversation[] } | null;
@@ -29,7 +29,7 @@ export async function PUT(req: Request) {
 
 /** DELETE /api/conversations — 내 대화 삭제 {ids: string[]} */
 export async function DELETE(req: Request) {
-  const who = whoami(req);
+  const who = await whoami(req);
   if (!who) return fail(401, "로그인이 필요합니다.");
   if (!hasDb()) return fail(503, "서버 DB가 연결되지 않았습니다.");
   const body = (await req.json().catch(() => null)) as { ids?: string[] } | null;

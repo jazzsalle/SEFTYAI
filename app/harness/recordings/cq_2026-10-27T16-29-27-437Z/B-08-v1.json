@@ -1,0 +1,270 @@
+{
+  "id": "B-08-v1",
+  "question": "서천군의 급경사지 붕괴위험지구 지정·해제 현황과 정비계획 대상을 알려줘.",
+  "request": {
+    "question": "서천군의 급경사지 붕괴위험지구 지정·해제 현황과 정비계획 대상을 알려줘.",
+    "question_source": "USER",
+    "query_context": {
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "region": {
+        "admin_code": "4477000000",
+        "name": "충청남도 서천군",
+        "level": "SIGUNGU"
+      },
+      "disaster_types": [
+        "산사태"
+      ]
+    }
+  },
+  "final": {
+    "schema_version": "2.0",
+    "request_id": "4fda195b617e4efc3d0305810671c7d5",
+    "correlation_id": "corr-4fda195b617e4efc3d0305810671c7d5",
+    "status": "SUCCESS",
+    "conversation_id": "CONV-20261028-475fb6",
+    "turn_no": 1,
+    "result": {
+      "response_id": "RES-20261028-463d6b",
+      "question": "서천군의 급경사지 붕괴위험지구 지정·해제 현황과 정비계획 대상을 알려줘.",
+      "question_source": "USER",
+      "answer": "### 결론\n\n충청남도 서천군의 급경사지 붕괴위험지구는 **총 9개 지구(정비 중기계획 기준)**가 등록되어 있으며, **신규 지정된 3개 지구는 정비 예정**, **과거 지정된 6개 지구는 정비 완료 후 해제**된 상태입니다.\n\n1. **정비계획 대상 (정비 예정 3개소)**: 서면 마량리 일원 3곳([마량 N1](#ref:r19), [마량 N2](#ref:r19), [마량](#ref:r19))이 2025년 8월 29일 붕괴위험지역(위험등급 C~D)으로 신규 지정되어 **2026~2030년 붕괴위험지역 정비 중기계획의 정비 대상(예정)**으로 수립되어 있습니다.\n2. **지정해제 완료 (기완료 6개소)**: [공암](#ref:r19), [은곡](#ref:r20), [원수2](#ref:r21), [성주3](#ref:r21), [성주](#ref:r21), [당정](#ref:r22) 등은 사면안정공법(절토·옹벽) 및 낙석방지시설 설치 정비사업이 완료되어 붕괴위험지역 지정이 해제되었습니다.\n\n---\n\n### 1. 붕괴위험지역 정비 중기계획(2026~2030) 대상 현황\n\n| 구분 | 지구명 | 소재지 | 위험등급 (점수) | 지정일 | 해제일 | 소유/관리 | 주요 정비계획(공법/규모) |\n|---|---|---|---|---|---|---|---|\n| **정비 예정 (신규)** | [마량 N1](#ref:r19) | 서면 마량리 산16-11 | **D** (73.0점) | 2025-08-29 | - | 공공 (서천군) | 사면보강 (계단식옹벽 L=75m, H=16m), 주택 인접 |\n| **정비 예정 (신규)** | [마량 N2](#ref:r19) | 서면 마량리 132-7 | **C** (55.0점) | 2025-08-29 | - | 공공 (서천군) | 사면보강 (계단식옹벽 L=115m, H=19m), 도로 인접 |\n| **정비 예정 (신규)** | [마량](#ref:r19) | 서면 마량리 산16-1 | **D** (79.0점) | 2025-08-29 | - | 사유 (개인) | 사면보호 (낙석방지책·망 L=140m, H=25m), 주택 인접 |\n| **정비 완료 (기존)** | [공암](#ref:r19) | 서면 도둔리 684-5 | D (64.0점) | 2021-03-19 | 2025-11-11 | 공공 (서천군) | 사면안정공법(절토+옹벽 L=130m, H=15m) 완료 |\n| **정비 완료 (기존)** | [은곡](#ref:r20) | 문산면 은곡리 산3-3 | C (49.0점) | 2016-12-30 | 2022-11-30 | 공공 (건설본부) | 보호공법(낙석방지책·망 L=100m, H=8m) 완료 |\n| **정비 완료 (기존)** | [원수2](#ref:r21) | 장항읍 원수리 927-2 | D (75.0점) | 2017-09-08 | 2022-11-30 | 공공 (서천군) | 사면안정공법(절토+옹벽 L=80m, H=49m) 완료 |\n| **정비 완료 (기존)** | [성주3](#ref:r21) | 장항읍 성주리 237-102 | D (66.0점) | 2019-03-11 | 2022-11-30 | 공공 (서천군) | 보호공법(낙석방지책·망 L=50m, H=12m) 완료 |\n| **정비 완료 (기존)** | [당정](#ref:r22) | 종천면 당정리 산12-2 | C (60.0점) | 2016-12-30 | 2022-11-30 | 공공 (서천군) | 사면안정공법(절토+옹벽 L=480m) 완료 |\n| **정비 완료 (기존)** | [성주](#ref:r21) | 장항읍 성주리 420-2 | B (73.0점) | 2010-10-25 | 2017-02-03 | 공공 (서천군) | 사면정비(900㎡), 낙석방지책(90m) 완료 |\n\n---\n\n### 2. 급경사지 관리대장 기준 지정 및 해제 세부 내역\n\n급경사지 관리대장(`slope.collapse_zone_designation`)에 등록된 서천군 관내 지구별 이력은 다음과 같습니다.\n\n#### (1) 지정·관리 대상\n- **[마량리 급경사지](#ref:r10)** (서면 마량리, 관리번호 4477000007): 2025년 8월 29일 재난위험(낙석 및 토사 흘러내림 관찰, 인접 주택 등 피해 우려)에 따라 붕괴위험지구(위험등급 D)로 지정.\n- **[도둔리 급경사지](#ref:r3)** (서면 도둔리, 관리번호 4477000006): 2016년 12월 30일 지정(위험등급 C, 사면정비 L=100m 계획).\n\n#### (2) 정비 완료에 따른 지정해제 내역\n- **[공암지구](#ref:r9)** (서면 도둔리): 2021년 3월 지정 후 2022년 정비사업(L=220m) 완료 및 해제.\n- **[당정지구](#ref:r5)** (종천면 당정리): 2016년 12월 지정 후 2021년 정비사업(L=410m, 9억원) 완료, 2022년 11월 30일 해제.\n- **[원수2지구](#ref:r6)** (장항읍 원수리): 2017년 9월 지정 후 2019년 정비사업(지장물 철거 11동, 옹벽·낙석방지책 52m, 9억원) 완료, 2022년 11월 30일 해제.\n- **[성주3지구](#ref:r7)** (장항읍 성주리): 2019년 3월 지정 후 2019~2021년 보상 및 정비사업(10억원) 완료, 2022년 11월 30일 해제.\n- **[은곡지구](#ref:r4)** (문산면 은곡리): 2016년 12월 지정 후 정비완료에 따라 2022년 11월 30일 해제.\n- **[현암지구](#ref:r2)** (판교면 현암리): 2015년 10월 지정 후 사면정비 완료로 2017년 2월 3일 해제.\n- **[성주지구](#ref:r11)** (장항읍 성주리): 2010년 지정 후 사업완료로 2017년 2월 3일 해제.\n- **[원수지구](#ref:r1)** (장항읍 원수리): 2010년 지정 후 주민이주 및 옹벽·낙석방지책 설치 완료로 2015년 9월 3일 해제.\n- **기타 과거 해제 지구(2016년 8월 일제 해제)**: [신농지구](#ref:r12)(문산면 신농리), [성산지구](#ref:r14)(비인면 성산리), [내동지구](#ref:r15)(기산면 내동리), [후암1지구](#ref:r16)·[후암2지구](#ref:r17)(시초면 후암리), [광암지구](#ref:r18)(기산면 광암리), [심동지구](#ref:r13)(판교면 심동리).\n\n---\n\n### 3. 담당자 점검 및 조치 권고사항\n\n1. **서면 마량리 일원 신규 지구(3개소) 선제 관리**:\n   - [마량 N1](#ref:r19), [마량 N2](#ref:r19), [마량](#ref:r19) 지구는 2025년 8월 신규 지정된 위험등급 C~D 비탈면으로, 주택 및 도로와 맞닿아 있어 집중호우 시 붕괴 피해 우려가 높습니다.\n   - 중기계획에 따른 계단식옹벽 및 낙석방지시설 설치 사업 착수 전까지 우기철 예찰 활동 강화 및 인근 주택 주민 대피체계를 우선 점검해야 합니다.\n2. **해제 지구 유지관리 점검**:\n   - [공암](#ref:r19), [당정](#ref:r22), [원수2](#ref:r21), [성주3](#ref:r21) 등 기완료 해제 지구의 낙석방지망, 옹벽 배수공 등의 토사 적치 및 파손 여부를 정기 안전점검 시 확인하시기 바랍니다.",
+      "answer_format": "MARKDOWN",
+      "entities": [],
+      "result_groups": [],
+      "evidence_refs": [],
+      "follow_up_questions": [],
+      "refs": [
+        {
+          "ref": "r19",
+          "entity_type": "REGION",
+          "display_name": "마량 N2",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477041000",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r20",
+          "entity_type": "REGION",
+          "display_name": "은곡",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477037000",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r21",
+          "entity_type": "REGION",
+          "display_name": "원수2",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477025000",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r22",
+          "entity_type": "REGION",
+          "display_name": "당정",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477039000",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r10",
+          "entity_type": "RISK_AREA",
+          "display_name": "마량리 급경사지",
+          "map": {
+            "key": "slope_no",
+            "value": "4477000007",
+            "draw": "line"
+          }
+        },
+        {
+          "ref": "r3",
+          "entity_type": "RISK_AREA",
+          "display_name": "도둔리 급경사지",
+          "map": {
+            "key": "slope_no",
+            "value": "4477000006",
+            "draw": "line"
+          }
+        },
+        {
+          "ref": "r9",
+          "entity_type": "RISK_AREA",
+          "display_name": "공암지구",
+          "map": {
+            "key": "slope_no",
+            "value": "4477000048",
+            "draw": "line"
+          }
+        },
+        {
+          "ref": "r5",
+          "entity_type": "RISK_AREA",
+          "display_name": "당정지구 급경사지",
+          "map": {
+            "key": "slope_no",
+            "value": "4477000020",
+            "draw": "line"
+          }
+        },
+        {
+          "ref": "r6",
+          "entity_type": "RISK_AREA",
+          "display_name": "원수2지구",
+          "map": {
+            "key": "slope_no",
+            "value": "4477000017",
+            "draw": "line"
+          }
+        },
+        {
+          "ref": "r7",
+          "entity_type": "RISK_AREA",
+          "display_name": "성주3지구",
+          "map": {
+            "key": "slope_no",
+            "value": "4477000018",
+            "draw": "line"
+          }
+        },
+        {
+          "ref": "r4",
+          "entity_type": "RISK_AREA",
+          "display_name": "은곡지구",
+          "map": {
+            "key": "slope_no",
+            "value": "4477000014",
+            "draw": "line"
+          }
+        },
+        {
+          "ref": "r2",
+          "entity_type": "RISK_AREA",
+          "display_name": "현암지구",
+          "map": {
+            "key": "slope_no",
+            "value": "4477000010",
+            "draw": "line"
+          }
+        },
+        {
+          "ref": "r11",
+          "entity_type": "RISK_AREA",
+          "display_name": "성주지구",
+          "map": {
+            "key": "slope_no",
+            "value": "4477000001",
+            "draw": "line"
+          }
+        },
+        {
+          "ref": "r1",
+          "entity_type": "RISK_AREA",
+          "display_name": "원수지구",
+          "map": {
+            "key": "slope_no",
+            "value": "4477000015",
+            "draw": "line"
+          }
+        },
+        {
+          "ref": "r12",
+          "entity_type": "RISK_AREA",
+          "display_name": "신농리 급경사지",
+          "map": {
+            "key": "slope_no",
+            "value": "4477000003",
+            "draw": "line"
+          }
+        },
+        {
+          "ref": "r14",
+          "entity_type": "RISK_AREA",
+          "display_name": "성산지구",
+          "map": {
+            "key": "slope_no",
+            "value": "4477000005",
+            "draw": "line"
+          }
+        },
+        {
+          "ref": "r15",
+          "entity_type": "RISK_AREA",
+          "display_name": "내동리 붕괴위험지역",
+          "map": {
+            "key": "slope_no",
+            "value": "4477000008",
+            "draw": "line"
+          }
+        },
+        {
+          "ref": "r16",
+          "entity_type": "RISK_AREA",
+          "display_name": "후암1지구",
+          "map": {
+            "key": "slope_no",
+            "value": "4477000011",
+            "draw": "line"
+          }
+        },
+        {
+          "ref": "r17",
+          "entity_type": "RISK_AREA",
+          "display_name": "후암2지구",
+          "map": {
+            "key": "slope_no",
+            "value": "4477000012",
+            "draw": "line"
+          }
+        },
+        {
+          "ref": "r18",
+          "entity_type": "RISK_AREA",
+          "display_name": "광암지구",
+          "map": {
+            "key": "slope_no",
+            "value": "4477000013",
+            "draw": "line"
+          }
+        },
+        {
+          "ref": "r13",
+          "entity_type": "RISK_AREA",
+          "display_name": "심동지구",
+          "map": {
+            "key": "slope_no",
+            "value": "4477000004",
+            "draw": "line"
+          }
+        }
+      ],
+      "conversation_title": null,
+      "limitations": [
+        "유사사례는 예측·위험판단이 아닌 참고 정보"
+      ],
+      "context_used": {
+        "used_conditions": [],
+        "unused_conditions": [],
+        "reference_used": false
+      }
+    },
+    "data_gaps": [],
+    "warnings": [],
+    "meta": {
+      "source": "T3Q",
+      "base_time": "2026-10-28T01:46:18+09:00",
+      "quality_status": "VERIFIED",
+      "disclosure_level": "공개",
+      "elapsed_ms": 145843
+    }
+  },
+  "waitedMs": 148788,
+  "timeout": false
+}

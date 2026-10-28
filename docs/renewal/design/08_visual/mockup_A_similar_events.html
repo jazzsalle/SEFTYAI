@@ -1,0 +1,509 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=1440">
+<title>시안 A · 유사재난 사례</title>
+<style>
+@font-face { font-family: "Pretendard"; src: local("Pretendard Variable"), local("Pretendard"), url("../../../../app/public/fonts/PretendardVariable.woff2") format("woff2-variations"); font-weight: 45 920; font-display: block; }
+:root {
+  --c-text:#1E2124; --c-sub:#464C53; --c-mute:#6D7882; --c-dis:#8A949E; --c-bolder:#131416;
+  --c-primary:#256EF4; --c-primary-dk:#0B50D0; --c-primary-sub:#ECF2FE; --c-primary-bd:#D8E5FD;
+  --c-navy:#063A74; --c-navy-2:#052B57; --c-sec-sub:#EEF2F7; --c-sec-bd:#D6E0EB;
+  --c-bg:#F4F5F6; --c-line:#E6E8EA; --c-bd:#CDD1D5; --c-bd-gray:#B1B8BE; --c-input-bd:#58616A;
+  --c-warn-dk:#8A5C00; --c-warn-sub:#FFF3DB; --c-warn-bd:#FFE0A3; --c-warn-ic:#9E6A00;
+  --c-info:#0B78CB; --c-info-sub:#E7F4FE; --c-info-bd:#D3EBFD;
+  --c-ok:#228738; --c-ok-sub:#EAF6EC;
+  /* 차트 팔레트(validate_palette 전 쌍 통과 · 흰 바탕) — 빨강 없음 */
+  --viz-1:#2a78d6; --viz-2:#1baf7a; --viz-3:#008300; --viz-4:#6250d6; --viz-5:#eda100;
+  --viz-ctx:#B1B8BE; --viz-ctx-dk:#8A949E; --viz-grid:#E6E8EA; --viz-axis:#CDD1D5;
+  --sh-1:0 0 2px rgba(0,0,0,.05),0 1px 2px rgba(0,0,0,.05);
+  --sh-2:0 4px 8px rgba(0,0,0,.08),0 0 2px rgba(0,0,0,.08);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { width: 1440px; font-family: "Pretendard", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", sans-serif; font-size: 15px; line-height: 1.5; color: var(--c-text); background: var(--c-bg); word-break: keep-all; overflow-wrap: anywhere; -webkit-font-smoothing: antialiased; }
+body.fluid { width: auto; min-width: 0; }
+button { font: inherit; color: inherit; cursor: pointer; }
+.ic { flex: none; vertical-align: -3px; }
+.spin { animation: spin 1s linear infinite; } @keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .spin { animation: none !important; } }
+:focus-visible { outline: 2px solid var(--c-primary); outline-offset: 2px; }
+.sp { flex: 1; }
+.mute { color: var(--c-mute); } .sub { color: var(--c-sub); }
+.xs { font-size: 13px; } .xxs { font-size: 12px; }
+.num { font-variant-numeric: tabular-nums; }
+.r { text-align: right; }
+.row { display: flex; align-items: center; gap: 8px; }
+.wrap { flex-wrap: wrap; }
+.nw { white-space: nowrap; }
+
+/* ── 시안 표기(제품에 들어가지 않음) ── */
+.doc { background: #fff; border-bottom: 1px solid var(--c-bd); padding: 18px 32px 14px; }
+.doc h1 { font-size: 22px; margin: 0; letter-spacing: -.2px; }
+.doc .lead { color: var(--c-sub); font-size: 14px; margin-top: 2px; }
+.doc .legend { display: flex; gap: 8px 22px; flex-wrap: wrap; margin-top: 10px; font-size: 13px; color: var(--c-sub); align-items: center; }
+.doc .legend .k { display: inline-flex; align-items: center; gap: 6px; }
+.doc .src { margin-top: 8px; font-size: 12px; color: var(--c-sub); line-height: 1.6; }
+.appr { position: relative; outline: 2px dashed #131416; outline-offset: 3px; border-radius: 4px; }
+.appr::after { content: attr(data-appr); position: absolute; top: -13px; right: -8px; background: #131416; color: #fff; font-size: 11px; line-height: 18px; font-weight: 700; padding: 0 7px; border-radius: 999px; white-space: nowrap; z-index: 6; letter-spacing: 0; }
+.appr.b::after { top: auto; bottom: -13px; }
+.appr.side::after { top: 50%; right: auto; left: calc(100% + 8px); transform: translateY(-50%); }
+.appr.l::after { right: auto; left: -8px; }
+.stt { margin-top: 18px; }
+.stt-h { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: var(--c-sub); margin: 22px 0 8px; padding-top: 14px; border-top: 2px solid #131416; }
+.stt-h .k { background: #131416; color: #fff; border-radius: 4px; padding: 1px 8px; font-size: 12px; }
+.st-card { background: #fff; border: 1px solid var(--c-line); border-radius: 8px; padding: 12px 16px; margin-top: 10px; box-shadow: var(--sh-1); min-width: 0; }
+.st-lb { font-size: 12px; font-weight: 700; color: var(--c-sub); margin-bottom: 6px; }
+.skel { height: 12px; border-radius: 4px; background: linear-gradient(90deg, #EEF0F2, #F6F7F8, #EEF0F2); margin: 8px 0; }
+.sk { display: inline-block; height: 8px; border-radius: 4px; background: linear-gradient(90deg, #E9ECEF, #F3F4F6, #E9ECEF); vertical-align: middle; }
+.appr-k { display: inline-block; width: 26px; height: 14px; outline: 2px dashed #131416; outline-offset: -2px; border-radius: 3px; }
+.pin { display: inline-flex; flex: none; width: 20px; height: 20px; border-radius: 50%; background: #131416; color: #fff; font-size: 11px; font-weight: 700; align-items: center; justify-content: center; line-height: 1; vertical-align: 1px; letter-spacing: 0; }
+.omit { border: 1px solid var(--c-bd-gray); border-radius: 8px; padding: 10px 14px; font-size: 13px; color: var(--c-sub); background: repeating-linear-gradient(135deg, #fff 0 9px, #F4F5F6 9px 18px); }
+.omit b { color: var(--c-text); }
+.notes { font-size: 13px; color: var(--c-sub); }
+.notes h4 { font-size: 13px; color: var(--c-text); margin: 0 0 8px; }
+.notes ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.notes li { display: grid; grid-template-columns: 20px 1fr; gap: 8px; align-items: start; background: #fff; border: 1px solid var(--c-line); border-radius: 8px; padding: 10px 12px; line-height: 1.55; }
+.notes li b { color: var(--c-text); }
+.ruler { position: absolute; left: 0; right: 0; border-top: 2px dashed #131416; z-index: 40; pointer-events: none; }
+.ruler span { position: absolute; right: 12px; top: -22px; background: #131416; color: #fff; font-size: 12px; font-weight: 700; padding: 1px 8px; border-radius: 4px; }
+
+/* ── 제품: 「유엔이가 센 값」 표시(줄이지 않음) ── */
+.cnt { display: inline-flex; align-items: center; height: 18px; padding: 0 6px; margin-left: 4px; border-radius: 999px; background: #fff; border: 1px solid var(--c-bd-gray); color: var(--c-sub); font-size: 11px; font-weight: 600; line-height: 1; vertical-align: 2px; white-space: nowrap; letter-spacing: 0; }
+
+/* ── 앱 머리(한 줄) · 특보 줄 · 대응절차 줄 ── */
+.chrome { position: sticky; top: 0; z-index: 30; }
+.gh { height: 56px; background: #fff; border-bottom: 1px solid var(--c-bd); display: flex; align-items: center; padding: 0 24px; gap: 22px; }
+.gh .logo { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 17px; color: var(--c-bolder); white-space: nowrap; }
+.gh .logo .sym { width: 24px; height: 24px; border-radius: 50%; background: conic-gradient(var(--c-navy) 0 50%, #9fb3cc 0 100%); }
+.gh .logo small { font-size: 12px; font-weight: 700; color: var(--c-primary-dk); background: var(--c-primary-sub); border-radius: 4px; padding: 2px 8px; }
+.gh nav { display: flex; height: 56px; }
+.gh nav a { padding: 0 13px; display: flex; align-items: center; font-weight: 700; font-size: 15px; color: var(--c-sub); border-bottom: 3px solid transparent; text-decoration: none; white-space: nowrap; }
+.gh nav a.on { color: var(--c-navy-2); border-color: var(--c-navy-2); }
+.gh .right { margin-left: auto; display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--c-sub); white-space: nowrap; }
+.sel { height: 32px; border: 1px solid var(--c-bd); border-radius: 6px; padding: 0 8px 0 10px; display: inline-flex; align-items: center; gap: 6px; background: #fff; color: var(--c-text); font-size: 13px; white-space: nowrap; }
+.sel.sm { height: 28px; font-size: 12px; }
+.aimode { height: 32px; border-radius: 999px; background: var(--c-navy); color: #fff; font-weight: 700; padding: 0 14px; display: inline-flex; align-items: center; gap: 6px; font-size: 13px; }
+.aimode i { width: 7px; height: 7px; border-radius: 50%; background: #9fb3cc; }
+.user { color: var(--c-primary-dk); font-weight: 700; font-size: 14px; }
+.wx { height: 44px; background: #fff; border-bottom: 1px solid var(--c-bd); display: flex; align-items: center; gap: 12px; padding: 0 24px; font-size: 14px; white-space: nowrap; overflow: hidden; }
+.wx .st { border-radius: 4px; padding: 2px 10px; font-size: 13px; font-weight: 700; }
+.wx .st.none { background: var(--c-sec-sub); color: var(--c-navy-2); }
+.wx.alert { background: #FFF8EB; }
+.wx .st.alert { background: var(--c-warn-dk); color: #fff; }
+.sop { height: 40px; background: #F8F9FA; border-bottom: 1px solid var(--c-bd); display: flex; align-items: center; gap: 10px; padding: 0 24px; font-size: 13px; color: var(--c-sub); white-space: nowrap; overflow: hidden; }
+.sop .lab { display: inline-flex; align-items: center; gap: 4px; height: 26px; padding: 0 10px; border-radius: 4px; background: var(--c-navy); color: #fff; font-weight: 700; }
+.sop ol { display: flex; gap: 4px; list-style: none; margin: 0; padding: 0; }
+.sop li { display: inline-flex; align-items: center; gap: 5px; height: 26px; padding: 0 10px 0 4px; border: 1px solid var(--c-bd); border-radius: 999px; background: #fff; color: var(--c-text); }
+.sop li i { font-style: normal; width: 18px; height: 18px; border-radius: 50%; background: var(--c-bg); display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; }
+.sop li.on { background: var(--c-navy); border-color: var(--c-navy); color: #fff; font-weight: 700; }
+.sop li.on i { background: #fff; color: var(--c-navy); }
+.sop li em { font-style: normal; font-size: 11px; font-weight: 700; color: inherit; opacity: .9; }
+.sop .basis b { color: var(--c-text); }
+
+/* ── 본문 배치 ── */
+.body { display: flex; gap: 20px; padding: 20px 24px 28px; align-items: flex-start; }
+.rail { width: 48px; flex: none; background: #fff; border: 1px solid var(--c-bd); border-radius: 10px; padding: 10px 0; display: flex; flex-direction: column; align-items: center; gap: 8px; color: var(--c-sub); font-size: 12px; }
+.rail .vt { writing-mode: vertical-rl; letter-spacing: 1px; font-weight: 700; color: var(--c-text); }
+.rail .b { min-width: 20px; height: 20px; border-radius: 10px; background: var(--c-primary); color: #fff; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+
+/* 질문 목록(펼침) */
+.qpanel { width: 248px; flex: none; background: #fff; border: 1px solid var(--c-bd); border-radius: 10px; overflow: hidden; }
+.qp-h { display: flex; align-items: center; gap: 6px; padding: 12px 14px; border-bottom: 1px solid var(--c-line); font-weight: 700; }
+.qp-sec { padding: 10px 14px 4px; font-size: 12px; color: var(--c-sub); font-weight: 700; }
+.qp-item { display: grid; grid-template-columns: 18px 1fr; gap: 6px; padding: 9px 14px; border-left: 3px solid transparent; font-size: 13px; }
+.qp-item.cur { background: var(--c-primary-sub); border-left-color: var(--c-primary); }
+.qp-item .m { grid-column: 2; font-size: 12px; color: var(--c-sub); }
+.qp-item .st-ok { color: var(--c-ok); }
+.qp-empty { padding: 4px 14px 10px; font-size: 12px; color: var(--c-mute); }
+
+/* 대화 열 */
+.thread-h { display: flex; align-items: center; gap: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--c-bd); margin-bottom: 10px; }
+.thread-h h2 { font-size: 17px; margin: 0; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 32px; padding: 0 12px; border: 1px solid var(--c-input-bd); border-radius: 6px; background: #fff; color: var(--c-text); font-size: 13px; font-weight: 500; white-space: nowrap; text-decoration: none; }
+.btn.sm { height: 28px; padding: 0 10px; font-size: 12px; border-radius: 4px; }
+.btn.xs { height: 24px; padding: 0 8px; font-size: 12px; border-radius: 4px; border-color: var(--c-bd); color: var(--c-sub); }
+.btn.pri { background: var(--c-primary); border-color: var(--c-primary); color: #fff; font-weight: 700; }
+.btn.sec { background: var(--c-primary-sub); border-color: var(--c-primary); color: var(--c-primary-dk); font-weight: 700; }
+.btn.ghost { border-color: transparent; background: none; color: var(--c-primary-dk); padding: 0 6px; }
+.btn.dis { color: var(--c-dis); border-color: var(--c-bd); background: #fff; cursor: not-allowed; }
+.btn.icon { width: 28px; padding: 0; }
+.lnk { color: var(--c-primary-dk); font-weight: 600; text-decoration: none; background: none; border: 0; padding: 0; display: inline-flex; align-items: center; gap: 3px; }
+.qbubble { margin-left: auto; max-width: 680px; background: var(--c-primary-sub); border: 1px solid var(--c-primary); border-radius: 12px; padding: 8px 14px; font-size: 16px; line-height: 1.5; }
+.qb-meta { font-size: 12px; color: var(--c-primary-dk); font-weight: 700; margin-right: 6px; }
+.qb-foot { margin-top: 4px; font-size: 13px; color: var(--c-sub); display: flex; flex-wrap: wrap; gap: 2px 6px; align-items: center; justify-content: flex-end; }
+.qbubble ol { margin: 4px 0 0; padding-left: 20px; font-size: 15px; }
+.tag { display: inline-flex; align-items: center; gap: 4px; height: 24px; padding: 0 9px; border-radius: 999px; font-size: 12px; font-weight: 700; white-space: nowrap; border: 1px solid var(--c-bd); background: #fff; color: var(--c-sub); }
+.tag.sm { height: 20px; padding: 0 7px; font-size: 11px; }
+.tag.navy { background: var(--c-sec-sub); border-color: var(--c-sec-bd); color: var(--c-navy-2); }
+.tag.pri { background: var(--c-primary-sub); border-color: var(--c-primary-bd); color: var(--c-primary-dk); }
+.tag.warn { background: var(--c-warn-sub); border-color: var(--c-warn-bd); color: var(--c-warn-dk); }
+.tag.off { background: var(--c-bg); border-color: var(--c-bd); color: var(--c-sub); font-weight: 600; }
+.src-mark { display: inline-flex; align-items: center; height: 16px; padding: 0 5px; margin-left: 2px; border-radius: 3px; font-size: 10.5px; font-weight: 700; background: #fff; border: 1px solid var(--c-bd-gray); color: var(--c-sub); }
+.src-mark.auto { border-color: var(--c-warn-bd); background: var(--c-warn-sub); color: var(--c-warn-dk); }
+
+/* 자동 조회 데이터 */
+.dblock { background: #fff; border: 1px solid var(--c-line); border-left: 4px solid var(--c-navy); border-radius: 8px; padding: 12px 16px 14px; margin-top: 12px; box-shadow: var(--sh-1); }
+.dblock-h { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13px; color: var(--c-sub); }
+.dsum { display: flex; align-items: center; gap: 8px; min-height: 38px; background: #fff; border: 1px solid var(--c-line); border-left: 4px solid var(--c-navy); border-radius: 8px; padding: 6px 12px; margin-top: 10px; font-size: 13px; color: var(--c-sub); box-shadow: var(--sh-1); }
+.dsum b { color: var(--c-text); }
+.dcard { margin-top: 14px; }
+.dcard + .dcard { border-top: 1px solid var(--c-line); padding-top: 16px; }
+.dcard-t { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.dcard-t h3 { font-size: 19px; margin: 0; letter-spacing: -.2px; }
+.dmeta { font-size: 13px; color: var(--c-sub); }
+.cond { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 8px; font-size: 13px; color: var(--c-sub); }
+.drow { display: grid; grid-template-columns: 112px 1fr auto; gap: 10px; align-items: center; padding: 8px 0; border-top: 1px solid var(--c-line); font-size: 14px; }
+.drow:first-of-type { border-top: 0; }
+.drow .k { font-weight: 700; color: var(--c-navy-2); }
+.gap { display: flex; gap: 6px; align-items: baseline; font-size: 13px; color: var(--c-text); }
+.gap .ic { color: var(--c-warn-ic); align-self: center; }
+
+/* 알림(정보·주의) */
+.note { border-radius: 8px; padding: 10px 14px; font-size: 13px; line-height: 1.6; }
+.note.info { background: var(--c-info-sub); border: 1px solid var(--c-info-bd); color: var(--c-navy-2); }
+.note.info .ic { color: var(--c-info); }
+.note.warn { background: var(--c-warn-sub); border: 1px solid var(--c-warn-bd); color: var(--c-text); }
+.note.warn .ic { color: var(--c-warn-ic); }
+.note.gray { background: var(--c-bg); color: var(--c-sub); }
+.note .ttl { font-weight: 700; display: flex; align-items: center; gap: 6px; }
+
+/* 답변 카드 */
+.acard { background: #fff; border: 1px solid var(--c-bd); border-radius: 12px; padding: 12px 20px 16px; margin-top: 12px; box-shadow: var(--sh-1); }
+.acard.loading { border-style: dashed; }
+.ahead { position: sticky; top: 0; z-index: 3; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin: -12px -20px 0; padding: 7px 20px 4px; background: rgba(255,255,255,.97); border-radius: 12px 12px 0 0; font-size: 13px; color: var(--c-sub); }
+.ahead b.t { font-size: 15px; color: var(--c-text); }
+.ahead .ok { color: var(--c-ok); font-weight: 700; display: inline-flex; align-items: center; gap: 3px; }
+.ameta { font-size: 12.5px; color: var(--c-sub); display: flex; flex-wrap: wrap; gap: 2px 8px; align-items: center; }
+.ctxline { margin-top: 4px; display: flex; flex-wrap: wrap; align-items: center; gap: 2px 0; font-size: 12.5px; color: var(--c-sub); background: var(--c-bg); border-radius: 6px; padding: 2px 10px; }
+.ctxline > span { padding: 0 10px; border-left: 1px solid var(--c-bd); }
+.ctxline > span:first-child { padding-left: 0; border-left: 0; }
+.ctxline b { color: var(--c-text); }
+.ctxline .flag { color: var(--c-warn-dk); font-weight: 700; display: inline-flex; gap: 3px; align-items: center; }
+.limit { margin-top: 4px; display: flex; gap: 6px; align-items: center; font-size: 12.5px; color: var(--c-sub); }
+.limit .ic { color: var(--c-mute); }
+.acard.annot .ameta { margin-top: 12px; } .acard.annot > .row { margin-top: 14px; } .acard.annot > .limit { margin-top: 16px; } .acard.annot > .md { margin-top: 18px; }
+.first { margin-top: 8px; background: var(--c-warn-sub); border: 1px solid var(--c-warn-bd); border-radius: 8px; padding: 7px 12px; display: grid; gap: 4px; font-size: 13px; }
+.first .ln { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.first .lb { font-weight: 700; color: var(--c-warn-dk); }
+.first .ic { color: var(--c-warn-ic); }
+.find { display: inline-flex; align-items: center; gap: 6px; height: 28px; border: 1px solid var(--c-bd); border-radius: 4px; padding: 0 8px; color: var(--c-mute); font-size: 12px; width: 150px; background: #fff; }
+.toc-pop { position: relative; margin-top: 8px; border: 1px solid var(--c-bd); border-radius: 8px; padding: 10px 14px; font-size: 13px; background: #fff; box-shadow: var(--sh-2); max-width: 460px; }
+.toc-pop ol { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 2px; }
+.toc-pop li a { color: var(--c-primary-dk); text-decoration: none; }
+.toc-pop li.l4 { padding-left: 16px; }
+.toc-pop li.l4 a { color: var(--c-sub); }
+.toast { display: inline-flex; align-items: center; gap: 8px; background: var(--c-navy-2); color: #fff; border-radius: 999px; padding: 8px 16px; font-size: 13px; font-weight: 700; box-shadow: var(--sh-2); }
+
+/* 답변 본문(글자 그대로) */
+.md { font-size: 15px; line-height: 1.75; color: var(--c-text); margin-top: 8px; }
+.md h1, .md h2, .md h3, .md h4 { line-height: 1.45; margin: 22px 0 8px; color: var(--c-bolder); scroll-margin-top: 56px; }
+.md h3 { font-size: 17px; padding-left: 10px; border-left: 3px solid var(--c-primary); }
+.md h4 { font-size: 16px; }
+.md > :first-child { margin-top: 0; }
+.md p { margin: 8px 0; }
+.md ul, .md ol { margin: 6px 0; padding-left: 22px; }
+.md li { margin: 3px 0; }
+.md blockquote { margin: 10px 0; padding: 8px 14px; border-left: 4px solid var(--c-primary-bd); background: #fafbfc; color: var(--c-sub); }
+.md blockquote p { margin: 0; }
+.md hr { border: 0; border-top: 1px solid var(--c-line); margin: 18px 0; }
+.md code { font-family: ui-monospace, Consolas, monospace; font-size: .88em; background: var(--c-sec-sub); padding: 1px 5px; border-radius: 4px; }
+.md strong { font-weight: 600; color: var(--c-bolder); }
+.md-tbl { margin: 10px 0; }
+.md-tbl-tools { display: flex; justify-content: flex-end; gap: 10px; align-items: center; margin-bottom: 4px; line-height: 1; }
+.md-table { position: relative; overflow-x: auto; border: 1px solid var(--c-line); border-radius: 6px; }
+.md-table table { border-collapse: separate; border-spacing: 0; width: 100%; font-size: 13px; line-height: 1.55; }
+.md-table th, .md-table td { padding: 7px 10px; border-bottom: 1px solid var(--c-line); text-align: left; vertical-align: top; min-width: 3.2em; background: #fff; overflow-wrap: normal; word-break: keep-all; }
+.md-table th { background: var(--c-sec-sub); font-weight: 700; color: var(--c-navy-2); white-space: nowrap; }
+.md-table tr:last-child td { border-bottom: 0; }
+.md-table th:first-child, .md-table td:first-child { position: sticky; left: 0; z-index: 1; box-shadow: 1px 0 0 var(--c-line); }
+.md-table.scrolled th:first-child, .md-table.scrolled td:first-child { box-shadow: 1px 0 0 var(--c-line), 6px 0 8px -6px rgba(0,0,0,.25); }
+.md-tblbox { position: relative; }
+.md-tblbox.scrolls::after { content: ""; position: absolute; top: 1px; bottom: 1px; right: 1px; width: 22px; border-radius: 0 6px 6px 0; background: linear-gradient(to left, rgba(19,20,22,.16), rgba(19,20,22,0)); pointer-events: none; z-index: 2; }
+.md-tbl .more { display: none; font-size: 12px; color: var(--c-sub); margin-top: 4px; justify-content: flex-end; }
+.md-tbl.scrolls .more { display: flex; }
+.ref-link { color: var(--c-primary); text-decoration: underline dotted 1px; text-underline-offset: 3px; font-weight: inherit; }
+.ref-link.on { background: var(--c-primary-sub); border-radius: 3px; box-shadow: 0 0 0 2px var(--c-primary-sub); }
+
+/* 답변 대상 */
+.refbox { margin-top: 16px; background: var(--c-sec-sub); border-radius: 8px; padding: 12px 14px; }
+.refbox .filters { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+.fchip { display: inline-flex; align-items: center; gap: 5px; height: 28px; padding: 0 10px; border-radius: 999px; border: 1px solid var(--c-bd); background: #fff; font-size: 12px; color: var(--c-sub); font-weight: 600; }
+.fchip.on { border-color: var(--c-navy); background: var(--c-navy); color: #fff; }
+.reflist { list-style: none; margin: 8px 0 0; padding: 0; background: #fff; border-radius: 6px; border: 1px solid var(--c-line); }
+.reflist li { display: grid; grid-template-columns: 18px 18px 1fr auto; gap: 8px; align-items: center; padding: 7px 12px; border-bottom: 1px solid var(--c-line); font-size: 13px; }
+.reflist li:last-child { border-bottom: 0; }
+.reflist li.on { background: var(--c-primary-sub); box-shadow: inset 3px 0 0 var(--c-primary); }
+.reflist .nm { font-weight: 700; color: var(--c-text); }
+.reflist .said { font-size: 12px; color: var(--c-sub); }
+.cbx { width: 16px; height: 16px; border: 1.5px solid var(--c-input-bd); border-radius: 3px; background: #fff; display: inline-block; }
+.cbx.on { background: var(--c-primary); border-color: var(--c-primary); position: relative; }
+.cbx.on::after { content: ""; position: absolute; left: 4px; top: 1px; width: 4px; height: 8px; border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg); }
+.evid { margin-top: 14px; display: flex; gap: 8px; align-items: center; font-size: 13px; color: var(--c-sub); }
+.acard-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--c-line); }
+
+/* 입력창 */
+.composer { margin-top: 22px; background: #fff; border: 1px solid var(--c-bd); border-radius: 12px; padding: 12px 16px; box-shadow: var(--sh-2); }
+.composer .cl { display: flex; gap: 6px; align-items: center; font-size: 13px; color: var(--c-sub); flex-wrap: wrap; }
+.composer .in { margin-top: 8px; border: 1px solid var(--c-input-bd); border-radius: 6px; height: 44px; display: flex; align-items: center; padding: 0 12px; color: var(--c-mute); font-size: 15px; }
+.composer .bt { margin-top: 8px; display: flex; gap: 8px; align-items: center; font-size: 13px; color: var(--c-sub); }
+
+/* 우측 패널(탭) */
+.panel { flex: none; background: #fff; border: 1px solid var(--c-bd); border-radius: 12px; box-shadow: var(--sh-1); overflow: hidden; }
+.ptabs { display: flex; align-items: stretch; height: 50px; border-bottom: 1px solid var(--c-bd); padding: 0 12px; gap: 2px; font-size: 14px; }
+.ptab { padding: 0 12px; display: flex; align-items: center; gap: 6px; font-weight: 700; color: var(--c-sub); border-bottom: 3px solid transparent; white-space: nowrap; }
+.ptab.on { color: var(--c-primary-dk); border-color: var(--c-primary); }
+.ptabs .r { margin-left: auto; display: flex; align-items: center; gap: 12px; font-size: 13px; color: var(--c-sub); }
+.phead { padding: 16px 24px 16px; }
+.kicker { font-size: 13px; color: var(--c-sub); display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.ptitle { font-size: 24px; font-weight: 700; margin: 2px 0 2px; letter-spacing: -.3px; color: var(--c-bolder); line-height: 1.35; }
+.psub { font-size: 14px; color: var(--c-sub); }
+.scope { margin-top: 10px; display: flex; gap: 6px; flex-wrap: wrap; align-items: center; font-size: 13px; color: var(--c-text); background: var(--c-sec-sub); border-radius: 6px; padding: 6px 10px; }
+.scope b { color: var(--c-navy-2); }
+.tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 8px; }
+.tile { background: var(--c-bg); border-radius: 8px; padding: 12px 14px; min-width: 0; }
+.tile .lb { font-size: 13px; color: var(--c-sub); display: flex; align-items: center; gap: 4px; }
+.tile .v { font-size: 26px; font-weight: 700; line-height: 1.25; margin-top: 2px; color: var(--c-bolder); letter-spacing: -.3px; }
+.tile .v small { font-size: 14px; font-weight: 600; color: var(--c-sub); margin-left: 2px; letter-spacing: 0; }
+.tile .v.md2 { font-size: 18px; }
+.tile .s { font-size: 12.5px; color: var(--c-sub); margin-top: 2px; }
+.tile .cap { font-size: 12px; color: var(--c-sub); margin-top: 6px; padding-top: 6px; border-top: 1px solid #E1E4E7; }
+.sec { padding: 16px 24px 18px; border-top: 1px solid var(--c-line); }
+.sec-h { display: flex; align-items: center; gap: 8px; }
+.sec-h h3 { font-size: 17px; margin: 0; color: var(--c-bolder); }
+.sec-h .tog { margin-left: auto; color: var(--c-sub); display: inline-flex; align-items: center; gap: 4px; font-size: 13px; }
+.subh { font-size: 14px; font-weight: 700; margin: 14px 0 6px; color: var(--c-text); display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
+.subh .sub { font-weight: 400; font-size: 12.5px; }
+.kv { display: grid; grid-template-columns: 112px 1fr; gap: 6px 12px; font-size: 14px; margin: 0; }
+.kv dt { color: var(--c-sub); }
+.kv dd { margin: 0; }
+.hl { background: var(--c-primary-sub); font-weight: 700; color: var(--c-bolder); border-radius: 3px; padding: 0 3px; }
+
+/* 표 */
+.tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
+.tbl th { text-align: left; font-weight: 700; color: var(--c-navy-2); background: var(--c-sec-sub); padding: 7px 10px; white-space: nowrap; }
+.tbl td { padding: 7px 10px; border-bottom: 1px solid var(--c-line); vertical-align: top; }
+.tbl td.r, .tbl th.r { text-align: right; }
+.tbl tr.em td { font-weight: 700; color: var(--c-bolder); background: #FAFBFC; }
+.tbl tr:last-child td { border-bottom: 0; }
+.tblw { border: 1px solid var(--c-line); border-radius: 6px; overflow: hidden; }
+
+/* 시각화 공통 */
+.viz-cap { font-size: 13px; color: var(--c-sub); margin: 12px 0 4px; display: flex; gap: 6px; align-items: baseline; flex-wrap: wrap; }
+.viz-cap b { color: var(--c-text); font-size: 14px; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 13px; color: var(--c-sub); margin-top: 8px; }
+.legend .sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: 0; }
+.legend b { color: var(--c-text); }
+[data-tip] { cursor: default; }
+#tip { position: absolute; z-index: 50; pointer-events: none; background: #fff; border: 1px solid var(--c-bd); border-radius: 6px; box-shadow: var(--sh-2); padding: 6px 10px; font-size: 12px; color: var(--c-sub); max-width: 300px; display: none; }
+#tip b { display: block; color: var(--c-text); font-size: 13px; }
+
+.howto { margin-top: 10px; background: #FAFBFC; border: 1px solid var(--c-line); border-radius: 8px; padding: 8px 12px; }
+.top1 { margin-top: 12px; border: 1px solid var(--c-primary-bd); background: #F7FAFF; border-radius: 10px; padding: 12px 16px; }
+.top1 .t { display: block; font-size: 20px; font-weight: 700; color: var(--c-bolder); text-decoration: none; margin-top: 4px; letter-spacing: -.2px; }
+.top1 .m { font-size: 13px; color: var(--c-sub); margin-top: 2px; }
+.top1 .sc { font-size: 16px; color: var(--c-sub); } .top1 .sc b { color: var(--c-text); }
+.sum { display: flex; align-items: center; gap: 8px; }
+.evlist { list-style: none; margin: 0; padding: 0; border: 1px solid var(--c-line); border-radius: 8px; background: #fff; }
+.evlist .ev { padding: 8px 12px; border-bottom: 1px solid var(--c-line); }
+.evlist .ev:last-child { border-bottom: 0; }
+.l1 { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.l1 .t { font-size: 15px; font-weight: 700; color: var(--c-primary-dk); text-decoration: none; }
+.l1 .pd { font-size: 12.5px; color: var(--c-sub); font-variant-numeric: tabular-nums; }
+.rk { font-size: 12.5px; color: var(--c-sub); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.l2 { margin-top: 3px; min-height: 14px; display: flex; align-items: center; }
+.sumtxt { font-size: 13px; color: var(--c-text); line-height: 1.55; display: block; }
+.outside { background: #fff; border: 1px solid var(--c-bd); border-left: 3px solid var(--c-navy); border-radius: 8px; padding: 8px 12px; }
+.tag.hlt { background: var(--c-primary-sub); border-color: var(--c-primary-bd); color: var(--c-bolder); }
+.gblock { border: 1px solid var(--c-line); border-radius: 8px; padding: 8px 12px; }
+.gblock .gh2 { font-size: 14px; display: flex; align-items: center; gap: 6px; }
+.gblock .sw { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+.gblock ul { margin: 4px 0 0; padding-left: 16px; font-size: 13px; display: grid; gap: 4px; }
+</style></head>
+<body>
+<header class="doc">
+  <h1>시안 A(2판) · 유사재난 사례와 사건 상세</h1>
+  <div class="lead">「비슷한 과거 사례가 얼마나 컸나」를 먼저 — 사건·기간·피해 요약을 앞에, 유사도는 보조로. 상세는 범위(전국 사건) → 피해·복구 → 우리 지역 기록 순서, 유사도 근거는 접어 둔다.</div>
+  <div class="legend">
+    <span class="k"><span class="appr-k"></span> 승인 필요 제안(점선 상자 · 번호는 명세 「승인 필요 항목」)</span>
+    <span class="k"><span class="cnt" title="유엔이(이 서비스)가 받은 목록을 센 값입니다. 제공처가 준 숫자가 아닙니다.">유엔이가 센 값</span> 제품에도 들어가는 표시 — 유엔이(이 서비스)가 받은 목록을 센 값</span>
+    <span class="k"><span class="pin">1</span> 설계 메모 번호(제품에 없음)</span>
+  </div>
+  <div class="src">값: 녹화본(2026-10-27 15:53 데이터 조회) 그대로 — 유사사례 검색·사건 상세·유사도 근거·사건 타임라인·피해·대응. 질문 글은 라이브러리 질문(부산 녹화)이고 자동 조회 데이터는 별도 데이터 조회 녹화라 <b>서로 다른 녹화의 조합</b>이다. 오른쪽 상세는 녹화본에 상세가 있는 유일한 사건(같은 조건 43위)이고, 1~10위의 사건 요약은 녹화가 없어 「받는 중」으로 그렸다. 특보 줄·대응절차 줄은 시안 상황(가정: 특보 없음 · 기상청 02:45 갱신).</div>
+</header>
+<div class=""><div class="gh">
+  <div class="logo"><span class="sym" aria-hidden="true"></span>행정안전부 <small>재난안전 AI</small></div>
+  <nav><a class="on" href="#">통합 탐색</a><a href="#">대화 이력</a><a href="#">연락망·상황전파</a></nav>
+  <div class="right">기준지역 <span class="sel">부산광역시 <svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m4 6 4 4 4-4"/></svg></span><span class="sel">시·군·구 전체 <svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m4 6 4 4 4-4"/></svg></span>
+    <span>도움말</span><span>가 글자 크기</span><span class="aimode"><i></i>AI 모드</span><span class="user">부산광역시 · 내 정보 ▾</span></div>
+</div>
+<div class="wx "><span class="st none">특보 없음</span><b>부산광역시에 발효 중인 기상특보가 없습니다</b><span class="sub xs">기상청 02:45 갱신</span><span class="sp"></span><span class="lnk xs">특보로 질문 ›</span></div>
+<div class="sop"><span class="lab">대응절차</span><ol><li class="on"><i>1</i>징후감지</li><li class=""><i>2</i>초기대응</li><li class=""><i>3</i>비상대응</li><li class=""><i>4</i>수습·복구</li></ol><span class="basis">발효 특보 없음 · 평시</span><span class="sp"></span><span class="btn sm" style="background:var(--c-navy);border-color:var(--c-navy);color:#fff;font-weight:700">대응절차 전체 ›</span></div></div>
+<div class="body">
+  <div class="rail" title="질문 목록(접힘)"><span class="b">1</span><span class="vt">질문 목록</span><svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 4 4 4-4 4"/></svg></div>
+  <main style="width:700px;flex:none">
+    <div class="thread-h"><h2>부산 과거 호우 피해 사례</h2><span class="sub"><svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m10.6 2.6 2.8 2.8-7.8 7.8H2.8v-2.8z"/></svg></span><span class="sp"></span><span class="btn sm"><svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v10M3 8h10"/></svg> 새 대화</span></div>
+    <div class="qbubble"><span class="qb-meta">지역 질문</span>부산광역시에서 과거 호우로 피해가 컸던 사례와 시설유형별 피해·복구 내역은?
+      <div class="qb-foot">질문 기준시각 2026-08-25 16:00 · 부산광역시 · 호우 · 호우 경보<span class="src-mark">직접 입력</span> · 1시간 강우 68mm<span class="src-mark">직접 입력</span><span class="lnk" style="margin-left:6px">실제 전송 질문 보기</span></div></div>
+    <div class="dblock">
+      <div class="dblock-h"><span class="tag navy">자동 조회 데이터</span>에이전트 답변과 따로 먼저 조회한 결과 <span class="sub" title="값과 순서는 제공처가 보낸 그대로입니다." data-tip="값과 순서는 제공처가 보낸 그대로입니다." tabindex="0" style="display:inline-flex"><svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6.25"/><path d="M8 7.2v3.8M8 5.1v.1"/></svg></span></div>
+      <section class="dcard" style="margin-top:8px">
+  <div class="dcard-t"><h3>유사재난 사례</h3><span class="dmeta">상위 10건 요청 · 제공처 건수 10 · 자료 기준일 2026-10-20</span><span class="sub" title="값과 순서는 제공처가 보낸 그대로입니다. 정렬·거르기를 하지 않습니다." data-tip="값과 순서는 제공처가 보낸 그대로입니다. 정렬·거르기를 하지 않습니다." tabindex="0" style="display:inline-flex"><svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6.25"/><path d="M8 7.2v3.8M8 5.1v.1"/></svg></span><span class="sp"></span><span class="btn sm">표로 보기</span><span class="btn sm dis" title="목록의 사건에 위치 정보가 없습니다"><svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 14.2s4.6-4.2 4.6-7.6A4.6 4.6 0 0 0 3.4 6.6c0 3.4 4.6 7.6 4.6 7.6z"/><circle cx="8" cy="6.6" r="1.6"/></svg> 지도</span><span class="btn sm ghost">접기 <svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m4 10 4-4 4 4"/></svg></span></div>
+  <div class="cond"><span class="pin">1</span>비교 조건
+    <span class="tag">부산광역시</span><span class="tag">호우</span><span class="tag">질문 기준시각 2026-08-25 16:00</span>
+    <span class="appr side" data-appr="승인 A1"><span class="tag off" title="입력한 조건 가운데 과거 사건에 견줄 자료가 없는 조건은 유사도 계산에 쓰지 않았습니다. (강우(유사도 요인) — 원자료에 없음, 특보(유사도 요인) — 원자료에 없음)">호우 경보 · 유사도 계산 제외</span> <span class="tag off" title="입력한 조건 가운데 과거 사건에 견줄 자료가 없는 조건은 유사도 계산에 쓰지 않았습니다. (강우(유사도 요인) — 원자료에 없음, 특보(유사도 요인) — 원자료에 없음)">1시간 강우 68mm · 유사도 계산 제외</span></span></div>
+  <div class="howto">
+    <div class="row xs" style="align-items:flex-start;gap:6px"><span class="sub" style="margin-top:1px"><svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6.25"/><path d="M8 7.2v3.8M8 5.1v.1"/></svg></span><span><b>유사도는 현재 위험도·발생확률·피해규모의 예측 결과가 아님</b> <span class="sub">— 제공처 유의 사항</span></span></div>
+    <div class="row xs appr" data-appr="승인 A1" style="align-items:flex-start;gap:6px;margin-top:4px;display:flex"><span class="pin">2</span><span><b>순위에 반영되지 않은 요인</b> <span class="sub">피해 규모 · 인명피해 · 기간 (질의에 없음) · 1시간 강우 · 특보 단계 (과거 자료 없음)</span></span></div>
+  </div>
+
+  <div class="top1">
+    <div class="row" style="gap:6px"><span class="pin">3</span><span class="tag sm pri">유사도 1위</span><span class="sp"></span><span class="sc">유사도 <b>96.67</b> / 100</span></div>
+    <a class="t" href="#">2021년 08.25~08.25 호우</a>
+    <div class="m">2021-08-25 · 대표지역 부산광역시 · 종료</div>
+    <div class="sum appr" data-appr="승인 A10" style="margin-top:8px"><span class="xxs sub" style="font-weight:700">사건 요약</span><span class="sk" style="width:58%"></span><span class="xxs mute">사건 상세에서 받는 중</span></div>
+    <div class="row" style="margin-top:10px"><span class="btn sm sec">사건 상세 열기 <svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 4 4 4-4 4"/></svg></span><span class="btn sm">이 사건으로 이어서 묻기</span></div>
+  </div>
+
+  <ol class="evlist appr" data-appr="승인 A10" style="margin-top:12px"><li class="ev">
+        <div class="l1"><a class="t" href="#">2016년 7.31~8.1 호우</a><span class="pd">2016-07-31 ~ 2016-08-01</span><span class="sp"></span><span class="rk">2위 · 유사도 90.91</span></div>
+        <div class="l2"><span class="sk" style="width:58%"></span></div>
+      </li><li class="ev">
+        <div class="l1"><a class="t" href="#">2020년 7.10. 호우</a><span class="pd">2020-07-10</span><span class="sp"></span><span class="rk">3위 · 유사도 80</span></div>
+        <div class="l2"><span class="sk" style="width:46%"></span></div>
+      </li><li class="ev">
+        <div class="l1"><a class="t" href="#">2017년 9.11~12 호우</a><span class="pd">2017-09-11 ~ 2017-09-12</span><span class="sp"></span><span class="rk">4위 · 유사도 75.56</span></div>
+        <div class="l2"><span class="sk" style="width:64%"></span></div>
+      </li><li class="ev">
+        <div class="l1"><a class="t" href="#">2019년 6.29 호우</a><span class="pd">2019-06-29</span><span class="sp"></span><span class="rk">5위 · 유사도 72.22</span></div>
+        <div class="l2"><span class="sk" style="width:40%"></span></div>
+      </li><li class="ev">
+        <div class="l1"><a class="t" href="#">2023년 08.21.~09.21. 호우</a><span class="pd">2023-08-21 ~ 2023-09-21</span><span class="sp"></span><span class="rk">6위 · 유사도 72.22</span></div>
+        <div class="l2"><span class="sk" style="width:52%"></span></div>
+      </li><li class="ev">
+        <div class="l1"><a class="t" href="#">2024년 7.22.~23. 호우</a><span class="pd">2024-07-22 ~ 2024-07-23</span><span class="sp"></span><span class="rk">7위 · 유사도 72</span></div>
+        <div class="l2"><span class="sk" style="width:60%"></span></div>
+      </li><li class="ev">
+        <div class="l1"><a class="t" href="#">2018년 8.26~9.1 호우</a><span class="pd">2018-08-26 ~ 2018-09-01</span><span class="sp"></span><span class="rk">8위 · 유사도 71.57</span></div>
+        <div class="l2"><span class="sk" style="width:44%"></span></div>
+      </li><li class="ev">
+        <div class="l1"><a class="t" href="#">2016년 8.26~9.1 호우</a><span class="pd">2016-08-26 ~ 2016-09-01</span><span class="sp"></span><span class="rk">9위 · 유사도 70</span></div>
+        <div class="l2"><span class="sk" style="width:56%"></span></div>
+      </li><li class="ev">
+        <div class="l1"><a class="t" href="#">2017년 8.10~11 호우</a><span class="pd">2017-08-10 ~ 2017-08-11</span><span class="sp"></span><span class="rk">10위 · 유사도 70</span></div>
+        <div class="l2"><span class="sk" style="width:49%"></span></div>
+      </li></ol>
+  <div class="xxs sub" style="margin-top:6px">대표지역이 비어 온 사건은 대표지역을 표시하지 않았습니다(제공되지 않음). 회색 줄 = 사건 상세의 요약을 받는 중.</div>
+
+  <div class="appr outside" data-appr="승인 A3" style="margin-top:12px">
+    <div class="row xs" style="gap:6px"><span class="pin">4</span><b>지금 연 사건 · 목록에 없는 사건</b><span class="sp"></span><span class="rk">같은 조건 43위 · 유사도 68.24</span></div>
+    <div class="l1" style="margin-top:2px"><a class="t" href="#">2020년 7.28.~8.11. 호우</a><span class="pd">2020-07-28 ~ 2020-08-11</span></div>
+    <div class="l2 sumtxt">호우 · 서울, 부산, 대구, 인천, 광주, 대전, 울산, 세종, 경기, 강원, 충북, 충남, 전북, 전남, 경북, 경남, 제주 · 이재민 16,767명 · 재산피해 1,037,156,500,000원</div>
+  </div>
+  <div class="row xs" style="margin-top:12px"><span class="btn sm">받은 항목 더 보기</span><span class="sp"></span></div>
+</section>
+    </div>
+    <div class="acard loading" aria-busy="true">
+      <div class="row xs sub" style="gap:6px"><svg class="ic spin" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke-width="2"><circle cx="8" cy="8" r="6" stroke="#D8E5FD"/><path d="M8 2a6 6 0 0 1 6 6" stroke="#256EF4" stroke-linecap="round"/></svg><b style="font-size:15px;color:var(--c-text)">재난안전 AI 답변</b><span>만드는 중 · 42초째 · 보통 1~3분</span><span class="sp"></span><span class="btn sm">질의 취소</span></div>
+      <div class="xs sub" style="margin-top:6px">기다리는 동안 위 자동 조회 데이터와 오른쪽 사건 상세를 먼저 볼 수 있습니다. 답이 오면 이 자리에 그대로 놓고, 화면 아래에 「답변이 도착했습니다 ↓」를 한 번 알립니다(펼쳐 둔 카드는 접지 않음).</div>
+    </div>
+    <div class="composer">
+  <div class="cl">재난유형 <b>호우</b> · 질문 기준시각 <b>2026-08-25 16:00</b> · 호우 경보<span class="src-mark">직접 입력</span> · 1시간 강우 68mm<span class="src-mark">직접 입력</span><span class="sp"></span><span class="lnk">조건 변경 ›</span></div>
+  <div class="in">질문을 입력하세요. 답을 기다리는 동안 다른 질문도 이어서 보낼 수 있습니다.</div>
+  <div class="bt"><span class="btn">브리핑 세트 <svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m4 6 4 4 4-4"/></svg></span><span>질문 목록 보기</span><span class="sp"></span><span class="sub">0 / 2,000</span><span class="btn dis">질의</span></div>
+</div>
+    <div class="stt-h"><span class="k">상태 시안</span> 같은 부품의 다른 상태 — 값은 녹화본 그대로</div>
+  <div class="st-card"><div class="st-lb">상태 1 · 표로 보기 (모든 값 · 열 이름은 한국어만)</div>
+    <div class="tblw"><table class="tbl" style="font-size:12px"><thead><tr><th>순위</th><th>사건</th><th>시작</th><th>종료</th><th>대표지역</th><th class="r">유사도</th><th>진행 상태</th><th>위치 정보</th></tr></thead><tbody><tr><td class="num">1</td><td>2021년 08.25~08.25 호우</td><td class="num nw">2021-08-25</td><td class="num nw">2021-08-25</td><td class="nw">부산광역시</td><td class="r num nw">96.67</td><td class="nw">종료</td><td class="nw">없음</td></tr><tr><td class="num">2</td><td>2016년 7.31~8.1 호우</td><td class="num nw">2016-07-31</td><td class="num nw">2016-08-01</td><td class="nw"><span class="sub" title="제공되지 않았습니다">—</span></td><td class="r num nw">90.91</td><td class="nw">종료</td><td class="nw">없음</td></tr><tr><td class="num">3</td><td>2020년 7.10. 호우</td><td class="num nw">2020-07-10</td><td class="num nw">2020-07-10</td><td class="nw"><span class="sub" title="제공되지 않았습니다">—</span></td><td class="r num nw">80</td><td class="nw">종료</td><td class="nw">없음</td></tr><tr><td class="num">4</td><td>2017년 9.11~12 호우</td><td class="num nw">2017-09-11</td><td class="num nw">2017-09-12</td><td class="nw"><span class="sub" title="제공되지 않았습니다">—</span></td><td class="r num nw">75.56</td><td class="nw">종료</td><td class="nw">없음</td></tr><tr><td class="num">5</td><td>2019년 6.29 호우</td><td class="num nw">2019-06-29</td><td class="num nw">2019-06-29</td><td class="nw"><span class="sub" title="제공되지 않았습니다">—</span></td><td class="r num nw">72.22</td><td class="nw">종료</td><td class="nw">없음</td></tr><tr><td class="num">6</td><td>2023년 08.21.~09.21. 호우</td><td class="num nw">2023-08-21</td><td class="num nw">2023-09-21</td><td class="nw"><span class="sub" title="제공되지 않았습니다">—</span></td><td class="r num nw">72.22</td><td class="nw">종료</td><td class="nw">없음</td></tr><tr><td class="num">7</td><td>2024년 7.22.~23. 호우</td><td class="num nw">2024-07-22</td><td class="num nw">2024-07-23</td><td class="nw"><span class="sub" title="제공되지 않았습니다">—</span></td><td class="r num nw">72</td><td class="nw">종료</td><td class="nw">없음</td></tr><tr><td class="num">8</td><td>2018년 8.26~9.1 호우</td><td class="num nw">2018-08-26</td><td class="num nw">2018-09-01</td><td class="nw"><span class="sub" title="제공되지 않았습니다">—</span></td><td class="r num nw">71.57</td><td class="nw">종료</td><td class="nw">없음</td></tr><tr><td class="num">9</td><td>2016년 8.26~9.1 호우</td><td class="num nw">2016-08-26</td><td class="num nw">2016-09-01</td><td class="nw"><span class="sub" title="제공되지 않았습니다">—</span></td><td class="r num nw">70</td><td class="nw">종료</td><td class="nw">없음</td></tr><tr><td class="num">10</td><td>2017년 8.10~11 호우</td><td class="num nw">2017-08-10</td><td class="num nw">2017-08-11</td><td class="nw"><span class="sub" title="제공되지 않았습니다">—</span></td><td class="r num nw">70</td><td class="nw">종료</td><td class="nw">없음</td></tr></tbody></table></div>
+    <div class="xs sub" style="margin-top:6px">사전에 이름이 없는 항목과 판·코드 항목(산식 판·척도 문자열·요청 번호 등)은 화면에 두지 않고 운영관리 추적로그에 남긴다. 비교 요인 비율 항목은 어디에도 보이지 않는다.</div></div>
+  <div class="st-card"><div class="st-lb">상태 2 · 사건 상세 · 유사도 근거를 펼친 모습 (조각을 누르면 그 요인군만 펼침 — 여기서는 모두 펼침)</div><div class="viz-cap" style="margin-top:4px"><b>요인군 기여</b> 0~100 · 조각을 누르면 그 요인군이 펼쳐집니다</div>
+    <svg viewBox="0 0 540 56" width="540" height="56" role="group" aria-label="요인군 기여 — 조각을 누르면 그 요인군의 요인이 펼쳐짐">
+    <rect x="0" y="22" width="540" height="12" rx="3" fill="#E6E8EA"/><g tabindex="0" role="img" aria-label="재난유형 50점 73.3%" data-tip="50점|재난유형 · 73.3%"><rect x="0" y="22" width="268" height="12"  fill="#2a78d6"/><rect x="0" y="12" width="270" height="30" fill="transparent"/></g><g tabindex="0" role="img" aria-label="기상·수문 16.67점 24.4%" data-tip="16.67점|기상·수문 · 24.4%"><rect x="270" y="22" width="88.01800000000001" height="12"  fill="#1baf7a"/><rect x="270" y="12" width="90.01800000000001" height="30" fill="transparent"/></g><g tabindex="0" role="img" aria-label="공간·취약 1.57점 2.3%" data-tip="1.57점|공간·취약 · 2.3%"><rect x="360.01800000000003" y="22" width="8.478000000000002" height="12" rx="3" fill="#008300"/><rect x="360.01800000000003" y="12" width="12" height="30" fill="transparent"/></g>
+    <line x1="368.496" x2="368.496" y1="16" y2="38" stroke="#131416" stroke-width="1.5"/>
+    <text x="374.496" y="13" font-size="12" font-weight="700" fill="#1E2124">유사도 68.24점</text><text x="2" y="52" text-anchor="start" font-size="11" fill="#6D7882">0</text><text x="135" y="52" text-anchor="middle" font-size="11" fill="#6D7882">25</text><text x="270" y="52" text-anchor="middle" font-size="11" fill="#6D7882">50</text><text x="405" y="52" text-anchor="middle" font-size="11" fill="#6D7882">75</text><text x="538" y="52" text-anchor="end" font-size="11" fill="#6D7882">100</text></svg>
+    <div class="legend"><span><span class="sw" style="background:#2a78d6"></span>재난유형 <b>50점</b></span><span><span class="sw" style="background:#1baf7a"></span>기상·수문 <b>16.67점</b></span><span><span class="sw" style="background:#008300"></span>공간·취약 <b>1.57점</b></span></div>
+    <div class="appr" data-appr="승인 A5 · A6" style="margin-top:12px;display:grid;gap:8px"><div class="gblock"><div class="gh2"><span class="sw" style="background:#2a78d6"></span><b>재난유형</b> 50점 <span class="sub">(73.3%)</span></div><ul><li><b>재난유형</b> <span class="sub">지금</span> T10107 호우 <span class="sub">↔ 이 사건</span> T10107 호우<div class="xxs sub">일치도 1 · 기여 46.6667</div></li><li><b>키워드</b> <span class="sub">지금</span> 호우, 침수 <span class="sub">↔ 이 사건</span> 2020년 7.28.~8.11. 호우<div class="xxs sub">일치도 0.5 · 기여 3.3333</div></li></ul></div><div class="gblock"><div class="gh2"><span class="sw" style="background:#1baf7a"></span><b>기상·수문</b> 16.67점 <span class="sub">(24.4%)</span></div><ul><li><b>계절(월)</b> <span class="sub">지금</span> 8 <span class="sub">↔ 이 사건</span> 7<div class="xxs sub">일치도 0.8333 · 기여 16.6667</div></li></ul></div><div class="gblock"><div class="gh2"><span class="sw" style="background:#008300"></span><b>공간·취약</b> 1.57점 <span class="sub">(2.3%)</span></div><ul><li><b>지역</b> <span class="sub">지금</span> <span class="hl">부산</span> <span class="sub">↔ 이 사건</span> 서울, <span class="hl">부산</span>, 대구, 인천, 광주, 대전, 울산, 세종, 경기, 충북, 충남, 전남, 경북, 경남, 제주, 강원, 전북<div class="xxs sub">일치도 0.0588 · 기여 1.5686</div></li></ul></div></div>
+    <div class="xs" style="margin-top:10px"><b>점수에 들어가지 않은 요인</b> <span class="sub">인명피해 · 기간 · 피해 규모 · 1시간 누적강우 — 값은 표로 보기에</span></div>
+    <div class="note gray" style="margin-top:10px;padding:8px 12px">
+      <div><b>제공처 계산 근거</b> · 재난유형 1.00 × 0.47 → 46.7점 · 계절 0.83 × 0.20 → 16.7점 · 키워드 0.50 × 0.07 → 3.3점</div>
+      <div style="margin-top:2px"><b>요인군 가중치</b> · 재난유형 40 · 기상·수문 20 · 공간·취약 20 · 피해 20</div>
+      <div style="margin-top:2px"><b>제공되지 않은 요인군</b> · 피해(유사도 요인군) — 질의 조건에 없음, 대응(유사도 요인군) — 원자료에 없음</div>
+    </div></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+    <div class="st-card"><div class="st-lb">상태 3 · 조회 중</div><div class="row"><b>유사재난 사례</b><svg class="ic spin" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke-width="2"><circle cx="8" cy="8" r="6" stroke="#D8E5FD"/><path d="M8 2a6 6 0 0 1 6 6" stroke="#256EF4" stroke-linecap="round"/></svg><span class="xs sub">조회하고 있습니다</span></div><div class="skel" style="width:92%"></div><div class="skel" style="width:76%"></div><div class="skel" style="width:84%"></div><div class="xs sub">에이전트 답변은 따로 진행됩니다. 다시 불러올 때는 이전 목록을 흐리게 둔 채 바꿉니다.</div></div>
+    <div class="st-card"><div class="st-lb">상태 4 · 결과 없음 (받은 건수 0)</div><b>유사재난 사례</b><div style="margin-top:8px">조건에 맞는 유사재난 사례가 없습니다.</div><div class="xs sub" style="margin-top:2px">비교 조건을 바꾸면 다시 조회합니다.</div><div class="row" style="margin-top:10px"><span class="btn sm">조건 바꾸기</span></div></div>
+    <div class="st-card"><div class="st-lb">상태 5 · 사건 타임라인 · 자료 없음 (다른 사건의 실제 응답)</div><b>사건 타임라인</b><div class="note gray" style="margin-top:8px"><b>타임라인 원자료 없음</b> — 제공처에 이 사건의 기간·지역과 겹치는 특보·재난문자 기록이 없습니다.</div><div class="xxs sub" style="margin-top:6px">제공처 원문은 화면에 두지 않는다(운영관리 · 추적로그 조회).</div></div>
+    <div class="st-card"><div class="st-lb">상태 6 · 없는 사건 / 오류</div><b>사건 상세</b><div class="note gray" style="margin-top:8px"><b>찾을 수 없음</b> — 요청한 대상을 제공처에서 찾을 수 없습니다.</div>
+      <div class="note warn" style="margin-top:8px;display:flex;gap:8px"><svg class="ic" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2.2 14.3 13H1.7z"/><path d="M8 6.4v3.1M8 11.3v.1"/></svg><div><b>사건 상세를 불러오지 못했습니다.</b> 잠시 후 다시 조회하세요.<div class="row" style="margin-top:6px"><span class="btn sm">다시 조회</span></div></div></div></div>
+  </div>
+    <div class="notes" style="margin-top:22px"><h4>설계 메모 — 담당자의 질문: 「지금과 비슷한 과거 사례는 무엇이고, 그때 얼마나 컸고 언제 무슨 일이 있었나?」</h4><ol><li><span class="pin">1</span><div><b>비교 조건</b> — 유사도 계산에 쓰이지 않은 입력 조건(호우 경보, 1시간 강우 68mm)을 흐리게 표시. 제공처 알림 원문은 보이지 않고, 한국어 이름과 고정 문장만(원문은 운영관리 추적로그).</div></li><li><span class="pin">2</span><div><b>유사도를 읽는 법을 순위 바로 위에</b> — 제공처 유의 사항(받은 문구 그대로)과 「순위에 반영되지 않은 요인」 한 줄. 유사도를 피해 규모 예측으로 읽지 않게 한다.</div></li><li><span class="pin">3</span><div><b>사건이 먼저, 점수는 보조</b> — 1위 카드의 머리는 사건명·기간·대표지역. 유사도는 16px 보조 글자. 사건 요약(이재민·재산피해)은 사건 상세를 함께 받아 받은 그대로 둔다 — 녹화가 없어 「받는 중」으로 그림(열린 질문 2).</div></li><li><span class="pin">4</span><div><b>목록에 없는 사건</b> — 답변 대상·대화 이력에서 연 사건이 목록에 없으면 같은 조건의 순위·유사도와 받은 요약을 함께 보인다. 1위와 규모를 견줄 수 있다.</div></li><li><span class="pin">5</span><div><b>범위부터</b> — 이 사건은 관련 시도 17곳의 전국 사건 — 이재민·재산피해가 부산 값처럼 읽히지 않게 「사건 전체 값 · 지역별 값 아님」을 요약 칸 위에.</div></li><li><span class="pin">6</span><div><b>피해·복구를 먼저 펼침</b> — 금액마다 출처 문구, 「합이 맞지 않을 수 있음」 한 줄, 시설유형 표는 「제공처가 보낸 유형만」. 막대 없이 숫자, 가장 큰 유형만 굵게(유엔이가 고름).</div></li><li><span class="pin">7</span><div><b>타임라인은 우리 지역 표부터</b> — 구포대교 홍수주의보 8/8 15:20 발령 → 8/10 17:30 해제가 첫눈에. 전국 기록은 아래 러그로 흐름만(파랑 = 우리 지역 한 가지 뜻).</div></li><li><span class="pin">8</span><div><b>유사도 근거는 접어 둠</b> — 한 줄(요인군 기여, 제공처 값)만 보이고 「자세히」로 펼친다. 펼치면 막대 조각별 요인 묶음 — 제공처 시험 화면의 요인 표 대신(상태 2).</div></li></ol></div>
+  </main>
+  <aside class="panel" style="width:604px">
+  <div class="ptabs"><span class="ptab">지도</span><span class="ptab on">2020년 7.28.~8.11. 호우 <svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m4.5 4.5 7 7M11.5 4.5l-7 7"/></svg></span><div class="r"><span>새 창으로 분리 <svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9.2 2.4h4.4v4.4M13.4 2.6 7.6 8.4M11.8 9.6v3.6H2.8V4.2h3.6"/></svg></span><span>패널 접기 <svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 4 4 4-4 4"/></svg></span></div></div>
+  <div class="phead">
+    <div class="kicker"><svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2.2" y="3" width="11.6" height="10.6" rx="1.4"/><path d="M2.2 6.4h11.6M5.2 1.8v2.4M10.8 1.8v2.4"/></svg>재난사건 · 호우 · 종료</div>
+    <div class="row" style="align-items:flex-start;margin-top:2px"><div class="ptitle">2020년 7.28.~8.11. 호우</div><span class="sp"></span><span class="btn sm">참조</span><span class="btn sm">이어서 묻기</span></div>
+    <div class="psub">2020-07-28 ~ 2020-08-11 · 주관 행정안전부 · 자료 기준일 2026-10-20</div>
+    <div class="row xs" style="margin-top:6px;gap:6px;color:var(--c-sub)">유사도 <b style="color:var(--c-text)">68.24</b> / 100 · 같은 조건 43위 <span class="sub" title="유사도는 현재 위험도·발생확률·피해규모의 예측 결과가 아님 (제공처 유의 사항)" data-tip="유사도는 현재 위험도·발생확률·피해규모의 예측 결과가 아님 (제공처 유의 사항)" tabindex="0" style="display:inline-flex"><svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6.25"/><path d="M8 7.2v3.8M8 5.1v.1"/></svg></span> <span class="sub">· 비교 조건은 왼쪽 목록과 같음</span></div>
+    <div class="scope appr" data-appr="승인 A6 · A11"><span class="pin">5</span><b>사건 전체 값</b> · 지역별 값 아님 · 관련 시도 17곳 <span class="cnt" title="유엔이(이 서비스)가 받은 목록을 센 값입니다. 제공처가 준 숫자가 아닙니다.">유엔이가 센 값</span> · <span class="hl">부산광역시</span> 포함</div>
+    <div class="tiles" style="grid-template-columns:1fr 1.35fr">
+      <div class="tile"><div class="lb">이재민</div><div class="v">16,767<small>명</small></div><div class="s gap" style="margin-top:4px"><svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2.2 14.3 13H1.7z"/><path d="M8 6.4v3.1M8 11.3v.1"/></svg><span>사망·실종·부상 원자료에 없음</span></div></div>
+      <div class="tile"><div class="lb">재산피해</div><div class="v" style="font-size:21px;margin-top:4px">1,037,156,500,000<small>원</small></div><div class="s appr side" data-appr="승인 A4" style="display:inline-block;margin-top:4px">1조 371억 5,650만 원</div><div class="cap">사건 피해 요약 값</div></div>
+    </div>
+    <div class="gap" style="margin-top:8px"><svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2.2 14.3 13H1.7z"/><path d="M8 6.4v3.1M8 11.3v.1"/></svg><span>대응 정보(도로 통제·대피·조치)는 원자료에 없음습니다.</span></div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-h"><h3>피해·복구</h3><span class="tog">접기 <svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m4 10 4-4 4 4"/></svg></span></div>
+    <div class="xs sub" style="margin-top:6px"><span class="pin">6</span> 아래 금액은 서로 다른 항목에서 온 값이라 합이 맞지 않을 수 있습니다.</div>
+    <div class="tiles" style="grid-template-columns:1fr 1fr;margin-top:8px">
+      <div class="tile"><div class="lb">공공시설 · 913건</div><div class="v md2">95,965,587,000<small>원</small></div><div class="s">959억 6,558만 7,000 원</div></div>
+      <div class="tile"><div class="lb">사유시설 · 228,298건</div><div class="v md2">406,065,397,000<small>원</small></div><div class="s">4,060억 6,539만 7,000 원</div></div>
+    </div>
+    <div class="xxs sub" style="margin-top:4px">공공·사유시설 — 시설 피해 기록 합계(제공처 값)</div>
+    <div class="subh">공공시설 시설유형별 피해액 <span class="sub">제공처가 보낸 유형만 표시(전체 유형 아님)</span></div>
+    <div class="appr" data-appr="승인 A8"><div class="tblw"><table class="tbl"><thead><tr><th>시설유형</th><th class="r">건수</th><th class="r">피해액(원)</th></tr></thead><tbody><tr class="em"><td>하수도 <span class="tag sm navy" style="margin-left:4px">피해액이 가장 큰 유형</span></td><td class="r num">69</td><td class="r num">15,062,325,000</td></tr><tr class=""><td>오수분뇨처리시설</td><td class="r num">35</td><td class="r num">11,506,642,000</td></tr><tr class=""><td>국토부기타</td><td class="r num">28</td><td class="r num">10,350,148,000</td></tr><tr class=""><td>수리시설</td><td class="r num">125</td><td class="r num">10,163,143,000</td></tr><tr class=""><td>군사시설</td><td class="r num">37</td><td class="r num">7,826,218,000</td></tr><tr class=""><td>하천 기본시설</td><td class="r num">27</td><td class="r num">6,375,366,000</td></tr><tr class=""><td>마을기반조성</td><td class="r num">6</td><td class="r num">5,132,942,000</td></tr><tr class=""><td>행안부기타</td><td class="r num">88</td><td class="r num">4,165,694,000</td></tr><tr class=""><td>폐기물처리시설</td><td class="r num">9</td><td class="r num">3,395,192,000</td></tr><tr class=""><td>하천 친수시설</td><td class="r num">11</td><td class="r num">2,939,473,000</td></tr></tbody></table></div></div>
+    <div class="subh">보고 단계별 피해액·복구비 <span class="sub">중앙·시군구 보고</span></div>
+    <div class="tblw"><table class="tbl"><thead><tr><th>보고 단계</th><th class="r">항목 수</th><th class="r">피해액(원)</th><th class="r">복구비(원)</th></tr></thead><tbody><tr><td>중앙</td><td class="r num">15,506</td><td class="r num">950,141,668,000</td><td class="r num">3,263,503,307,000</td></tr><tr><td>시군구</td><td class="r num">15,506</td><td class="r num">950,173,767,000</td><td class="r num">3,279,393,548,000</td></tr></tbody></table></div>
+    <div class="xs sub" style="margin-top:8px">재해대장 · <span title="재해 번호 227">2020 7.28~8.11 호우</span> · <span title="재해 번호 228">2020 7.28~8.11 호우(12차 전환)</span></div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-h"><h3>사건 타임라인</h3><span class="tog">접기 <svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m4 10 4-4 4 4"/></svg></span></div>
+    <div class="note info" style="margin-top:8px;padding:7px 12px"><span class="ttl" style="display:inline-flex"><svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6.25"/><path d="M8 7.2v3.8M8 5.1v.1"/></svg> 기간·지역 겹침으로 이은 기록</span> — 사건과 직접 연결된 기록이 아니라, 사건 기간과 관련 시도가 겹치는 특보·재난문자입니다.</div>
+    <div class="appr" data-appr="승인 A7" style="margin-top:12px">
+      <div class="subh" style="margin-top:0"><span class="pin">7</span>우리 지역 기록 <span class="sub">내용에 「부산」이 들어간 기록</span></div>
+      <div class="tblw"><table class="tbl" style="table-layout:fixed"><colgroup><col style="width:40px"><col style="width:128px"><col><col style="width:132px"></colgroup><thead><tr><th></th><th>시각</th><th>내용</th><th>기관</th></tr></thead><tbody><tr><td><span class="pin" style="background:#fff;color:#1E2124;border:1.5px solid #2a78d6">1</span></td><td class="num nw">2020-08-08 15:20</td><td>홍수주의보 발령 — 부산시(구포대교) (낙동강)</td><td title="원천 번호 홍수특보 제2020-26호">낙동강홍수통제소</td></tr><tr><td><span class="pin" style="background:#fff;color:#1E2124;border:1.5px solid #2a78d6">2</span></td><td class="num nw">2020-08-10 17:30</td><td>홍수주의보 해제 — 부산시(구포대교) (낙동강)</td><td title="원천 번호 홍수특보 제2020-39호">낙동강홍수통제소</td></tr></tbody></table></div>
+    </div>
+    <div class="appr" data-appr="승인 A9" style="margin-top:14px">
+      <div class="viz-cap" style="margin-top:0"><b>특보·재난문자 기록</b> 전체 102건 중 100건 받음<span class="cnt" title="유엔이(이 서비스)가 받은 목록을 센 값입니다. 제공처가 준 숫자가 아닙니다.">유엔이가 센 값</span></div>
+      <div class="legend" style="margin-top:0"><span><span class="sw" style="background:#B1B8BE"></span>기록 하나(짙을수록 몰림)</span><span><span class="sw" style="background:#2a78d6"></span>우리 지역 기록(번호 = 위 표)</span></div>
+      <div style="margin-top:4px"><svg viewBox="0 0 556 78" width="100%" height="78" role="group" aria-label="사건 기간의 특보·재난문자 기록 — 선 하나가 기록 하나"><rect x="92.64999999999999" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="93.375" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="94.58333333333333" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="97.72500000000001" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="98.69166666666668" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="99.175" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="101.10833333333333" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="101.59166666666667" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="102.8" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="105.94166666666666" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="106.18333333333334" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="107.875" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="108.6" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="108.84166666666667" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="110.05" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="112.225" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="113.67500000000001" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="198.74166666666667" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="200.91666666666666" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="202.60833333333332" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="203.57500000000002" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="204.05833333333334" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="207.68333333333334" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="209.61666666666667" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="218.07500000000002" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="235.23333333333332" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="240.79166666666669" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="241.75833333333333" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="244.65833333333336" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="248.04166666666669" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="315.70833333333337" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="319.57500000000005" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="321.9916666666667" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="338.9083333333333" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="340.35833333333335" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="346.4" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="350.26666666666665" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="376.125" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="376.125" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="378.3" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="378.3" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="381.2" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="381.2" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="382.65" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="386.7583333333333" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="387.725" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="388.45" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="388.45" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="395.7" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="397.39166666666665" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="405.125" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="405.60833333333335" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="405.85" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="406.8166666666667" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="408.5083333333333" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="409.7166666666667" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="410.44166666666666" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="411.4083333333333" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="412.6166666666667" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="413.825" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="413.825" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="415.03333333333336" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="419.625" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="420.10833333333335" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="420.8333333333333" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="421.8" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="422.7666666666667" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="427.1166666666667" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="427.8416666666667" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="428.08333333333337" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="432.67499999999995" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="434.3666666666667" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="456.6" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="457.0833333333333" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="457.325" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="457.56666666666666" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="458.05" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="459.0166666666667" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="460.95" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="460.95" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="461.19166666666666" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="462.4" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="467.9583333333333" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="468.20000000000005" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="468.44166666666666" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="468.44166666666666" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="469.16666666666663" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="471.3416666666667" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="479.55833333333334" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="484.39166666666665" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="487.05" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="495.025" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="510.25" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="513.15" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="524.75" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="529.0999999999999" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="530.0666666666666" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><rect x="530.55" y="34" width="1.5" height="20" fill="#464C53" fill-opacity=".3"/><line x1="18" x2="540" y1="54" y2="54" stroke="#CDD1D5"/><line x1="18" x2="18" y1="54" y2="58" stroke="#CDD1D5"/><text x="18" y="72" text-anchor="middle" font-size="11" fill="#6D7882">7/28</text><line x1="87.6" x2="87.6" y1="54" y2="58" stroke="#CDD1D5"/><text x="87.6" y="72" text-anchor="middle" font-size="11" fill="#6D7882">7/30</text><line x1="157.2" x2="157.2" y1="54" y2="58" stroke="#CDD1D5"/><text x="157.2" y="72" text-anchor="middle" font-size="11" fill="#6D7882">8/1</text><line x1="226.8" x2="226.8" y1="54" y2="58" stroke="#CDD1D5"/><text x="226.8" y="72" text-anchor="middle" font-size="11" fill="#6D7882">8/3</text><line x1="296.4" x2="296.4" y1="54" y2="58" stroke="#CDD1D5"/><text x="296.4" y="72" text-anchor="middle" font-size="11" fill="#6D7882">8/5</text><line x1="366" x2="366" y1="54" y2="58" stroke="#CDD1D5"/><text x="366" y="72" text-anchor="middle" font-size="11" fill="#6D7882">8/7</text><line x1="435.6" x2="435.6" y1="54" y2="58" stroke="#CDD1D5"/><text x="435.6" y="72" text-anchor="middle" font-size="11" fill="#6D7882">8/9</text><line x1="505.2" x2="505.2" y1="54" y2="58" stroke="#CDD1D5"/><text x="505.2" y="72" text-anchor="middle" font-size="11" fill="#6D7882">8/11</text><g tabindex="0" role="img" aria-label="2020-08-08 15:20 홍수주의보 발령 — 부산시(구포대교) (낙동강)" data-tip="2020-08-08 15:20|홍수주의보 발령 — 부산시(구포대교) (낙동강)"><rect x="421.5333333333333" y="26" width="3" height="28" fill="#2a78d6"/><circle cx="423.0333333333333" cy="17" r="8" fill="#fff" stroke="#2a78d6" stroke-width="1.5"/><text x="423.0333333333333" y="21" text-anchor="middle" font-size="10" font-weight="700" fill="#1E2124">1</text><rect x="411.0333333333333" y="6" width="24" height="52" fill="transparent"/></g><g tabindex="0" role="img" aria-label="2020-08-10 17:30 홍수주의보 해제 — 부산시(구포대교) (낙동강)" data-tip="2020-08-10 17:30|홍수주의보 해제 — 부산시(구포대교) (낙동강)"><rect x="494.275" y="26" width="3" height="28" fill="#2a78d6"/><circle cx="495.775" cy="17" r="8" fill="#fff" stroke="#2a78d6" stroke-width="1.5"/><text x="495.775" y="21" text-anchor="middle" font-size="10" font-weight="700" fill="#1E2124">2</text><rect x="483.775" y="6" width="24" height="52" fill="transparent"/></g></svg></div>
+    </div>
+    <div class="row" style="margin-top:8px"><span class="btn sm">전체 기록 표로 보기 <svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m4 6 4 4 4-4"/></svg></span></div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-h"><h3>유사도 근거</h3><span class="tog">자세히 <svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m4 6 4 4 4-4"/></svg></span></div>
+    <div class="xs" style="margin-top:6px"><span class="pin">8</span> 유사도 <b>68.24</b> / 100 — 요인군 기여: <span class="nw"><span class="sw" style="display:inline-block;width:9px;height:9px;border-radius:2px;background:#2a78d6;margin-right:4px"></span>재난유형 50</span> · <span class="nw"><span class="sw" style="display:inline-block;width:9px;height:9px;border-radius:2px;background:#1baf7a;margin-right:4px"></span>기상·수문 16.67</span> · <span class="nw"><span class="sw" style="display:inline-block;width:9px;height:9px;border-radius:2px;background:#008300;margin-right:4px"></span>공간·취약 1.57</span> <span class="sub">(제공처 값)</span></div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-h"><h3>사건 개요</h3><span class="tog">접기 <svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m4 10 4-4 4 4"/></svg></span></div>
+    <div class="subh" style="margin-top:10px">관련 시도</div>
+    <div class="appr" data-appr="승인 A6" style="display:flex;flex-wrap:wrap;gap:4px"><span class="tag sm">서울특별시</span> <span class="tag sm hlt">부산광역시</span> <span class="tag sm">대구광역시</span> <span class="tag sm">인천광역시</span> <span class="tag sm">광주광역시</span> <span class="tag sm">대전광역시</span> <span class="tag sm">울산광역시</span> <span class="tag sm">세종특별자치시</span> <span class="tag sm">경기도</span> <span class="tag sm">충청북도</span> <span class="tag sm">충청남도</span> <span class="tag sm">전라남도</span> <span class="tag sm">경상북도</span> <span class="tag sm">경상남도</span> <span class="tag sm">제주특별자치도</span> <span class="tag sm">강원특별자치도</span> <span class="tag sm">전북특별자치도</span></div>
+    <div class="subh">요약 <span class="sub">받은 그대로</span></div>
+    <div class="xs" style="line-height:1.6">호우 · 서울, 부산, 대구, 인천, 광주, 대전, 울산, 세종, 경기, 강원, 충북, 충남, 전북, 전남, 경북, 경남, 제주 · 이재민 16,767명 · 재산피해 1,037,156,500,000원</div>
+    <div class="gap" style="margin-top:10px"><svg class="ic" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2.2 14.3 13H1.7z"/><path d="M8 6.4v3.1M8 11.3v.1"/></svg><span>위기경보 단계 · 중대본 단계 — 원자료에 없음</span></div>
+    <div class="row" style="margin-top:12px"><span class="btn sm">사건 원본 항목 전체 보기</span></div>
+  </div>
+</aside>
+</div>
+<div id="tip" role="status"></div><script>
+(() => { const t = document.getElementById("tip");
+  const show = (el) => { const [v, l] = (el.getAttribute("data-tip") || "").split("|"); t.textContent = ""; const b = document.createElement("b"); b.textContent = v; t.appendChild(b); if (l) t.appendChild(document.createTextNode(l)); const r = el.getBoundingClientRect(); t.style.left = (window.scrollX + r.right + 8) + "px"; t.style.top = (window.scrollY + r.top - 4) + "px"; t.style.display = "block"; };
+  document.querySelectorAll("[data-tip]").forEach((el) => { el.addEventListener("pointerenter", () => show(el)); el.addEventListener("focus", () => show(el)); el.addEventListener("pointerleave", () => (t.style.display = "none")); el.addEventListener("blur", () => (t.style.display = "none")); });
+  // 표가 상자보다 넓으면 오른쪽 가장자리 그림자 + 「옆으로 더 있음」, 옆으로 밀었으면 첫 열 그림자
+  document.querySelectorAll("[data-demo-scroll]").forEach((w) => w.querySelectorAll(".md-table").forEach((t) => (t.scrollLeft = +w.dataset.demoScroll)));
+  const mark = () => document.querySelectorAll(".md-table").forEach((b) => { const wide = b.scrollWidth > b.clientWidth + 1; b.parentElement.classList.toggle("scrolls", wide && b.scrollLeft + b.clientWidth < b.scrollWidth - 1); b.closest(".md-tbl").classList.toggle("scrolls", wide); b.classList.toggle("scrolls", wide); b.classList.toggle("scrolled", b.scrollLeft > 0); });
+  mark(); window.addEventListener("resize", mark); document.querySelectorAll(".md-table").forEach((b) => b.addEventListener("scroll", mark));
+})();</script>
+</body></html>

@@ -1,83 +1,98 @@
 "use client";
-/** 추천 질문 · 조건 시나리오 · 연속 질의 시연 (역량질문 CQ 기반) */
-import { useEffect, useState } from "react";
-import type { RegionId } from "@/lib/contract/agent";
-import type { ScenarioItem } from "./Composer";
-import { IcX } from "../Icons";
+import { useEffect, useMemo, useState } from "react";
+import { api } from "@/lib/api";
+import { fillText, LIBRARY, libraryFor, type LibraryQuestion, type Stage } from "@/lib/library";
+import { useSession } from "@/lib/session";
 
-interface LibItem { id: string; stage: string; q: string; cq: string[]; preset?: string }
-interface Flow { id: string; title: string; desc: string; steps: string[]; scenarioId?: string; wx?: { type: string; level: string; regionId: RegionId } }
-const ORDER = ["평시 점검", "사전대비(예비특보)", "초기대응(주의보)", "비상대응(경보)", "피해·신고 대응", "수습·복구", "재발방지·계획", "과거 재난·유사사례", "위험·취약지역 지식"];
+/**
+ * 질문 모음 (R11) — ① 지역 질문(업무단계별, 역량질문 템플릿으로 만든 질문) ② 연속 질의 ③ T3Q 추천 질문(T3Q-03 고정 목록 그대로)
+ * 출처를 탭으로 구분한다. 여러 개를 골라 한꺼번에 보낼 수 있다.
+ */
+const STAGES: Stage[] = ["평시", "특보", "비상", "복구"];
+type Sug = { question_id: string; group_label: string; text: string; data_api?: string };
 
-export default function LibraryDrawer(p: { region: RegionId; onClose: () => void; onAsk: (q: string, preset?: string) => void; onScenario: (s: ScenarioItem) => void; onFlow: (steps: string[], scenario?: ScenarioItem, wx?: Flow["wx"]) => void }) {
-  const [tab, setTab] = useState<"q" | "s" | "f">("q");
-  const [d, setD] = useState<{ library: LibItem[]; conditions: ScenarioItem[]; flows: Flow[] } | null>(null);
+export default function LibraryDrawer({ regionName, onClose, onAsk, onAskMany, onAskT3q }: {
+  regionName: string;
+  onClose: () => void;
+  onAsk: (q: LibraryQuestion) => void;
+  onAskMany: (qs: LibraryQuestion[]) => void;
+  onAskT3q: (text: string) => void;
+}) {
+  const s = useSession();
+  const [tab, setTab] = useState<"lib" | "flow" | "t3q">("lib");
+  const [sel, setSel] = useState<string[]>([]);
+  const [sug, setSug] = useState<Sug[] | null>(null);
+  const [sugErr, setSugErr] = useState<string | null>(null);
+  const list = useMemo(() => libraryFor(s.cond.region === "national" ? "" : s.cond.region), [s.cond.region]);
+  const flows = list.filter((q) => q.after).map((q) => ({ first: LIBRARY.find((x) => x.id === q.after)!, next: q }));
   useEffect(() => {
-    fetch(`/api/scenarios?region=${p.region}`).then((r) => r.json()).then(setD).catch(() => setD(null));
-  }, [p.region]);
+    if (tab !== "t3q" || sug) return;
+    api<{ envelope: { result?: { items?: Sug[] } } }>("/api/t3q/suggested").then((r) => setSug(r.envelope.result?.items ?? [])).catch((e) => setSugErr((e as Error).message));
+  }, [tab, sug]);
+  const toggle = (id: string) => setSel((p) => (p.includes(id) ? p.filter((x) => x !== id) : p.length >= 4 ? p : [...p, id]));
   return (
-    <>
-      <div className="ovl" style={{ background: "rgba(19,20,22,.2)" }} onClick={p.onClose} />
-      <aside className="drawer" role="dialog" aria-label="추천 질문">
-        <div className="hd">
-          <h2 style={{ fontSize: 19 }}>추천 질문</h2>
-          <span className="sp" />
-          <button className="iconbtn" onClick={p.onClose} aria-label="닫기"><IcX size={18} /></button>
-        </div>
-        <div style={{ padding: "0 22px" }}>
-          <div className="subtabs" style={{ marginTop: 0 }}>
-            <button className={tab === "q" ? "on" : ""} onClick={() => setTab("q")}>업무 단계별 질문</button>
-            <button className={tab === "s" ? "on" : ""} onClick={() => setTab("s")}>조건 시나리오</button>
-            <button className={tab === "f" ? "on" : ""} onClick={() => setTab("f")}>연속 질의</button>
-          </div>
-        </div>
-        <div className="bd">
-          {!d && <div className="typing"><i /><i /><i /></div>}
-          {d && tab === "q" && ORDER.map((g) => {
-            const items = d.library.filter((x) => x.stage === g);
-            if (!items.length) return null;
+    <div className="drawer" role="dialog" aria-label="질문 모음">
+      <div className="drawer-h">
+        <b>질문 모음</b>
+        <span className="sp" />
+        <button className="lnk" onClick={onClose} aria-label="닫기">×</button>
+      </div>
+      <div className="subtabs">
+        <button className={tab === "lib" ? "on" : ""} onClick={() => setTab("lib")}>지역 질문(업무단계)</button>
+        <button className={tab === "flow" ? "on" : ""} onClick={() => setTab("flow")}>연속 질의</button>
+        <button className={tab === "t3q" ? "on" : ""} onClick={() => setTab("t3q")}>에이전트 추천 질문</button>
+      </div>
+      {tab === "lib" && (
+        <div className="drawer-b">
+          <p className="xs muted">{regionName} 기준 질문입니다. 여러 개(최대 4개)를 골라 한꺼번에 보낼 수 있습니다. 질문과 함께 관련 데이터를 먼저 조회해 보여 드립니다.</p>
+          {STAGES.map((st) => {
+            const qs = list.filter((q) => q.stage === st && !q.after);
+            if (!qs.length) return null;
             return (
-              <div key={g}>
-                <h4>{g}</h4>
-                {items.map((it) => <button key={it.id} className="qitem" onClick={() => { p.onClose(); p.onAsk(it.q, it.preset); }}>{it.q}<span className="cq">{it.cq.slice(0, 2).join(" ")}</span></button>)}
-              </div>
+              <section key={st} className="lib-sec">
+                <div className="lib-st">{st}</div>
+                {qs.map((q) => (
+                  <div key={q.id} className="lib-q">
+                    <input type="checkbox" checked={sel.includes(q.id)} onChange={() => toggle(q.id)} aria-label="고르기" />
+                    <button className="lnk" onClick={() => onAsk(q)}>{fillText(q, regionName)}</button>
+                    <span className="xs muted">{q.category}</span>
+                  </div>
+                ))}
+              </section>
             );
           })}
-          {d && tab === "s" && (
-            <>
-              <p className="xs muted">실시간 수문 API를 연결하지 않으므로, 담당자가 입력할 기상·수문 조건을 미리 묶어 두었습니다. 선택하면 조건이 적용되고 바로 질의합니다.</p>
-              {ORDER.map((g) => {
-                const items = d.conditions.filter((x) => x.stage === g);
-                if (!items.length) return null;
-                return (
-                  <div key={g}>
-                    <h4>{g}</h4>
-                    {items.map((s) => (
-                      <button key={s.id} className="qitem" style={{ flexDirection: "column", alignItems: "flex-start" }} onClick={() => { p.onClose(); p.onScenario(s); }}>
-                        <b>{s.title}</b>
-                        <span className="mute2">{s.summary}</span>
-                        <span style={{ color: "var(--c-primary-dk)" }}>→ {s.question}</span>
-                      </button>
-                    ))}
-                  </div>
-                );
-              })}
-            </>
-          )}
-          {d && tab === "f" && (
-            <>
-              <p className="xs muted">이어서 질문하기 흐름을 자동으로 이어 질의합니다. 앞 답변의 사건·객체를 다음 질문이 이어받습니다.</p>
-              {d.flows.map((f) => (
-                <button key={f.id} className="qitem" style={{ flexDirection: "column", alignItems: "flex-start" }} onClick={() => { p.onClose(); p.onFlow(f.steps, d.conditions.find((c) => c.id === f.scenarioId), f.wx); }}>
-                  <b>{f.title}</b>
-                  <span className="mute2">{f.desc}</span>
-                  <ol style={{ listStyle: "decimal", paddingLeft: 16, color: "var(--c-sub)" }}>{f.steps.map((s) => <li key={s}>{s}</li>)}</ol>
-                </button>
-              ))}
-            </>
-          )}
+          <div className="drawer-f">
+            <span className="xs muted">{sel.length}개 고름</span>
+            <span className="sp" />
+            <button className="btn primary" disabled={!sel.length} onClick={() => onAskMany(sel.map((id) => LIBRARY.find((q) => q.id === id)!))}>고른 질문 한꺼번에 보내기</button>
+          </div>
         </div>
-      </aside>
-    </>
+      )}
+      {tab === "flow" && (
+        <div className="drawer-b">
+          <p className="xs muted">앞 질문의 답을 받은 뒤 이어서 묻는 흐름입니다. 첫 질문을 보내고, 답이 오면 그 답의 [이어서 묻기]로 다음 질문을 보내세요.</p>
+          {flows.length === 0 && <div className="xs muted">이 지역의 연속 질의가 없습니다.</div>}
+          {flows.map(({ first, next }) => (
+            <div key={next.id} className="flow">
+              <div className="flow-1"><span className="badge neutral">1</span> <button className="lnk" onClick={() => onAsk(first)}>{fillText(first, regionName)}</button></div>
+              <div className="flow-2"><span className="badge neutral">2</span> {fillText(next, regionName)}</div>
+            </div>
+          ))}
+        </div>
+      )}
+      {tab === "t3q" && (
+        <div className="drawer-b">
+          <p className="xs muted">에이전트 쪽에서 제공하는 추천 질문입니다(지역과 무관한 고정 목록, 원문 그대로).</p>
+          {sugErr && <div className="notice danger">{sugErr}</div>}
+          {!sug && !sugErr && <div className="xs muted">불러오는 중…</div>}
+          {sug?.map((q) => (
+            <div key={q.question_id} className="lib-q">
+              <button className="lnk" onClick={() => onAskT3q(q.text)}>{q.text}</button>
+              <span className="xs muted">{q.group_label}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }

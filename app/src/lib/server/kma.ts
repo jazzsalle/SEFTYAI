@@ -65,7 +65,8 @@ export async function fetchLiveAdvisories(): Promise<{ ok: boolean; message: str
       : t7.replace(/\r/g, "").split("\n").map((s) => s.replace(/^o\s*/, "").trim()).filter(Boolean).map((text) => ({ text, at }));
     return {
       ok: true,
-      message: advisories.length ? `발효 특보 ${advisories.length}건 (기상청 ${at.slice(11, 16)} 발표)` : `현재 발효 특보 없음 (기상청 ${at.slice(5, 10).replace("-", ".")} ${at.slice(11, 16)} 발표 기준)`,
+      // 유엔이가 센 건수는 보이지 않는다(R25) — 기상청 발표 시각만
+      message: advisories.length ? `기상청 ${at.slice(11, 16)} 발표` : `현재 발효 특보 없음 (기상청 ${at.slice(5, 10).replace("-", ".")} ${at.slice(11, 16)} 발표 기준)`,
       advisories,
       preliminary,
     };

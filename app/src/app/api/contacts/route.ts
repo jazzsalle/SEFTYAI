@@ -7,9 +7,10 @@ export const dynamic = "force-dynamic";
 
 /** GET /api/contacts?org= — 기관 연락망 (자기 기관, 운영자는 모든 기관 조회) */
 export async function GET(req: Request) {
-  const who = whoami(req);
+  const who = await whoami(req);
   const org = new URL(req.url).searchParams.get("org");
   if (!who) return fail(401, "로그인이 필요합니다.");
+  if (who.mustChangePw) return fail(403, "초기 비밀번호를 먼저 바꿔 주세요.");
   if (!isOrg(org)) return fail(400, "기관을 고르세요.");
   if (!canView(who, org)) return fail(403, "다른 기관의 연락망은 볼 수 없습니다.");
   if (!hasDb()) return fail(503, "서버 DB가 연결되지 않았습니다.");
@@ -18,9 +19,10 @@ export async function GET(req: Request) {
 
 /** PUT /api/contacts?org= — 연락망 저장 {bundle, rev, what} (자기 기관 담당자만, 운영자 불가) */
 export async function PUT(req: Request) {
-  const who = whoami(req);
+  const who = await whoami(req);
   const org = new URL(req.url).searchParams.get("org");
   if (!who) return fail(401, "로그인이 필요합니다.");
+  if (who.mustChangePw) return fail(403, "초기 비밀번호를 먼저 바꿔 주세요.");
   if (!isOrg(org)) return fail(400, "기관을 고르세요.");
   if (!canManage(who, org)) return fail(403, "관리 권한이 없습니다. 연락망은 자기 기관 담당자만 고칠 수 있습니다.");
   if (!hasDb()) return fail(503, "서버 DB가 연결되지 않았습니다.");

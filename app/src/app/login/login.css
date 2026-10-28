@@ -1,0 +1,118 @@
+/* =====================================================================
+   로그인 (SCR-UNE-101001 기본·에러·세션 만료 후 진입)
+   얇은 헤더(공식 배너 띠 없이 로고 + 서비스명 한 줄, R13) · 좌 서비스 소개 · 우 로그인 폼
+   클래스는 모두 lgn- 접두 (globals.css 는 건드리지 않음)
+   ===================================================================== */
+.lgn { min-height: 100vh; display: flex; flex-direction: column; background: var(--c-bg); color: var(--c-text); word-break: keep-all; overflow-wrap: break-word; }
+
+/* 헤더 — 오른쪽은 전역 [도움말] 버튼 자리 */
+.lgn-hd {
+  flex: none; height: 64px; display: flex; align-items: center; gap: 14px; padding: 0 132px 0 24px;
+  background: #fff; border-bottom: 1px solid var(--c-line); min-width: 0;
+}
+.lgn-hd .brand { display: flex; align-items: center; gap: 10px; font-size: 21px; font-weight: 700; color: #33363d; white-space: nowrap; }
+.lgn-hd .bar { flex: none; width: 1px; height: 18px; background: var(--c-bd); }
+.lgn-hd .svc { min-width: 0; font-size: var(--fs-m); font-weight: 600; color: var(--c-sub); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lgn ~ .help-btn { top: 20px; }
+
+.lgn-body { flex: 1; display: grid; grid-template-columns: minmax(380px, 40%) minmax(0, 1fr); }
+
+/* 좌 — 서비스 소개 (남색 · 격자 · 반투명 원) */
+.lgn-intro {
+  position: relative; overflow: hidden; display: flex; flex-direction: column; padding: 64px 64px 56px; color: #fff;
+  background-color: var(--c-navy);
+  background-image: linear-gradient(rgba(255, 255, 255, .045) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, .045) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+.lgn-intro::after {
+  content: ""; position: absolute; right: -280px; bottom: -340px; width: 720px; height: 720px; border-radius: 50%;
+  background: rgba(255, 255, 255, .14); pointer-events: none;
+}
+.lgn-intro > * { position: relative; z-index: 1; }
+.lgn-eyebrow { margin: 0; font-size: var(--fs-s); font-weight: 700; color: #b8c7dc; }
+.lgn-intro h1 { margin-top: 18px; font-size: 44px; line-height: 1.5; color: #fff; }
+.lgn-lead { margin: 22px 0 0; font-size: var(--fs-m); line-height: 1.55; color: #eef3fa; }
+.lgn-foot { margin-top: auto; padding-top: 26px; border-top: 1px solid rgba(255, 255, 255, .7); font-size: var(--fs-xs); line-height: 1.6; }
+.lgn-foot p { margin: 0 0 8px; }
+.lgn-foot b { margin-right: 8px; }
+
+/* 우 — 로그인 폼 */
+.lgn-main { min-width: 0; display: flex; justify-content: center; align-items: center; padding: 56px 32px; }
+.lgn-form { width: 100%; max-width: 420px; }
+.lgn-form h2 { font-size: var(--fs-hm); }
+.lgn-desc { margin: 10px 0 0; font-size: var(--fs-s); color: var(--c-sub); }
+
+.lgn-alert {
+  display: flex; align-items: flex-start; gap: 12px; margin-top: 28px; padding: 16px; border: 1px solid; border-radius: var(--r-l);
+  font-size: var(--fs-m); line-height: 1.55; color: var(--c-text);
+}
+.lgn-alert.danger { background: var(--c-dang-sub); border-color: #f8cdc9; }
+.lgn-alert.info { background: var(--c-info-sub); border-color: #b9dcf6; }
+.lgn-alert .ic {
+  flex: none; display: grid; place-items: center; width: 20px; height: 20px; margin-top: 3px; border-radius: 50%;
+  color: #fff; font-size: 12px; font-weight: 800; font-style: normal;
+}
+.lgn-alert.danger .ic { background: var(--c-dang); }
+.lgn-alert.info .ic { background: var(--c-info); }
+.lgn-alert p { margin: 0; white-space: pre-line; }
+.lgn-alert b { display: block; margin-bottom: 2px; }
+.lgn-alert .sub { margin-top: 4px; font-size: var(--fs-xs); color: var(--c-sub); }
+
+.lgn-field { margin-top: 24px; }
+.lgn-field > label { display: block; margin-bottom: 8px; font-size: var(--fs-s); }
+.lgn-input { position: relative; }
+.lgn-input input {
+  width: 100%; height: 56px; padding: 0 56px 0 16px; border: 1px solid var(--c-input-bd); border-radius: var(--r-l);
+  background: #fff; font-size: var(--fs-hs);
+}
+.lgn-input input::placeholder { color: var(--c-dis); }
+.lgn-input input:focus { outline: none; border-color: var(--c-primary); box-shadow: inset 0 0 0 1px var(--c-primary); }
+.lgn-input input[aria-invalid="true"] { border-color: var(--c-dang); box-shadow: inset 0 0 0 1px var(--c-dang); }
+.lgn-ib {
+  position: absolute; top: 50%; right: 8px; width: 40px; height: 40px; transform: translateY(-50%);
+  display: grid; place-items: center; border: 0; border-radius: var(--r-m); background: transparent; color: var(--c-text);
+}
+.lgn-ib:hover { background: var(--c-sec-sub); }
+.lgn-ib.clear > span { display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: var(--c-bd); color: var(--c-text); }
+.lgn-ferr { margin: 8px 0 0; font-size: var(--fs-xs); color: var(--c-dang-dk); }
+.lgn-caps { margin: 8px 0 0; font-size: var(--fs-xs); font-weight: 600; color: var(--c-warn-dk); }
+
+.lgn-submit {
+  width: 100%; height: 56px; margin-top: 32px; border: 0; border-radius: var(--r-l);
+  background: var(--c-primary); color: #fff; font-size: var(--fs-hs); font-weight: 600;
+}
+.lgn-submit:hover:not(:disabled) { background: var(--c-primary-dk); }
+.lgn-submit:disabled { opacity: .6; cursor: progress; }
+.lgn-note { margin: 12px 0 0; font-size: var(--fs-xs); line-height: 1.6; color: var(--c-mute); }
+
+/* 계정 카드 — 누르면 아이디만 채운다(R7) */
+.lgn-accts { margin-top: 32px; padding-top: 22px; border-top: 1px solid var(--c-bd); }
+.lgn-accts h3 { font-size: var(--fs-s); }
+.lgn-accts > p { margin: 4px 0 12px; font-size: var(--fs-xs); color: var(--c-sub); }
+.lgn-accts ul { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.lgn-acct {
+  width: 100%; display: flex; align-items: center; gap: 10px; padding: 9px 12px; text-align: left;
+  border: 1px solid var(--c-bd); border-radius: var(--r-l); background: #fff; color: var(--c-text);
+  transition: border-color .12s, background .12s, box-shadow .12s;
+}
+.lgn-acct:hover { border-color: var(--c-primary); }
+.lgn-acct[aria-pressed="true"] { border-color: var(--c-primary); background: var(--c-primary-sub); box-shadow: inset 0 0 0 1px var(--c-primary); }
+.lgn-acct .av { flex: none; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 8px; color: #fff; font-size: 11px; font-weight: 800; }
+.lgn-acct .tx { min-width: 0; display: flex; flex-direction: column; }
+.lgn-acct .nm { font-size: var(--fs-s); font-weight: 700; line-height: 1.3; }
+.lgn-acct .id { font-family: ui-monospace, "SFMono-Regular", Consolas, monospace; font-size: var(--fs-xs); color: var(--c-sub); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+@media (max-width: 960px) {
+  .lgn-body { grid-template-columns: minmax(0, 1fr); }
+  .lgn-intro { padding: 32px 24px 28px; }
+  .lgn-intro::after { display: none; }
+  .lgn-intro h1 { margin-top: 10px; font-size: 30px; }
+  .lgn-lead { margin-top: 12px; font-size: var(--fs-s); }
+  .lgn-foot { margin-top: 24px; padding-top: 16px; }
+  .lgn-main { align-items: flex-start; padding: 32px 16px 56px; }
+}
+@media (max-width: 560px) {
+  .lgn-hd { gap: 10px; padding: 0 110px 0 16px; }
+  .lgn-hd .bar, .lgn-hd .svc { display: none; }
+  .lgn-accts ul { grid-template-columns: minmax(0, 1fr); }
+}

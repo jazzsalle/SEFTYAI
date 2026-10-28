@@ -1,0 +1,56 @@
+/* 지도 (MapView · MapLegend) 전용 — globals.css 와 독립. 색은 KRDS 토큰 값(primary #256EF4 · text #1E2124 · 회색 계열). */
+
+.sa-map { position: absolute; inset: 0; overflow: hidden; background: #e9eef3; }
+.sa-map-canvas { position: absolute; inset: 0; }
+
+/* 화면 낭독기 전용 지도 대체정보 (908001) */
+.sa-map-sr {
+  position: absolute !important; width: 1px; height: 1px; margin: -1px; padding: 0; border: 0;
+  overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
+}
+
+/* 호버 툴팁 — 이름 · 유형 · 위치 정밀도 */
+.sa-map-tip {
+  pointer-events: none; max-width: 280px; padding: 7px 10px;
+  background: #fff; border: 1px solid #cdd1d5; border-radius: 6px;
+  box-shadow: 0 4px 16px rgba(15, 20, 28, 0.14);
+  font-size: 13px; line-height: 1.45; color: #1e2124; word-break: keep-all;
+}
+.sa-map-tip b { display: block; font-size: 14px; font-weight: 700; }
+.sa-map-tip b.none { color: #6d7882; font-weight: 500; }
+.sa-map-tip .meta { display: block; margin-top: 1px; font-size: 12px; color: #464c53; }
+.sa-map-tip .approx { color: #8a5c00; font-weight: 700; }
+
+/* 선택 라벨 (Figma map_label — 흰 바탕 · 남색 2px 테두리 · radius 8 · 15 Bold) */
+.sa-map-label {
+  position: relative; pointer-events: none; padding: 5px 12px;
+  background: #fff; border: 2px solid #063a74; border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(6, 58, 116, 0.18);
+  font-size: 15px; font-weight: 700; line-height: 1.4; color: #1e2124; white-space: nowrap;
+}
+.sa-map-label::after {
+  content: ""; position: absolute; left: 50%; bottom: -7px; width: 10px; height: 10px; margin-left: -6px;
+  background: #fff; border-right: 2px solid #063a74; border-bottom: 2px solid #063a74; transform: rotate(45deg);
+}
+
+/* OpenLayers 기본 컨트롤 자리 (ol/ol.css 위에 덮어씀) */
+.sa-map .ol-scale-line { left: 12px; right: auto; bottom: 12px; padding: 2px 4px; background: rgba(255, 255, 255, 0.9); border: 1px solid #cdd1d5; border-radius: 4px; }
+.sa-map .ol-scale-line-inner { border-color: #464c53; color: #464c53; font-size: 11px; }
+.sa-map .ol-attribution { font-size: 11px; }
+
+/* 범례 (지도 아래 · 읽기 전용 · 표시된 종류만 · 넘치면 줄바꿈)
+   바탕·테두리·여백은 감싸는 쪽(지도 아래 띠)이 정한다 — 여기서는 줄 배치만. */
+.sa-map-legend { display: flex; align-items: center; gap: 6px 16px; min-width: 0; font-size: 14px; color: #1e2124; }
+.sa-map-legend > b { flex: none; font-size: 15px; font-weight: 700; }
+.sa-map-legend ul { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 18px; margin: 0; padding: 0; list-style: none; }
+.sa-lg-item { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.sa-lg-item > i { flex: none; display: inline-block; }
+.sa-lg-pin { width: 15px; height: 20px; background: center / contain no-repeat; }
+.sa-lg-line { width: 20px; height: 4px; border-radius: 2px; background: var(--c); box-shadow: 0 0 0 1.5px #fff, 0 0 0 2.5px rgba(30, 33, 36, 0.16); }
+.sa-lg-area { width: 16px; height: 12px; border: 2px solid var(--c); border-radius: 2px; background: var(--f); }
+.sa-lg-area.hatch { background: repeating-linear-gradient(135deg, var(--c) 0 1.5px, transparent 1.5px 5px); }
+.sa-lg-ring { width: 16px; height: 16px; border: 1.5px dashed #464c53; border-radius: 50%; background: rgba(255, 255, 255, 0.6); }
+.sa-lg-box { width: 16px; height: 12px; border: 1.5px dashed #464c53; }
+.sa-lg-bnd { width: 20px; height: 0; border-top: 2px dashed #5d6c8c; }
+.sa-lg-dim { opacity: 0.45; }
+.sa-lg-note { color: #464c53; font-size: 13px; }

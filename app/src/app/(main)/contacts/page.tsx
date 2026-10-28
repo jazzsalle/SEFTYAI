@@ -72,9 +72,7 @@ export default function ContactsPage() {
               </div>
               <span className="sp" />
               {tab !== "history" && <ContactsExcel api={api} orgId={orgId} orgName={orgName(orgId)} />}
-              {mine && (
-                <button className="btn sm ghost" onClick={() => setConfirm({ title: "예시 연락망으로 되돌리기", message: "지금 연락망을 지우고 예시 연락망(가상 인명·번호)으로 되돌릴까요? 전파 이력은 그대로 남습니다.", ok: "되돌리기", run: () => api.resetSeed() })}>예시 연락망으로 되돌리기</button>
-              )}
+              {mine && tab !== "history" && <button className="btn sm ghost" onClick={() => setConfirm({ title: "샘플 연락망으로 되돌리기", message: "지금 연락망을 지우고 구성 예시([샘플] 표시)로 되돌릴까요? 전파 이력은 그대로 남습니다.", ok: "되돌리기", run: () => api.resetSample() })}>샘플 연락망으로 되돌리기</button>}
             </div>
             {(api.error || (tab === "history" && histErr)) && <div className="notice danger" style={{ marginBottom: 12 }}>{api.error ?? histErr} <button className="lnk" onClick={() => { api.reload(); }}>다시 불러오기</button></div>}
             {!api.loaded && !api.error && tab !== "history" && <div className="ct-card"><div className="ct-empty">연락망을 불러오는 중입니다…</div></div>}

@@ -1,125 +1,88 @@
-# 인수인계 — 재난안전 AI 시범서비스 (2026-10-03 기준)
+# 인수인계 — 재난안전 AI 시범서비스 · T3Q 실연동판 (2026-10-28 기준)
 
-다음 작업을 시작할 때 이 문서부터 읽는다. 결정의 이유는 [`design/00_decisions.md`](design/00_decisions.md)(D1~D30), 설계는 [`design/01_system_design.md`](design/01_system_design.md)에 있다.
+다음 작업을 시작할 때 이 문서부터 읽는다. 결정의 이유는 [`renewal/design/00_decisions.md`](renewal/design/00_decisions.md)(R0~R24), 설계는 `renewal/design/01~09`에 있다(08_visual = 시각화 설계안, 승인 대기). 이전(가정 응답) 판 인수인계는 git 이력(`c813959` 이전 HANDOFF)에 있다.
 
 ## 1. 현재 상태
 | 항목 | 값 |
 |---|---|
-| 배포 | https://safetyai-three.vercel.app (Vercel `jazzsalle-projects/safetyai`, Root `app`, Node 22, region `icn1`) |
-| 저장소 | GitHub `jazzsalle/SEFTYAI` — **비공개**, `main` 푸시 시 자동 배포 |
-| 마지막 커밋 | `c813959` (배포 성공, 2026-10-04) |
-| 시연 계정 | 로그인 화면 카드 클릭(비밀번호 없음): 행안부 `mois_dsd01`(전국) · 부산 `bs_safety01` · 영천 `yc_safety02` · 인제 `ij_safety01` · 운영 `admin01` |
+| 작업 브랜치 | `renewal-t3q` — **커밋·배포 전(사용자 승인 대기)** |
+| 배포(이전 판) | https://safetyai-three.vercel.app — `main`, 가정 응답 판이 그대로 떠 있음 |
+| T3Q | 개발 서버 v0.3.0 (`T3Q_BASE_URL`·`T3Q_CLIENT_TOKEN`, 토큰 2027-01-21 만료). 원본: `D:\vibecoding\safetyai\T3Q_API\클라이언트 토큰.txt` |
+| 계정 | 5개 사전 발급(비밀번호 로그인). 로컬은 `.env.development.local` 의 `SA_INIT_PASSWORDS` 로 발급됨 |
+| 화면 원칙 | 한국어 표기(R18) · 그래프 빨강 미사용(R19) · 브리핑 기본 4문항 = 요구사항 원문(R17) |
+| 로컬 DB | **PGlite(`app/.localdb`)** — `.env.local` 의 Neon 은 운영과 같은 DB 라 개발 중 쓰지 않는다 |
 
-## 2. 이 결과물의 성격
-- **화면설계 목업(300. 시범서비스 화면설계 시연_261001)을 기준으로, 앞으로 T3Q 에이전트가 답할 모습을 미리 구현한 검토용 자료**이다. 완성된 POC나 서비스로 소개하지 않는다.
-- 목적은 두 가지다.
-  - 에이전트 응답 중심의 화면·업무 흐름을 미리 확인한다.
-  - **T3Q API 요청 항목(상세조회·응답 구조)을 점검하고 리스크를 관리**한다.
-- T3Q와는 연결되지 않았다. `/api/agent/query`는 계약(zod)을 지키는 **가정 응답 서버**이다. `T3Q_AGENT_URL`을 설정하면 실제 T3Q로 프록시된다.
+## 2. 절대 원칙 (사용자 지시 — 바꾸지 말 것)
+1. **T3Q 응답 무가공** — 답 글·지도 대상(refs)·경고 문구를 요약·수정·재배치하지 않는다. 표현(마크다운 렌더·칩·접기·지도 그리기)만 한다. 경계 목록은 `01_system_design.md` §6.
+2. 모의 데이터·훈련 시나리오·임의 seed·우리가 만든 공간정보(하천·소하천·행정경계 GeoJSON) **사용 금지**. 지도는 VWorld 배경·경계(WMS) + T3Q 도형만.
+3. 보존: 행동매뉴얼 대응절차(SOP)·연락망·상황전파·실행이력·도움말(내용 수정은 최종 개발 후). UFR-009 미적용.
+4. 연락망은 **[샘플] 표시 구성 예시**로 시작(`lib/contactsSample.ts`).
+5. 커밋·배포는 승인 후. 설계 결정은 Fable 과 상의.
 
-## 3. 동작 규칙 (사용자가 정한 것 — 바꾸지 말 것)
-| 규칙 | 내용 | 결정 |
-|---|---|---|
-| 에이전트 중심 | 채팅 우선. 짧은 결론 → 근거 → 결과 목록 → 이어서 질문. 그래프·통계 페이지·보고서식 나열 금지 | D20~D21 |
-| AI 모드 켜짐 | 현재 발효 특보를 질의에 전달한다(`context.aiMode=true`, `advisory`). 전광판은 비모달 오버레이로, 끌어서 옮길 수 있고 띄운 채 일반 대화 가능 | D22, D27, D30 |
-| AI 모드 꺼짐 | **사용자가 입력한 재난상황 조건만** 전달한다. 조건이 없으면 기준지역 일반 질의. 재난유형은 "선택 안 함" 가능. 조건 모달에 기준지역 없음(헤더 기준지역이 항상 전달) | D27 |
-| 특보로 질문 | 특보를 입력창에 참조로 건다(`context.refAdvisory`). **AI 모드 중에는 비활성**. AI 모드가 꺼져 있으면 조건 + 특보 참조를 함께 쓸 수 있다 | D28 |
-| 재난상황 조건 브리핑 | 입력 조건(+참조 특보)으로 브리핑한다. 조건이 없으면 그 사실을 밝히고 평시 현황으로 정리한다 | D30 |
-| 지도 주제도 | 지자체를 고른 경우에만 그 지자체 범위로 표시한다. 전국이면 표시하지 않고, 고른 항목의 지자체만 켠다(읍면동 포함, 다른 지자체 항목을 고르면 전환) | D29 |
-| 브리핑 질문 | AI 모드 전광판·시작 화면의 질문은 **내 브리핑 항목**에서 나온다(추천 질문 아님). AI 모드 = 위에서부터 5개, 시작 화면 = 접속할 때마다 무작위 4개. 설정: 사용자 메뉴 > 브리핑 항목 | D32 |
-| 공개용 / 내부용 | 공개용 = 대화 화면. 내부용 = 운영관리 > **응답 검증**(운영자 전용, T3Q 담당자용): ① 요청 정합 ② 응답 정답(정답셋) ③ 표출 정합 + 사람 판정·CSV. 정답셋 180문항은 `node scripts/build_gold.mjs`로 재생성(T3Q 정답셋 수신 시 교체) | D31 |
-| 새 대화 | 기준지역의 전국↔시·도 단위가 바뀌면 새 대화로 시작하고 안내한다("다시 보지 않기" 있음). 시군구·읍면동만 바꾸면 대화를 이어간다 | — |
-| 사용자 문구 | 요구사항 번호, T3Q, 시연, 샘플, 검증필요 같은 내부 용어를 화면에 내보내지 않는다. 응답 직전에 `lib/server/ux.ts`의 `uxClean`으로 정리한다 | — |
-| 대응절차 | **지자체 계정에만** 특보 바 아래 '대응 단계 바'를 모든 화면에 고정하고, 우측 패널에 닫을 수 없는 「대응절차」 탭을 둔다. 자기 지역 매뉴얼만 보이고 행안부·운영자 계정에서는 숨긴다. 체크리스트는 내 부서 기본 + [전체 부서 보기]. 특보 → 대응단계는 매뉴얼 근거 쪽을 밝힌 추천이며 사용자가 바꿀 수 있다. 위기경보 등급은 쓰지 않는다. 조치를 펼치면 행동카드 본문 전체(표·전파 표·표준문안 복사)가 보인다. 매뉴얼이 개정되면 담당자가 [수정]으로 직접 고친다 — 원문 추출본은 그대로, 수정본만 덧씌워 저장(`sa.sopEdits.{매뉴얼id}`, 시연은 브라우저 저장 + 내보내기/가져오기), 이력·되돌리기 | D35, D36, D19 |
-| Figma | 디자이너 작업본이다. **분석만 하고 원본은 절대 수정하지 않는다**. 참고 이미지는 저장소 이력에서 제거했다 | — |
-
-## 4. 코드 지도 (`app/src/`)
+## 3. 구조
+```
+브라우저 ── /api/agent/jobs (접수·lazy 폴링·취소) ── Neon sa_agent_jobs(raw=T3Q 원문) ── T3Q /agent/query ASYNC + /agent/query/{id}
+        ── /api/t3q/data · geometry · suggested · feedback · health ── T3Q Data API · EXT-01
+        ── /api/auth/* (scrypt·서명 쿠키 세션 30분) · /api/admin/* (운영자)
+        ── (보존) /api/sop · contacts · dispatch · conversations · checks · kv · trace · docs(MAN:) · weather(기상청 실시간)
+```
 | 파일 | 역할 |
 |---|---|
-| `lib/contract/agent.ts` | T3Q Agent API 계약: `QueryContext`(aiMode·refAdvisory·hydro·situationKind…), `AgentResponse`, `DetailResponse` |
-| `lib/server/agent/index.ts` | 의도 분류 라우터 (`classify`, 특보 참조용 `classifyAdvisory`) |
-| `lib/server/agent/core.ts` | `situation()` = 특보·강우·사건 판단 (AI 모드·참조 특보일 때만 특보 기준), `condSummary()` |
-| `lib/server/agent/composers.ts`, `composers2.ts` | 의도별 응답: 위험·유사사례·매뉴얼·하천·사건·브리핑 / 상황판단·통제·대피·복구·문자·보고·AI 점검 |
-| `lib/server/agent/advisory.ts` | 특보 참조 응답: 기준·격상·해제, 풍랑(해안), 산사태 |
-| `lib/server/agent/detail.ts` | 우측 상세(위험·사건·하천·119·침수흔적·재해대장) |
-| `lib/server/ux.ts` | 사용자 노출 문구 정리 |
-| `app/(main)/explore/page.tsx` | 대화 화면: 질의 컨텍스트 구성, 연속 질의, 새 대화 규칙 |
-| `components/explore/*` | 입력창·조건 모달(`Composer`), 시작 화면, 답변 카드, 우측 패널(지도↔상세 분할·보기 탭), AI 전광판, 질문 라이브러리 |
-| `components/map/MapView.tsx` | OpenLayers + VWorld, 주제도 지자체 필터(`layerRegion`), 경계 맞춤 |
-| `components/AppShell.tsx` | 헤더(녹색 기상특보 데이터 전환·기준지역·AI 모드), 특보 바(특보로 질문) |
-| `lib/session.tsx` | 계정·조건·AI 모드·참조 특보·대화 저장(localStorage) |
-| `lib/verify.ts`, `lib/server/verify.ts`, `app/api/verify`, `components/admin/VerifyTab.tsx` | 내부용 응답 정합성 검증 (3단 비교 로직 · 정답셋 실행 API · 화면). 정답셋 `app/data/seed/gold_set.json` |
-| `lib/help.ts`, `components/HelpCenter.tsx` | 온라인 도움말: 내용(항목·순서·예시 질문) / 전 화면 공통 버튼·서랍 (`app/layout.tsx`에 장착, `openHelp("verify")`로 특정 항목 열기) |
-| `lib/server/scenarios.ts`, `library.ts` | 조건 시나리오 13종, 추천 질문(CQ), 연속 질의 시연(특보 참조 흐름 포함) |
-| `lib/sop.ts`, `lib/sopState.tsx`, `lib/server/sop.ts`, `app/api/sop` | 행동매뉴얼 대응절차: 타입·특보 → 단계 추천(`recommendStep`)·진행 집계, 카드 본문 ↔ 편집 글(`blocksToText`·`textToBlocks`), 수정본 적용(`applyEdits`) / 단계 바·고정 탭 공용 상태(선택 단계·부서 범위·탭 열기 요청·수정본 저장) / 지역별 매뉴얼 API |
-| `components/sop/SopBar.tsx`, `SopPane.tsx`, `SopCardView.tsx`, `SopEdit.tsx` | 대응 단계 바(`AppShell`에서 특보 바 아래) / 우측 「대응절차」 고정 탭(`RightPanel`, 탐색 화면의 `SOP_TAB`) / 행동카드 본문 보기 / 담당자 수정 창(조치·카드·임무·부서·매뉴얼 정보·수정 이력·내보내기/가져오기) |
-| `../scripts/sop/build_sop.py`, `data/seed/sop_procedures.json` | 매뉴얼 PDF(`etc/`, git 제외) → 대응절차 데이터. 프로세스 표 칸(채움색)으로 부서 행·단계 열을 나누고 R1~R25로 임무·조치·세부행동 추출. 행동카드는 머리(주관·지원·협업·쪽)와 본문 전체(블록: 번호 제목·글머리·※·표 — pymupdf 표 감지로 합친 칸 유지, 전파 표·표준문안·필요자원 구조화)를 담고, 붙임 서식·연락처/성명 열·실명·전화번호는 뺀다. 짝: 코드+이름 → 코드+단계(부산 3·4단계는 표와 카드 번호가 달라 이름도 봄), 표에 없는 카드는 그 단계 끝에 붙임 |
+| `src/lib/t3q/schemas.ts` | T3Q 계약(zod) — 정본 |
+| `src/lib/t3q/client.ts` · `replay.ts` | 서버 전용 호출(새 X-Request-Id) · 재생(개발 전용, 운영 차단) |
+| `src/lib/server/jobs.ts` | 작업: 캐시 24h·진행 중 합류·동시성(계정 4/전체 8)·LOST 재제출·15분 상한·도형 선조회·추적로그 |
+| `src/lib/server/preview.ts` · `src/lib/library.ts` | 정의된 질문 ↔ Data API 자동 조회(R3) · 부산·인제·영천 질문 라이브러리 |
+| `src/lib/server/queryContext.ts` · `src/lib/t3q/region.ts` | 화면 조건 → T3Q query_context(입력한 값만) · 지역 코드 |
+| `src/lib/server/auth.ts` · `src/middleware.ts` | 로그인·세션·잠금 · 화면 보호 |
+| `src/lib/server/dbLocal.ts` | `DATABASE_URL=pglite:` 로컬 DB 어댑터(neon 꼴) |
+| `src/lib/session.tsx` | 세션·특보(60초)·T3Q 상태(30초)·질문 큐 폴링(3초→6초)·원응답 캐시 |
+| `src/app/(main)/explore/page.tsx` | 통합 탐색: 시작 화면·대화·브리핑 묶음(병렬)·이어서 묻기·지도 연결 |
+| `src/components/answer/*` | `Markdown`(무가공 렌더) · `AnswerCard` · `DataCard`(자동 조회 데이터) |
+| `src/components/queue/QueuePanel.tsx` | 좌측 질문 목록(진행·완료순) |
+| `src/components/explore/*` | `Composer`(조건 모달) · `StartScreen` · `LibraryDrawer` · `RightPanel` · `DetailPane` · `AiModeModal` |
+| `src/components/map/*` | VWorld 배경·행정경계 WMS · T3Q 도형 · 범례 · 근사 위치 표시 |
+| `src/components/AppShell.tsx` | 한 줄 헤더 · 특보 바 · 대응 단계 바 · 계정 모달 |
+| `src/app/(main)/admin` · `src/app/api/admin/*` | 질의 현황(원응답 JSON)·브리핑 예열·계정 잠금 해제·평가·추적로그 |
 
-## 5. 점검 (수정 후 반드시)
+## 4. 점검 (수정 후 반드시)
 ```bash
-cd app && npm run dev -- -p 3100
-node scripts/golden.mjs  http://localhost:3100        # 골든 22문항 (AI 모드 켜짐 기준)
-node scripts/wxref.mjs   http://localhost:3100        # 특보 참조 19문항
-node scripts/library.mjs http://localhost:3100 lib    # 추천 질문 (flow · check 도 각각)
-curl -s -X POST http://localhost:3100/api/verify -d '{}' -H 'content-type: application/json'   # 정답셋 180문항 3단 검증 (모두 ok 여야 함)
-npx tsc --noEmit                                       # .next/types TS6053 경고는 무시
-# 매뉴얼 PDF를 고쳤을 때만 (저장소 루트에서, pymupdf 필요)
-python -I -X utf8 scripts/sop/build_sop.py etc app/data/seed/sop_procedures.json [--dump <폴더>]
+cd app
+npx tsc --noEmit && npx eslint src harness --max-warnings=0
+npm test                                                       # 계약·무가공·작업 엔진·로그인/세션·한국어 표기(PGlite·재생, 실서버 안 부름)
+npm run dev -- -p 3100                                         # 로컬(PGlite)
+npm run harness:smoke -- http://localhost:3100 bs_safety01 BS-03
+npm run harness:shots -- http://localhost:3100                 # harness/reports/shots/*.png
+npm run harness:forcepw -- http://localhost:3100               # 초기 비밀번호 변경 강제(로컬 전용, 끝나면 원상 복구)
+npm run harness:cq -- --conc 3                                 # 역량질문 70문(실서버, 약 50분) → harness/reports/cq_*.md
+node harness/cq/run.mjs --set regional --conc 3                # 부산·인제·영천 51문
 ```
-배포 후에는 같은 스크립트를 `https://safetyai-three.vercel.app`로 다시 돌린다.
 
-## 6. 배포·운영 주의
-- **비공개 저장소 배포 조건:** 커밋 작성자가 GitHub 계정과 연결된 이메일이어야 한다. 이 저장소에는 `user.email = 183509977+jazzsalle@users.noreply.github.com`이 설정돼 있다. 배포가 **BLOCKED**("couldn't find a Git account for the commit author")이면 작성자 이메일부터 확인한다.
-- **Vercel 환경변수:** `NEXT_PUBLIC_VWORLD_KEY`, `KMA_SERVICE_KEY`(암호화 저장됨). 로컬은 `app/.env.local`(gitignore).
-- **VWorld 키:** 배포 도메인을 VWorld 콘솔에 등록해야 한다. 누락 시 OSM으로 폴백된다.
-- **Vercel CLI/API 토큰** 만료 시 `vercel login`.
+### 4-1. 실서버 시험 결과 (2026-10-28)
+| 시험 | 결과 |
+|---|---|
+| 역량질문 변형 70문 | 응답 70/70 · 정답 값 전부 포함 40 · 일부 22 · 미포함 1 · 서술형 7 · 중앙값 128초(최대 279초) — `app/harness/reports/cq_*.md` |
+| 부산·인제·영천 지역 질문 51문 | 응답 51/51 · 지도 대상 있는 답 34 · 중앙값 127초(최대 227초) — 시연 후보 `docs/renewal/design/09_demo_questions.md` |
+| 브리핑 4문항 병렬(화면) | 첫 답 약 2분, 4건 모두 174초 · AI 모드·운영관리 화면 정상 — `app/harness/reports/shots/` |
+| 자동 시험(`npm test`) | 692개 통과(10묶음) — 계약·무가공(녹화 답 전부 글자 일치, 한글 옆 굵게·`<br>` 포함)·작업 엔진 SQL·로그인/세션 SQL·정보 부족 이름·표시 형식·자료 조회 캐시·유사사례 카드·사건 상세·답변 카드·브리핑 현황판 |
+| 시각 설계 적용(R25 범위) | 2026-10-28 적용 — 에이전트 11개(기반·화면 4·통합·검토 3·고침), 검토 결함 18건 모두 고침. 적용 전후 화면 `app/harness/reports/shots/visual/{before,after}_*.png` |
+| 초기 비밀번호 변경 강제(화면) | 7/7 — 닫을 수 없는 창, 바꾸기 전 질의·연락망·T3Q 조회 403 |
+| 독립 검토(R23) | 확인 결함 37건 모두 수정 · 다시 점검(형식·린트 경고 0·시험) 통과 |
 
-## 7. 데이터 성격 (시연 시 설명할 것)
-- **훈련 시나리오:** `1001-20261002-01/02` 사건(10.2~3 호우). 특보·강우·119 신고 값은 가상이다. 헤더 녹색 전환으로 실시간(기상청 실제 특보)으로 바꿀 수 있다.
-- **T3Q 제공 가정 시드:** 과거 33개 사건의 강우, 하천기본계획(제방고·여유고·위험요인).
-- **119 신고:** 실제 표준 스키마에 가상 값을 넣었다. 건축물 지하공간은 예시 자료다.
-- **발주처 수신 원천:** `seed_data/`는 수정하지 않고 git에서도 제외했다.
+## 5. 배포 전 할 일 (승인 필요)
+1. Vercel 운영 환경변수(사용자가 실행 — 비밀값): `node scripts/deploy_setup.mjs` → `T3Q_BASE_URL`·`T3Q_CLIENT_TOKEN`(.env.local 값)·`SESSION_SECRET`·`SEED_SECRET`(새로 만듦) 등록 + 계정 5개 초기 비밀번호를 저장소 밖 `D:\vibecoding\safetyai\_secrets\seed.env` 에 저장. 크론은 쓰지 않는다(방치 작업은 질문 목록·운영 화면 조회 때 정리 — `CRON_SECRET` 불필요).
+2. 배포 후 계정 발급(사용자가 실행): `node --env-file=D:/vibecoding/safetyai/_secrets/seed.env scripts/seed_accounts.mjs` — 첫 로그인 때 비밀번호 변경이 강제된다(R24).
+3. 운영 DB 연락망은 2026-10-28 [샘플] 구성 예시로 **일괄 교체 완료**(R21, 백업 `D:\vibecoding\safetyai\_backups\`). 단, 배포 전까지 지금 떠 있는 이전 판 화면의 [예시 연락망으로 되돌리기]를 누르면 옛 가상 인명으로 돌아가므로 배포를 서두르거나 그 버튼을 쓰지 않게 안내.
+4. 운영 DB는 2026-10-28 **초기화**(R26 — 대화 이력 29·상황전파 이력 1·대응절차 실행이력 2·추적로그 19·감사 기록 7 삭제, 백업 없음, [샘플] 연락망만 남김). `db.ts` 의 `sa_conv_accounts` 만들기 문은 제거함 — 배포 직후 운영 DB 에서 `drop table sa_conv_accounts`(옛 판의 시연 대화 채움 표시 3행 — 배포 전에 지우면 떠 있는 옛 판이 시연 대화를 다시 채움), 그 사이 옛 판이 새로 채운 이전 형식 대화가 있으면 다시 지움. 새 열 `sa_agent_jobs.wx_seen`(답 완료 때의 발효 특보 — 「답변을 받은 뒤 특보 발표」 판단)은 첫 DB 사용 때 자동 추가.
+5. 배포 대상은 **기존과 같다** — GitHub `jazzsalle/SEFTYAI`, Vercel `safetyai-three.vercel.app`(사용자 확인 2026-10-28). 브이월드 키가 이 주소로 등록돼 있어 추가 등록 불필요(`VWORLD_DOMAIN` 기본값 = 이 주소, 기준지역 목록 `/api/regions` 가 서버에서 이 주소로 조회).
+6. 배포본 스모크: `npm run harness:smoke -- https://…`.
 
-## 7-1. 요구사항 ID 체계 (2026-10-04 개정)
-- 상세 기능 요구사항 정의서 v1.71 개정판(`seed_data/07. 사업수행/2. 요구사항 정의/3. 재난안전AI_시범서비스_상세 기능 요구사항 정의서_v1.71.xlsx`)은 **02_조회·연계구조(GR-01~21, 업무 흐름 순)** · **03_상세정보 제공항목(DQ-GG-NNN, GG = 그룹 번호)** 을 쓴다.
-- 이전 판(DP-01~16 · DQ-001~155)과 155개 묶음의 내용은 같고 ID만 바뀌었다. 대조표: `docs/deliverables/DQ_ID_대조표_v1.71(이전→개정).csv`. **T3Q 2차 검토회신표는 아직 이전 ID**를 쓴다.
-- `docs/analysis/00~03`(.md·.json)은 새 ID로 갱신됨.
-- 요구사항이 바뀌어 **개발(코드·분석 문서)을 고쳐야 하면 먼저 사용자 승인**을 받는다. 문서 작성은 바로 해도 된다.
-
-## 7-2. 산출물 (`docs/deliverables`)
-- `SafetyAI_02-03시트_화면_API요청_가이드_v3.pptx` — 02·03 시트가 시범서비스 화면 어디에 나오는지(번호 박스 주석) + 0917 T3Q-15 개정 샘플 JSON + 작성 규칙 + API↔그룹↔묶음 대응표. 생성 스크립트는 남기지 않았다(필요 시 재작성).
-- `DQ_ID_대조표_v1.71(이전→개정).csv`
-- 리스크: 0917 요청 목록에 **매뉴얼 프로세스(GR-17·18)·소방 신고(GR-08) API가 없음** → 신규 요청 필요. 유사도 요인 비교(DQ-04-003·004)는 필수 응답으로 T3Q-11 보강 필요.
-
-## 8. 남은 일 / 다음 후보
-- [ ] 사내 메신저 공지 (아래 부록 문안)
-- [ ] 개발자에게 02·03 시트 가이드(pptx) 공유 → T3Q-15 개정안부터 T3Q와 구조 합의
-- [ ] 우측 상세 표시 항목 ↔ 요구사항 v1.71 상세조회 항목(`docs/analysis/02_t3q_detail_items.md`) 전수 대조 — 아직 하지 않음
-- [x] 도움말 '문의' 항목 문의처 = 공간안전기술연구소 · st@unes.co.kr (`lib/help.ts`)
-- [ ] 화면 확정 후 도움말 문구 재점검 (필요하면 그림 추가)
-- [ ] 외부 공유 범위 결정 (사이트에 재해대장·상습침수 등 수신 데이터 요약 포함)
-- [x] Figma 참고 이미지 git 이력 제거·강제 푸시 완료. GitHub 캐시까지 완전히 지우려면 GitHub 지원 요청이 필요하다
-
-## 부록 — 사내 메신저 공지 문안
-
-**본문**
-> **[공유] 재난안전 AI 시범서비스 — 에이전트 응답 미리보기 (검토용)**
->
-> 화면설계 목업(9월 월간보고 시연본)을 기준으로, 앞으로 T3Q 에이전트가 답하게 될 모습을 미리 구현해 본 검토용 화면입니다.
-> 완성된 POC나 서비스가 아니라, **응답 형태와 API 요청 항목을 미리 점검해 리스크를 줄이기 위한 자료**입니다.
->
-> 🔗 https://safetyai-three.vercel.app (로그인 화면에서 계정을 고르면 바로 들어갑니다)
->
-> **봐 주셨으면 하는 것**
-> 1. 질문했을 때 에이전트 답변이 업무에 쓸 만한 형태인지
-> 2. 그 답을 만들려면 T3Q가 어떤 데이터·필드를 줘야 하는지, 지금 요청서에서 빠진 것은 없는지
-> 3. 목업과 다르거나 실제로 구현하기 어려워 보이는 부분
->
-> **써 보는 방법** — 질문 입력 · [AI 모드] 특보 기반 상황 점검 · [특보로 질문] 특보를 걸고 질문 · 상단 녹색 [훈련 시나리오 / 실시간(기상청)] 전환
->
-> **유의사항** — T3Q 미연동 상태의 가정 응답이며, 훈련 시나리오의 일부 값은 가상입니다. 발주처 수신 데이터가 들어 있으니 외부 공유는 자제 부탁드립니다.
-> 의견은 이 스레드에 남겨 주세요. 특히 "이런 답이 나오려면 T3Q에 이것도 요청해야 한다"는 의견이 가장 도움이 됩니다.
-
-**짧은 버전**
-> [검토용] 재난안전 AI 에이전트 응답 미리보기 — https://safetyai-three.vercel.app
-> 화면설계 목업 기준으로 T3Q 에이전트 응답을 미리 구현해 본 자료입니다(POC 아님). 답변 형태가 업무에 쓸 만한지, T3Q API 요청 항목에 빠진 것은 없는지 봐 주시고 의견 부탁드립니다. T3Q 미연동 가정 응답이며 일부 값은 가상, 외부 공유는 자제해 주세요.
+## 6. 남은 일
+- [ ] 도움말 내용 갱신(최종 개발 후 — 지시 9). `lib/help.ts` 에 삭제된 "응답 검증" 항목 남아 있음
+- [ ] T3Q 요청 목록 전달(`renewal/design/06_t3q_requests.md`) — 특히 멀티턴·작업 영구화·지역 질문 정답 계산
+- [ ] 2차(편의성): 자유 질문 규칙 분류 선표출(정밀도 확인 후 승인), 크론 예열, 표 정렬(승인 사항), 브라우저 알림, 세션 연장 안내
+- [x] 시각화(R20·R25) — 설계안 2판을 사용자 결정(R25 범위, `08_visual/design_spec.md` 맨 앞 「적용 범위」)대로 2026-10-28 적용. 한글 옆 굵게(G5)·`<br>` 줄바꿈 포함
+- [ ] **전국 기준지역**(사용자 지시 2026-10-28) — 지자체·중앙 모두 전국 시·도 → 시·군·구 → 읍·면·동을 고를 수 있게(데이터 조회 제한 없음). 목록은 브이월드 행정구역(`/api/regions`, `lib/server/vworldAdmin.ts` — 만들어 둠, 법정동 코드 = T3Q 체계). 특보 줄·AI 모드·대응절차·연락망은 계정 관할(지자체 = 자기 지역). 연결하면서 `public/data/regions.json`·`emd_index.json` 삭제. 세션 상태·통합 탐색 화면을 고쳐야 해서 시각화 적용 작업이 끝난 뒤 진행
+- [x] AI 모드 접힘 줄의 「특보 n건」 → 특보 이름(R25·R28), 시작 화면·AI 모드의 브리핑 설명 줄 삭제
+- [ ] 정합성 검증 방안 — 브레인스토밍 결과 `renewal/design/10_verification_brainstorm.md`(T3Q 직접 검증 + 유엔이 확인 혼합안 포함 예정)
+- [ ] 결정 필요: 사건 상세의 금액은 천 단위 쉼표(전부터), 건수·인원은 받은 그대로(쉼표 없음) — 통일할지
+- [ ] 운영 데이터 보존 정리(작업 원문 180일) 작업

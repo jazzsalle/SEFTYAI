@@ -1,0 +1,110 @@
+{
+  "id": "A-27-g",
+  "question": "2024년 서천군 주택 침수 피해를 지도에 법정동 단위로 찍어줘 — 피해가 많은 동 5곳과 각 동의 대표 위치(위경도).",
+  "request": {
+    "question": "2024년 서천군 주택 침수 피해를 지도에 법정동 단위로 찍어줘 — 피해가 많은 동 5곳과 각 동의 대표 위치(위경도).",
+    "question_source": "USER",
+    "query_context": {
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "region": {
+        "admin_code": "4477000000",
+        "name": "충청남도 서천군",
+        "level": "SIGUNGU"
+      },
+      "disaster_types": [
+        "호우"
+      ]
+    }
+  },
+  "final": {
+    "schema_version": "2.0",
+    "request_id": "837a801b17876ed60a347807951f7b2d",
+    "correlation_id": "corr-837a801b17876ed60a347807951f7b2d",
+    "status": "SUCCESS",
+    "conversation_id": "CONV-20261028-835b09",
+    "turn_no": 1,
+    "result": {
+      "response_id": "RES-20261028-899f33",
+      "question": "2024년 서천군 주택 침수 피해를 지도에 법정동 단위로 찍어줘 — 피해가 많은 동 5곳과 각 동의 대표 위치(위경도).",
+      "question_source": "USER",
+      "answer": "### 2024년 충청남도 서천군 주택 침수 피해 상위 5개 지역 및 대표 위치\n\n2024년 서천군에서 발생한 호우(7.8.~19. 및 9.19.~21.)로 인한 사유시설 복구확정 내역 중 **주택 침수 피해(침수주택수리비 지원 및 침수로 인한 주택 파손)** 건수가 가장 많은 상위 5개 법정 읍·면 및 각 지역의 공간 대표 위치(건축물 밀집 중심점 기준 위경도 WGS84)는 다음과 같습니다.\n\n---\n\n### 상위 5개 법정동(읍·면) 피해 현황 및 대표 좌표\n\n| 순위 | 행정구역명(법정동) | 법정동코드 | 주택 침수 건수 | 확정 피해금액(원) | 대표 위도 (Latitude) | 대표 경도 (Longitude) |\n|:---:|:---|:---:|:---:|:---:|:---:|:---:|\n| 1 | [장항읍](#ref:r1) | `4477025000` | 57건 | 153,000,000 | 36.012578° N | 126.695112° E |\n| 2 | [비인면](#ref:r2) | `4477040000` | 52건 | 174,000,000 | 36.138587° N | 126.604260° E |\n| 3 | [서천읍](#ref:r3) | `4477025300` | 51건 | 150,000,000 | 36.080521° N | 126.694961° E |\n| 4 | [종천면](#ref:r4) | `4477039000` | 26건 | 121,500,000 | 36.108381° N | 126.655359° E |\n| 5 | [마서면](#ref:r5) | `4477031000` | 24건 | 63,000,000 | 36.053226° N | 126.688354° E |\n\n> **참고**: 비인면의 경우 관할 법정리인 성내리(1건, 3,000,000원)를 포함할 경우 총 53건(1억 7,700만 원)입니다.\n\n---\n\n### 세부 분석 및 근거\n\n1. **피해 집계 기준**:\n   - **원천 데이터**: `disaster.private_damage`(복구확정 사유시설 피해 내역) 및 `disaster.named_disaster`(2024년 7.8.~19. 호우 및 9.19.~21. 호우 확정 대장).\n   - **추출 기준**: 피해 종류가 국토교통부 소관 **침수주택수리비**(`kind_id = 337`)이거나 원인이 **침수**인 주택 반파 피해(`kind_id = 334`).\n   - 서천군 전체 2024년 주택 침수 피해는 총 305건(약 8억 9,850만 원)이며, 상위 3개 읍·면([장항읍](#ref:r1), [비인면](#ref:r2), [서천읍](#ref:r3))에 전체 피해의 52.5%(160건)가 집중되었습니다.\n\n2. **대표 위치 산출 근거**:\n   - `gis.emd_center` 공간 좌표(건축물 분포의 공간 중앙값(Median Center) 기준 점, EPSG:5179 좌표계를 WGS84 EPSG:4326으로 변환).\n   - 관내 주택 및 건축물이 실제 밀집된 도심/취락 중심 위치를 정확히 반영합니다.\n\n---\n\n### 권장 후속 점검사항\n\n1. **상습 침수 구역 정비**: [장항읍](#ref:r1) 저지대 및 [서천읍](#ref:r3) 구도심 취락지의 배수펌프 용량 및 우수관로 통수단면 점검.\n2. **소하천 인접 취락 사전 대피체계**: [비인면](#ref:r2) 및 [종천면](#ref:r4) 일대 소하천 범람 우려 구역의 주택 침수 방지시설(물막이판, 역류방지밸브) 전수 점검.",
+      "answer_format": "MARKDOWN",
+      "entities": [],
+      "result_groups": [],
+      "evidence_refs": [],
+      "follow_up_questions": [],
+      "refs": [
+        {
+          "ref": "r1",
+          "entity_type": "REGION",
+          "display_name": "장항읍",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477025000",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r2",
+          "entity_type": "REGION",
+          "display_name": "비인면",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477040000",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r3",
+          "entity_type": "REGION",
+          "display_name": "서천읍",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477025300",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r4",
+          "entity_type": "REGION",
+          "display_name": "종천면",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477039000",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r5",
+          "entity_type": "REGION",
+          "display_name": "마서면",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477031000",
+            "draw": "pin"
+          }
+        }
+      ],
+      "conversation_title": null,
+      "limitations": [
+        "유사사례는 예측·위험판단이 아닌 참고 정보"
+      ],
+      "context_used": {
+        "used_conditions": [],
+        "unused_conditions": [],
+        "reference_used": false
+      }
+    },
+    "data_gaps": [],
+    "warnings": [],
+    "meta": {
+      "source": "T3Q",
+      "base_time": "2026-10-28T01:46:08+09:00",
+      "quality_status": "VERIFIED",
+      "disclosure_level": "공개",
+      "elapsed_ms": 176044
+    }
+  },
+  "waitedMs": 176435,
+  "timeout": false
+}

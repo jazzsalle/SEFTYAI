@@ -1,0 +1,1080 @@
+{
+  "id": "A-05-v1",
+  "question": "2024년 7월 호우 때 서천군 침수흔적을 지도에 띄워줘. 법정동별 건수와 침수면적 합도.",
+  "request": {
+    "question": "2024년 7월 호우 때 서천군 침수흔적을 지도에 띄워줘. 법정동별 건수와 침수면적 합도.",
+    "question_source": "USER",
+    "query_context": {
+      "reference_time": "2024-07-10T09:00:00+09:00",
+      "region": {
+        "admin_code": "4477000000",
+        "name": "충청남도 서천군",
+        "level": "SIGUNGU"
+      },
+      "disaster_types": [
+        "호우"
+      ]
+    }
+  },
+  "final": {
+    "schema_version": "2.0",
+    "request_id": "48721e5e56a4e29d62e8a45b5b14ac34",
+    "correlation_id": "corr-48721e5e56a4e29d62e8a45b5b14ac34",
+    "status": "SUCCESS",
+    "conversation_id": "CONV-20261028-28f594",
+    "turn_no": 1,
+    "result": {
+      "response_id": "RES-20261028-1300da",
+      "question": "2024년 7월 호우 때 서천군 침수흔적을 지도에 띄워줘. 법정동별 건수와 침수면적 합도.",
+      "question_source": "USER",
+      "answer": "### 결론\n\n2024년 7월 집중호우 당시 **충청남도 서천군** 관내 침수흔적은 **총 102개 법정동(리)**에서 **353건**, 총 침수면적 **172,605.0 ㎡**(약 17.26 ha)로 집계되었습니다.\n\n- **최대 피해 지역**: **비인면**(73건, 39,247.0 ㎡), **장항읍**(56건, 17,097.0 ㎡), **서면**(45건, 22,741.0 ㎡), **서천읍**(31건, 11,395.0 ㎡) 순으로 침수가 집중되었습니다.\n- **단일 리 기준 최대**: **비인면 성내리**(43건, 22,045.0 ㎡), **장항읍 신창리**(23건, 4,687.0 ㎡), **서면 도둔리**(19건, 9,145.0 ㎡), **한산면 지현리**(11건, 3,926.0 ㎡) 순입니다.\n- 아래 표의 각 법정동 명칭을 누르면 해당 침수흔적 구역이 지도 화면에 연계되어 표시됩니다.\n\n---\n\n### 1. 읍·면별 총괄 침수 현황\n\n| 읍·면명 | 침수 법정동(리) 수 | 침수흔적 건수 | 총 침수면적 (㎡) | 비고 |\n|:---|:---:|:---:|---:|:---|\n| **비인면** | 11 | 73 | 39,247.0 | 관내 최다 발생 및 최대 면적 |\n| **장항읍** | 8 | 56 | 17,097.0 | 시가지 상가·주택 집중 침수 |\n| **서면** | 7 | 45 | 22,741.0 | 해안가 저지대 및 도둔리 등 |\n| **서천읍** | 9 | 31 | 11,395.0 | 사곡리·군사리 중심 |\n| **종천면** | 8 | 26 | 15,301.0 | 종천리·랑평리 일대 |\n| **마서면** | 12 | 24 | 11,608.0 | 송석리·월포리 등 12개 리 분산 |\n| **한산면** | 6 | 22 | 9,431.0 | 지현리·동지리 일대 |\n| **판교면** | 9 | 18 | 14,850.0 | 상좌리·현암리 일대 |\n| **문산면** | 5 | 15 | 6,552.0 | 신농리·문장리 일대 |\n| **마산면** | 9 | 15 | 5,637.0 | 소야리·이사리 일대 |\n| **기산면** | 8 | 14 | 5,992.0 | 산정리·두남리 일대 |\n| **화양면** | 6 | 8 | 2,623.0 | 금당리·대등리 일대 |\n| **시초면** | 4 | 6 | 10,131.0 | 초현리 일대 대면적 침수 |\n| **합계** | **102** | **353** | **172,605.0** | |\n\n---\n\n### 2. 법정동(리)별 침수흔적 상세 목록 (지도 연계)\n\n> 각 지역명을 클릭하면 지도 화면에서 해당 침수흔적 공간 범위로 바로 이동합니다.\n\n| 연계 지도 | 법정동명 | 침수 건수 | 침수면적 합계 (㎡) |\n|:---:|:---|:---:|---:|\n| 📍 | [충청남도 서천군 비인면 성내리](#ref:r1) | 43 | 22,045.0 |\n| 📍 | [충청남도 서천군 장항읍 신창리](#ref:r2) | 23 | 4,687.0 |\n| 📍 | [충청남도 서천군 서면 도둔리](#ref:r3) | 19 | 9,145.0 |\n| 📍 | [충청남도 서천군 한산면 지현리](#ref:r4) | 11 | 3,926.0 |\n| 📍 | [충청남도 서천군 장항읍 성주리](#ref:r5) | 10 | 2,981.0 |\n| 📍 | [충청남도 서천군 서천읍 사곡리](#ref:r6) | 9 | 3,539.0 |\n| 📍 | [충청남도 서천군 문산면 신농리](#ref:r7) | 9 | 3,335.0 |\n| 📍 | [충청남도 서천군 종천면 종천리](#ref:r8) | 9 | 3,332.0 |\n| 📍 | [충청남도 서천군 서천읍 군사리](#ref:r9) | 9 | 2,097.0 |\n| 📍 | [충청남도 서천군 장항읍 창선2리](#ref:r10) | 9 | 1,559.0 |\n| 📍 | [충청남도 서천군 종천면 랑평리](#ref:r11) | 7 | 4,593.0 |\n| 📍 | [충청남도 서천군 서면 마량리](#ref:r12) | 7 | 3,641.0 |\n| 📍 | [충청남도 서천군 마서면 송석리](#ref:r13) | 7 | 3,465.0 |\n| 📍 | [충청남도 서천군 서면 부사리](#ref:r14) | 7 | 3,374.0 |\n| 📍 | [충청남도 서천군 장항읍 원수리](#ref:r15) | 7 | 1,988.0 |\n| 📍 | [충청남도 서천군 비인면 칠지리](#ref:r16) | 6 | 2,937.0 |\n| 📍 | [충청남도 서천군 판교면 현암리](#ref:r17) | 5 | 2,754.0 |\n| 📍 | [충청남도 서천군 한산면 동지리](#ref:r18) | 5 | 2,540.0 |\n| 📍 | [충청남도 서천군 비인면 관리](#ref:r19) | 5 | 2,163.0 |\n| 📍 | [충청남도 서천군 비인면 선도리](#ref:r20) | 5 | 2,154.0 |\n| 📍 | [충청남도 서천군 서면 신합리](#ref:r21) | 4 | 3,479.0 |\n| 📍 | [충청남도 서천군 서면 월리](#ref:r22) | 4 | 2,263.0 |\n| 📍 | [충청남도 서천군 기산면 산정리](#ref:r23) | 4 | 1,815.0 |\n| 📍 | [충청남도 서천군 서천읍 화금리](#ref:r24) | 4 | 1,484.0 |\n| 📍 | [충청남도 서천군 마산면 소야리](#ref:r25) | 4 | 1,237.0 |\n| 📍 | [충청남도 서천군 시초면 초현리](#ref:r26) | 3 | 8,865.0 |\n| 📍 | [충청남도 서천군 판교면 상좌리](#ref:r27) | 3 | 5,120.0 |\n| 📍 | [충청남도 서천군 비인면 율리](#ref:r28) | 3 | 4,077.0 |\n| 📍 | [충청남도 서천군 비인면 다사리](#ref:r29) | 3 | 1,787.0 |\n| 📍 | [충청남도 서천군 비인면 구복리](#ref:r30) | 3 | 1,405.0 |\n| 📍 | [충청남도 서천군 화양면 금당리](#ref:r31) | 3 | 1,236.0 |\n| 📍 | [충청남도 서천군 마서면 도삼리](#ref:r32) | 3 | 1,037.0 |\n| 📍 | [충청남도 서천군 마산면 이사리](#ref:r33) | 3 | 953.0 |\n| 📍 | [충청남도 서천군 서천읍 두왕리](#ref:r34) | 3 | 511.0 |\n| 📍 | [충청남도 서천군 장항읍 송림리](#ref:r35) | 2 | 3,807.0 |\n| 📍 | [충청남도 서천군 종천면 당정리](#ref:r36) | 2 | 1,982.0 |\n| 📍 | [충청남도 서천군 마서면 월포리](#ref:r37) | 2 | 1,853.0 |\n| 📍 | [충청남도 서천군 한산면 원산리](#ref:r38) | 2 | 1,680.0 |\n| 📍 | [충청남도 서천군 판교면 판교리](#ref:r39) | 2 | 1,524.0 |\n| 📍 | [충청남도 서천군 판교면 금덕리](#ref:r40) | 2 | 1,504.0 |\n| 📍 | [충청남도 서천군 문산면 문장리](#ref:r41) | 2 | 1,442.0 |\n| 📍 | [충청남도 서천군 종천면 지석리](#ref:r42) | 2 | 1,398.0 |\n| 📍 | [충청남도 서천군 기산면 두남리](#ref:r43) | 2 | 1,274.0 |\n| 📍 | [충청남도 서천군 마서면 한성리](#ref:r44) | 2 | 1,272.0 |\n| 📍 | [충청남도 서천군 마서면 남전리](#ref:r45) | 2 | 1,238.0 |\n| 📍 | [충청남도 서천군 마산면 지산리](#ref:r46) | 2 | 981.0 |\n| 📍 | [충청남도 서천군 비인면 남당리](#ref:r47) | 2 | 976.0 |\n| 📍 | [충청남도 서천군 장항읍 옥산리](#ref:r48) | 2 | 964.0 |\n| 📍 | [충청남도 서천군 종천면 신검리](#ref:r49) | 2 | 938.0 |\n| 📍 | [충청남도 서천군 판교면 우라리](#ref:r50) | 2 | 922.0 |\n| 📍 | [충청남도 서천군 한산면 호암리](#ref:r51) | 2 | 895.0 |\n| 📍 | [충청남도 서천군 종천면 산천리](#ref:r52) | 2 | 711.0 |\n| 📍 | [충청남도 서천군 서천읍 삼산리](#ref:r53) | 2 | 684.0 |\n| 📍 | [충청남도 서천군 문산면 은곡리](#ref:r54) | 2 | 638.0 |\n| 📍 | [충청남도 서천군 마서면 당선리](#ref:r55) | 2 | 539.0 |\n| 📍 | [충청남도 서천군 기산면 월기리](#ref:r56) | 2 | 506.0 |\n| 📍 | [충청남도 서천군 장항읍 창선1리](#ref:r57) | 2 | 493.0 |\n| 📍 | [충청남도 서천군 서면 월호리](#ref:r58) | 2 | 430.0 |\n| 📍 | [충청남도 서천군 서면 주항리](#ref:r59) | 2 | 409.0 |\n| 📍 | [충청남도 서천군 기산면 광암리](#ref:r60) | 2 | 264.0 |\n| 📍 | [충청남도 서천군 서천읍 오석리](#ref:r61) | 1 | 1,960.0 |\n| 📍 | [충청남도 서천군 종천면 석촌리](#ref:r62) | 1 | 1,656.0 |\n| 📍 | [충청남도 서천군 판교면 저산리](#ref:r63) | 1 | 945.0 |\n| 📍 | [충청남도 서천군 판교면 등고리](#ref:r64) | 1 | 917.0 |\n| 📍 | [충청남도 서천군 비인면 성산리](#ref:r65) | 1 | 758.0 |\n| 📍 | [충청남도 서천군 종천면 장구리](#ref:r66) | 1 | 691.0 |\n| 📍 | [충청남도 서천군 비인면 성북리](#ref:r67) | 1 | 681.0 |\n| 📍 | [충청남도 서천군 문산면 수암리](#ref:r68) | 1 | 674.0 |\n| 📍 | [충청남도 서천군 판교면 심동리](#ref:r69) | 1 | 668.0 |\n| 📍 | [충청남도 서천군 기산면 영모리](#ref:r70) | 1 | 657.0 |\n| 📍 | [충청남도 서천군 마산면 마명리](#ref:r71) | 1 | 650.0 |\n| 📍 | [충청남도 서천군 마서면 계동리](#ref:r72) | 1 | 643.0 |\n| 📍 | [충청남도 서천군 기산면 원길리](#ref:r73) | 1 | 630.0 |\n| 📍 | [충청남도 서천군 장항읍 화천리](#ref:r74) | 1 | 618.0 |\n| 📍 | [충청남도 서천군 마산면 신장리](#ref:r75) | 1 | 594.0 |\n| 📍 | [충청남도 서천군 기산면 화산리](#ref:r76) | 1 | 547.0 |\n| 📍 | [충청남도 서천군 마산면 가양리](#ref:r77) | 1 | 536.0 |\n| 📍 | [충청남도 서천군 서천읍 신송리](#ref:r78) | 1 | 496.0 |\n| 📍 | [충청남도 서천군 판교면 복대리](#ref:r79) | 1 | 496.0 |\n| 📍 | [충청남도 서천군 시초면 용곡리](#ref:r80) | 1 | 489.0 |\n| 📍 | [충청남도 서천군 문산면 금복리](#ref:r81) | 1 | 463.0 |\n| 📍 | [충청남도 서천군 시초면 태성리](#ref:r82) | 1 | 463.0 |\n| 📍 | [충청남도 서천군 마서면 장선리](#ref:r83) | 1 | 454.0 |\n| 📍 | [충청남도 서천군 마서면 죽산리](#ref:r84) | 1 | 444.0 |\n| 📍 | [충청남도 서천군 마서면 신포리](#ref:r85) | 1 | 397.0 |\n| 📍 | [충청남도 서천군 화양면 대등리](#ref:r86) | 1 | 357.0 |\n| 📍 | [충청남도 서천군 서천읍 태월리](#ref:r87) | 1 | 347.0 |\n| 📍 | [충청남도 서천군 시초면 선암리](#ref:r88) | 1 | 314.0 |\n| 📍 | [충청남도 서천군 기산면 황사리](#ref:r89) | 1 | 299.0 |\n| 📍 | [충청남도 서천군 화양면 활동리](#ref:r90) | 1 | 296.0 |\n| 📍 | [충청남도 서천군 한산면 송곡리](#ref:r91) | 1 | 281.0 |\n| 📍 | [충청남도 서천군 서천읍 동산리](#ref:r92) | 1 | 277.0 |\n| 📍 | [충청남도 서천군 화양면 장상리](#ref:r93) | 1 | 271.0 |\n| 📍 | [충청남도 서천군 마산면 군간리](#ref:r94) | 1 | 271.0 |\n| 📍 | [충청남도 서천군 비인면 장포리](#ref:r95) | 1 | 264.0 |\n| 📍 | [충청남도 서천군 마산면 안당리](#ref:r96) | 1 | 241.0 |\n| 📍 | [충청남도 서천군 화양면 기복리](#ref:r97) | 1 | 238.0 |\n| 📍 | [충청남도 서천군 화양면 추동리](#ref:r98) | 1 | 225.0 |\n| 📍 | [충청남도 서천군 마서면 옥북리](#ref:r99) | 1 | 208.0 |\n| 📍 | [충청남도 서천군 마산면 신봉리](#ref:r100) | 1 | 174.0 |\n| 📍 | [충청남도 서천군 한산면 성외리](#ref:r101) | 1 | 109.0 |\n| 📍 | [충청남도 서천군 마서면 덕암리](#ref:r102) | 1 | 58.0 |\n\n---\n\n### 3. 침수 주요 특성 및 원인 분석\n\n1. **주요 침수 원인**:\n   - **배후지 토사 및 우수 유입**(74건, 45,756 ㎡): 야산 및 농경지 배후 사면에서 빗물과 토사가 단시간에 주택가·농경지로 쏟아져 들어온 복합 침수 형태가 가장 큰 면적을 차지했습니다.\n   - **방재시설 용량 부족 및 저지대**(62건, 25,488 ㎡): 시가지 배수펌프장·우수관로 통수단면 부족과 지형적 저지대 조건이 겹쳐 장항읍(신창리·성주리)과 서천읍(사곡리·군사리) 시가지에 집중 발생했습니다.\n   - **도로 노면수 유입**(51건, 22,005 ㎡): 도로면을 따라 모인 빗물이 배수되지 못하고 인근 주택 및 농경지로 월류·유입되었습니다.\n   - **하천 월류 및 조위 영향**(8건, 4,042 ㎡): 금강 및 서해 만조위와 겹쳐 배수가 차단되거나 길산천 등 소하천 외수위 상승으로 인한 월류가 발생했습니다.\n\n2. **재난 관리자 우선 조치 사항**:\n   - **비인면(성내리·칠지리·율리)**: 배후 야산 사면 토사유출 방지시설(사방댐, 침사지) 점검 및 마을 배수로 퇴적물 준설.\n   - **장항읍(신창리·성주리) 및 서천읍(사곡리·군사리)**: 시가지 저지대 빗물받이 막힘 제거, 간이 양수기 전진 배치 및 우수관로 통수 능력 점검.\n   - **서면(도둔리·마량리) 및 마서면(송석리)**: 해안가 조위 상승 시 해수 역류 방지 수문 작동 상태 및 저지대 주택 진입 차단선 확보.",
+      "answer_format": "MARKDOWN",
+      "entities": [],
+      "result_groups": [],
+      "evidence_refs": [],
+      "follow_up_questions": [],
+      "refs": [
+        {
+          "ref": "r1",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 비인면 성내리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477040021",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r2",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 장항읍 신창리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477025024",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r3",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 서면 도둔리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477041028",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r4",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 한산면 지현리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477034021",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r5",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 장항읍 성주리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477025023",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r6",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 서천읍 사곡리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477025322",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r7",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 문산면 신농리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477037021",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r8",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 종천면 종천리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477039023",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r9",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 서천읍 군사리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477025321",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r10",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 장항읍 창선2리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477025022",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r11",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 종천면 랑평리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477039022",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r12",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 서면 마량리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477041022",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r13",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 마서면 송석리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477031025",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r14",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 서면 부사리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477041024",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r15",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 장항읍 원수리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477025030",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r16",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 비인면 칠지리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477040024",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r17",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 판교면 현암리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477038029",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r18",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 한산면 동지리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477034033",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r19",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 비인면 관리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477040029",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r20",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 비인면 선도리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477040023",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r21",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 서면 신합리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477041026",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r22",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 서면 월리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477041023",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r23",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 기산면 산정리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477033027",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r24",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 서천읍 화금리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477025330",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r25",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 마산면 소야리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477035022",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r26",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 시초면 초현리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477036021",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r27",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 판교면 상좌리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477038024",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r28",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 비인면 율리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477040027",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r29",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 비인면 다사리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477040030",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r30",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 비인면 구복리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477040025",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r31",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 화양면 금당리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477032034",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r32",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 마서면 도삼리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477031033",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r33",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 마산면 이사리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477035034",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r34",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 서천읍 두왕리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477025332",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r35",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 장항읍 송림리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477025027",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r36",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 종천면 당정리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477039024",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r37",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 마서면 월포리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477031027",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r38",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 한산면 원산리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477034030",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r39",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 판교면 판교리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477038021",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r40",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 판교면 금덕리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477038035",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r41",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 문산면 문장리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477037022",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r42",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 종천면 지석리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477039030",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r43",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 기산면 두남리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477033024",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r44",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 마서면 한성리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477031024",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r45",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 마서면 남전리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477031028",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r46",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 마산면 지산리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477035024",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r47",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 비인면 남당리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477040026",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r48",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 장항읍 옥산리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477025029",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r49",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 종천면 신검리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477039021",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r50",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 판교면 우라리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477038025",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r51",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 한산면 호암리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477034024",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r52",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 종천면 산천리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477039027",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r53",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 서천읍 삼산리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477025328",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r54",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 문산면 은곡리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477037028",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r55",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 마서면 당선리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477031036",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r56",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 기산면 월기리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477033029",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r57",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 장항읍 창선1리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477025021",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r58",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 서면 월호리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477041027",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r59",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 서면 주항리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477041029",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r60",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 기산면 광암리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477033032",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r61",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 서천읍 오석리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477025323",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r62",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 종천면 석촌리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477039029",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r63",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 판교면 저산리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477038030",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r64",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 판교면 등고리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477038034",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r65",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 비인면 성산리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477040028",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r66",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 종천면 장구리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477039025",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r67",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 비인면 성북리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477040022",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r68",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 문산면 수암리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477037025",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r69",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 판교면 심동리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477038023",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r70",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 기산면 영모리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477033031",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r71",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 마산면 마명리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477035033",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r72",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 마서면 계동리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477031021",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r73",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 기산면 원길리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477033026",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r74",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 장항읍 화천리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477025026",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r75",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 마산면 신장리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477035023",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r76",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 기산면 화산리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477033021",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r77",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 마산면 가양리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477035025",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r78",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 서천읍 신송리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477025329",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r79",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 판교면 복대리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477038032",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r80",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 시초면 용곡리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477036025",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r81",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 문산면 금복리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477037024",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r82",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 시초면 태성리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477036027",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r83",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 마서면 장선리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477031032",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r84",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 마서면 죽산리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477031026",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r85",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 마서면 신포리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477031034",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r86",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 화양면 대등리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477032029",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r87",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 서천읍 태월리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477025325",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r88",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 시초면 선암리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477036023",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r89",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 기산면 황사리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477033033",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r90",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 화양면 활동리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477032030",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r91",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 한산면 송곡리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477034027",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r92",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 서천읍 동산리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477025327",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r93",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 화양면 장상리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477032037",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r94",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 마산면 군간리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477035030",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r95",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 비인면 장포리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477040031",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r96",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 마산면 안당리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477035021",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r97",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 화양면 기복리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477032032",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r98",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 화양면 추동리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477032033",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r99",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 마서면 옥북리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477031029",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r100",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 마산면 신봉리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477035028",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r101",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 한산면 성외리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477034023",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r102",
+          "entity_type": "REGION",
+          "display_name": "충청남도 서천군 마서면 덕암리",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "4477031030",
+            "draw": "pin"
+          }
+        }
+      ],
+      "conversation_title": null,
+      "limitations": [
+        "유사사례는 예측·위험판단이 아닌 참고 정보"
+      ],
+      "context_used": {
+        "used_conditions": [],
+        "unused_conditions": [],
+        "reference_used": false
+      }
+    },
+    "data_gaps": [],
+    "warnings": [],
+    "meta": {
+      "source": "T3Q",
+      "base_time": "2026-10-28T01:36:07+09:00",
+      "quality_status": "VERIFIED",
+      "disclosure_level": "공개",
+      "elapsed_ms": 185991
+    }
+  },
+  "waitedMs": 188864,
+  "timeout": false
+}

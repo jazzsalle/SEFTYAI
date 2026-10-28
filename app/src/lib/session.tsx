@@ -1,59 +1,81 @@
 "use client";
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import type { Advisory, AgentResponse, QueryContext, RegionId, WeatherMode, WeatherResponse, DisasterType } from "./contract/agent";
-import { api } from "./api";
-import { ACCOUNTS, type Account } from "./config";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import type { Advisory, DisasterType, RegionId, WeatherResponse } from "./contract/agent";
+import { api, ApiError } from "./api";
+import type { Account } from "./config";
+import { isActive, type JobFull, type JobSource, type JobSummary } from "./jobTypes";
 
 /** 지난 상황으로 보관할 때 함께 보내는 화면 정보 (조치 이름·단계 — 누가·언제는 서버 값) */
 export interface CheckArchiveMeta { title?: string; note?: string; labels?: Record<string, { label: string; step: string }> }
 export interface CheckHistory { id: string; title: string; note: string; startedAt: string | null; endedAt: string; by: string; items: { key: string; label: string; step: string; by: string; at: string }[] }
 
+/** 대화의 한 턴 — 답은 작업(jobId)의 T3Q 원응답에서 읽는다(중복 저장 없음, DB 설계 §3) */
 export interface Turn {
   id: string;
-  q: string;
-  at: string;
-  presetKey?: string;
-  /** 이 질문에 참조로 건 특보 (말풍선 위 표시) */
-  refAdv?: { type: string; level: string; area: string; issuedAt: string };
-  res?: AgentResponse;
-  /** 보낸 질의 원본 (내부용 정합성 검증 ① : 받은 질의 echo 와 대조) */
-  req?: { question: string; presetKey?: string; context: QueryContext };
+  /** 접수 전(보내는 중)·접수 실패면 빈 문자열 */
+  jobId: string;
+  /** 보내는 중(접수 응답 대기) */
   pending?: boolean;
-  failed?: string;
+  /** 접수 실패 문구 — 같은 내용으로 다시 보낼 수 있게 args 를 함께 둔다 */
+  error?: string;
+  args?: Omit<SubmitArgs, "convId" | "turnNo">;
+  q: string;
+  source: JobSource;
+  libraryId?: string | null;
+  at: string;
+  /** 브리핑 세트로 함께 보낸 묶음 */
+  group?: { id: string; no: number; total: number; title: string };
+  refAdv?: { type: string; level: string; area: string; issuedAt: string };
 }
 export interface Conversation {
   id: string;
   title: string;
   region: RegionId;
-  disasterType?: DisasterType;
+  /** 대화를 시작할 때의 재난유형 조건(대화 이력 표시·필터, UFR-006-001-06) */
+  disasterType?: string;
   createdAt: string;
   updatedAt: string;
   turns: Turn[];
-  refEntity?: QueryContext["refEntity"];
+  v?: 2;
 }
 
+/** 재난상황 조건 — 사용자가 고르거나 입력한 값만 (R6) */
 export interface Cond {
   region: RegionId;
   sigungu?: string;
+  sigunguName?: string;
   emd?: string;
-  /** 선택하지 않을 수 있음 (조건 없는 일반 질의) */
+  emdName?: string;
   disasterType?: DisasterType;
-  baseTime?: string; // 비우면 특보/시나리오 기준
-  endTime?: string;
-  hydro?: QueryContext["hydro"];
+  referenceTime?: string;
+  periodFrom?: string;
+  periodTo?: string;
+  warningKind?: string;
+  warningLevel?: string;
   keywords?: string[];
-  situationKind?: QueryContext["situationKind"];
-  scenarioId?: string;
-  scenarioTitle?: string;
+  conditions?: { item: string; label?: string; value: number; unit?: string }[];
+}
+
+export interface SubmitArgs {
+  question: string;
+  source: JobSource;
+  libraryId?: string | null;
+  convId?: string | null;
+  turnNo?: number;
+  warnings?: Record<string, unknown> | null;
+  briefing?: Record<string, unknown> | null;
+  quickQueryId?: string | null;
+  aiMode?: Record<string, unknown> | null;
+  followUp?: { jobId: string; refs?: { display_name?: string | null; entity_type?: string | null }[] } | null;
+  noCache?: boolean;
 }
 
 interface SessionState {
   ready: boolean;
   account: Account | null;
-  login: (id: string) => void;
-  logout: () => void;
-  mode: WeatherMode;
-  setMode: (m: WeatherMode) => void;
+  login: (id: string, password: string) => Promise<void>;
+  logout: () => Promise<void>;
+  sessionExpired: boolean;
   cond: Cond;
   setCond: (c: Partial<Cond>) => void;
   weather: WeatherResponse | null;
@@ -61,20 +83,27 @@ interface SessionState {
   convs: Conversation[];
   saveConv: (c: Conversation) => void;
   deleteConvs: (ids: string[]) => void;
-  /** 대응절차·답변 체크 — 기관 공용(서버 D39), 운영자는 개인 */
   checks: Record<string, boolean>;
-  /** 체크한 사람·시각 */
   checkInfo: Record<string, { by: string; at: string }>;
   toggleCheck: (k: string) => void;
-  /** 새 상황으로 시작 — 기관 체크를 지난 상황으로 보관하고 비움 (prefix 를 주면 그 매뉴얼 것만) */
   resetChecks: (prefix?: string, meta?: CheckArchiveMeta) => Promise<number>;
   toast: (m: string) => void;
   toastMsg: string | null;
   aimOn: boolean;
   setAimOn: (v: boolean) => void;
-  /** [특보로 질문] 참조 특보 — 해제(×)하기 전까지 이후 질문에 함께 전달 */
   wxRef: Advisory | null;
   setWxRef: (a: Advisory | null) => void;
+  /** 질문 큐 (R2) */
+  jobs: Record<string, JobSummary>;
+  jobOrder: string[];
+  medianMs: number | null;
+  submit: (a: SubmitArgs) => Promise<JobSummary>;
+  cancel: (jobId: string) => Promise<void>;
+  /** 완료 작업의 원응답(raw·preview·geo) — 한 번 받으면 기억 */
+  full: Record<string, JobFull>;
+  loadFull: (jobId: string) => Promise<JobFull | null>;
+  watch: (jobId: string) => void;
+  t3qOk: boolean | null;
 }
 
 const Ctx = createContext<SessionState | null>(null);
@@ -91,7 +120,7 @@ const LS = {
     try {
       localStorage.setItem(k, JSON.stringify(v));
     } catch {
-      /* 저장 불가 환경(시크릿 등)에서도 화면은 동작 */
+      /* 저장 불가 환경에서도 화면은 동작 */
     }
   },
 };
@@ -99,7 +128,7 @@ const LS = {
 export function SessionProvider({ children }: { children: React.ReactNode }) {
   const [ready, setReady] = useState(false);
   const [account, setAccount] = useState<Account | null>(null);
-  const [mode, setModeS] = useState<WeatherMode>("scenario");
+  const [sessionExpired, setExpired] = useState(false);
   const [cond, setCondS] = useState<Cond>({ region: "national" });
   const [weather, setWeather] = useState<WeatherResponse | null>(null);
   const [convs, setConvs] = useState<Conversation[]>([]);
@@ -109,130 +138,118 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   const [wxTick, setWxTick] = useState(0);
   const [aimOn, setAimOnS] = useState(false);
   const [wxRef, setWxRef] = useState<Advisory | null>(null);
+  const [jobs, setJobs] = useState<Record<string, JobSummary>>({});
+  const [jobOrder, setJobOrder] = useState<string[]>([]);
+  const [medianMs, setMedian] = useState<number | null>(null);
+  const [full, setFull] = useState<Record<string, JobFull>>({});
+  const [t3qOk, setT3qOk] = useState<boolean | null>(null);
+  const jobsRef = useRef(jobs);
+  jobsRef.current = jobs;
+
+  const toast = useCallback((m: string) => {
+    setToast(m);
+    window.setTimeout(() => setToast(null), 2600);
+  }, []);
+
   const setAimOn = useCallback((v: boolean) => {
     LS.set("sa.aim", v);
     setAimOnS(v);
-    if (v) setWxRef(null); // AI 모드 중에는 [특보로 질문] 불가 (현재 특보가 자동 전달되므로 혼선 방지)
+    if (v) setWxRef(null);
   }, []);
 
+  // 세션 확인 — 쿠키 세션(서버)이 정본
   useEffect(() => {
-    const id = LS.get<string | null>("sa.account", null);
-    const acc = ACCOUNTS.find((a) => a.id === id) ?? null;
-    setAccount(acc);
-    setModeS(LS.get<WeatherMode>("sa.mode", "scenario"));
-    setAimOnS(LS.get<boolean>("sa.aim", false));
-    if (acc) {
-      setCondS({ region: acc.region });
-    }
-    setReady(true);
+    api<{ account: Account }>("/api/auth/me")
+      .then((r) => {
+        setAccount(r.account);
+        setCondS({ region: r.account.region });
+        setAimOnS(LS.get<boolean>("sa.aim", false));
+      })
+      .catch(() => setAccount(null))
+      .finally(() => setReady(true));
+    const onExpired = () => setExpired(true);
+    window.addEventListener("sa:session-expired", onExpired);
+    return () => window.removeEventListener("sa:session-expired", onExpired);
   }, []);
 
-  // 대화 이력 — 서버 저장 (D38). 이 브라우저에 남아 있던 이력은 처음 한 번 서버로 옮기고 지움
-  const loadConvs = useCallback(async (acc: Account) => {
-    try {
-      const old = LS.get<Conversation[]>(`sa.convs.${acc.id}`, []);
-      if (old.length) {
-        await api("/api/conversations", { method: "PUT", json: { convs: old.slice(0, 100) } });
-        try {
-          localStorage.removeItem(`sa.convs.${acc.id}`);
-        } catch {}
-      }
-      setConvs(await api<Conversation[]>("/api/conversations"));
-    } catch {
-      setConvs([]);
-      setToast("대화 이력을 서버에서 불러오지 못했습니다.");
-      window.setTimeout(() => setToast(null), 2400);
-    }
-  }, []);
-  useEffect(() => {
-    if (account) loadConvs(account);
-    else setConvs([]);
-  }, [account, loadConvs]);
-
-  // 기상특보 (시나리오/라이브)
-  useEffect(() => {
-    if (!account) return;
-    let alive = true;
-    const region = account.region;
-    fetch(`/api/weather?mode=${mode}&region=${region}`)
-      .then((r) => r.json())
-      .then((j: WeatherResponse) => alive && setWeather(j))
-      .catch(() =>
-        alive &&
-        setWeather({
-          mode,
-          status: { ok: false, fetchedAt: new Date().toISOString(), message: "기상특보 조회 실패" },
-          advisories: [],
-          preliminary: [],
-        }),
-      );
-    return () => {
-      alive = false;
-    };
-  }, [account, mode, wxTick]);
-
-  const login = useCallback((id: string) => {
-    const acc = ACCOUNTS.find((a) => a.id === id);
-    if (!acc) return;
-    LS.set("sa.account", id);
-    setAccount(acc);
-    setCondS({ region: acc.region });
-    // 대화 이력·체크는 계정이 바뀌면 서버에서 읽음 (처음 조회하는 계정은 서버가 시연용 대화로 채움)
+  const login = useCallback(async (id: string, password: string) => {
+    const r = await api<{ account: Account }>("/api/auth/login", { method: "POST", json: { id, password } });
+    setAccount(r.account);
+    setExpired(false);
+    setCondS({ region: r.account.region });
   }, []);
 
-  const logout = useCallback(() => {
-    LS.set("sa.account", null);
+  const logout = useCallback(async () => {
+    await api("/api/auth/logout", { method: "POST" }).catch(() => {});
     setAccount(null);
     setWeather(null);
     setWxRef(null);
+    setJobs({});
+    setJobOrder([]);
+    setFull({});
   }, []);
 
-  const setMode = useCallback((m: WeatherMode) => {
-    LS.set("sa.mode", m);
-    setModeS(m);
-  }, []);
+  // 대화 이력 (서버 저장, 새 형식 v2 만)
+  useEffect(() => {
+    if (!account) return setConvs([]);
+    api<Conversation[]>("/api/conversations").then(setConvs).catch(() => setConvs([]));
+  }, [account]);
+
+  // 기상특보 — 기상청 실시간, 60초마다. 2xx 가 아니면(세션 끊김 401 등) 오류 본문을 특보로 두지 않고 조회 실패로 — 401 은 세션 만료도 알린다(api() 와 같게)
+  useEffect(() => {
+    if (!account) return;
+    let alive = true;
+    const load = () =>
+      fetch("/api/weather")
+        .then((r) => {
+          if (r.status === 401) window.dispatchEvent(new Event("sa:session-expired"));
+          return r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`));
+        })
+        .then((j: WeatherResponse) => alive && setWeather(j))
+        .catch(() => alive && setWeather({ mode: "live", status: { ok: false, fetchedAt: new Date().toISOString(), message: "기상특보 조회 실패" }, advisories: [], preliminary: [] }));
+    load();
+    const t = setInterval(load, 60_000);
+    return () => {
+      alive = false;
+      clearInterval(t);
+    };
+  }, [account, wxTick]);
+
+  // T3Q 연결 상태 (30초)
+  useEffect(() => {
+    if (!account) return;
+    const load = () => fetch("/api/t3q/health").then((r) => r.json()).then((j: { ok: boolean }) => setT3qOk(j.ok)).catch(() => setT3qOk(false));
+    load();
+    const t = setInterval(load, 30_000);
+    return () => clearInterval(t);
+  }, [account]);
 
   const setCond = useCallback((c: Partial<Cond>) => setCondS((p) => ({ ...p, ...c })), []);
 
-  const saveFail = useCallback(() => {
-    setToast("대화 이력을 서버에 저장하지 못했습니다. 네트워크를 확인하세요.");
-    window.setTimeout(() => setToast(null), 3000);
-  }, []);
   const saveConv = useCallback(
     (c: Conversation) => {
-      setConvs((prev) => [c, ...prev.filter((x) => x.id !== c.id)].slice(0, 60));
-      if (account) api("/api/conversations", { method: "PUT", json: { convs: [c] } }).catch(saveFail);
+      const v = { ...c, v: 2 as const };
+      setConvs((prev) => [v, ...prev.filter((x) => x.id !== c.id)].slice(0, 60));
+      if (account) api("/api/conversations", { method: "PUT", json: { convs: [v] } }).catch(() => toast("대화 이력을 서버에 저장하지 못했습니다."));
     },
-    [account, saveFail],
+    [account, toast],
   );
   const deleteConvs = useCallback(
     (ids: string[]) => {
       setConvs((prev) => prev.filter((x) => !ids.includes(x.id)));
-      if (account) api("/api/conversations", { method: "DELETE", json: { ids } }).catch(saveFail);
+      if (account) api("/api/conversations", { method: "DELETE", json: { ids } }).catch(() => toast("대화 이력을 지우지 못했습니다."));
     },
-    [account, saveFail],
+    [account, toast],
   );
-  // 체크 — 서버(기관 공용). 같은 기관 담당자가 체크한 것도 보이도록 20초마다 새로 읽음
-  const loadChecks = useCallback(async (acc: Account) => {
-    try {
-      const old = LS.get<Record<string, boolean>>(`sa.checks.${acc.id}`, {});
-      const keys = Object.keys(old).filter((k) => old[k]);
-      if (keys.length) {
-        // 이 브라우저에 남아 있던 체크는 처음 한 번 서버로 옮김
-        for (const key of keys.slice(0, 300)) await api("/api/checks", { method: "POST", json: { key, done: true } });
-        try {
-          localStorage.removeItem(`sa.checks.${acc.id}`);
-        } catch {}
-      }
-      setCheckInfo(await api<Record<string, { by: string; at: string }>>("/api/checks"));
-    } catch {}
-  }, []);
+
+  // 체크 — 서버(기관 공용), 20초마다
   useEffect(() => {
     if (!account) return setCheckInfo({});
-    loadChecks(account);
-    const t = setInterval(() => api<Record<string, { by: string; at: string }>>("/api/checks").then(setCheckInfo).catch(() => {}), 20000);
+    const load = () => api<Record<string, { by: string; at: string }>>("/api/checks").then(setCheckInfo).catch(() => {});
+    load();
+    const t = setInterval(load, 20000);
     return () => clearInterval(t);
-  }, [account, loadChecks]);
+  }, [account]);
   const toggleCheck = useCallback(
     (k: string) => {
       const done = !checkInfo[k];
@@ -244,34 +261,131 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       });
       api<Record<string, { by: string; at: string }>>("/api/checks", { method: "POST", json: { key: k, done } })
         .then(setCheckInfo)
-        .catch(() => {
-          setToast("체크를 서버에 저장하지 못했습니다.");
-          window.setTimeout(() => setToast(null), 2400);
-          if (account) loadChecks(account);
-        });
+        .catch(() => toast("체크를 서버에 저장하지 못했습니다."));
     },
-    [account, checkInfo, loadChecks],
+    [account, checkInfo, toast],
   );
-  const resetChecks = useCallback(
-    async (prefix?: string, meta?: CheckArchiveMeta) => {
-      const r = await api<{ cleared: number }>("/api/checks", { method: "DELETE", json: { prefix, ...meta } });
-      setCheckInfo(await api<Record<string, { by: string; at: string }>>("/api/checks"));
-      return r.cleared;
-    },
-    [],
-  );
-  const toast = useCallback((m: string) => {
-    setToast(m);
-    window.setTimeout(() => setToast(null), 2400);
+  const resetChecks = useCallback(async (prefix?: string, meta?: CheckArchiveMeta) => {
+    const r = await api<{ cleared: number }>("/api/checks", { method: "DELETE", json: { prefix, ...meta } });
+    setCheckInfo(await api<Record<string, { by: string; at: string }>>("/api/checks"));
+    return r.cleared;
   }, []);
+
+  // ── 질문 큐 (R1·R2) ──
+  const putJob = useCallback((j: JobSummary) => {
+    setJobs((p) => ({ ...p, [j.id]: { ...p[j.id], ...j } }));
+    setJobOrder((o) => (o.includes(j.id) ? o : [j.id, ...o]));
+  }, []);
+
+  // 로그인 직후 — 최근 작업으로 큐 복원(새로고침·다른 기기)
+  useEffect(() => {
+    if (!account) return;
+    api<{ jobs: JobSummary[]; medianMs: number | null }>("/api/agent/jobs?limit=40")
+      .then((r) => {
+        setJobs(Object.fromEntries(r.jobs.map((j) => [j.id, j])));
+        setJobOrder(r.jobs.map((j) => j.id));
+        setMedian(r.medianMs);
+      })
+      .catch(() => {});
+  }, [account]);
+
+  // 진행 중 작업 폴링 — 3초, 5분 지나면 6초 (R1). 앞선 조회가 아직 안 끝난 작업은 건너뛴다(조회가 쌓이지 않게)
+  const inflight = useRef(new Set<string>());
+  useEffect(() => {
+    if (!account) return;
+    let stop = false;
+    const tick = async () => {
+      const act = Object.values(jobsRef.current).filter((j) => isActive(j.state) && !inflight.current.has(j.id));
+      await Promise.all(
+        act
+          .filter((j) => Date.now() - new Date(j.created_at).getTime() < 5 * 60_000 || Math.floor(Date.now() / 3000) % 2 === 0)
+          .map((j) => {
+            inflight.current.add(j.id);
+            return api<{ job: JobSummary }>(`/api/agent/jobs/${j.id}`)
+              .then((r) => {
+                if (!stop) putJob(r.job);
+              })
+              .catch((e) => {
+                if (e instanceof ApiError && e.status === 404) setJobs((p) => ({ ...p, [j.id]: { ...p[j.id], state: "LOST" } }));
+              })
+              .finally(() => inflight.current.delete(j.id));
+          }),
+      );
+    };
+    const t = setInterval(tick, 3000);
+    return () => {
+      stop = true;
+      clearInterval(t);
+    };
+  }, [account, putJob]);
+
+  const submit = useCallback(
+    async (a: SubmitArgs) => {
+      const c = cond;
+      const r = await api<{ job: JobSummary }>("/api/agent/jobs", {
+        method: "POST",
+        json: {
+          ...a,
+          condition: {
+            region: c.region,
+            // 읍·면·동 코드는 없으므로 시·군·구 코드 + 이름에 읍·면·동을 붙여 보낸다
+            sub: c.sigungu ? { code: c.sigungu, name: [c.sigunguName, c.emdName].filter(Boolean).join(" ") } : null,
+            disasterTypes: c.disasterType && c.disasterType !== "전체" ? [c.disasterType] : [],
+            referenceTime: c.referenceTime || null,
+            period: c.periodFrom || c.periodTo ? { from: c.periodFrom || null, to: c.periodTo || null } : null,
+            warningKind: c.warningKind || null,
+            warningLevel: c.warningLevel || null,
+            keywords: c.keywords ?? [],
+            conditions: c.conditions ?? [],
+          },
+        },
+      });
+      putJob(r.job);
+      return r.job;
+    },
+    [cond, putJob],
+  );
+
+  const cancel = useCallback(
+    async (jobId: string) => {
+      const r = await api<{ job: JobSummary }>(`/api/agent/jobs/${jobId}/cancel`, { method: "POST" });
+      putJob(r.job);
+    },
+    [putJob],
+  );
+
+  const fullRef = useRef(full);
+  fullRef.current = full;
+  const loadFull = useCallback(async (jobId: string) => {
+    const have = fullRef.current[jobId];
+    if (have && !isActive(have.state) && (have.raw || have.state !== "DONE")) return have;
+    try {
+      const r = await api<{ job: JobFull }>(`/api/agent/jobs/${jobId}?full=1`);
+      setFull((p) => ({ ...p, [jobId]: r.job }));
+      putJob(r.job);
+      return r.job;
+    } catch {
+      return null;
+    }
+  }, [putJob]);
+
+  /** 대화에 있는 작업을 큐에 올려 상태를 따라가게 함(이력에서 연 대화 등) */
+  const watch = useCallback(
+    (jobId: string) => {
+      if (jobsRef.current[jobId]) return;
+      api<{ job: JobSummary }>(`/api/agent/jobs/${jobId}`).then((r) => putJob(r.job)).catch(() => {});
+    },
+    [putJob],
+  );
 
   const value = useMemo<SessionState>(
     () => ({
-      ready, account, login, logout, mode, setMode, cond, setCond, weather,
+      ready, account, login, logout, sessionExpired, cond, setCond, weather,
       reloadWeather: () => setWxTick((t) => t + 1),
       convs, saveConv, deleteConvs, checks, checkInfo, toggleCheck, resetChecks, toast, toastMsg, aimOn, setAimOn, wxRef, setWxRef,
+      jobs, jobOrder, medianMs, submit, cancel, full, loadFull, watch, t3qOk,
     }),
-    [ready, account, login, logout, mode, setMode, cond, setCond, weather, convs, saveConv, deleteConvs, checks, checkInfo, toggleCheck, resetChecks, toast, toastMsg, aimOn, setAimOn, wxRef, setWxRef],
+    [ready, account, login, logout, sessionExpired, cond, setCond, weather, convs, saveConv, deleteConvs, checks, checkInfo, toggleCheck, resetChecks, toast, toastMsg, aimOn, setAimOn, wxRef, setWxRef, jobs, jobOrder, medianMs, submit, cancel, full, loadFull, watch, t3qOk],
   );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
@@ -284,7 +398,7 @@ export function useSession() {
 
 export const uid = (p = "") => p + Math.random().toString(36).slice(2, 10);
 
-/** 연계 추적로그 (FUN-UNE-803004) — 에이전트 API가 서버 DB에 기록(D39), 운영관리에서 조회. 질의 원문은 운영 화면에서 한 번 더 마스킹 */
+/** 연계 추적로그 — 운영관리 */
 export interface TraceRow { at: string; account: string; api: string; intent: string; status: string; ms: number; q: string; requestId: string; datasets: string[] }
 export async function readTrace(): Promise<TraceRow[]> {
   try {

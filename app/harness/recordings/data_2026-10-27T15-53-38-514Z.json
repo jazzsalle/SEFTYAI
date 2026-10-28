@@ -1,0 +1,5700 @@
+[
+  {
+    "id": "T3Q-04",
+    "method": "POST",
+    "path": "/similar-events/search",
+    "body": {
+      "caller": {
+        "user_id": "U-TEST-0001",
+        "role": "LOCAL_GOV_OFFICER",
+        "org_admin_code": "2600000000"
+      },
+      "event_master_ids": null,
+      "query_context": {
+        "reference_time": "2026-08-25T16:00:00+09:00",
+        "region": {
+          "admin_code": "2600000000",
+          "name": "부산광역시",
+          "level": "SIDO"
+        },
+        "disaster_types": [
+          "호우"
+        ],
+        "period": {
+          "from": "2026-08-25T14:00:00+09:00",
+          "to": null
+        },
+        "detail": {
+          "warning_kind": "호우",
+          "warning_level": "경보",
+          "keywords": [
+            "호우",
+            "침수"
+          ],
+          "conditions": [
+            {
+              "item": "RAIN_1H",
+              "label": "1시간 강우",
+              "value": 68,
+              "unit": "mm",
+              "source_type": "MANUAL"
+            }
+          ]
+        }
+      },
+      "page": {
+        "page": 1,
+        "size": 10
+      }
+    },
+    "http": 200,
+    "ms": 1103,
+    "response": {
+      "schema_version": "2.0",
+      "request_id": "ddfa278749eccb59c9ec7ca59828a751",
+      "correlation_id": "corr-ddfa278749eccb59c9ec7ca59828a751",
+      "status": "SUCCESS",
+      "result": {
+        "total_count": 10,
+        "items": [
+          {
+            "event_master_id": "T10107-20210825-0001",
+            "display_name": "2021년 08.25~08.25 호우",
+            "disaster_types": [
+              "호우"
+            ],
+            "lifecycle_status": "CLOSED",
+            "started_at": "2021-08-25",
+            "ended_at": "2021-08-25",
+            "time_precision": "DATE",
+            "similarity": {
+              "rank": 1,
+              "score": 96.67,
+              "scale": "0~100",
+              "algorithm_version": "sim-0.1.0",
+              "coverage": 0.75
+            },
+            "representative_admin_area": {
+              "admin_code": "2600000000",
+              "name": "부산광역시"
+            },
+            "crisis_alert_level": null,
+            "has_geometry": false
+          },
+          {
+            "event_master_id": "T10107-20160731-0001",
+            "display_name": "2016년 7.31~8.1 호우",
+            "disaster_types": [
+              "호우"
+            ],
+            "lifecycle_status": "CLOSED",
+            "started_at": "2016-07-31",
+            "ended_at": "2016-08-01",
+            "time_precision": "DATE",
+            "similarity": {
+              "rank": 2,
+              "score": 90.91,
+              "scale": "0~100",
+              "algorithm_version": "sim-0.1.0",
+              "coverage": 0.55
+            },
+            "representative_admin_area": null,
+            "crisis_alert_level": null,
+            "has_geometry": false
+          },
+          {
+            "event_master_id": "T10107-20200710-0001",
+            "display_name": "2020년 7.10. 호우",
+            "disaster_types": [
+              "호우"
+            ],
+            "lifecycle_status": "CLOSED",
+            "started_at": "2020-07-10",
+            "ended_at": "2020-07-10",
+            "time_precision": "DATE",
+            "similarity": {
+              "rank": 3,
+              "score": 80,
+              "scale": "0~100",
+              "algorithm_version": "sim-0.1.0",
+              "coverage": 0.75
+            },
+            "representative_admin_area": null,
+            "crisis_alert_level": null,
+            "has_geometry": false
+          },
+          {
+            "event_master_id": "T10107-20170911-0001",
+            "display_name": "2017년 9.11~12 호우",
+            "disaster_types": [
+              "호우"
+            ],
+            "lifecycle_status": "CLOSED",
+            "started_at": "2017-09-11",
+            "ended_at": "2017-09-12",
+            "time_precision": "DATE",
+            "similarity": {
+              "rank": 4,
+              "score": 75.56,
+              "scale": "0~100",
+              "algorithm_version": "sim-0.1.0",
+              "coverage": 0.75
+            },
+            "representative_admin_area": null,
+            "crisis_alert_level": null,
+            "has_geometry": false
+          },
+          {
+            "event_master_id": "T10107-20190629-0001",
+            "display_name": "2019년 6.29 호우",
+            "disaster_types": [
+              "호우"
+            ],
+            "lifecycle_status": "CLOSED",
+            "started_at": "2019-06-29",
+            "ended_at": "2019-06-29",
+            "time_precision": "DATE",
+            "similarity": {
+              "rank": 5,
+              "score": 72.22,
+              "scale": "0~100",
+              "algorithm_version": "sim-0.1.0",
+              "coverage": 0.75
+            },
+            "representative_admin_area": null,
+            "crisis_alert_level": null,
+            "has_geometry": false
+          },
+          {
+            "event_master_id": "T10107-20230821-0001",
+            "display_name": "2023년 08.21.~09.21. 호우",
+            "disaster_types": [
+              "호우"
+            ],
+            "lifecycle_status": "CLOSED",
+            "started_at": "2023-08-21",
+            "ended_at": "2023-09-21",
+            "time_precision": "DATE",
+            "similarity": {
+              "rank": 6,
+              "score": 72.22,
+              "scale": "0~100",
+              "algorithm_version": "sim-0.1.0",
+              "coverage": 0.75
+            },
+            "representative_admin_area": null,
+            "crisis_alert_level": null,
+            "has_geometry": false
+          },
+          {
+            "event_master_id": "T10107-20240722-0001",
+            "display_name": "2024년 7.22.~23. 호우",
+            "disaster_types": [
+              "호우"
+            ],
+            "lifecycle_status": "CLOSED",
+            "started_at": "2024-07-22",
+            "ended_at": "2024-07-23",
+            "time_precision": "DATE",
+            "similarity": {
+              "rank": 7,
+              "score": 72,
+              "scale": "0~100",
+              "algorithm_version": "sim-0.1.0",
+              "coverage": 0.75
+            },
+            "representative_admin_area": null,
+            "crisis_alert_level": null,
+            "has_geometry": false
+          },
+          {
+            "event_master_id": "T10107-20180826-0001",
+            "display_name": "2018년 8.26~9.1 호우",
+            "disaster_types": [
+              "호우"
+            ],
+            "lifecycle_status": "CLOSED",
+            "started_at": "2018-08-26",
+            "ended_at": "2018-09-01",
+            "time_precision": "DATE",
+            "similarity": {
+              "rank": 8,
+              "score": 71.57,
+              "scale": "0~100",
+              "algorithm_version": "sim-0.1.0",
+              "coverage": 0.75
+            },
+            "representative_admin_area": null,
+            "crisis_alert_level": null,
+            "has_geometry": false
+          },
+          {
+            "event_master_id": "T10107-20160826-0001",
+            "display_name": "2016년 8.26~9.1 호우",
+            "disaster_types": [
+              "호우"
+            ],
+            "lifecycle_status": "CLOSED",
+            "started_at": "2016-08-26",
+            "ended_at": "2016-09-01",
+            "time_precision": "DATE",
+            "similarity": {
+              "rank": 9,
+              "score": 70,
+              "scale": "0~100",
+              "algorithm_version": "sim-0.1.0",
+              "coverage": 0.75
+            },
+            "representative_admin_area": null,
+            "crisis_alert_level": null,
+            "has_geometry": false
+          },
+          {
+            "event_master_id": "T10107-20170810-0001",
+            "display_name": "2017년 8.10~11 호우",
+            "disaster_types": [
+              "호우"
+            ],
+            "lifecycle_status": "CLOSED",
+            "started_at": "2017-08-10",
+            "ended_at": "2017-08-11",
+            "time_precision": "DATE",
+            "similarity": {
+              "rank": 10,
+              "score": 70,
+              "scale": "0~100",
+              "algorithm_version": "sim-0.1.0",
+              "coverage": 0.75
+            },
+            "representative_admin_area": null,
+            "crisis_alert_level": null,
+            "has_geometry": false
+          }
+        ]
+      },
+      "data_gaps": [
+        {
+          "component": "similarity.factors.rain",
+          "reason": "NOT_IN_SOURCE"
+        },
+        {
+          "component": "similarity.factors.warning",
+          "reason": "NOT_IN_SOURCE"
+        }
+      ],
+      "warnings": [
+        {
+          "code": "CONDITION_NOT_USED",
+          "message": "유사도에 쓰지 않은 조건: RAIN_1H — 152 에 사건별 강우·수위 관측이 없어 견주지 않음",
+          "retryable": false
+        },
+        {
+          "code": "CONDITION_NOT_USED",
+          "message": "유사도에 쓰지 않은 조건: warning_level — 사건 기간의 기상특보 원천이 없어 견주지 않음",
+          "retryable": false
+        },
+        {
+          "code": "SIMILARITY_NOTE",
+          "message": "질의에 없는 요인(점수에서 빠짐): ['피해 규모', '인명피해', '기간']",
+          "retryable": false
+        }
+      ],
+      "meta": {
+        "source": "T3Q",
+        "base_time": "2026-10-20T00:00:00+09:00",
+        "quality_status": "VERIFIED",
+        "disclosure_level": "공개",
+        "elapsed_ms": 713
+      }
+    }
+  },
+  {
+    "id": "T3Q-05",
+    "method": "POST",
+    "path": "/risk-knowledge/search",
+    "body": {
+      "caller": {
+        "user_id": "U-TEST-0001",
+        "role": "LOCAL_GOV_OFFICER",
+        "org_admin_code": "2600000000"
+      },
+      "data_group": "RISK_FACTOR_FACILITY",
+      "object_ids": null,
+      "region": {
+        "admin_code": "2629000000",
+        "level": "SIGUNGU"
+      },
+      "page": {
+        "page": 1,
+        "size": 20
+      }
+    },
+    "http": 200,
+    "ms": 710,
+    "response": {
+      "schema_version": "2.0",
+      "request_id": "923c8d4efb8f4906ece0f9010f0894ae",
+      "correlation_id": "corr-923c8d4efb8f4906ece0f9010f0894ae",
+      "status": "SUCCESS",
+      "result": {
+        "total_count": 4,
+        "category_counts": [
+          {
+            "category": "지하차도(취약시설)",
+            "count": 4
+          }
+        ],
+        "items": [
+          {
+            "object_id": "UP-609",
+            "spatial_object_id": null,
+            "data_group": "RISK_FACTOR_FACILITY",
+            "category": "지하차도(취약시설)",
+            "type": "지하차도",
+            "source_subtype": "차단봉",
+            "name": "대남지하차도",
+            "grade": {
+              "value": "4",
+              "status": "PROVIDED"
+            },
+            "address": "부산광역시 남구 대연동",
+            "admin_code": "2629010600",
+            "admin_name": "부산광역시 남구 대연동",
+            "has_geometry": false,
+            "disclosure_level": "공개"
+          },
+          {
+            "object_id": "UP-610",
+            "spatial_object_id": null,
+            "data_group": "RISK_FACTOR_FACILITY",
+            "category": "지하차도(취약시설)",
+            "type": "지하차도",
+            "source_subtype": "차단봉",
+            "name": "문현지하차도",
+            "grade": {
+              "value": "4",
+              "status": "PROVIDED"
+            },
+            "address": "부산광역시 남구 문현동",
+            "admin_code": "2629010900",
+            "admin_name": "부산광역시 남구 문현동",
+            "has_geometry": false,
+            "disclosure_level": "공개"
+          },
+          {
+            "object_id": "UP-611",
+            "spatial_object_id": null,
+            "data_group": "RISK_FACTOR_FACILITY",
+            "category": "지하차도(취약시설)",
+            "type": "지하차도",
+            "source_subtype": null,
+            "name": "문화지하차도",
+            "grade": {
+              "value": "4",
+              "status": "PROVIDED"
+            },
+            "address": "부산광역시 남구 대연동",
+            "admin_code": "2629010600",
+            "admin_name": "부산광역시 남구 대연동",
+            "has_geometry": false,
+            "disclosure_level": "공개"
+          },
+          {
+            "object_id": "UP-612",
+            "spatial_object_id": null,
+            "data_group": "RISK_FACTOR_FACILITY",
+            "category": "지하차도(취약시설)",
+            "type": "지하차도",
+            "source_subtype": "스크린",
+            "name": "신선대지하차도",
+            "grade": {
+              "value": "2",
+              "status": "PROVIDED"
+            },
+            "address": "부산광역시 남구 용당동",
+            "admin_code": "2629010800",
+            "admin_name": "부산광역시 남구 용당동",
+            "has_geometry": false,
+            "disclosure_level": "공개"
+          }
+        ]
+      },
+      "data_gaps": [],
+      "warnings": [],
+      "meta": {
+        "source": "T3Q",
+        "base_time": "2026-10-20T00:00:00+09:00",
+        "quality_status": "VERIFIED",
+        "disclosure_level": "공개",
+        "elapsed_ms": 519
+      }
+    }
+  },
+  {
+    "id": "T3Q-06",
+    "method": "POST",
+    "path": "/plans/search",
+    "body": {
+      "caller": {
+        "user_id": "U-TEST-0001",
+        "role": "LOCAL_GOV_OFFICER",
+        "org_admin_code": "2600000000"
+      },
+      "plan_ids": [
+        "RBP-1024180202010",
+        "HZP-NDIZ",
+        "HZP-CRA"
+      ],
+      "region": null
+    },
+    "http": 200,
+    "ms": 1292,
+    "response": {
+      "schema_version": "2.0",
+      "request_id": "16560b3bd63c0de8cb9b4c08820056ae",
+      "correlation_id": "corr-16560b3bd63c0de8cb9b4c08820056ae",
+      "status": "SUCCESS",
+      "result": {
+        "total_count": 3,
+        "items": [
+          {
+            "plan_id": "HZP-NDIZ",
+            "plan_type": "위험지구 정비계획",
+            "scope_type": "ADMIN_AREA",
+            "name": "자연재해위험개선지구 중기정비계획",
+            "agency": null,
+            "target_area": "전국",
+            "target_admin_codes": null,
+            "target_rivers": null,
+            "plan_period": null,
+            "base_year": null,
+            "approval": null,
+            "version": null,
+            "other_versions": [],
+            "linked_risk_area_count": 2848,
+            "river_plan_summary": null,
+            "summary": "자연재해위험개선지구 2,848곳(원천 표 «자연재해위험개선지구_중기정비계획_총괄조서»)"
+          },
+          {
+            "plan_id": "HZP-CRA",
+            "plan_type": "위험지구 정비계획",
+            "scope_type": "ADMIN_AREA",
+            "name": "붕괴위험지역 정비 중기계획(’26~’30)",
+            "agency": null,
+            "target_area": "전국",
+            "target_admin_codes": null,
+            "target_rivers": null,
+            "plan_period": null,
+            "base_year": null,
+            "approval": null,
+            "version": null,
+            "other_versions": [],
+            "linked_risk_area_count": 2358,
+            "river_plan_summary": null,
+            "summary": "붕괴위험지역(정비 중기계획) 2,358곳(원천 표 «붕괴위험지역_현황_추가»)"
+          },
+          {
+            "plan_id": "RBP-1024180202010",
+            "plan_type": "하천기본계획",
+            "scope_type": "RIVER",
+            "name": "묵현천 하천기본계획 — 묵현천 등 12개 하천기본계획 및 하천시설관리대장 작성",
+            "agency": null,
+            "target_area": "묵현천(1024180)",
+            "target_admin_codes": null,
+            "target_rivers": [
+              {
+                "river_code": "1024180",
+                "spatial_object_id": null,
+                "river_name": "묵현천",
+                "river_id": "RV-1024180"
+              }
+            ],
+            "plan_period": null,
+            "base_year": 2020,
+            "approval": null,
+            "version": "보고 2020.10",
+            "other_versions": [],
+            "linked_risk_area_count": null,
+            "river_plan_summary": {
+              "design_frequency_yr": null,
+              "design_flood_cms": 470,
+              "reference_station_no": "0"
+            },
+            "summary": "계획홍수량 최대 470㎥/s"
+          }
+        ]
+      },
+      "data_gaps": [],
+      "warnings": [],
+      "meta": {
+        "source": "T3Q",
+        "base_time": "2026-10-20T00:00:00+09:00",
+        "quality_status": "VERIFIED",
+        "disclosure_level": "공개",
+        "elapsed_ms": 592
+      }
+    }
+  },
+  {
+    "id": "T3Q-10",
+    "method": "GET",
+    "path": "/events/T10107-20200728-0001",
+    "body": null,
+    "http": 200,
+    "ms": 410,
+    "response": {
+      "schema_version": "2.0",
+      "request_id": "2fd0d978ff4a35ac203aebbbb6dea03b",
+      "correlation_id": "corr-2fd0d978ff4a35ac203aebbbb6dea03b",
+      "status": "SUCCESS",
+      "result": {
+        "event_master_id": "T10107-20200728-0001",
+        "display_name": "2020년 7.28.~8.11. 호우",
+        "disaster_types": [
+          "호우"
+        ],
+        "disaster_type_code": "T10107",
+        "source_disaster_type_text": "호우",
+        "lifecycle_status": "CLOSED",
+        "time_profile": {
+          "started_at": "2020-07-28",
+          "ended_at": "2020-08-11",
+          "time_precision": "DATE",
+          "source_timezone": null,
+          "source_time_raw": {
+            "start": "2020-07-28",
+            "end": "2020-08-11"
+          }
+        },
+        "representative_admin_area": null,
+        "affected_admin_areas": [
+          {
+            "admin_code": "1100000000",
+            "name": "서울특별시"
+          },
+          {
+            "admin_code": "2600000000",
+            "name": "부산광역시"
+          },
+          {
+            "admin_code": "2700000000",
+            "name": "대구광역시"
+          },
+          {
+            "admin_code": "2800000000",
+            "name": "인천광역시"
+          },
+          {
+            "admin_code": "2900000000",
+            "name": "광주광역시"
+          },
+          {
+            "admin_code": "3000000000",
+            "name": "대전광역시"
+          },
+          {
+            "admin_code": "3100000000",
+            "name": "울산광역시"
+          },
+          {
+            "admin_code": "3600000000",
+            "name": "세종특별자치시"
+          },
+          {
+            "admin_code": "4100000000",
+            "name": "경기도"
+          },
+          {
+            "admin_code": "4300000000",
+            "name": "충청북도"
+          },
+          {
+            "admin_code": "4400000000",
+            "name": "충청남도"
+          },
+          {
+            "admin_code": "4600000000",
+            "name": "전라남도"
+          },
+          {
+            "admin_code": "4700000000",
+            "name": "경상북도"
+          },
+          {
+            "admin_code": "4800000000",
+            "name": "경상남도"
+          },
+          {
+            "admin_code": "5000000000",
+            "name": "제주특별자치도"
+          },
+          {
+            "admin_code": "5100000000",
+            "name": "강원특별자치도"
+          },
+          {
+            "admin_code": "5200000000",
+            "name": "전북특별자치도"
+          }
+        ],
+        "affected_admin_areas_more": false,
+        "crisis_alert_level": null,
+        "cdb_stage": null,
+        "lead_agency": "행정안전부",
+        "event_summary": "호우 · 서울, 부산, 대구, 인천, 광주, 대전, 울산, 세종, 경기, 강원, 충북, 충남, 전북, 전남, 경북, 경남, 제주 · 이재민 16,767명 · 재산피해 1,037,156,500,000원",
+        "available_sections": {
+          "similarity": true,
+          "timeline": true,
+          "damage_response": true,
+          "report": false,
+          "evidence": true,
+          "satellite": false
+        },
+        "evidence_refs": [
+          "EV-EVT-T10107-20200728-0001",
+          "EV-DMG-T10107-20200728-0001"
+        ]
+      },
+      "data_gaps": [
+        {
+          "component": "crisis_alert_level",
+          "reason": "NOT_IN_SOURCE"
+        },
+        {
+          "component": "cdb_stage",
+          "reason": "NOT_IN_SOURCE"
+        }
+      ],
+      "warnings": [],
+      "meta": {
+        "source": "T3Q",
+        "base_time": "2026-10-20T00:00:00+09:00",
+        "quality_status": "VERIFIED",
+        "disclosure_level": "공개",
+        "elapsed_ms": 328
+      }
+    }
+  },
+  {
+    "id": "T3Q-11",
+    "method": "POST",
+    "path": "/events/T10107-20200728-0001/similarity",
+    "body": {
+      "caller": {
+        "user_id": "U-TEST-0001",
+        "role": "LOCAL_GOV_OFFICER",
+        "org_admin_code": "2600000000"
+      },
+      "query_context": {
+        "reference_time": "2026-08-25T16:00:00+09:00",
+        "region": {
+          "admin_code": "2600000000",
+          "name": "부산광역시",
+          "level": "SIDO"
+        },
+        "disaster_types": [
+          "호우"
+        ],
+        "period": {
+          "from": "2026-08-25T14:00:00+09:00",
+          "to": null
+        },
+        "detail": {
+          "warning_kind": "호우",
+          "warning_level": "경보",
+          "keywords": [
+            "호우",
+            "침수"
+          ],
+          "conditions": [
+            {
+              "item": "RAIN_1H",
+              "label": "1시간 강우",
+              "value": 68,
+              "unit": "mm",
+              "source_type": "MANUAL"
+            }
+          ]
+        }
+      }
+    },
+    "http": 200,
+    "ms": 672,
+    "response": {
+      "schema_version": "2.0",
+      "request_id": "03db715c28c79131c0d4734def364ac7",
+      "correlation_id": "corr-03db715c28c79131c0d4734def364ac7",
+      "status": "PARTIAL_SUCCESS",
+      "result": {
+        "event_master_id": "T10107-20200728-0001",
+        "similarity": {
+          "score": 68.24,
+          "rank": 43,
+          "scale": "0~100",
+          "algorithm_version": "sim-0.1.0",
+          "coverage": 0.75
+        },
+        "contributions": [
+          {
+            "factor_group": "재난유형",
+            "contribution_points": 50,
+            "contribution_pct": 73.3
+          },
+          {
+            "factor_group": "기상·수문",
+            "contribution_points": 16.67,
+            "contribution_pct": 24.4
+          },
+          {
+            "factor_group": "공간·취약",
+            "contribution_points": 1.57,
+            "contribution_pct": 2.3
+          }
+        ],
+        "weights": {
+          "disaster_type": "호우",
+          "by_group": [
+            {
+              "factor_group": "재난유형",
+              "weight": 40
+            },
+            {
+              "factor_group": "기상·수문",
+              "weight": 20
+            },
+            {
+              "factor_group": "공간·취약",
+              "weight": 20
+            },
+            {
+              "factor_group": "피해",
+              "weight": 20
+            }
+          ],
+          "weight_stage": "프로파일 default(sim.profile)"
+        },
+        "similarity_reasons": [
+          "재난유형 1.00 × 0.47 → 46.7점",
+          "계절 0.83 × 0.20 → 16.7점",
+          "키워드 0.50 × 0.07 → 3.3점"
+        ],
+        "factors": [
+          {
+            "factor_group": "재난유형",
+            "factor_key": "type",
+            "factor": "재난유형",
+            "unit": null,
+            "current_value": "T10107 호우",
+            "past_value": "T10107 호우",
+            "match": 1,
+            "weight_used": 0.4667,
+            "contribution": 46.6667,
+            "evidence_ref": null
+          },
+          {
+            "factor_group": "공간·취약",
+            "factor_key": "region",
+            "factor": "지역",
+            "unit": null,
+            "current_value": [
+              "부산"
+            ],
+            "past_value": [
+              "서울",
+              "부산",
+              "대구",
+              "인천",
+              "광주",
+              "대전",
+              "울산",
+              "세종",
+              "경기",
+              "충북",
+              "충남",
+              "전남",
+              "경북",
+              "경남",
+              "제주",
+              "강원",
+              "전북"
+            ],
+            "match": 0.0588,
+            "weight_used": 0.2667,
+            "contribution": 1.5686,
+            "evidence_ref": null
+          },
+          {
+            "factor_group": "기상·수문",
+            "factor_key": "season",
+            "factor": "계절",
+            "unit": "월",
+            "current_value": 8,
+            "past_value": 7,
+            "match": 0.8333,
+            "weight_used": 0.2,
+            "contribution": 16.6667,
+            "evidence_ref": null
+          },
+          {
+            "factor_group": "재난유형",
+            "factor_key": "keyword",
+            "factor": "키워드",
+            "unit": null,
+            "current_value": [
+              "호우",
+              "침수"
+            ],
+            "past_value": "2020년 7.28.~8.11. 호우",
+            "match": 0.5,
+            "weight_used": 0.0667,
+            "contribution": 3.3333,
+            "evidence_ref": null
+          },
+          {
+            "factor_group": "피해",
+            "factor_key": "casualty",
+            "factor": "인명피해",
+            "unit": "명",
+            "current_value": null,
+            "past_value": null,
+            "match": null,
+            "weight_used": 0,
+            "contribution": 0,
+            "evidence_ref": null
+          },
+          {
+            "factor_group": "기상·수문",
+            "factor_key": "duration",
+            "factor": "기간",
+            "unit": "일",
+            "current_value": null,
+            "past_value": 15,
+            "match": null,
+            "weight_used": 0,
+            "contribution": 0,
+            "evidence_ref": null
+          },
+          {
+            "factor_group": "피해",
+            "factor_key": "severity",
+            "factor": "피해 규모",
+            "unit": "원",
+            "current_value": null,
+            "past_value": 1037156500000,
+            "match": null,
+            "weight_used": 0,
+            "contribution": 0,
+            "evidence_ref": null
+          },
+          {
+            "factor_group": "기상·수문",
+            "factor_key": "rain_1h",
+            "factor": "1시간 누적강우",
+            "unit": "mm",
+            "current_value": 68,
+            "past_value": null,
+            "match": null,
+            "weight_used": 0,
+            "contribution": 0,
+            "evidence_ref": null
+          }
+        ],
+        "factor_groups_not_provided": [
+          "피해",
+          "대응"
+        ],
+        "disclaimer": "유사도는 현재 위험도·발생확률·피해규모의 예측 결과가 아님"
+      },
+      "data_gaps": [
+        {
+          "component": "factors.피해",
+          "reason": "INPUT_NOT_PROVIDED"
+        },
+        {
+          "component": "factors.대응",
+          "reason": "NOT_IN_SOURCE"
+        },
+        {
+          "component": "similarity.factors.rain",
+          "reason": "NOT_IN_SOURCE"
+        },
+        {
+          "component": "similarity.factors.warning",
+          "reason": "NOT_IN_SOURCE"
+        }
+      ],
+      "warnings": [
+        {
+          "code": "CONDITION_NOT_USED",
+          "message": "유사도에 쓰지 않은 조건: RAIN_1H — 152 에 사건별 강우·수위 관측이 없어 견주지 않음",
+          "retryable": false
+        },
+        {
+          "code": "CONDITION_NOT_USED",
+          "message": "유사도에 쓰지 않은 조건: warning_level — 사건 기간의 기상특보 원천이 없어 견주지 않음",
+          "retryable": false
+        },
+        {
+          "code": "SIMILARITY_NOTE",
+          "message": "질의에 없는 요인(점수에서 빠짐): ['피해 규모', '인명피해', '기간']",
+          "retryable": false
+        }
+      ],
+      "meta": {
+        "source": "T3Q",
+        "base_time": "2026-10-20T00:00:00+09:00",
+        "quality_status": "VERIFIED",
+        "disclosure_level": "공개",
+        "elapsed_ms": 585
+      }
+    }
+  },
+  {
+    "id": "T3Q-12",
+    "method": "GET",
+    "path": "/events/T10107-20200728-0001/timeline",
+    "body": null,
+    "http": 200,
+    "ms": 413,
+    "response": {
+      "schema_version": "2.0",
+      "request_id": "7a246e5c4d6f80fa5fd0a8db66cc5b96",
+      "correlation_id": "corr-7a246e5c4d6f80fa5fd0a8db66cc5b96",
+      "status": "SUCCESS",
+      "result": {
+        "event_master_id": "T10107-20200728-0001",
+        "time_origin": {
+          "type": "ABSOLUTE",
+          "origin_at": "2020-07-28",
+          "note": "경과시간은 사건 시작일 00:00 기준 · 원천 시각에 시간대 표기가 없어 그대로 둠"
+        },
+        "total_count": 102,
+        "items": [
+          {
+            "seq": 1,
+            "occurred_at": "2020-07-30T04:00:00",
+            "elapsed_hours": 52,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수주의보 발령 — 여주시(원부교) (청미천)",
+            "agency": "한강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-1호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 2,
+            "occurred_at": "2020-07-30T04:30:00",
+            "elapsed_hours": 52.5,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수주의보 발령 — 괴산군(목도교) (달천)",
+            "agency": "한강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-2호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 3,
+            "occurred_at": "2020-07-30T05:20:00",
+            "elapsed_hours": 53.3,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수경보 변경 — 여주시(원부교) (청미천)",
+            "agency": "한강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-3호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 4,
+            "occurred_at": "2020-07-30T07:30:00",
+            "elapsed_hours": 55.5,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수주의보 발령 — 문경시(김용리) (영강)",
+            "agency": "낙동강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-11호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 5,
+            "occurred_at": "2020-07-30T08:10:00",
+            "elapsed_hours": 56.2,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수경보 변경 — 문경시(김용리) (영강)",
+            "agency": "낙동강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-12호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 6,
+            "occurred_at": "2020-07-30T08:30:00",
+            "elapsed_hours": 56.5,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수경보 변경 — 괴산군(목도교) (달천)",
+            "agency": "한강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-4호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 7,
+            "occurred_at": "2020-07-30T09:50:00",
+            "elapsed_hours": 57.8,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수주의보 발령 — 전주시(미산교)",
+            "agency": "영산강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-7호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 8,
+            "occurred_at": "2020-07-30T10:10:00",
+            "elapsed_hours": 58.2,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수주의보 발령 — 완주군(삼례교)",
+            "agency": "영산강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-8호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 9,
+            "occurred_at": "2020-07-30T11:00:00",
+            "elapsed_hours": 59,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수경보 발령 — 완주군(삼례교)",
+            "agency": "영산강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-9호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 10,
+            "occurred_at": "2020-07-30T13:10:00",
+            "elapsed_hours": 61.2,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수경보 해제 — 여주시(원부교) (청미천)",
+            "agency": "한강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-5호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 11,
+            "occurred_at": "2020-07-30T13:20:00",
+            "elapsed_hours": 61.3,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수주의보 변경 — 문경시(김용리) (영강)",
+            "agency": "낙동강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-13호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 12,
+            "occurred_at": "2020-07-30T14:30:00",
+            "elapsed_hours": 62.5,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수주의보 변경 — 괴산군(목도교) (달천)",
+            "agency": "한강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-6호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 13,
+            "occurred_at": "2020-07-30T15:00:00",
+            "elapsed_hours": 63,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수주의보 해제 — 문경시(김용리) (영강)",
+            "agency": "낙동강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-14호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 14,
+            "occurred_at": "2020-07-30T15:10:00",
+            "elapsed_hours": 63.2,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수주의보 해제 — 전주시(미산교)",
+            "agency": "영산강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-10호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 15,
+            "occurred_at": "2020-07-30T16:00:00",
+            "elapsed_hours": 64,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수주의보 변경 — 완주군(삼례교)",
+            "agency": "영산강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-11호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 16,
+            "occurred_at": "2020-07-30T17:30:00",
+            "elapsed_hours": 65.5,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수주의보 해제 — 괴산군(목도교) (달천)",
+            "agency": "한강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-7호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 17,
+            "occurred_at": "2020-07-30T18:30:00",
+            "elapsed_hours": 66.5,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수주의보 해제 — 완주군(삼례교)",
+            "agency": "영산강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-12호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 18,
+            "occurred_at": "2020-08-02T05:10:00",
+            "elapsed_hours": 125.2,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수주의보 발령 — 문경시(김용리) (영강)",
+            "agency": "낙동강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-15호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 19,
+            "occurred_at": "2020-08-02T06:40:00",
+            "elapsed_hours": 126.7,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수주의보 발령 — 괴산군(목도교) (달천)",
+            "agency": "한강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-8호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 20,
+            "occurred_at": "2020-08-02T07:50:00",
+            "elapsed_hours": 127.8,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수주의보 발령 — 여주시(원부교) (청미천)",
+            "agency": "한강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-9호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 21,
+            "occurred_at": "2020-08-02T08:30:00",
+            "elapsed_hours": 128.5,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수주의보 해제 — 문경시(김용리) (영강)",
+            "agency": "낙동강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-16호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 22,
+            "occurred_at": "2020-08-02T08:50:00",
+            "elapsed_hours": 128.8,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수경보 변경 — 여주시(원부교) (청미천)",
+            "agency": "한강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-10호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 23,
+            "occurred_at": "2020-08-02T11:20:00",
+            "elapsed_hours": 131.3,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수주의보 발령 — 여주시(흥천대교) (복하천)",
+            "agency": "한강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-11호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 24,
+            "occurred_at": "2020-08-02T12:40:00",
+            "elapsed_hours": 132.7,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수경보 변경 — 여주시(흥천대교) (복하천)",
+            "agency": "한강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-12호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 25,
+            "occurred_at": "2020-08-02T18:30:00",
+            "elapsed_hours": 138.5,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수주의보 발령 — 포천시(영평교) (영평천)",
+            "agency": "한강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-13호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 26,
+            "occurred_at": "2020-08-03T06:20:00",
+            "elapsed_hours": 150.3,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수주의보 발령 — 남양주시(진관교) (왕숙천)",
+            "agency": "한강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-14호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 27,
+            "occurred_at": "2020-08-03T10:10:00",
+            "elapsed_hours": 154.2,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수경보 변경 — 남양주시(진관교) (왕숙천)",
+            "agency": "한강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-15호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 28,
+            "occurred_at": "2020-08-03T10:50:00",
+            "elapsed_hours": 154.8,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수경보 변경 — 포천시(영평교) (영평천)",
+            "agency": "한강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-16호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 29,
+            "occurred_at": "2020-08-03T12:50:00",
+            "elapsed_hours": 156.8,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수주의보 발령 — 홍천군(홍천교) (홍천강)",
+            "agency": "한강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-17호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 30,
+            "occurred_at": "2020-08-03T15:10:00",
+            "elapsed_hours": 159.2,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수주의보 발령 — 평택시(군문교) (안성천)",
+            "agency": "한강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-18호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 31,
+            "occurred_at": "2020-08-05T13:50:00",
+            "elapsed_hours": 205.8,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수주의보 발령 — 파주시(비룡대교) (임진강)",
+            "agency": "한강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-19호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 32,
+            "occurred_at": "2020-08-05T16:30:00",
+            "elapsed_hours": 208.5,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수경보 변경 — 파주시(비룡대교) (임진강)",
+            "agency": "한강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-20호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 33,
+            "occurred_at": "2020-08-05T18:10:00",
+            "elapsed_hours": 210.2,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수주의보 발령 — 연천군(사랑교) (한탄강)",
+            "agency": "한강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-21호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 34,
+            "occurred_at": "2020-08-06T05:50:00",
+            "elapsed_hours": 221.8,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수주의보 발령 — 서울시(대곡교) (탄천)",
+            "agency": "한강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-22호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 35,
+            "occurred_at": "2020-08-06T06:50:00",
+            "elapsed_hours": 222.8,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수주의보 발령 — 광주시(경안교) (경안천)",
+            "agency": "한강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-23호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 36,
+            "occurred_at": "2020-08-06T11:00:00",
+            "elapsed_hours": 227,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수주의보 발령 — 서울시(한강대교) (한강)",
+            "agency": "한강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-24호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 37,
+            "occurred_at": "2020-08-06T13:40:00",
+            "elapsed_hours": 229.7,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수주의보 발령 — 원주시(문막교) (섬강)",
+            "agency": "한강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-25호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 38,
+            "occurred_at": "2020-08-07T07:30:00",
+            "elapsed_hours": 247.5,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수경보 해제 — 파주시(비룡대교) (임진강)",
+            "agency": "한강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-27호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 39,
+            "occurred_at": "2020-08-07T07:30:00",
+            "elapsed_hours": 247.5,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수주의보 해제 — 연천군(사랑교) (한탄강)",
+            "agency": "한강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-26호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 40,
+            "occurred_at": "2020-08-07T09:00:00",
+            "elapsed_hours": 249,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수주의보 해제 — 서울시(한강대교) (한강)",
+            "agency": "한강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-29호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 41,
+            "occurred_at": "2020-08-07T09:00:00",
+            "elapsed_hours": 249,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수주의보 해제 — 서울시(대곡교) (탄천)",
+            "agency": "한강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-28호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 42,
+            "occurred_at": "2020-08-07T11:00:00",
+            "elapsed_hours": 251,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수경보 해제 — 포천시(영평교) (영평천)",
+            "agency": "한강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-31호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 43,
+            "occurred_at": "2020-08-07T11:00:00",
+            "elapsed_hours": 251,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수주의보 해제 — 홍천군(홍천교) (홍천강)",
+            "agency": "한강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-31호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 44,
+            "occurred_at": "2020-08-07T12:00:00",
+            "elapsed_hours": 252,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수주의보 해제 — 원주시(문막교) (섬강)",
+            "agency": "한강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-32호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 45,
+            "occurred_at": "2020-08-07T14:50:00",
+            "elapsed_hours": 254.8,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수주의보 발령 — 전주시(미산교)",
+            "agency": "영산강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-13호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 46,
+            "occurred_at": "2020-08-07T15:30:00",
+            "elapsed_hours": 255.5,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수주의보 발령 — 완주군(삼례교)",
+            "agency": "영산강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-15호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 47,
+            "occurred_at": "2020-08-07T16:00:00",
+            "elapsed_hours": 256,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수경보 해제 — 남양주시(진관교) (왕숙천)",
+            "agency": "한강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-33호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 48,
+            "occurred_at": "2020-08-07T16:00:00",
+            "elapsed_hours": 256,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수주의보 해제 — 광주시(경안교) (경안천)",
+            "agency": "한강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-34호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 49,
+            "occurred_at": "2020-08-07T21:00:00",
+            "elapsed_hours": 261,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수주의보 발령 — 산청군(경호교) (남강)",
+            "agency": "낙동강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-17호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 50,
+            "occurred_at": "2020-08-07T22:10:00",
+            "elapsed_hours": 262.2,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수주의보 발령 — 하동군(읍내리)",
+            "agency": "영산강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-26호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 51,
+            "occurred_at": "2020-08-08T03:30:00",
+            "elapsed_hours": 267.5,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수주의보 발령 — 합천군(황강교) (황강)",
+            "agency": "낙동강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-18호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 52,
+            "occurred_at": "2020-08-08T03:50:00",
+            "elapsed_hours": 267.8,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수주의보 발령 — 정읍시(초강리)",
+            "agency": "영산강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-31호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 53,
+            "occurred_at": "2020-08-08T04:00:00",
+            "elapsed_hours": 268,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수주의보 발령 — 남원시(동림교)",
+            "agency": "영산강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-32호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 54,
+            "occurred_at": "2020-08-08T04:40:00",
+            "elapsed_hours": 268.7,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수경보 변경 — 남원시(동림교)",
+            "agency": "영산강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-34호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 55,
+            "occurred_at": "2020-08-08T05:50:00",
+            "elapsed_hours": 269.8,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수경보 변경 — 정읍시(초강리)",
+            "agency": "영산강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-35호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 56,
+            "occurred_at": "2020-08-08T06:40:00",
+            "elapsed_hours": 270.7,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수경보 변경 — 산청군(경호교) (남강)",
+            "agency": "낙동강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-19호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 57,
+            "occurred_at": "2020-08-08T07:10:00",
+            "elapsed_hours": 271.2,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수주의보 발령 — 정읍시(정우교)",
+            "agency": "영산강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-36호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 58,
+            "occurred_at": "2020-08-08T07:50:00",
+            "elapsed_hours": 271.8,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수경보 변경 — 하동군(읍내리)",
+            "agency": "영산강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-37호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 59,
+            "occurred_at": "2020-08-08T08:40:00",
+            "elapsed_hours": 272.7,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수주의보 발령 — 밀양시(삼랑진교) (낙동강)",
+            "agency": "낙동강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-20호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 60,
+            "occurred_at": "2020-08-08T09:30:00",
+            "elapsed_hours": 273.5,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수경보 변경 — 전주시(미산교)",
+            "agency": "영산강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-38호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 61,
+            "occurred_at": "2020-08-08T09:30:00",
+            "elapsed_hours": 273.5,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수주의보 발령 — 함안군(계내리) (낙동강)",
+            "agency": "낙동강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-21호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 62,
+            "occurred_at": "2020-08-08T10:20:00",
+            "elapsed_hours": 274.3,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수경보 변경 — 완주군(삼례교)",
+            "agency": "영산강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-40호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 63,
+            "occurred_at": "2020-08-08T13:30:00",
+            "elapsed_hours": 277.5,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수주의보 발령 — 의성군(비안교) (낙동강)",
+            "agency": "낙동강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-22호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 64,
+            "occurred_at": "2020-08-08T13:50:00",
+            "elapsed_hours": 277.8,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수주의보 발령 — 의령군(정암교) (남강)",
+            "agency": "낙동강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-23호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 65,
+            "occurred_at": "2020-08-08T14:20:00",
+            "elapsed_hours": 278.3,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수경보 변경 — 합천군(황강교) (황강)",
+            "agency": "낙동강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-24호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 66,
+            "occurred_at": "2020-08-08T15:00:00",
+            "elapsed_hours": 279,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수경보 변경 — 밀양시(삼랑진교) (낙동강)",
+            "agency": "낙동강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-25호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 67,
+            "occurred_at": "2020-08-08T15:20:00",
+            "elapsed_hours": 279.3,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수주의보 발령 — 부산시(구포대교) (낙동강)",
+            "agency": "낙동강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-26호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 68,
+            "occurred_at": "2020-08-08T15:40:00",
+            "elapsed_hours": 279.7,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수주의보 발령 — 대구시(성하리) (낙동강)",
+            "agency": "낙동강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-27호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 69,
+            "occurred_at": "2020-08-08T18:40:00",
+            "elapsed_hours": 282.7,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수주의보 발령 — 대구시(신암동) (금호강)",
+            "agency": "낙동강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-28호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 70,
+            "occurred_at": "2020-08-08T19:10:00",
+            "elapsed_hours": 283.2,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수경보 해제 — 산청군(경호교) (남강)",
+            "agency": "낙동강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-29호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 71,
+            "occurred_at": "2020-08-08T19:20:00",
+            "elapsed_hours": 283.3,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수경보 변경 — 함안군(계내리) (낙동강)",
+            "agency": "낙동강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-30호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 72,
+            "occurred_at": "2020-08-08T22:30:00",
+            "elapsed_hours": 286.5,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수주의보 해제 — 의성군(비안교) (낙동강)",
+            "agency": "낙동강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-31호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 73,
+            "occurred_at": "2020-08-08T23:40:00",
+            "elapsed_hours": 287.7,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수주의보 해제 — 대구시(신암동) (금호강)",
+            "agency": "낙동강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-32호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 74,
+            "occurred_at": "2020-08-09T15:00:00",
+            "elapsed_hours": 303,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수주의보 발령 — 포천시(영평교) (영평천)",
+            "agency": "한강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-35호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 75,
+            "occurred_at": "2020-08-09T15:20:00",
+            "elapsed_hours": 303.3,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수주의보 해제 — 정읍시(정우교)",
+            "agency": "영산강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-41호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 76,
+            "occurred_at": "2020-08-09T15:30:00",
+            "elapsed_hours": 303.5,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수주의보 해제 — 정읍시(초강리)",
+            "agency": "영산강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-42호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 77,
+            "occurred_at": "2020-08-09T15:40:00",
+            "elapsed_hours": 303.7,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수주의보 해제 — 전주시(미산교)",
+            "agency": "영산강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-43호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 78,
+            "occurred_at": "2020-08-09T16:00:00",
+            "elapsed_hours": 304,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수주의보 변경 — 합천군(황강교) (황강)",
+            "agency": "낙동강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-33호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 79,
+            "occurred_at": "2020-08-09T16:40:00",
+            "elapsed_hours": 304.7,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수주의보 해제 — 완주군(삼례교)",
+            "agency": "영산강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-44호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 80,
+            "occurred_at": "2020-08-09T18:00:00",
+            "elapsed_hours": 306,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수주의보 해제 — 대구시(성하리) (낙동강)",
+            "agency": "낙동강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-34호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 81,
+            "occurred_at": "2020-08-09T18:00:00",
+            "elapsed_hours": 306,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수주의보 해제 — 남원시(동림교)",
+            "agency": "영산강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-52호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 82,
+            "occurred_at": "2020-08-09T18:10:00",
+            "elapsed_hours": 306.2,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수주의보 변경 — 하동군(읍내리)",
+            "agency": "영산강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-53호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 83,
+            "occurred_at": "2020-08-09T19:00:00",
+            "elapsed_hours": 307,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수주의보 해제 — 의령군(정암교) (남강)",
+            "agency": "낙동강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-35호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 84,
+            "occurred_at": "2020-08-09T22:50:00",
+            "elapsed_hours": 310.8,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수주의보 해제 — 괴산군(목도교) (달천)",
+            "agency": "한강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-36호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 85,
+            "occurred_at": "2020-08-09T23:00:00",
+            "elapsed_hours": 311,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수주의보 해제 — 평택시(군문교) (안성천)",
+            "agency": "한강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-37호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 86,
+            "occurred_at": "2020-08-09T23:10:00",
+            "elapsed_hours": 311.2,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수경보 해제 — 여주시(흥천대교) (복하천)",
+            "agency": "한강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-39호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 87,
+            "occurred_at": "2020-08-09T23:10:00",
+            "elapsed_hours": 311.2,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수경보 해제 — 여주시(원부교) (청미천)",
+            "agency": "한강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-38호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 88,
+            "occurred_at": "2020-08-09T23:40:00",
+            "elapsed_hours": 311.7,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수주의보 변경 — 함안군(계내리) (낙동강)",
+            "agency": "낙동강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-36호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 89,
+            "occurred_at": "2020-08-10T01:10:00",
+            "elapsed_hours": 313.2,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수주의보 해제 — 합천군(황강교) (황강)",
+            "agency": "낙동강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-37호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 90,
+            "occurred_at": "2020-08-10T06:50:00",
+            "elapsed_hours": 318.8,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수주의보 해제 — 포천시(영평교) (영평천)",
+            "agency": "한강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-40호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 91,
+            "occurred_at": "2020-08-10T10:10:00",
+            "elapsed_hours": 322.2,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수주의보 변경 — 밀양시(삼랑진교) (낙동강)",
+            "agency": "낙동강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-38호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 92,
+            "occurred_at": "2020-08-10T12:00:00",
+            "elapsed_hours": 324,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수주의보 발령 — 파주시(비룡대교) (임진강)",
+            "agency": "한강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-41호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 93,
+            "occurred_at": "2020-08-10T17:30:00",
+            "elapsed_hours": 329.5,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수주의보 해제 — 부산시(구포대교) (낙동강)",
+            "agency": "낙동강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-39호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 94,
+            "occurred_at": "2020-08-10T17:30:00",
+            "elapsed_hours": 329.5,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수주의보 해제 — 함안군(계내리) (낙동강)",
+            "agency": "낙동강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-40호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 95,
+            "occurred_at": "2020-08-11T04:00:00",
+            "elapsed_hours": 340,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수주의보 발령 — 포천시(영평교) (영평천)",
+            "agency": "한강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-42호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 96,
+            "occurred_at": "2020-08-11T06:00:00",
+            "elapsed_hours": 342,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수주의보 발령 — 남양주시(진관교) (왕숙천)",
+            "agency": "한강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-43호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 97,
+            "occurred_at": "2020-08-11T14:00:00",
+            "elapsed_hours": 350,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수주의보 발령 — 문경시(김용리) (영강)",
+            "agency": "낙동강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-41호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 98,
+            "occurred_at": "2020-08-11T17:00:00",
+            "elapsed_hours": 353,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수주의보 해제 — 하동군(읍내리)",
+            "agency": "영산강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-57호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 99,
+            "occurred_at": "2020-08-11T17:40:00",
+            "elapsed_hours": 353.7,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수주의보 해제 — 문경시(김용리) (영강)",
+            "agency": "낙동강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-42호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          },
+          {
+            "seq": 100,
+            "occurred_at": "2020-08-11T18:00:00",
+            "elapsed_hours": 354,
+            "time_precision": "MINUTE",
+            "category": "특보",
+            "description": "홍수주의보 해제 — 남양주시(진관교) (왕숙천)",
+            "agency": "한강홍수통제소",
+            "record_type": "ACTUAL",
+            "evidence_ref": null,
+            "source_ref": "홍수특보 제2020-44호",
+            "relation_basis": "TIME_REGION_OVERLAP"
+          }
+        ]
+      },
+      "data_gaps": [],
+      "warnings": [
+        {
+          "code": "TIMELINE_LINKED_BY_OVERLAP",
+          "message": "사건과 명시적으로 연결된 기록이 아니라 사건 기간 × 관련 시도가 겹치는 특보·재난문자입니다.",
+          "retryable": false
+        }
+      ],
+      "meta": {
+        "source": "T3Q",
+        "base_time": "2026-10-20T00:00:00+09:00",
+        "quality_status": "VERIFIED",
+        "disclosure_level": "공개",
+        "elapsed_ms": 326
+      }
+    }
+  },
+  {
+    "id": "T3Q-13",
+    "method": "GET",
+    "path": "/events/T10107-20200728-0001/damage-response",
+    "body": null,
+    "http": 200,
+    "ms": 1638,
+    "response": {
+      "schema_version": "2.0",
+      "request_id": "d9405d3ba504b32cc8d4f18b43205acf",
+      "correlation_id": "corr-d9405d3ba504b32cc8d4f18b43205acf",
+      "status": "PARTIAL_SUCCESS",
+      "result": {
+        "event_master_id": "T10107-20200728-0001",
+        "damage": {
+          "human": {
+            "text": null,
+            "dead": null,
+            "missing": null,
+            "injured": null,
+            "displaced": 16767
+          },
+          "property": {
+            "text": null,
+            "property_damage_krw": 1037156500000,
+            "houses": null
+          },
+          "facilities": {
+            "public": {
+              "record_count": 913,
+              "damage_amount_krw": 95965587000,
+              "by_category": [
+                {
+                  "category": "하수도",
+                  "record_count": 69,
+                  "damage_amount_krw": 15062325000
+                },
+                {
+                  "category": "오수분뇨처리시설",
+                  "record_count": 35,
+                  "damage_amount_krw": 11506642000
+                },
+                {
+                  "category": "국토부기타",
+                  "record_count": 28,
+                  "damage_amount_krw": 10350148000
+                },
+                {
+                  "category": "수리시설",
+                  "record_count": 125,
+                  "damage_amount_krw": 10163143000
+                },
+                {
+                  "category": "군사시설",
+                  "record_count": 37,
+                  "damage_amount_krw": 7826218000
+                },
+                {
+                  "category": "하천 기본시설",
+                  "record_count": 27,
+                  "damage_amount_krw": 6375366000
+                },
+                {
+                  "category": "마을기반조성",
+                  "record_count": 6,
+                  "damage_amount_krw": 5132942000
+                },
+                {
+                  "category": "행안부기타",
+                  "record_count": 88,
+                  "damage_amount_krw": 4165694000
+                },
+                {
+                  "category": "폐기물처리시설",
+                  "record_count": 9,
+                  "damage_amount_krw": 3395192000
+                },
+                {
+                  "category": "하천 친수시설",
+                  "record_count": 11,
+                  "damage_amount_krw": 2939473000
+                }
+              ]
+            },
+            "private": {
+              "record_count": 228298,
+              "damage_amount_krw": 406065397000
+            },
+            "recovery": [
+              {
+                "report_level": "중앙",
+                "item_count": 15506,
+                "damage_amount_krw": 950141668000,
+                "recovery_cost_krw": 3263503307000
+              },
+              {
+                "report_level": "시군구",
+                "item_count": 15506,
+                "damage_amount_krw": 950173767000,
+                "recovery_cost_krw": 3279393548000
+              }
+            ],
+            "damage_registers": [
+              {
+                "disaster_id": 227,
+                "disaster_year": 2020,
+                "name": "7.28~8.11 호우"
+              },
+              {
+                "disaster_id": 228,
+                "disaster_year": 2020,
+                "name": "7.28~8.11 호우(12차 전환)"
+              }
+            ]
+          }
+        },
+        "response": {
+          "road_control_count": null,
+          "evacuation": {
+            "text": null,
+            "persons": null
+          },
+          "actions": []
+        },
+        "evidence_refs": [
+          "EV-EVT-T10107-20200728-0001",
+          "EV-DMG-T10107-20200728-0001"
+        ]
+      },
+      "data_gaps": [
+        {
+          "component": "response",
+          "reason": "NOT_IN_SOURCE"
+        },
+        {
+          "component": "damage.human",
+          "reason": "NOT_IN_SOURCE"
+        }
+      ],
+      "warnings": [],
+      "meta": {
+        "source": "T3Q",
+        "base_time": "2026-10-20T00:00:00+09:00",
+        "quality_status": "VERIFIED",
+        "disclosure_level": "공개",
+        "elapsed_ms": 1551
+      }
+    }
+  },
+  {
+    "id": "T3Q-15",
+    "method": "GET",
+    "path": "/risk-objects/UP-609",
+    "body": null,
+    "http": 200,
+    "ms": 1451,
+    "response": {
+      "schema_version": "2.0",
+      "request_id": "5a1e8fc62f58463de18f4c7b3119ce86",
+      "correlation_id": "corr-5a1e8fc62f58463de18f4c7b3119ce86",
+      "status": "SUCCESS",
+      "result": {
+        "object_id": "UP-609",
+        "spatial_object_id": null,
+        "data_group": "RISK_FACTOR_FACILITY",
+        "category": "지하차도(취약시설)",
+        "type": "지하차도",
+        "source_subtype": "차단봉",
+        "name": "대남지하차도",
+        "admin_area": {
+          "admin_code": "2629010600",
+          "name": "부산광역시 남구 대연동"
+        },
+        "address": "부산 남구 대연동",
+        "risk": {
+          "designation_reason": null,
+          "key_risk_condition": null,
+          "expected_damage": null,
+          "vulnerability": null,
+          "grade": {
+            "value": "4",
+            "status": "PROVIDED"
+          },
+          "risk_score_detail": null,
+          "designated_at": null,
+          "designation_no": null,
+          "area_or_length": null,
+          "attributes": [
+            {
+              "key": "authority",
+              "label": "관리주체",
+              "value": "지자체",
+              "evidence_ref": "EV-OBJ-UP-609"
+            },
+            {
+              "key": "built_year",
+              "label": "준공연도",
+              "value": 1995,
+              "evidence_ref": "EV-OBJ-UP-609"
+            },
+            {
+              "key": "box_length_m",
+              "label": "BOX 연장(m)",
+              "value": 125,
+              "evidence_ref": "EV-OBJ-UP-609"
+            },
+            {
+              "key": "u_shaped",
+              "label": "U형",
+              "value": "예",
+              "evidence_ref": "EV-OBJ-UP-609"
+            },
+            {
+              "key": "near_river_500m",
+              "label": "하천 500m 이내",
+              "value": "예",
+              "evidence_ref": "EV-OBJ-UP-609"
+            },
+            {
+              "key": "river_name",
+              "label": "하천명",
+              "value": "남천",
+              "evidence_ref": "EV-OBJ-UP-609"
+            },
+            {
+              "key": "casualty_risk_area",
+              "label": "인명피해우려지역",
+              "value": "예",
+              "evidence_ref": "EV-OBJ-UP-609"
+            },
+            {
+              "key": "control_depth_cm",
+              "label": "통제 기준 수심(cm)",
+              "value": 5,
+              "evidence_ref": "EV-OBJ-UP-609"
+            },
+            {
+              "key": "barrier_form",
+              "label": "진입차단시설 형태",
+              "value": "차단봉",
+              "evidence_ref": "EV-OBJ-UP-609"
+            },
+            {
+              "key": "procured",
+              "label": "차단시설 조달",
+              "value": "예",
+              "evidence_ref": "EV-OBJ-UP-609"
+            },
+            {
+              "key": "not_installed_reason",
+              "label": "미설치 사유",
+              "value": "해당없음",
+              "evidence_ref": "EV-OBJ-UP-609"
+            },
+            {
+              "key": "response_plan",
+              "label": "대응계획 수립",
+              "value": "예",
+              "evidence_ref": "EV-OBJ-UP-609"
+            },
+            {
+              "key": "equipment",
+              "label": "설비 보유",
+              "value": "스피커 · 전광판 · 대피시설 · 배수시설(지하) · 수위계측기 · 진입차단시설(차단봉) · CCTV",
+              "evidence_ref": "EV-OBJ-UP-609"
+            }
+          ]
+        },
+        "management": {
+          "agency": "지자체",
+          "department": null,
+          "contact": null,
+          "contains_pii": false
+        },
+        "basis": {
+          "designation_basis": null,
+          "related_plans": [],
+          "past_events": [],
+          "related_documents": [
+            {
+              "title": "(최종) 지하차도 현황(26.6.10.기준) — 표 «지하차도_차단시설_현황» 288행",
+              "evidence_ref": "EV-OBJ-UP-609"
+            }
+          ]
+        },
+        "source": {
+          "name": "지하차도 현황(2026-06-10 기준)",
+          "table": "지하차도_차단시설_현황",
+          "row_no": 288,
+          "as_of": "2026-06-10"
+        },
+        "disclosure_level": "공개"
+      },
+      "data_gaps": [],
+      "warnings": [],
+      "meta": {
+        "source": "T3Q",
+        "base_time": "2026-10-20T00:00:00+09:00",
+        "quality_status": "VERIFIED",
+        "disclosure_level": "공개",
+        "elapsed_ms": 1365
+      }
+    }
+  },
+  {
+    "id": "T3Q-16",
+    "method": "GET",
+    "path": "/rivers/RV-1024180/plan-knowledge?station_limit=20",
+    "body": null,
+    "http": 200,
+    "ms": 1410,
+    "response": {
+      "schema_version": "2.0",
+      "request_id": "aebe0a980c783bf8ebb221eb6e1e4612",
+      "correlation_id": "corr-aebe0a980c783bf8ebb221eb6e1e4612",
+      "status": "PARTIAL_SUCCESS",
+      "result": {
+        "river_id": "RV-1024180",
+        "river_code": "1024180",
+        "river_name": "묵현천",
+        "river_basic": {
+          "river_type": "지방하천",
+          "passing_admin_areas": null,
+          "managing_agency": null,
+          "water_system": "북한강 수계",
+          "basin_code": "1002710",
+          "parent_river": {
+            "river_id": "RV-1002710",
+            "river_name": "북한강"
+          },
+          "tributary_order": 1,
+          "river_length_km": 10.6,
+          "catchment_km2": 37,
+          "designation": "경기3148호 (1965.03.01 )"
+        },
+        "plan": {
+          "plan_id": "RBP-1024180202010",
+          "name": "묵현천 등 12개 하천기본계획 및 하천시설관리대장 작성",
+          "agency": null,
+          "notice": null,
+          "plan_period": null,
+          "base_year": 2020,
+          "probable_rainfall": [],
+          "design_flood": {
+            "value_cms": 470,
+            "station_no": "0",
+            "return_period_yr": null
+          },
+          "freeboard_required_m": null,
+          "vertical_datum": "EL.m",
+          "other_plans": []
+        },
+        "stations": [
+          {
+            "station_no": "0",
+            "cum_dist_m": 0,
+            "design_flood_cms": 470,
+            "design_flood_level_elm": 32.67,
+            "levee_left_elm": 36.62,
+            "levee_right_elm": 36.69,
+            "plan_width_m": null,
+            "thalweg_elm": null,
+            "return_period_yr": null,
+            "freeboard_m": 3.95,
+            "freeboard_ok": null
+          },
+          {
+            "station_no": "0.095",
+            "cum_dist_m": 95,
+            "design_flood_cms": 470,
+            "design_flood_level_elm": 32.67,
+            "levee_left_elm": 39.02,
+            "levee_right_elm": 39.02,
+            "plan_width_m": null,
+            "thalweg_elm": null,
+            "return_period_yr": null,
+            "freeboard_m": 6.35,
+            "freeboard_ok": null
+          },
+          {
+            "station_no": "0.185",
+            "cum_dist_m": 185,
+            "design_flood_cms": 470,
+            "design_flood_level_elm": 32.67,
+            "levee_left_elm": 36.88,
+            "levee_right_elm": 35.51,
+            "plan_width_m": null,
+            "thalweg_elm": null,
+            "return_period_yr": null,
+            "freeboard_m": 2.84,
+            "freeboard_ok": null
+          },
+          {
+            "station_no": "0.205",
+            "cum_dist_m": 205,
+            "design_flood_cms": 470,
+            "design_flood_level_elm": 32.67,
+            "levee_left_elm": 36.76,
+            "levee_right_elm": 35.75,
+            "plan_width_m": null,
+            "thalweg_elm": null,
+            "return_period_yr": null,
+            "freeboard_m": 3.08,
+            "freeboard_ok": null
+          },
+          {
+            "station_no": "0.213",
+            "cum_dist_m": 213,
+            "design_flood_cms": 470,
+            "design_flood_level_elm": 32.67,
+            "levee_left_elm": 37.06,
+            "levee_right_elm": 31.62,
+            "plan_width_m": null,
+            "thalweg_elm": null,
+            "return_period_yr": null,
+            "freeboard_m": -1.05,
+            "freeboard_ok": null
+          },
+          {
+            "station_no": "0.285",
+            "cum_dist_m": 285,
+            "design_flood_cms": 470,
+            "design_flood_level_elm": 32.69,
+            "levee_left_elm": 37.03,
+            "levee_right_elm": 32.82,
+            "plan_width_m": null,
+            "thalweg_elm": null,
+            "return_period_yr": null,
+            "freeboard_m": 0.13,
+            "freeboard_ok": null
+          },
+          {
+            "station_no": "0.385",
+            "cum_dist_m": 385,
+            "design_flood_cms": 470,
+            "design_flood_level_elm": 32.74,
+            "levee_left_elm": 37.06,
+            "levee_right_elm": 33.34,
+            "plan_width_m": null,
+            "thalweg_elm": null,
+            "return_period_yr": null,
+            "freeboard_m": 0.6,
+            "freeboard_ok": null
+          },
+          {
+            "station_no": "0.485",
+            "cum_dist_m": 485,
+            "design_flood_cms": 470,
+            "design_flood_level_elm": 32.78,
+            "levee_left_elm": 36.63,
+            "levee_right_elm": 35.64,
+            "plan_width_m": null,
+            "thalweg_elm": null,
+            "return_period_yr": null,
+            "freeboard_m": 2.86,
+            "freeboard_ok": null
+          },
+          {
+            "station_no": "0.585",
+            "cum_dist_m": 585,
+            "design_flood_cms": 470,
+            "design_flood_level_elm": 32.78,
+            "levee_left_elm": 36.68,
+            "levee_right_elm": 36.22,
+            "plan_width_m": null,
+            "thalweg_elm": null,
+            "return_period_yr": null,
+            "freeboard_m": 3.44,
+            "freeboard_ok": null
+          },
+          {
+            "station_no": "0.685",
+            "cum_dist_m": 685,
+            "design_flood_cms": 470,
+            "design_flood_level_elm": 32.79,
+            "levee_left_elm": 36.76,
+            "levee_right_elm": 36.6,
+            "plan_width_m": null,
+            "thalweg_elm": null,
+            "return_period_yr": null,
+            "freeboard_m": 3.81,
+            "freeboard_ok": null
+          },
+          {
+            "station_no": "0.785",
+            "cum_dist_m": 785,
+            "design_flood_cms": 470,
+            "design_flood_level_elm": 32.79,
+            "levee_left_elm": 36.83,
+            "levee_right_elm": 35.35,
+            "plan_width_m": null,
+            "thalweg_elm": null,
+            "return_period_yr": null,
+            "freeboard_m": 2.56,
+            "freeboard_ok": null
+          },
+          {
+            "station_no": "0.885",
+            "cum_dist_m": 885,
+            "design_flood_cms": 470,
+            "design_flood_level_elm": 33,
+            "levee_left_elm": 36.78,
+            "levee_right_elm": 39.38,
+            "plan_width_m": null,
+            "thalweg_elm": null,
+            "return_period_yr": null,
+            "freeboard_m": 3.78,
+            "freeboard_ok": null
+          },
+          {
+            "station_no": "0.949",
+            "cum_dist_m": 949,
+            "design_flood_cms": 470,
+            "design_flood_level_elm": 33.15,
+            "levee_left_elm": 36.77,
+            "levee_right_elm": 37.42,
+            "plan_width_m": null,
+            "thalweg_elm": null,
+            "return_period_yr": null,
+            "freeboard_m": 3.62,
+            "freeboard_ok": null
+          },
+          {
+            "station_no": "0.995",
+            "cum_dist_m": 995,
+            "design_flood_cms": 470,
+            "design_flood_level_elm": 33.2,
+            "levee_left_elm": 36.81,
+            "levee_right_elm": 37.56,
+            "plan_width_m": null,
+            "thalweg_elm": null,
+            "return_period_yr": null,
+            "freeboard_m": 3.61,
+            "freeboard_ok": null
+          },
+          {
+            "station_no": "1",
+            "cum_dist_m": 1000,
+            "design_flood_cms": 470,
+            "design_flood_level_elm": 33.21,
+            "levee_left_elm": 36.69,
+            "levee_right_elm": 34.88,
+            "plan_width_m": null,
+            "thalweg_elm": null,
+            "return_period_yr": null,
+            "freeboard_m": 1.67,
+            "freeboard_ok": null
+          },
+          {
+            "station_no": "1.085",
+            "cum_dist_m": 1085,
+            "design_flood_cms": 470,
+            "design_flood_level_elm": 33.32,
+            "levee_left_elm": 36.69,
+            "levee_right_elm": 36.54,
+            "plan_width_m": null,
+            "thalweg_elm": null,
+            "return_period_yr": null,
+            "freeboard_m": 3.22,
+            "freeboard_ok": null
+          },
+          {
+            "station_no": "1.175",
+            "cum_dist_m": 1175,
+            "design_flood_cms": 470,
+            "design_flood_level_elm": 33.89,
+            "levee_left_elm": 36.56,
+            "levee_right_elm": 37.63,
+            "plan_width_m": null,
+            "thalweg_elm": null,
+            "return_period_yr": null,
+            "freeboard_m": 2.67,
+            "freeboard_ok": null
+          },
+          {
+            "station_no": "1.275",
+            "cum_dist_m": 1275,
+            "design_flood_cms": 470,
+            "design_flood_level_elm": 34.13,
+            "levee_left_elm": 36.82,
+            "levee_right_elm": 36.92,
+            "plan_width_m": null,
+            "thalweg_elm": null,
+            "return_period_yr": null,
+            "freeboard_m": 2.69,
+            "freeboard_ok": null
+          },
+          {
+            "station_no": "1.365",
+            "cum_dist_m": 1365,
+            "design_flood_cms": 470,
+            "design_flood_level_elm": 34.58,
+            "levee_left_elm": 36.81,
+            "levee_right_elm": 37.45,
+            "plan_width_m": null,
+            "thalweg_elm": null,
+            "return_period_yr": null,
+            "freeboard_m": 2.23,
+            "freeboard_ok": null
+          },
+          {
+            "station_no": "1.46",
+            "cum_dist_m": 1460,
+            "design_flood_cms": 470,
+            "design_flood_level_elm": 35.39,
+            "levee_left_elm": 36.67,
+            "levee_right_elm": 36.98,
+            "plan_width_m": null,
+            "thalweg_elm": null,
+            "return_period_yr": null,
+            "freeboard_m": 1.28,
+            "freeboard_ok": null
+          }
+        ],
+        "station_total": 173,
+        "facilities": "교량 11 · (종류 미상) 5 · 낙차공 3 · 보 1 (과업 전체)",
+        "facility_items": [
+          {
+            "facility_type": "교량",
+            "count": 11,
+            "scope": "과업 전체"
+          },
+          {
+            "facility_type": "(종류 미상)",
+            "count": 5,
+            "scope": "과업 전체"
+          },
+          {
+            "facility_type": "낙차공",
+            "count": 3,
+            "scope": "과업 전체"
+          },
+          {
+            "facility_type": "보",
+            "count": 1,
+            "scope": "과업 전체"
+          }
+        ],
+        "management_state": null,
+        "risk_sections": [],
+        "mitigation_measures": [],
+        "knowledge_type": "PLAN_KNOWLEDGE",
+        "evidence_refs": [
+          "EV-OBJ-RBP-1024180202010"
+        ]
+      },
+      "data_gaps": [
+        {
+          "component": "river_basic.passing_admin_areas",
+          "reason": "NOT_IN_SOURCE"
+        },
+        {
+          "component": "risk_sections",
+          "reason": "NOT_YET_BUILT"
+        },
+        {
+          "component": "mitigation_measures",
+          "reason": "NOT_YET_BUILT"
+        },
+        {
+          "component": "plan.probable_rainfall",
+          "reason": "NOT_IN_SOURCE"
+        },
+        {
+          "component": "stations[].freeboard_ok",
+          "reason": "NOT_IN_SOURCE"
+        }
+      ],
+      "warnings": [
+        {
+          "code": "FREEBOARD_COMPUTED",
+          "message": "freeboard_m 은 min(좌·우 제방고) − 계획홍수위로 셈한 값입니다(기준 여유고 원천이 없어 판정 freeboard_ok 는 null).",
+          "retryable": false
+        }
+      ],
+      "meta": {
+        "source": "T3Q",
+        "base_time": "2026-10-20T00:00:00+09:00",
+        "quality_status": "VERIFIED",
+        "disclosure_level": "공개",
+        "elapsed_ms": 1322
+      }
+    }
+  },
+  {
+    "id": "T3Q-17",
+    "method": "GET",
+    "path": "/plans/RBP-1024180202010",
+    "body": null,
+    "http": 200,
+    "ms": 1507,
+    "response": {
+      "schema_version": "2.0",
+      "request_id": "4b55716e6f1f9a7e223fed9808138398",
+      "correlation_id": "corr-4b55716e6f1f9a7e223fed9808138398",
+      "status": "PARTIAL_SUCCESS",
+      "result": {
+        "plan_id": "RBP-1024180202010",
+        "plan_type": "하천기본계획",
+        "name": "묵현천 하천기본계획 — 묵현천 등 12개 하천기본계획 및 하천시설관리대장 작성",
+        "target_area": "묵현천(1024180)",
+        "agency": null,
+        "plan_period": null,
+        "base_year": 2020,
+        "version": "보고 2020.10",
+        "other_versions": [],
+        "content": {
+          "plan_summary": null,
+          "risk_causes": null,
+          "mitigation_measures": null,
+          "related_passage": null
+        },
+        "type_specific_items": [
+          {
+            "section": "문서",
+            "items": [
+              {
+                "label": "과업명",
+                "value": "묵현천 등 12개 하천기본계획 및 하천시설관리대장 작성"
+              },
+              {
+                "label": "보고 연월",
+                "value": "2020-10"
+              },
+              {
+                "label": "원천 파일 수",
+                "value": 98
+              }
+            ]
+          },
+          {
+            "section": "구간·수계",
+            "items": [
+              {
+                "label": "하천등급·연장",
+                "value": "지방 · 10.6km"
+              },
+              {
+                "label": "수계·유역면적",
+                "value": "북한강 수계 · 37㎢"
+              },
+              {
+                "label": "상위 하천",
+                "value": "북한강"
+              }
+            ]
+          },
+          {
+            "section": "수문",
+            "items": [
+              {
+                "label": "확률강우량",
+                "value": null
+              },
+              {
+                "label": "계획홍수량",
+                "value": "470 ㎥/s (0)"
+              },
+              {
+                "label": "계획홍수위",
+                "value": "측점 173곳"
+              }
+            ]
+          },
+          {
+            "section": "하도·제방",
+            "items": [
+              {
+                "label": "계획하폭",
+                "value": null
+              },
+              {
+                "label": "여유고(셈한 값)",
+                "value": "-68.17~6.35 m"
+              },
+              {
+                "label": "시설(과업 전체)",
+                "value": "교량 11 · (종류 미상) 5 · 낙차공 3 · 보 1"
+              }
+            ]
+          },
+          {
+            "section": "위험",
+            "items": [
+              {
+                "label": "홍수취약·협착구간",
+                "value": null
+              },
+              {
+                "label": "위험요소명·위험등급",
+                "value": null
+              },
+              {
+                "label": "대상시설·구간",
+                "value": null
+              },
+              {
+                "label": "대응 착안점",
+                "value": null
+              }
+            ]
+          }
+        ],
+        "target_rivers": [
+          {
+            "river_code": "1024180",
+            "spatial_object_id": null,
+            "river_name": "묵현천",
+            "river_id": "RV-1024180"
+          }
+        ],
+        "linked_risk_area_count": null,
+        "linked_risk_area_ids": [],
+        "document_id": null,
+        "quality_status": "VERIFIED",
+        "disclosure_level": "공개",
+        "evidence_refs": [
+          "EV-OBJ-RBP-1024180202010"
+        ]
+      },
+      "data_gaps": [
+        {
+          "component": "content",
+          "reason": "NOT_YET_BUILT"
+        },
+        {
+          "component": "type_specific_items.위험",
+          "reason": "NOT_YET_BUILT"
+        }
+      ],
+      "warnings": [],
+      "meta": {
+        "source": "T3Q",
+        "base_time": "2026-10-20T00:00:00+09:00",
+        "quality_status": "VERIFIED",
+        "disclosure_level": "공개",
+        "elapsed_ms": 1417
+      }
+    }
+  },
+  {
+    "id": "T3Q-18",
+    "method": "POST",
+    "path": "/kg/query",
+    "body": {
+      "caller": {
+        "user_id": "U-TEST-0001",
+        "role": "LOCAL_GOV_OFFICER",
+        "org_admin_code": "2600000000"
+      },
+      "source_ids": [
+        "RV-1024180"
+      ],
+      "relation_types": null,
+      "depth": 1
+    },
+    "http": 200,
+    "ms": 781,
+    "response": {
+      "schema_version": "2.0",
+      "request_id": "64ba278716e84b72d19541fe68c9b3de",
+      "correlation_id": "corr-64ba278716e84b72d19541fe68c9b3de",
+      "status": "SUCCESS",
+      "result": {
+        "nodes": [
+          {
+            "id": "RV-1024180",
+            "entity_type": "RIVER",
+            "name": "묵현천",
+            "has_geometry": false
+          },
+          {
+            "id": "RBP-1024180202010",
+            "entity_type": "PLAN",
+            "name": "묵현천 하천기본계획 — 묵현천 등 12개 하천기본계획 및 하천시설관리대장 작성",
+            "has_geometry": false
+          },
+          {
+            "id": "RV-1002710",
+            "entity_type": "RIVER",
+            "name": "북한강",
+            "has_geometry": false
+          },
+          {
+            "id": "RV-1024190",
+            "entity_type": "RIVER",
+            "name": "마석우천",
+            "has_geometry": false
+          },
+          {
+            "id": "RV-1024200",
+            "entity_type": "RIVER",
+            "name": "맹동천",
+            "has_geometry": false
+          }
+        ],
+        "edges": [
+          {
+            "source_id": "RBP-1024180202010",
+            "relation_type": "PLAN_TARGET_RIVER",
+            "target_id": "RV-1024180",
+            "relation_basis": "DATA_LINKED",
+            "evidence_ref": "EV-OBJ-RBP-1024180202010",
+            "status": "ACTIVE"
+          },
+          {
+            "source_id": "RV-1024180",
+            "relation_type": "TRIBUTARY_OF",
+            "target_id": "RV-1002710",
+            "relation_basis": "DATA_LINKED",
+            "evidence_ref": null,
+            "status": "ACTIVE"
+          },
+          {
+            "source_id": "RV-1024190",
+            "relation_type": "TRIBUTARY_OF",
+            "target_id": "RV-1024180",
+            "relation_basis": "DATA_LINKED",
+            "evidence_ref": null,
+            "status": "ACTIVE"
+          },
+          {
+            "source_id": "RV-1024200",
+            "relation_type": "TRIBUTARY_OF",
+            "target_id": "RV-1024180",
+            "relation_basis": "DATA_LINKED",
+            "evidence_ref": null,
+            "status": "ACTIVE"
+          }
+        ],
+        "group_counts": [
+          {
+            "entity_type": "PLAN",
+            "count": 1
+          },
+          {
+            "entity_type": "RIVER",
+            "count": 3
+          }
+        ]
+      },
+      "data_gaps": [],
+      "warnings": [],
+      "meta": {
+        "source": "T3Q",
+        "base_time": "2026-10-20T00:00:00+09:00",
+        "quality_status": "VERIFIED",
+        "disclosure_level": "공개",
+        "elapsed_ms": 695
+      }
+    }
+  },
+  {
+    "id": "T3Q-19",
+    "method": "POST",
+    "path": "/evidence/search",
+    "body": {
+      "caller": {
+        "user_id": "U-TEST-0001",
+        "role": "LOCAL_GOV_OFFICER",
+        "org_admin_code": "2600000000"
+      },
+      "object_id": "T10107-20200728-0001",
+      "include_passage": true,
+      "context_paragraphs": 0,
+      "page": {
+        "page": 1,
+        "size": 20
+      }
+    },
+    "http": 200,
+    "ms": 1820,
+    "response": {
+      "schema_version": "2.0",
+      "request_id": "42feb7d5cb7254e88822db2d0dd47cda",
+      "correlation_id": "corr-42feb7d5cb7254e88822db2d0dd47cda",
+      "status": "SUCCESS",
+      "result": {
+        "object_id": "T10107-20200728-0001",
+        "total_count": 2,
+        "items": [
+          {
+            "evidence_ref": "EV-EVT-T10107-20200728-0001",
+            "document_id": "DOC-2020_재해연보",
+            "passage_id": null,
+            "page": "p.153",
+            "title": "2020 재해연보",
+            "short_title": "2020 재해연보",
+            "document_type": "재해연보",
+            "agency": "행정안전부",
+            "published_at": null,
+            "version": null,
+            "total_pages": null,
+            "section_path": "사건ID 목록 › 2020년 7.28.~8.11. 호우",
+            "section_title": null,
+            "pdf_page": null,
+            "paragraphs": [],
+            "table": null,
+            "quote_type": "TITLE_ONLY",
+            "ocr_status": null,
+            "source_availability": "TITLE_ONLY",
+            "disclosure_level": "공개",
+            "download_allowed": false,
+            "related_object_ids": [
+              "T10107-20200728-0001"
+            ],
+            "source_row": {
+              "table": "사건ID_목록",
+              "row_no": 208
+            }
+          },
+          {
+            "evidence_ref": "EV-DMG-T10107-20200728-0001",
+            "document_id": null,
+            "passage_id": null,
+            "page": null,
+            "title": "피해대장 집계 — 2020 7.28~8.11 호우 · 2020 7.28~8.11 호우(12차 전환)",
+            "short_title": "피해대장 집계",
+            "document_type": "피해대장",
+            "agency": null,
+            "published_at": null,
+            "version": null,
+            "total_pages": null,
+            "section_path": null,
+            "section_title": null,
+            "pdf_page": null,
+            "paragraphs": [],
+            "table": {
+              "caption": "공공시설 피해(복구확정) — 시설구분별 피해액 상위",
+              "head": [
+                "시설구분",
+                "피해 건수",
+                "피해액(원)"
+              ],
+              "rows": [
+                [
+                  "하수도",
+                  69,
+                  15062325000
+                ],
+                [
+                  "오수분뇨처리시설",
+                  35,
+                  11506642000
+                ],
+                [
+                  "국토부기타",
+                  28,
+                  10350148000
+                ],
+                [
+                  "수리시설",
+                  125,
+                  10163143000
+                ],
+                [
+                  "군사시설",
+                  37,
+                  7826218000
+                ],
+                [
+                  "하천 기본시설",
+                  27,
+                  6375366000
+                ],
+                [
+                  "마을기반조성",
+                  6,
+                  5132942000
+                ],
+                [
+                  "행안부기타",
+                  88,
+                  4165694000
+                ],
+                [
+                  "폐기물처리시설",
+                  9,
+                  3395192000
+                ],
+                [
+                  "하천 친수시설",
+                  11,
+                  2939473000
+                ]
+              ],
+              "highlighted_row": null,
+              "totals": {
+                "public_record_count": 913,
+                "public_damage_amount_krw": 95965587000,
+                "private_record_count": 228298,
+                "private_damage_amount_krw": 406065397000
+              }
+            },
+            "quote_type": "SUMMARY",
+            "ocr_status": null,
+            "source_availability": "AGGREGATE_ONLY",
+            "disclosure_level": "공개",
+            "download_allowed": false,
+            "related_object_ids": [
+              "T10107-20200728-0001"
+            ],
+            "coverage_note": "공공시설 피해는 2011~2025 침수 한정 원본 · 사유시설은 복구확정 기준 · 인명피해·강우·수위는 없음"
+          }
+        ]
+      },
+      "data_gaps": [
+        {
+          "component": "items[].paragraphs",
+          "reason": "NOT_YET_BUILT"
+        }
+      ],
+      "warnings": [],
+      "meta": {
+        "source": "T3Q",
+        "base_time": "2026-10-20T00:00:00+09:00",
+        "quality_status": "VERIFIED",
+        "disclosure_level": "공개",
+        "elapsed_ms": 1741
+      }
+    }
+  },
+  {
+    "id": "T3Q-20",
+    "method": "GET",
+    "path": "/documents/DOC-2020_재해연보/file",
+    "body": null,
+    "http": 200,
+    "ms": 165,
+    "response": {
+      "schema_version": "2.0",
+      "request_id": "7d970e56c19a9696254030a1d9dfc10a",
+      "correlation_id": "corr-7d970e56c19a9696254030a1d9dfc10a",
+      "status": "DATA_NOT_AVAILABLE",
+      "result": {
+        "document_id": "DOC-2020_재해연보",
+        "file_name": null,
+        "content_type": null,
+        "size_bytes": null,
+        "sha256": null,
+        "download_url": null,
+        "expires_at": null
+      },
+      "data_gaps": [
+        {
+          "component": "document_store",
+          "reason": "NOT_YET_BUILT"
+        }
+      ],
+      "warnings": [
+        {
+          "code": "DOCUMENT_STORE_NOT_BUILT",
+          "message": "원문 내려받기 창구가 아직 연결되지 않았습니다.",
+          "retryable": false
+        }
+      ],
+      "meta": {
+        "source": "T3Q",
+        "base_time": "2026-10-20T00:00:00+09:00",
+        "quality_status": "VERIFIED",
+        "disclosure_level": "공개",
+        "elapsed_ms": 85
+      }
+    }
+  },
+  {
+    "id": "T3Q-30",
+    "method": "POST",
+    "path": "/flood-traces/search",
+    "body": {
+      "caller": {
+        "user_id": "U-TEST-0001",
+        "role": "LOCAL_GOV_OFFICER",
+        "org_admin_code": "2600000000"
+      },
+      "region": {
+        "admin_code": "2600000000",
+        "level": "SIDO"
+      },
+      "flood_year": 2020,
+      "page": {
+        "page": 1,
+        "size": 20
+      }
+    },
+    "http": 200,
+    "ms": 303,
+    "response": {
+      "schema_version": "2.0",
+      "request_id": "1657418aa6139e08e1926f5fcc2ab5e8",
+      "correlation_id": "corr-1657418aa6139e08e1926f5fcc2ab5e8",
+      "status": "SUCCESS",
+      "result": {
+        "total_count": 91,
+        "items": [
+          {
+            "flood_trace_id": "FT-I_95520",
+            "spatial_object_id": "FT-I_95520",
+            "district_name": "수정1지구",
+            "admin_code": "2617010200",
+            "event_master_id": null,
+            "flood_event": {
+              "flood_event_id": "FE-389",
+              "name": "20년07월 장마철 집중호우"
+            },
+            "flood_grade": null,
+            "max_depth_m": null,
+            "avg_flood_depth_raw": 4.565,
+            "avg_flood_depth_unit": "원천 단위 미표기(cm 로 보임)",
+            "avg_flood_level_m": null,
+            "area_m2": 16179,
+            "damage_amount_krw": null,
+            "flood_hours": 1,
+            "cause": "집중호우, 배수불량",
+            "flood_year": 2020,
+            "started_on": "2020-07-23",
+            "ended_on": "2020-07-23",
+            "report": null,
+            "has_geometry": true
+          },
+          {
+            "flood_trace_id": "FT-I_15857",
+            "spatial_object_id": "FT-I_15857",
+            "district_name": "좌천1지구",
+            "admin_code": "2617010300",
+            "event_master_id": null,
+            "flood_event": {
+              "flood_event_id": "FE-855",
+              "name": "20년07월 장마철 집중호우"
+            },
+            "flood_grade": null,
+            "max_depth_m": null,
+            "avg_flood_depth_raw": 2.087,
+            "avg_flood_depth_unit": "원천 단위 미표기(cm 로 보임)",
+            "avg_flood_level_m": null,
+            "area_m2": 16679.8,
+            "damage_amount_krw": null,
+            "flood_hours": 5,
+            "cause": "집중호우, 배수불량",
+            "flood_year": 2020,
+            "started_on": "2020-07-23",
+            "ended_on": "2020-07-24",
+            "report": null,
+            "has_geometry": true
+          },
+          {
+            "flood_trace_id": "FT-I_187",
+            "spatial_object_id": "FT-I_187",
+            "district_name": "초량1지구",
+            "admin_code": "2617010100",
+            "event_master_id": null,
+            "flood_event": {
+              "flood_event_id": "FE-8",
+              "name": "우20년07월 장마철 집중호"
+            },
+            "flood_grade": null,
+            "max_depth_m": null,
+            "avg_flood_depth_raw": 2.675,
+            "avg_flood_depth_unit": "원천 단위 미표기(cm 로 보임)",
+            "avg_flood_level_m": null,
+            "area_m2": 9608.5,
+            "damage_amount_krw": null,
+            "flood_hours": 6,
+            "cause": "집중호우, 저지대지하도로, 배수불량",
+            "flood_year": 2020,
+            "started_on": "2020-07-23",
+            "ended_on": "2020-07-24",
+            "report": null,
+            "has_geometry": true
+          },
+          {
+            "flood_trace_id": "FT-I_15858",
+            "spatial_object_id": "FT-I_15858",
+            "district_name": "초량2지구",
+            "admin_code": "2617010100",
+            "event_master_id": null,
+            "flood_event": {
+              "flood_event_id": "FE-389",
+              "name": "20년07월 장마철 집중호우"
+            },
+            "flood_grade": null,
+            "max_depth_m": null,
+            "avg_flood_depth_raw": 4.212,
+            "avg_flood_depth_unit": "원천 단위 미표기(cm 로 보임)",
+            "avg_flood_level_m": null,
+            "area_m2": 70777.7,
+            "damage_amount_krw": null,
+            "flood_hours": 1,
+            "cause": "집중호우, 배수불량",
+            "flood_year": 2020,
+            "started_on": "2020-07-23",
+            "ended_on": "2020-07-23",
+            "report": null,
+            "has_geometry": true
+          },
+          {
+            "flood_trace_id": "FT-I_47807",
+            "spatial_object_id": "FT-I_47807",
+            "district_name": "범일동 자성대아파트",
+            "admin_code": "2617010400",
+            "event_master_id": null,
+            "flood_event": {
+              "flood_event_id": "FE-2584",
+              "name": "2020.07.10 집중호우에 의한 침수"
+            },
+            "flood_grade": null,
+            "max_depth_m": null,
+            "avg_flood_depth_raw": 1.621,
+            "avg_flood_depth_unit": "원천 단위 미표기(cm 로 보임)",
+            "avg_flood_level_m": null,
+            "area_m2": 23326.1,
+            "damage_amount_krw": null,
+            "flood_hours": 2,
+            "cause": "집중호우",
+            "flood_year": 2020,
+            "started_on": "2020-07-10",
+            "ended_on": "2020-07-10",
+            "report": null,
+            "has_geometry": true
+          },
+          {
+            "flood_trace_id": "FT-I_188",
+            "spatial_object_id": "FT-I_188",
+            "district_name": "범일동 자성대아파트",
+            "admin_code": "2617010400",
+            "event_master_id": null,
+            "flood_event": {
+              "flood_event_id": "FE-2584",
+              "name": "2020.07.10 집중호우에 의한 침수"
+            },
+            "flood_grade": null,
+            "max_depth_m": null,
+            "avg_flood_depth_raw": 1.621,
+            "avg_flood_depth_unit": "원천 단위 미표기(cm 로 보임)",
+            "avg_flood_level_m": null,
+            "area_m2": 23326.1,
+            "damage_amount_krw": null,
+            "flood_hours": 2,
+            "cause": "집중호우",
+            "flood_year": 2020,
+            "started_on": "2020-07-10",
+            "ended_on": "2020-07-10",
+            "report": null,
+            "has_geometry": true
+          },
+          {
+            "flood_trace_id": "FT-I_47808",
+            "spatial_object_id": "FT-I_47808",
+            "district_name": "청학1지구(2020년07월",
+            "admin_code": "2620012000",
+            "event_master_id": null,
+            "flood_event": {
+              "flood_event_id": "FE-1267",
+              "name": "2020년 07월 10일 집중호우"
+            },
+            "flood_grade": null,
+            "max_depth_m": null,
+            "avg_flood_depth_raw": 4.118,
+            "avg_flood_depth_unit": "원천 단위 미표기(cm 로 보임)",
+            "avg_flood_level_m": null,
+            "area_m2": 12049.3,
+            "damage_amount_krw": null,
+            "flood_hours": 2,
+            "cause": "내수침수",
+            "flood_year": 2020,
+            "started_on": "2020-07-10",
+            "ended_on": "2020-07-10",
+            "report": null,
+            "has_geometry": true
+          },
+          {
+            "flood_trace_id": "FT-I_111318",
+            "spatial_object_id": "FT-I_111318",
+            "district_name": "청학1지구(2020년 7월",
+            "admin_code": "2620012000",
+            "event_master_id": null,
+            "flood_event": {
+              "flood_event_id": "FE-720",
+              "name": "2020년 7월 23일 집중호우"
+            },
+            "flood_grade": null,
+            "max_depth_m": null,
+            "avg_flood_depth_raw": 4.045,
+            "avg_flood_depth_unit": "원천 단위 미표기(cm 로 보임)",
+            "avg_flood_level_m": null,
+            "area_m2": 10409.9,
+            "damage_amount_krw": null,
+            "flood_hours": 2,
+            "cause": "내수침수",
+            "flood_year": 2020,
+            "started_on": "2020-07-23",
+            "ended_on": "2020-07-23",
+            "report": null,
+            "has_geometry": true
+          },
+          {
+            "flood_trace_id": "FT-I_15859",
+            "spatial_object_id": "FT-I_15859",
+            "district_name": "해운대구 반송동 385-",
+            "admin_code": "2635010100",
+            "event_master_id": null,
+            "flood_event": {
+              "flood_event_id": "FE-1474",
+              "name": "7월 장마철 집중호우"
+            },
+            "flood_grade": null,
+            "max_depth_m": null,
+            "avg_flood_depth_raw": 37.3,
+            "avg_flood_depth_unit": "원천 단위 미표기(cm 로 보임)",
+            "avg_flood_level_m": null,
+            "area_m2": 15023.1,
+            "damage_amount_krw": null,
+            "flood_hours": 4,
+            "cause": "저지대 및 배수불량",
+            "flood_year": 2020,
+            "started_on": "2020-07-23",
+            "ended_on": "2020-07-24",
+            "report": null,
+            "has_geometry": true
+          },
+          {
+            "flood_trace_id": "FT-I_79551",
+            "spatial_object_id": "FT-I_79551",
+            "district_name": "해운대구 석대동 201-",
+            "admin_code": "2635010200",
+            "event_master_id": null,
+            "flood_event": {
+              "flood_event_id": "FE-2068",
+              "name": "7월 장마철 집중호우"
+            },
+            "flood_grade": null,
+            "max_depth_m": null,
+            "avg_flood_depth_raw": 10,
+            "avg_flood_depth_unit": "원천 단위 미표기(cm 로 보임)",
+            "avg_flood_level_m": null,
+            "area_m2": 44787.3,
+            "damage_amount_krw": null,
+            "flood_hours": 5,
+            "cause": "저지대 및 배수불량",
+            "flood_year": 2020,
+            "started_on": "2020-07-10",
+            "ended_on": "2020-07-10",
+            "report": null,
+            "has_geometry": true
+          },
+          {
+            "flood_trace_id": "FT-I_189",
+            "spatial_object_id": "FT-I_189",
+            "district_name": "해운대구 재송동 1269",
+            "admin_code": "2635010400",
+            "event_master_id": null,
+            "flood_event": {
+              "flood_event_id": "FE-2068",
+              "name": "7월 장마철 집중호우"
+            },
+            "flood_grade": null,
+            "max_depth_m": null,
+            "avg_flood_depth_raw": 6,
+            "avg_flood_depth_unit": "원천 단위 미표기(cm 로 보임)",
+            "avg_flood_level_m": null,
+            "area_m2": 947.5,
+            "damage_amount_krw": null,
+            "flood_hours": 5,
+            "cause": "저지대 및 배수불량",
+            "flood_year": 2020,
+            "started_on": "2020-07-10",
+            "ended_on": "2020-07-10",
+            "report": null,
+            "has_geometry": true
+          },
+          {
+            "flood_trace_id": "FT-I_63720",
+            "spatial_object_id": "FT-I_63720",
+            "district_name": "해운대구 좌동 1488일",
+            "admin_code": "2635010700",
+            "event_master_id": null,
+            "flood_event": {
+              "flood_event_id": "FE-2068",
+              "name": "7월 장마철 집중호우"
+            },
+            "flood_grade": null,
+            "max_depth_m": null,
+            "avg_flood_depth_raw": 37.5,
+            "avg_flood_depth_unit": "원천 단위 미표기(cm 로 보임)",
+            "avg_flood_level_m": null,
+            "area_m2": 1726.3,
+            "damage_amount_krw": null,
+            "flood_hours": 5,
+            "cause": "도로 경사로 인한 배수불량",
+            "flood_year": 2020,
+            "started_on": "2020-07-10",
+            "ended_on": "2020-07-10",
+            "report": null,
+            "has_geometry": true
+          },
+          {
+            "flood_trace_id": "FT-I_47809",
+            "spatial_object_id": "FT-I_47809",
+            "district_name": "해운대구 송정동 454",
+            "admin_code": "2635010800",
+            "event_master_id": null,
+            "flood_event": {
+              "flood_event_id": "FE-1474",
+              "name": "7월 장마철 집중호우"
+            },
+            "flood_grade": null,
+            "max_depth_m": null,
+            "avg_flood_depth_raw": 2.2,
+            "avg_flood_depth_unit": "원천 단위 미표기(cm 로 보임)",
+            "avg_flood_level_m": null,
+            "area_m2": 129073.4,
+            "damage_amount_krw": null,
+            "flood_hours": 3,
+            "cause": "저지대 및 하천범람",
+            "flood_year": 2020,
+            "started_on": "2020-07-23",
+            "ended_on": "2020-07-24",
+            "report": null,
+            "has_geometry": true
+          },
+          {
+            "flood_trace_id": "FT-I_31697",
+            "spatial_object_id": "FT-I_31697",
+            "district_name": "해운대구 중동 1372-3",
+            "admin_code": "2635010500",
+            "event_master_id": null,
+            "flood_event": {
+              "flood_event_id": "FE-1474",
+              "name": "7월 장마철 집중호우"
+            },
+            "flood_grade": null,
+            "max_depth_m": null,
+            "avg_flood_depth_raw": 3.2,
+            "avg_flood_depth_unit": "원천 단위 미표기(cm 로 보임)",
+            "avg_flood_level_m": null,
+            "area_m2": 85440,
+            "damage_amount_krw": null,
+            "flood_hours": 3,
+            "cause": "저지대 및 배수불량",
+            "flood_year": 2020,
+            "started_on": "2020-07-23",
+            "ended_on": "2020-07-24",
+            "report": null,
+            "has_geometry": true
+          },
+          {
+            "flood_trace_id": "FT-I_79552",
+            "spatial_object_id": "FT-I_79552",
+            "district_name": "해운대구 우동 635-6",
+            "admin_code": "2635010500",
+            "event_master_id": null,
+            "flood_event": {
+              "flood_event_id": "FE-2501",
+              "name": "7월 장마철 집중호후"
+            },
+            "flood_grade": null,
+            "max_depth_m": null,
+            "avg_flood_depth_raw": 3.2,
+            "avg_flood_depth_unit": "원천 단위 미표기(cm 로 보임)",
+            "avg_flood_level_m": null,
+            "area_m2": 130236.8,
+            "damage_amount_krw": null,
+            "flood_hours": 3,
+            "cause": "저지대 및 배수불량",
+            "flood_year": 2020,
+            "started_on": "2020-07-23",
+            "ended_on": "2020-07-24",
+            "report": null,
+            "has_geometry": true
+          },
+          {
+            "flood_trace_id": "FT-I_31708",
+            "spatial_object_id": "FT-I_31708",
+            "district_name": "생곡지구",
+            "admin_code": "2644011200",
+            "event_master_id": null,
+            "flood_event": {
+              "flood_event_id": "FE-931",
+              "name": "20년 7월 장마철 집주호우"
+            },
+            "flood_grade": null,
+            "max_depth_m": null,
+            "avg_flood_depth_raw": 4.898,
+            "avg_flood_depth_unit": "원천 단위 미표기(cm 로 보임)",
+            "avg_flood_level_m": null,
+            "area_m2": 12067.6,
+            "damage_amount_krw": null,
+            "flood_hours": 8,
+            "cause": "집중호우, 배수불량",
+            "flood_year": 2020,
+            "started_on": "2020-07-23",
+            "ended_on": "2020-07-24",
+            "report": null,
+            "has_geometry": true
+          },
+          {
+            "flood_trace_id": "FT-I_63725",
+            "spatial_object_id": "FT-I_63725",
+            "district_name": "명지지구",
+            "admin_code": "2644010400",
+            "event_master_id": null,
+            "flood_event": {
+              "flood_event_id": "FE-765",
+              "name": "20년07월 장마철 집중호우"
+            },
+            "flood_grade": null,
+            "max_depth_m": null,
+            "avg_flood_depth_raw": 4.252,
+            "avg_flood_depth_unit": "원천 단위 미표기(cm 로 보임)",
+            "avg_flood_level_m": null,
+            "area_m2": 66404.2,
+            "damage_amount_krw": null,
+            "flood_hours": 6,
+            "cause": "집중호우, 배수불량",
+            "flood_year": 2020,
+            "started_on": "2020-07-22",
+            "ended_on": "2020-07-22",
+            "report": null,
+            "has_geometry": true
+          },
+          {
+            "flood_trace_id": "FT-I_95526",
+            "spatial_object_id": "FT-I_95526",
+            "district_name": "금사 1지구",
+            "admin_code": "2641011100",
+            "event_master_id": null,
+            "flood_event": {
+              "flood_event_id": "FE-1178",
+              "name": "7.23 집중호우"
+            },
+            "flood_grade": null,
+            "max_depth_m": null,
+            "avg_flood_depth_raw": 0.3,
+            "avg_flood_depth_unit": "원천 단위 미표기(cm 로 보임)",
+            "avg_flood_level_m": null,
+            "area_m2": 4494.6,
+            "damage_amount_krw": null,
+            "flood_hours": 3,
+            "cause": "내수침수",
+            "flood_year": 2020,
+            "started_on": "2020-07-23",
+            "ended_on": "2020-07-24",
+            "report": null,
+            "has_geometry": true
+          },
+          {
+            "flood_trace_id": "FT-I_111323",
+            "spatial_object_id": "FT-I_111323",
+            "district_name": "서동 1지구",
+            "admin_code": "2641011000",
+            "event_master_id": null,
+            "flood_event": {
+              "flood_event_id": "FE-1178",
+              "name": "7.23 집중호우"
+            },
+            "flood_grade": null,
+            "max_depth_m": null,
+            "avg_flood_depth_raw": 0.3,
+            "avg_flood_depth_unit": "원천 단위 미표기(cm 로 보임)",
+            "avg_flood_level_m": null,
+            "area_m2": 5762,
+            "damage_amount_krw": null,
+            "flood_hours": 3,
+            "cause": "내수침수",
+            "flood_year": 2020,
+            "started_on": "2020-07-23",
+            "ended_on": "2020-07-24",
+            "report": null,
+            "has_geometry": true
+          },
+          {
+            "flood_trace_id": "FT-I_111324",
+            "spatial_object_id": "FT-I_111324",
+            "district_name": "회동 1지구",
+            "admin_code": "2641011200",
+            "event_master_id": null,
+            "flood_event": {
+              "flood_event_id": "FE-1178",
+              "name": "7.23 집중호우"
+            },
+            "flood_grade": null,
+            "max_depth_m": null,
+            "avg_flood_depth_raw": 0.3,
+            "avg_flood_depth_unit": "원천 단위 미표기(cm 로 보임)",
+            "avg_flood_level_m": null,
+            "area_m2": 8045.2,
+            "damage_amount_krw": null,
+            "flood_hours": 3,
+            "cause": "내수침수",
+            "flood_year": 2020,
+            "started_on": "2020-07-23",
+            "ended_on": "2020-07-24",
+            "report": null,
+            "has_geometry": true
+          }
+        ]
+      },
+      "data_gaps": [
+        {
+          "component": "items[].max_depth_m",
+          "reason": "NOT_IN_SOURCE"
+        }
+      ],
+      "warnings": [],
+      "meta": {
+        "source": "T3Q",
+        "base_time": "2026-10-20T00:00:00+09:00",
+        "quality_status": "VERIFIED",
+        "disclosure_level": "공개",
+        "elapsed_ms": 222
+      }
+    }
+  },
+  {
+    "id": "T3Q-32",
+    "method": "GET",
+    "path": "/events/T10107-20200728-0001/satellite-images",
+    "body": null,
+    "http": 200,
+    "ms": 180,
+    "response": {
+      "schema_version": "2.0",
+      "request_id": "b884318a631fb5aaf3d8bd505798e4b8",
+      "correlation_id": "corr-b884318a631fb5aaf3d8bd505798e4b8",
+      "status": "DATA_NOT_AVAILABLE",
+      "result": {
+        "event_master_id": "T10107-20200728-0001",
+        "total_count": null,
+        "items": [],
+        "missing_phases": [
+          {
+            "phase": "ALL",
+            "reason": "NOT_IN_SOURCE",
+            "note": "위성영상 원천 없음"
+          }
+        ]
+      },
+      "data_gaps": [
+        {
+          "component": "items",
+          "reason": "NOT_IN_SOURCE"
+        }
+      ],
+      "warnings": [
+        {
+          "code": "SATELLITE_NOT_IN_SOURCE",
+          "message": "152 에 위성영상(촬영 메타·아카이브) 원천이 없습니다.",
+          "retryable": false
+        }
+      ],
+      "meta": {
+        "source": "T3Q",
+        "base_time": "2026-10-20T00:00:00+09:00",
+        "quality_status": "VERIFIED",
+        "disclosure_level": "공개",
+        "elapsed_ms": 91
+      }
+    }
+  },
+  {
+    "id": "T3Q-33",
+    "method": "GET",
+    "path": "/events/T10107-20200728-0001/fire-reports",
+    "body": null,
+    "http": 200,
+    "ms": 171,
+    "response": {
+      "schema_version": "2.0",
+      "request_id": "d9d9e8a4c989e2bb7b25d78c195c5ab3",
+      "correlation_id": "corr-d9d9e8a4c989e2bb7b25d78c195c5ab3",
+      "status": "DATA_NOT_AVAILABLE",
+      "result": {
+        "event_master_id": "T10107-20200728-0001",
+        "total_count": null,
+        "items": [],
+        "page": 1,
+        "size": 20
+      },
+      "data_gaps": [
+        {
+          "component": "items",
+          "reason": "NOT_IN_SOURCE"
+        }
+      ],
+      "warnings": [
+        {
+          "code": "FIRE_REPORT_NOT_IN_SOURCE",
+          "message": "152 에 119 신고·긴급구조 원천이 없습니다(disaster.accident_report 는 2021 지자체 사고 신고로 사건과 연결 키가 없음).",
+          "retryable": false
+        }
+      ],
+      "meta": {
+        "source": "T3Q",
+        "base_time": "2026-10-20T00:00:00+09:00",
+        "quality_status": "VERIFIED",
+        "disclosure_level": "공개",
+        "elapsed_ms": 90
+      }
+    }
+  },
+  {
+    "id": "T3Q-34",
+    "method": "POST",
+    "path": "/evacuation-facilities/search",
+    "body": {
+      "caller": {
+        "user_id": "U-TEST-0001",
+        "role": "LOCAL_GOV_OFFICER",
+        "org_admin_code": "2600000000"
+      },
+      "linked_object_ids": [
+        "SL-2611000001"
+      ],
+      "page": 1,
+      "size": 20
+    },
+    "http": 200,
+    "ms": 79,
+    "response": {
+      "schema_version": "2.0",
+      "request_id": "ef21396b92bf3079f21a7b9ed8a837a4",
+      "correlation_id": "corr-ef21396b92bf3079f21a7b9ed8a837a4",
+      "status": "DATA_NOT_AVAILABLE",
+      "result": {
+        "total_count": null,
+        "page": 1,
+        "size": 20,
+        "items": []
+      },
+      "data_gaps": [
+        {
+          "component": "items",
+          "reason": "NOT_IN_SOURCE"
+        }
+      ],
+      "warnings": [
+        {
+          "code": "EVACUATION_NOT_IN_SOURCE",
+          "message": "152 에 대피시설(임시주거시설·대피소) 지정 원천이 없습니다. 지하차도의 대피시설 설치 여부는 T3Q-15 지하차도 상세(설비 보유)에 있습니다.",
+          "retryable": false
+        }
+      ],
+      "meta": {
+        "source": "T3Q",
+        "base_time": "2026-10-20T00:00:00+09:00",
+        "quality_status": "VERIFIED",
+        "disclosure_level": "공개",
+        "elapsed_ms": 0
+      }
+    }
+  },
+  {
+    "id": "T3Q-35",
+    "method": "GET",
+    "path": "/events/T10107-20200728-0001/complaints",
+    "body": null,
+    "http": 200,
+    "ms": 169,
+    "response": {
+      "schema_version": "2.0",
+      "request_id": "98bc2fb554b25339aa0fa2b123630d5f",
+      "correlation_id": "corr-98bc2fb554b25339aa0fa2b123630d5f",
+      "status": "DATA_NOT_AVAILABLE",
+      "result": {
+        "event_master_id": "T10107-20200728-0001",
+        "total_count": null,
+        "items": [],
+        "page": 1,
+        "size": 20
+      },
+      "data_gaps": [
+        {
+          "component": "items",
+          "reason": "NOT_IN_SOURCE"
+        }
+      ],
+      "warnings": [
+        {
+          "code": "COMPLAINT_NOT_IN_SOURCE",
+          "message": "152 에 안전신고·민원 처리 이력 원천이 없습니다.",
+          "retryable": false
+        }
+      ],
+      "meta": {
+        "source": "T3Q",
+        "base_time": "2026-10-20T00:00:00+09:00",
+        "quality_status": "VERIFIED",
+        "disclosure_level": "공개",
+        "elapsed_ms": 90
+      }
+    }
+  },
+  {
+    "id": "T3Q-36",
+    "method": "POST",
+    "path": "/flood-maps/search",
+    "body": {
+      "caller": {
+        "user_id": "U-TEST-0001",
+        "role": "LOCAL_GOV_OFFICER",
+        "org_admin_code": "2600000000"
+      },
+      "region": {
+        "admin_code": "2617000000",
+        "level": "SIGUNGU"
+      },
+      "map_types": [
+        "URBAN_FLOOD"
+      ]
+    },
+    "http": 200,
+    "ms": 78,
+    "response": {
+      "schema_version": "2.0",
+      "request_id": "02916987c92864a7abca9781b1f24032",
+      "correlation_id": "corr-02916987c92864a7abca9781b1f24032",
+      "status": "DATA_NOT_AVAILABLE",
+      "result": {
+        "total_count": null,
+        "page": 1,
+        "size": 20,
+        "items": []
+      },
+      "data_gaps": [
+        {
+          "component": "items",
+          "reason": "NOT_IN_SOURCE"
+        }
+      ],
+      "warnings": [
+        {
+          "code": "FLOOD_MAP_NOT_IN_SOURCE",
+          "message": "152 에 하천범람지도·도시침수지도 원천이 없습니다(과거 침수흔적은 T3Q-30).",
+          "retryable": false
+        }
+      ],
+      "meta": {
+        "source": "T3Q",
+        "base_time": "2026-10-20T00:00:00+09:00",
+        "quality_status": "VERIFIED",
+        "disclosure_level": "공개",
+        "elapsed_ms": 0
+      }
+    }
+  },
+  {
+    "id": "EXT-01",
+    "method": "POST",
+    "path": "/spatial-objects/geometry",
+    "body": {
+      "caller": {
+        "user_id": "U-TEST-0001",
+        "role": "LOCAL_GOV_OFFICER",
+        "org_admin_code": "2600000000"
+      },
+      "items": [
+        {
+          "ref": "r1",
+          "key": "slope_no",
+          "value": "1111000019"
+        },
+        {
+          "ref": "r2",
+          "key": "legal_dong_code",
+          "value": "4477025021"
+        },
+        {
+          "ref": "r3",
+          "key": "spatial_object_id",
+          "value": "FT-I_109"
+        },
+        {
+          "ref": "r4",
+          "key": "latlon",
+          "value": "36.01258,126.69511"
+        }
+      ]
+    },
+    "http": 200,
+    "ms": 641,
+    "response": {
+      "schema_version": "2.0",
+      "request_id": "0747cedbc75d3846647af09e51a1e03f",
+      "correlation_id": "corr-0747cedbc75d3846647af09e51a1e03f",
+      "status": "SUCCESS",
+      "result": {
+        "type": "FeatureCollection",
+        "features": [
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                126.69511,
+                36.01258
+              ]
+            },
+            "properties": {
+              "ref": "r4",
+              "key": "latlon",
+              "value": "36.01258,126.69511",
+              "precision": "exact"
+            }
+          },
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "LineString",
+              "coordinates": [
+                [
+                  127.014167,
+                  37.578333
+                ],
+                [
+                  127.013611,
+                  37.577778
+                ]
+              ]
+            },
+            "properties": {
+              "ref": "r1",
+              "key": "slope_no",
+              "value": "1111000019",
+              "precision": "exact"
+            }
+          },
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                126.697702,
+                36.009696
+              ]
+            },
+            "properties": {
+              "ref": "r2",
+              "key": "legal_dong_code",
+              "value": "4477025021",
+              "precision": "dong_center"
+            }
+          },
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    126.385448,
+                    37.725276
+                  ],
+                  [
+                    126.385427,
+                    37.726701
+                  ],
+                  [
+                    126.388243,
+                    37.726728
+                  ],
+                  [
+                    126.388264,
+                    37.725303
+                  ],
+                  [
+                    126.385448,
+                    37.725276
+                  ]
+                ]
+              ]
+            },
+            "properties": {
+              "ref": "r3",
+              "key": "spatial_object_id",
+              "value": "I_109",
+              "precision": "bbox_unchecked"
+            }
+          }
+        ],
+        "missing": []
+      },
+      "data_gaps": [],
+      "warnings": [],
+      "meta": {
+        "source": "T3Q",
+        "base_time": "2026-10-20T00:00:00+09:00",
+        "quality_status": "VERIFIED",
+        "disclosure_level": "공개",
+        "elapsed_ms": 417
+      }
+    }
+  },
+  {
+    "id": "T3Q-02-cancel",
+    "method": "POST",
+    "path": "/agent/query/{request_id}/cancel",
+    "body": {
+      "reason": "USER_CANCELLED"
+    },
+    "http": 200,
+    "ms": 86,
+    "response": {
+      "schema_version": "2.0",
+      "request_id": "f77783ff29e9c50796a04fab77fe6867",
+      "correlation_id": "corr-f77783ff29e9c50796a04fab77fe6867",
+      "status": "SUCCESS",
+      "result": {
+        "request_id": "{request_id}",
+        "cancel_result": "NOT_FOUND",
+        "cancelled_at": null
+      },
+      "data_gaps": [],
+      "warnings": [],
+      "meta": {
+        "source": "T3Q",
+        "base_time": "2026-10-28T00:53:34+09:00",
+        "quality_status": "VERIFIED",
+        "disclosure_level": "공개",
+        "elapsed_ms": 2
+      }
+    }
+  },
+  {
+    "id": "T3Q-27-one",
+    "method": "DELETE",
+    "path": "/agent/conversations/CONV-TEST",
+    "body": null,
+    "http": 200,
+    "ms": 83,
+    "response": {
+      "schema_version": "2.0",
+      "request_id": "8d1998054578b671ef8e0c962e2a8991",
+      "correlation_id": "corr-8d1998054578b671ef8e0c962e2a8991",
+      "status": "NO_RESULT",
+      "result": {
+        "conversation_id": "CONV-TEST",
+        "delete_result": "NOT_FOUND",
+        "deleted_at": null
+      },
+      "data_gaps": [],
+      "warnings": [],
+      "meta": {
+        "source": "T3Q",
+        "base_time": "2026-10-28T00:53:34+09:00",
+        "quality_status": "VERIFIED",
+        "disclosure_level": "공개",
+        "elapsed_ms": 1
+      }
+    }
+  },
+  {
+    "id": "T3Q-13-reports",
+    "method": "GET",
+    "path": "/events/T10107-20200728-0001/reports",
+    "body": null,
+    "http": 200,
+    "ms": 175,
+    "response": {
+      "schema_version": "2.0",
+      "request_id": "5626bbfc37454db946c71c7c135abb7e",
+      "correlation_id": "corr-5626bbfc37454db946c71c7c135abb7e",
+      "status": "DATA_NOT_AVAILABLE",
+      "result": {
+        "event_master_id": "T10107-20200728-0001",
+        "total_count": null,
+        "reports": []
+      },
+      "data_gaps": [
+        {
+          "component": "reports",
+          "reason": "NOT_IN_SOURCE"
+        }
+      ],
+      "warnings": [
+        {
+          "code": "REPORT_NOT_IN_SOURCE",
+          "message": "152 에 중대본 상황보고서 원천이 없습니다(사건 출처는 재해연보·재난연감 — T3Q-19).",
+          "retryable": false
+        }
+      ],
+      "meta": {
+        "source": "T3Q",
+        "base_time": "2026-10-20T00:00:00+09:00",
+        "quality_status": "VERIFIED",
+        "disclosure_level": "공개",
+        "elapsed_ms": 93
+      }
+    }
+  },
+  {
+    "id": "T3Q-12-empty",
+    "method": "GET",
+    "path": "/events/T10101-20181026-0001/timeline",
+    "body": null,
+    "http": 200,
+    "ms": 335,
+    "response": {
+      "schema_version": "2.0",
+      "request_id": "1f29416903e1f9899e5b06c946a36bd6",
+      "correlation_id": "corr-1f29416903e1f9899e5b06c946a36bd6",
+      "status": "DATA_NOT_AVAILABLE",
+      "result": {
+        "event_master_id": "T10101-20181026-0001",
+        "total_count": null,
+        "items": []
+      },
+      "data_gaps": [
+        {
+          "component": "timeline",
+          "reason": "NOT_IN_SOURCE"
+        }
+      ],
+      "warnings": [
+        {
+          "code": "TIMELINE_NOT_IN_SOURCE",
+          "message": "152 의 특보·재난문자 원천(홍수특보 2008~2025 · 재난문자 2023-09·2026 · 기상특보 2026)에 이 사건 기간·지역과 겹치는 기록이 없습니다.",
+          "retryable": false
+        }
+      ],
+      "meta": {
+        "source": "T3Q",
+        "base_time": "2026-10-20T00:00:00+09:00",
+        "quality_status": "VERIFIED",
+        "disclosure_level": "공개",
+        "elapsed_ms": 258
+      }
+    }
+  },
+  {
+    "id": "T3Q-15-HZ",
+    "method": "GET",
+    "path": "/risk-objects/HZ-1536",
+    "body": null,
+    "http": 200,
+    "ms": 1367,
+    "response": {
+      "schema_version": "2.0",
+      "request_id": "fa9d2c2a4a3d086766e7bf272105ca20",
+      "correlation_id": "corr-fa9d2c2a4a3d086766e7bf272105ca20",
+      "status": "SUCCESS",
+      "result": {
+        "object_id": "HZ-1536",
+        "spatial_object_id": null,
+        "data_group": "RISK_AREA",
+        "category": "자연재해위험개선지구",
+        "type": "침수위험",
+        "source_subtype": null,
+        "name": "초량",
+        "admin_area": {
+          "admin_code": "2617000000",
+          "name": "부산광역시 동구"
+        },
+        "address": "부산 동구 초량동1173(초량제1지하차도) 일원",
+        "risk": {
+          "designation_reason": null,
+          "key_risk_condition": null,
+          "expected_damage": null,
+          "vulnerability": null,
+          "grade": {
+            "value": "가",
+            "status": "PROVIDED"
+          },
+          "risk_score_detail": null,
+          "designated_at": "2023-03-29",
+          "designation_no": null,
+          "area_or_length": "0.054344㎢",
+          "attributes": [
+            {
+              "key": "hazard_type",
+              "label": "재해유형",
+              "value": "침수위험",
+              "evidence_ref": "EV-OBJ-HZ-1536"
+            },
+            {
+              "key": "facility_name",
+              "label": "시설명",
+              "value": "배수펌프장",
+              "evidence_ref": "EV-OBJ-HZ-1536"
+            },
+            {
+              "key": "facility_grade",
+              "label": "시설등급",
+              "value": "도시방재시설",
+              "evidence_ref": "EV-OBJ-HZ-1536"
+            },
+            {
+              "key": "project_start_year",
+              "label": "사업 시작연도",
+              "value": 2024,
+              "evidence_ref": "EV-OBJ-HZ-1536"
+            },
+            {
+              "key": "project_end_year",
+              "label": "사업 종료연도",
+              "value": 2028,
+              "evidence_ref": "EV-OBJ-HZ-1536"
+            },
+            {
+              "key": "project_content",
+              "label": "사업내용",
+              "value": "배수펌프장 설치 1식, 수문신설 1개소, 관로정비 L=4.14km",
+              "evidence_ref": "EV-OBJ-HZ-1536"
+            },
+            {
+              "key": "implementing_agency",
+              "label": "시행기관",
+              "value": "동구청",
+              "evidence_ref": "EV-OBJ-HZ-1536"
+            }
+          ]
+        },
+        "management": {
+          "agency": "동구청",
+          "department": null,
+          "contact": null,
+          "contains_pii": false
+        },
+        "basis": {
+          "designation_basis": null,
+          "related_plans": [
+            {
+              "plan_id": "HZP-NDIZ",
+              "name": "자연재해위험개선지구 중기정비계획"
+            }
+          ],
+          "related_documents": [
+            {
+              "title": "자연재해위험개선지구 중기정비계획 — 표 «자연재해위험개선지구_중기정비계획_총괄조서» 51행",
+              "evidence_ref": "EV-OBJ-HZ-1536"
+            }
+          ],
+          "past_events": []
+        },
+        "source": {
+          "name": "자연재해위험개선지구 중기정비계획",
+          "table": "자연재해위험개선지구_중기정비계획_총괄조서",
+          "row_no": 51,
+          "as_of": null
+        },
+        "disclosure_level": "공개"
+      },
+      "data_gaps": [],
+      "warnings": [],
+      "meta": {
+        "source": "T3Q",
+        "base_time": "2026-10-20T00:00:00+09:00",
+        "quality_status": "VERIFIED",
+        "disclosure_level": "공개",
+        "elapsed_ms": 1285
+      }
+    }
+  },
+  {
+    "id": "T3Q-15-SL",
+    "method": "GET",
+    "path": "/risk-objects/SL-2611000001",
+    "body": null,
+    "http": 200,
+    "ms": 1613,
+    "response": {
+      "schema_version": "2.0",
+      "request_id": "d2a1071a20cbfb65100c090bd0f812f5",
+      "correlation_id": "corr-d2a1071a20cbfb65100c090bd0f812f5",
+      "status": "SUCCESS",
+      "result": {
+        "object_id": "SL-2611000001",
+        "spatial_object_id": "SL-2611000001",
+        "data_group": "RISK_AREA",
+        "category": "급경사지",
+        "type": "기타(개인,기업)",
+        "source_subtype": null,
+        "name": "복병산절개지 옹벽",
+        "admin_area": {
+          "admin_code": "2611011600",
+          "name": "부산광역시 중구 대청동1가"
+        },
+        "address": "영선고갯길",
+        "risk": {
+          "designation_reason": null,
+          "key_risk_condition": null,
+          "expected_damage": null,
+          "vulnerability": null,
+          "grade": {
+            "value": null,
+            "status": "NOT_PROVIDED"
+          },
+          "risk_score_detail": null,
+          "designated_at": null,
+          "designation_no": null,
+          "area_or_length": null,
+          "attributes": [
+            {
+              "key": "latest_inspection_date",
+              "label": "최근 안전점검일",
+              "value": "2026-03-19",
+              "evidence_ref": "EV-OBJ-SL-2611000001"
+            },
+            {
+              "key": "latest_inspection_result",
+              "label": "최근 점검 결과",
+              "value": "안전",
+              "evidence_ref": "EV-OBJ-SL-2611000001"
+            },
+            {
+              "key": "management_type",
+              "label": "관리주체 구분",
+              "value": "기타(개인,기업)",
+              "evidence_ref": "EV-OBJ-SL-2611000001"
+            }
+          ]
+        },
+        "management": {
+          "agency": "지자체",
+          "department": "중구 안전도시과",
+          "contact": null,
+          "contains_pii": false
+        },
+        "basis": {
+          "designation_basis": null,
+          "related_plans": [],
+          "past_events": [],
+          "related_documents": [
+            {
+              "title": "급경사지정보 — 관리번호 2611000001",
+              "evidence_ref": "EV-OBJ-SL-2611000001"
+            }
+          ]
+        },
+        "source": {
+          "name": "급경사지정보(slope.steep_slope)",
+          "table": "급경사지_목록",
+          "row_no": 20,
+          "as_of": null
+        },
+        "disclosure_level": "공개"
+      },
+      "data_gaps": [
+        {
+          "component": "risk.grade",
+          "reason": "NOT_IN_SOURCE"
+        }
+      ],
+      "warnings": [],
+      "meta": {
+        "source": "T3Q",
+        "base_time": "2026-10-20T00:00:00+09:00",
+        "quality_status": "VERIFIED",
+        "disclosure_level": "공개",
+        "elapsed_ms": 1527
+      }
+    }
+  },
+  {
+    "id": "T3Q-20-page",
+    "method": "GET",
+    "path": "/documents/DOC-2020_재해연보/pages/1",
+    "body": null,
+    "http": 200,
+    "ms": 171,
+    "response": {
+      "schema_version": "2.0",
+      "request_id": "5948f642d54df058836f0b67540814d7",
+      "correlation_id": "corr-5948f642d54df058836f0b67540814d7",
+      "status": "DATA_NOT_AVAILABLE",
+      "result": {
+        "document_id": "DOC-2020_재해연보",
+        "page": 1,
+        "pdf_page": null,
+        "total_pages": null,
+        "image_url": null,
+        "expires_at": null
+      },
+      "data_gaps": [
+        {
+          "component": "page_image",
+          "reason": "NOT_YET_BUILT"
+        }
+      ],
+      "warnings": [
+        {
+          "code": "DOCUMENT_STORE_NOT_BUILT",
+          "message": "원문 쪽 이미지 창구가 아직 연결되지 않았습니다.",
+          "retryable": false
+        }
+      ],
+      "meta": {
+        "source": "T3Q",
+        "base_time": "2026-10-20T00:00:00+09:00",
+        "quality_status": "VERIFIED",
+        "disclosure_level": "공개",
+        "elapsed_ms": 91
+      }
+    }
+  },
+  {
+    "id": "EXT-01-from-agent-fixture",
+    "method": "POST",
+    "path": "/spatial-objects/geometry",
+    "body": {
+      "items": [
+        {
+          "ref": "r1",
+          "key": "slope_no",
+          "value": "4477000101"
+        },
+        {
+          "ref": "r2",
+          "key": "latlon",
+          "value": "36.01258,126.69511"
+        }
+      ]
+    },
+    "http": 200,
+    "ms": 234,
+    "response": {
+      "schema_version": "2.0",
+      "request_id": "9caa837e983523e51ee743fa5fc03295",
+      "correlation_id": "corr-9caa837e983523e51ee743fa5fc03295",
+      "status": "SUCCESS",
+      "result": {
+        "type": "FeatureCollection",
+        "features": [
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                126.69511,
+                36.01258
+              ]
+            },
+            "properties": {
+              "ref": "r2",
+              "key": "latlon",
+              "value": "36.01258,126.69511",
+              "precision": "exact"
+            }
+          },
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "LineString",
+              "coordinates": [
+                [
+                  126.662222,
+                  36.153889
+                ],
+                [
+                  126.661667,
+                  36.153333
+                ]
+              ]
+            },
+            "properties": {
+              "ref": "r1",
+              "key": "slope_no",
+              "value": "4477000101",
+              "precision": "exact"
+            }
+          }
+        ],
+        "missing": []
+      },
+      "data_gaps": [],
+      "warnings": [],
+      "meta": {
+        "source": "T3Q",
+        "base_time": "2026-10-20T00:00:00+09:00",
+        "quality_status": "VERIFIED",
+        "disclosure_level": "공개",
+        "elapsed_ms": 154
+      }
+    }
+  },
+  {
+    "id": "NEG-unknown-event",
+    "method": "GET",
+    "path": "/events/T00000-00000000-0000",
+    "body": null,
+    "http": 404,
+    "ms": 165,
+    "response": {
+      "schema_version": "2.0",
+      "request_id": "2440c8906dfdfca674bb330aa0210886",
+      "correlation_id": "corr-2440c8906dfdfca674bb330aa0210886",
+      "status": "NO_RESULT",
+      "result": null,
+      "data_gaps": [],
+      "warnings": [
+        {
+          "code": "NOT_FOUND",
+          "message": "사건 «T00000-00000000-0000» 이 없습니다.",
+          "retryable": false
+        }
+      ],
+      "meta": {
+        "source": "T3Q",
+        "base_time": "2026-10-20T00:00:00+09:00",
+        "quality_status": "VERIFIED",
+        "disclosure_level": "공개",
+        "elapsed_ms": 84
+      }
+    }
+  },
+  {
+    "id": "NEG-empty-ids",
+    "method": "POST",
+    "path": "/similar-events/search",
+    "body": {
+      "event_master_ids": []
+    },
+    "http": 200,
+    "ms": 79,
+    "response": {
+      "schema_version": "2.0",
+      "request_id": "64b101149b127dcbf1b6c434e2ca9dfc",
+      "correlation_id": "corr-64b101149b127dcbf1b6c434e2ca9dfc",
+      "status": "NO_RESULT",
+      "result": {
+        "total_count": 0,
+        "items": []
+      },
+      "data_gaps": [],
+      "warnings": [],
+      "meta": {
+        "source": "T3Q",
+        "base_time": "2026-10-20T00:00:00+09:00",
+        "quality_status": "VERIFIED",
+        "disclosure_level": "공개",
+        "elapsed_ms": 0
+      }
+    }
+  },
+  {
+    "id": "NEG-feedback-422",
+    "method": "POST",
+    "path": "/agent/feedback",
+    "body": {
+      "response_id": "RES-TEST-0001",
+      "rating": "SOSO"
+    },
+    "http": 422,
+    "ms": 91,
+    "response": {
+      "detail": [
+        {
+          "type": "string_pattern_mismatch",
+          "loc": [
+            "body",
+            "rating"
+          ],
+          "msg": "String should match pattern '^(GOOD|BAD)$'",
+          "input": "SOSO",
+          "ctx": {
+            "pattern": "^(GOOD|BAD)$"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "id": "SYS-catalog",
+    "method": "GET",
+    "path": "/catalog",
+    "body": null,
+    "http": 200,
+    "ms": 106,
+    "response": {
+      "schema_version": "2.0",
+      "request_id": "6b8ecc54bee8960f39d79f5d4ecdff3c",
+      "correlation_id": "corr-6b8ecc54bee8960f39d79f5d4ecdff3c",
+      "status": "SUCCESS",
+      "result": {
+        "version": "0.3.0",
+        "spec_version": "V0.9",
+        "similarity_engine": "a2adc",
+        "items": [
+          {
+            "id": "T3Q-01",
+            "name": "Agent 질의",
+            "kind": "Agent",
+            "method": "POST",
+            "path": "/v1/agent/query",
+            "priority": "P0",
+            "state": "IMPLEMENTED",
+            "body": {
+              "caller": {
+                "user_id": "U-TEST-0001",
+                "role": "LOCAL_GOV_OFFICER",
+                "org_admin_code": "2600000000"
+              },
+              "conversation_id": null,
+              "turn_no": 1,
+              "question": "서천군 급경사지를 최신 위험등급 나쁜 순으로 알려줘",
+              "question_source": "USER",
+              "query_context": {
+                "reference_time": "2026-08-25T16:00:00+09:00",
+                "region": {
+                  "admin_code": "2600000000",
+                  "name": "부산광역시",
+                  "level": "SIDO"
+                },
+                "disaster_types": [
+                  "호우"
+                ],
+                "period": {
+                  "from": "2026-08-25T14:00:00+09:00",
+                  "to": null
+                },
+                "detail": {
+                  "warning_kind": "호우",
+                  "warning_level": "경보",
+                  "keywords": [
+                    "호우",
+                    "침수"
+                  ],
+                  "conditions": [
+                    {
+                      "item": "RAIN_1H",
+                      "label": "1시간 강우",
+                      "value": 68,
+                      "unit": "mm",
+                      "source_type": "MANUAL"
+                    }
+                  ]
+                }
+              },
+              "reference": null,
+              "response_mode": "ASYNC"
+            },
+            "note": "Agent 416(1~6분) — ASYNC 면 PROCESSING(202) 뒤 EXT-02 로 받는다. 답의 [이름](#ref:rN) + result.refs[] → EXT-01 지도"
+          },
+          {
+            "id": "T3Q-02",
+            "name": "현재 상황 브리핑 항목 호출 · 취소",
+            "kind": "Agent",
+            "method": "POST",
+            "path": "/v1/agent/query",
+            "priority": "P1",
+            "state": "IMPLEMENTED",
+            "body": {
+              "caller": {
+                "user_id": "U-TEST-0001",
+                "role": "LOCAL_GOV_OFFICER",
+                "org_admin_code": "2600000000"
+              },
+              "question": "현재 우선 확인해야 할 위험·취약지역은?",
+              "question_source": "BRIEFING",
+              "briefing": {
+                "preset_id": "BP-001",
+                "briefing_item_id": "risk",
+                "item_no": 2,
+                "item_total": 4
+              },
+              "query_context": {
+                "reference_time": "2026-08-25T16:00:00+09:00",
+                "region": {
+                  "admin_code": "2600000000",
+                  "name": "부산광역시",
+                  "level": "SIDO"
+                },
+                "disaster_types": [
+                  "호우"
+                ],
+                "period": {
+                  "from": "2026-08-25T14:00:00+09:00",
+                  "to": null
+                },
+                "detail": {
+                  "warning_kind": "호우",
+                  "warning_level": "경보",
+                  "keywords": [
+                    "호우",
+                    "침수"
+                  ],
+                  "conditions": [
+                    {
+                      "item": "RAIN_1H",
+                      "label": "1시간 강우",
+                      "value": 68,
+                      "unit": "mm",
+                      "source_type": "MANUAL"
+                    }
+                  ]
+                }
+              },
+              "response_mode": "ASYNC"
+            },
+            "note": "T3Q-01 과 같은 Agent — 답 글로 브리핑, briefing_item 의 요약·건수 칸은 비어 있음 · 취소 = POST /v1/agent/query/{request_id}/cancel"
+          },
+          {
+            "id": "T3Q-03",
+            "name": "추천·후속 질문",
+            "kind": "Agent",
+            "method": "GET",
+            "path": "/v1/suggested-questions?region_admin_code=2600000000&disaster_types=호우&per_group=1",
+            "priority": "P1",
+            "state": "IMPLEMENTED",
+            "note": "고정 목록(데이터군별 1개)"
+          },
+          {
+            "id": "T3Q-04",
+            "name": "유사사례 검색",
+            "kind": "Data",
+            "method": "POST",
+            "path": "/v1/similar-events/search",
+            "priority": "P0",
+            "state": "IMPLEMENTED",
+            "body": {
+              "caller": {
+                "user_id": "U-TEST-0001",
+                "role": "LOCAL_GOV_OFFICER",
+                "org_admin_code": "2600000000"
+              },
+              "event_master_ids": null,
+              "query_context": {
+                "reference_time": "2026-08-25T16:00:00+09:00",
+                "region": {
+                  "admin_code": "2600000000",
+                  "name": "부산광역시",
+                  "level": "SIDO"
+                },
+                "disaster_types": [
+                  "호우"
+                ],
+                "period": {
+                  "from": "2026-08-25T14:00:00+09:00",
+                  "to": null
+                },
+                "detail": {
+                  "warning_kind": "호우",
+                  "warning_level": "경보",
+                  "keywords": [
+                    "호우",
+                    "침수"
+                  ],
+                  "conditions": [
+                    {
+                      "item": "RAIN_1H",
+                      "label": "1시간 강우",
+                      "value": 68,
+                      "unit": "mm",
+                      "source_type": "MANUAL"
+                    }
+                  ]
+                }
+              },
+              "page": {
+                "page": 1,
+                "size": 10
+              }
+            }
+          },
+          {
+            "id": "T3Q-05",
+            "name": "위험·취약 대상 목록",
+            "kind": "Data",
+            "method": "POST",
+            "path": "/v1/risk-knowledge/search",
+            "priority": "P0",
+            "state": "IMPLEMENTED",
+            "body": {
+              "caller": {
+                "user_id": "U-TEST-0001",
+                "role": "LOCAL_GOV_OFFICER",
+                "org_admin_code": "2600000000"
+              },
+              "data_group": "RISK_FACTOR_FACILITY",
+              "object_ids": null,
+              "region": {
+                "admin_code": "2629000000",
+                "level": "SIGUNGU"
+              },
+              "page": {
+                "page": 1,
+                "size": 20
+              }
+            }
+          },
+          {
+            "id": "T3Q-06",
+            "name": "계획문서 목록",
+            "kind": "Data",
+            "method": "POST",
+            "path": "/v1/plans/search",
+            "priority": "P0",
+            "state": "IMPLEMENTED",
+            "body": {
+              "caller": {
+                "user_id": "U-TEST-0001",
+                "role": "LOCAL_GOV_OFFICER",
+                "org_admin_code": "2600000000"
+              },
+              "plan_ids": [
+                "RBP-1024180202010",
+                "HZP-NDIZ",
+                "HZP-CRA"
+              ],
+              "region": null
+            }
+          },
+          {
+            "id": "T3Q-10",
+            "name": "사건 상세",
+            "kind": "Data",
+            "method": "GET",
+            "path": "/v1/events/T10107-20200728-0001",
+            "priority": "P0",
+            "state": "IMPLEMENTED"
+          },
+          {
+            "id": "T3Q-11",
+            "name": "유사도 근거 · 영향요인 비교",
+            "kind": "Data",
+            "method": "POST",
+            "path": "/v1/events/T10107-20200728-0001/similarity",
+            "priority": "P0",
+            "state": "IMPLEMENTED",
+            "body": {
+              "caller": {
+                "user_id": "U-TEST-0001",
+                "role": "LOCAL_GOV_OFFICER",
+                "org_admin_code": "2600000000"
+              },
+              "query_context": {
+                "reference_time": "2026-08-25T16:00:00+09:00",
+                "region": {
+                  "admin_code": "2600000000",
+                  "name": "부산광역시",
+                  "level": "SIDO"
+                },
+                "disaster_types": [
+                  "호우"
+                ],
+                "period": {
+                  "from": "2026-08-25T14:00:00+09:00",
+                  "to": null
+                },
+                "detail": {
+                  "warning_kind": "호우",
+                  "warning_level": "경보",
+                  "keywords": [
+                    "호우",
+                    "침수"
+                  ],
+                  "conditions": [
+                    {
+                      "item": "RAIN_1H",
+                      "label": "1시간 강우",
+                      "value": 68,
+                      "unit": "mm",
+                      "source_type": "MANUAL"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "id": "T3Q-12",
+            "name": "사건 타임라인",
+            "kind": "Data",
+            "method": "GET",
+            "path": "/v1/events/T10107-20200728-0001/timeline",
+            "priority": "P0",
+            "state": "IMPLEMENTED",
+            "note": "홍수특보·재난문자(사건 기간 × 관련 시도) — 겹치는 기록이 없는 사건은 DATA_NOT_AVAILABLE(예: T10101-20181026-0001)"
+          },
+          {
+            "id": "T3Q-13",
+            "name": "피해·대응 조회 · 중대본보고서 요약 조회",
+            "kind": "Data",
+            "method": "GET",
+            "path": "/v1/events/T10107-20200728-0001/damage-response",
+            "priority": "P0",
+            "state": "IMPLEMENTED",
+            "note": "보고서 GET /v1/events/T10107-20200728-0001/reports = DATA_NOT_AVAILABLE(원천 없음)"
+          },
+          {
+            "id": "T3Q-15",
+            "name": "위험·취약 대상 상세",
+            "kind": "Data",
+            "method": "GET",
+            "path": "/v1/risk-objects/UP-609",
+            "priority": "P0",
+            "state": "IMPLEMENTED",
+            "note": "HZ-1536(자연재해위험개선지구) · SL-2611000001(급경사지) · UP-609(지하차도)"
+          },
+          {
+            "id": "T3Q-16",
+            "name": "하천 계획지식",
+            "kind": "Data",
+            "method": "GET",
+            "path": "/v1/rivers/RV-1024180/plan-knowledge?station_limit=20",
+            "priority": "P1",
+            "state": "IMPLEMENTED"
+          },
+          {
+            "id": "T3Q-17",
+            "name": "계획문서 상세",
+            "kind": "Data",
+            "method": "GET",
+            "path": "/v1/plans/RBP-1024180202010",
+            "priority": "P0",
+            "state": "IMPLEMENTED"
+          },
+          {
+            "id": "T3Q-18",
+            "name": "객체관계 조회",
+            "kind": "Data",
+            "method": "POST",
+            "path": "/v1/kg/query",
+            "priority": "P1",
+            "state": "IMPLEMENTED",
+            "body": {
+              "caller": {
+                "user_id": "U-TEST-0001",
+                "role": "LOCAL_GOV_OFFICER",
+                "org_admin_code": "2600000000"
+              },
+              "source_ids": [
+                "RV-1024180"
+              ],
+              "relation_types": null,
+              "depth": 1
+            }
+          },
+          {
+            "id": "T3Q-19",
+            "name": "근거 조회",
+            "kind": "Data",
+            "method": "POST",
+            "path": "/v1/evidence/search",
+            "priority": "P0",
+            "state": "IMPLEMENTED",
+            "body": {
+              "caller": {
+                "user_id": "U-TEST-0001",
+                "role": "LOCAL_GOV_OFFICER",
+                "org_admin_code": "2600000000"
+              },
+              "object_id": "T10107-20200728-0001",
+              "include_passage": true,
+              "context_paragraphs": 0,
+              "page": {
+                "page": 1,
+                "size": 20
+              }
+            },
+            "note": "TITLE_ONLY(연보 쪽)·AGGREGATE_ONLY(피해 집계) — 인용 문단은 NOT_YET_BUILT"
+          },
+          {
+            "id": "T3Q-20",
+            "name": "근거 원문 다운로드·원문 보기",
+            "kind": "Data",
+            "method": "GET",
+            "path": "/v1/documents/DOC-2020_재해연보/file",
+            "priority": "P1",
+            "state": "DATA_NOT_AVAILABLE",
+            "note": "문서 저장소 미연결(NOT_YET_BUILT)"
+          },
+          {
+            "id": "T3Q-22",
+            "name": "상태·오류 모델, SLA",
+            "kind": "공통",
+            "method": "-",
+            "path": "-",
+            "priority": "P0",
+            "state": "COMMON",
+            "note": "공통 봉투·status 7종"
+          },
+          {
+            "id": "T3Q-23",
+            "name": "공통 응답 메타 · 역할 기반 필터링",
+            "kind": "공통",
+            "method": "-",
+            "path": "-",
+            "priority": "P0",
+            "state": "COMMON",
+            "note": "meta(source·base_time·quality_status·disclosure_level·elapsed_ms) — 역할별 응답 범위 차이는 없음"
+          },
+          {
+            "id": "T3Q-24",
+            "name": "인터페이스 정의서·샘플·테스트 환경",
+            "kind": "공통",
+            "method": "-",
+            "path": "-",
+            "priority": "P0",
+            "state": "COMMON",
+            "note": "이 화면 · /docs(Swagger) · api/README.md"
+          },
+          {
+            "id": "T3Q-25",
+            "name": "대화 문맥 상태 조회",
+            "kind": "Agent",
+            "method": "GET",
+            "path": "/v1/agent/conversations/CONV-TEST",
+            "priority": "P1",
+            "state": "STORE",
+            "note": "T3Q-01 로 만든 conversation_id 를 넣는다"
+          },
+          {
+            "id": "T3Q-27",
+            "name": "대화 문맥 삭제",
+            "kind": "Agent",
+            "method": "POST",
+            "path": "/v1/agent/conversations/purge",
+            "priority": "P1",
+            "state": "STORE",
+            "body": {
+              "caller": {
+                "user_id": "U-TEST-0001",
+                "role": "LOCAL_GOV_OFFICER",
+                "org_admin_code": "2600000000"
+              },
+              "conversation_ids": [
+                "CONV-TEST"
+              ],
+              "reason": "USER_REQUEST"
+            },
+            "note": "1건은 DELETE /v1/agent/conversations/{id}"
+          },
+          {
+            "id": "T3Q-28",
+            "name": "행동매뉴얼 대응절차 (Action Item)",
+            "kind": "Agent",
+            "method": "POST",
+            "path": "/v1/agent/query",
+            "priority": "P0",
+            "state": "IMPLEMENTED",
+            "body": {
+              "caller": {
+                "user_id": "U-TEST-0001",
+                "role": "LOCAL_GOV_OFFICER",
+                "org_admin_code": "2600000000"
+              },
+              "question": "이 상황에서 행동매뉴얼상 확인해야 할 대응절차는?",
+              "question_source": "QUICK",
+              "quick_query_id": "QQ-03",
+              "query_context": {
+                "reference_time": "2026-08-25T16:00:00+09:00",
+                "region": {
+                  "admin_code": "2600000000",
+                  "name": "부산광역시",
+                  "level": "SIDO"
+                },
+                "disaster_types": [
+                  "호우"
+                ],
+                "period": {
+                  "from": "2026-08-25T14:00:00+09:00",
+                  "to": null
+                },
+                "detail": {
+                  "warning_kind": "호우",
+                  "warning_level": "경보",
+                  "keywords": [
+                    "호우",
+                    "침수"
+                  ],
+                  "conditions": [
+                    {
+                      "item": "RAIN_1H",
+                      "label": "1시간 강우",
+                      "value": 68,
+                      "unit": "mm",
+                      "source_type": "MANUAL"
+                    }
+                  ]
+                }
+              },
+              "response_mode": "ASYNC"
+            },
+            "note": "T3Q-01 과 같은 Agent — 행동매뉴얼 원천이 없어 action_items 는 비고 data_gaps manual NOT_IN_SOURCE"
+          },
+          {
+            "id": "T3Q-29",
+            "name": "AI 모드 상황 점검",
+            "kind": "Agent",
+            "method": "POST",
+            "path": "/v1/agent/query",
+            "priority": "P1",
+            "state": "IMPLEMENTED",
+            "note": "T3Q-01 과 같은 Agent — 답 글로 점검, priority_review·warning_guides 칸은 비어 있음",
+            "body": {
+              "caller": {
+                "user_id": "U-TEST-0001",
+                "role": "LOCAL_GOV_OFFICER",
+                "org_admin_code": "2600000000"
+              },
+              "conversation_id": null,
+              "question": "제공된 기상특보 정보를 기준으로 대응 검토가 필요합니까?",
+              "question_source": "AI_MODE",
+              "response_mode": "ASYNC",
+              "ai_mode": {
+                "check_id": "AIM-TEST-0001",
+                "trigger": "FIRST",
+                "interval_min": 10,
+                "prompt_id": "AIM-PROMPT-01"
+              },
+              "query_context": {
+                "reference_time": "2026-08-25T16:00:00+09:00",
+                "region": {
+                  "admin_code": "2600000000",
+                  "name": "부산광역시",
+                  "level": "SIDO"
+                }
+              },
+              "weather_warnings": {
+                "collect_status": "SUCCESS",
+                "items": []
+              }
+            }
+          },
+          {
+            "id": "T3Q-30",
+            "name": "침수흔적 목록·속성",
+            "kind": "Data",
+            "method": "POST",
+            "path": "/v1/flood-traces/search",
+            "priority": "P1",
+            "state": "IMPLEMENTED",
+            "body": {
+              "caller": {
+                "user_id": "U-TEST-0001",
+                "role": "LOCAL_GOV_OFFICER",
+                "org_admin_code": "2600000000"
+              },
+              "region": {
+                "admin_code": "2600000000",
+                "level": "SIDO"
+              },
+              "flood_year": 2020,
+              "page": {
+                "page": 1,
+                "size": 20
+              }
+            }
+          },
+          {
+            "id": "T3Q-31",
+            "name": "답변 평가",
+            "kind": "Agent",
+            "method": "POST",
+            "path": "/v1/agent/feedback",
+            "priority": "P1",
+            "state": "STORE",
+            "body": {
+              "caller": {
+                "user_id": "U-TEST-0001",
+                "role": "LOCAL_GOV_OFFICER",
+                "org_admin_code": "2600000000"
+              },
+              "conversation_id": "CONV-TEST",
+              "turn_no": 1,
+              "response_id": "RES-TEST-0001",
+              "rating": "GOOD"
+            }
+          },
+          {
+            "id": "T3Q-32",
+            "name": "재난 전·후 위성영상 메타",
+            "kind": "Data",
+            "method": "GET",
+            "path": "/v1/events/T10107-20200728-0001/satellite-images",
+            "priority": "P1",
+            "state": "DATA_NOT_AVAILABLE",
+            "note": "위성영상 원천 없음(NOT_IN_SOURCE)"
+          },
+          {
+            "id": "T3Q-33",
+            "name": "소방 신고·긴급구조 정보",
+            "kind": "Data",
+            "method": "GET",
+            "path": "/v1/events/T10107-20200728-0001/fire-reports",
+            "priority": "P1",
+            "state": "DATA_NOT_AVAILABLE",
+            "note": "119 신고 원천 없음(NOT_IN_SOURCE)"
+          },
+          {
+            "id": "T3Q-34",
+            "name": "대피시설·대피정보",
+            "kind": "Data",
+            "method": "POST",
+            "path": "/v1/evacuation-facilities/search",
+            "priority": "P1",
+            "state": "DATA_NOT_AVAILABLE",
+            "body": {
+              "caller": {
+                "user_id": "U-TEST-0001",
+                "role": "LOCAL_GOV_OFFICER",
+                "org_admin_code": "2600000000"
+              },
+              "linked_object_ids": [
+                "SL-2611000001"
+              ],
+              "page": 1,
+              "size": 20
+            },
+            "note": "대피시설 원천 없음"
+          },
+          {
+            "id": "T3Q-35",
+            "name": "신고·처리(민원) 이력",
+            "kind": "Data",
+            "method": "GET",
+            "path": "/v1/events/T10107-20200728-0001/complaints",
+            "priority": "P1",
+            "state": "DATA_NOT_AVAILABLE",
+            "note": "민원 원천 없음"
+          },
+          {
+            "id": "T3Q-36",
+            "name": "하천범람·도시침수지도 속성",
+            "kind": "Data",
+            "method": "POST",
+            "path": "/v1/flood-maps/search",
+            "priority": "P1",
+            "state": "DATA_NOT_AVAILABLE",
+            "body": {
+              "caller": {
+                "user_id": "U-TEST-0001",
+                "role": "LOCAL_GOV_OFFICER",
+                "org_admin_code": "2600000000"
+              },
+              "region": {
+                "admin_code": "2617000000",
+                "level": "SIGUNGU"
+              },
+              "map_types": [
+                "URBAN_FLOOD"
+              ]
+            },
+            "note": "침수지도 원천 없음"
+          },
+          {
+            "id": "EXT-01",
+            "name": "공간객체 도형(GeoJSON)",
+            "kind": "Data",
+            "method": "POST",
+            "path": "/v1/spatial-objects/geometry",
+            "priority": "확장",
+            "state": "IMPLEMENTED",
+            "body": {
+              "caller": {
+                "user_id": "U-TEST-0001",
+                "role": "LOCAL_GOV_OFFICER",
+                "org_admin_code": "2600000000"
+              },
+              "items": [
+                {
+                  "ref": "r1",
+                  "key": "slope_no",
+                  "value": "1111000019"
+                },
+                {
+                  "ref": "r2",
+                  "key": "legal_dong_code",
+                  "value": "4477025021"
+                },
+                {
+                  "ref": "r3",
+                  "key": "spatial_object_id",
+                  "value": "FT-I_109"
+                },
+                {
+                  "ref": "r4",
+                  "key": "latlon",
+                  "value": "36.01258,126.69511"
+                }
+              ]
+            },
+            "note": "T3Q-01 result.refs[].map{key, value} → GeoJSON(EPSG:4326) — 명세 공통 규약 6절 «공간객체 API» 자리, gis 스키마"
+          },
+          {
+            "id": "EXT-02",
+            "name": "Agent 질의 결과(비동기)",
+            "kind": "Agent",
+            "method": "GET",
+            "path": "/v1/agent/query/REQ-…",
+            "priority": "확장",
+            "state": "IMPLEMENTED",
+            "note": "T3Q-01 response_mode=ASYNC 의 request_id — PROCESSING(202) 이면 다시, 끝나면 T3Q-01 응답 그대로"
+          }
+        ]
+      },
+      "data_gaps": [],
+      "warnings": [],
+      "meta": {
+        "source": "T3Q",
+        "base_time": "2026-10-20T00:00:00+09:00",
+        "quality_status": "VERIFIED",
+        "disclosure_level": "공개",
+        "elapsed_ms": 0
+      }
+    }
+  },
+  {
+    "id": "SYS-health",
+    "method": "GET",
+    "path": "/health",
+    "body": null,
+    "http": 404,
+    "ms": 76,
+    "response": {
+      "detail": "Not Found"
+    }
+  }
+]

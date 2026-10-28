@@ -1,0 +1,340 @@
+{
+  "id": "A-03-g",
+  "question": "정선군 급경사지 붕괴위험지역 지정 도면 안에 있거나 50m 안에 붙어 있는 급경사지는 몇 곳이고 어디야? 그 급경사지의 최신 위험등급도.",
+  "request": {
+    "question": "정선군 급경사지 붕괴위험지역 지정 도면 안에 있거나 50m 안에 붙어 있는 급경사지는 몇 곳이고 어디야? 그 급경사지의 최신 위험등급도.",
+    "question_source": "USER",
+    "query_context": {
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "region": {
+        "admin_code": "5177000000",
+        "name": "강원특별자치도 정선군",
+        "level": "SIGUNGU"
+      },
+      "disaster_types": [
+        "산사태"
+      ]
+    }
+  },
+  "final": {
+    "schema_version": "2.0",
+    "request_id": "a0b69bec9eec00b8f2053a6742488a7b",
+    "correlation_id": "corr-a0b69bec9eec00b8f2053a6742488a7b",
+    "status": "SUCCESS",
+    "conversation_id": "CONV-20261028-a64567",
+    "turn_no": 1,
+    "result": {
+      "response_id": "RES-20261028-41f5cc",
+      "question": "정선군 급경사지 붕괴위험지역 지정 도면 안에 있거나 50m 안에 붙어 있는 급경사지는 몇 곳이고 어디야? 그 급경사지의 최신 위험등급도.",
+      "question_source": "USER",
+      "answer": "### 1. 결론\n\n강원특별자치도 정선군 관내 **급경사지 붕괴위험지역 지정 도면(용도지역지구도 UP401) 내부 또는 경계로부터 50m 이내에 인접한 급경사지는 총 28곳**입니다.\n\n- **위치 구분**:\n  - **도면 내부(포함, 거리 0m)**: **15곳**\n  - **도면 50m 이내 인접**: **13곳**\n- **최신 위험등급 분포**:\n  - **D등급 (붕괴위험)**: **10곳**\n  - **C등급 (주의·관찰)**: **8곳**\n  - **B등급 (양호)**: **1곳**\n  - **A등급 (우수)**: **1곳**\n  - **정기 재해위험도평가 미실시(평가기록 없음)**: **8곳** *(※ 이 중 2곳은 붕괴위험지구 지정 고시 시점에 D등급 부여)*\n\n---\n\n### 2. 도면 내 및 50m 이내 급경사지 상세 현황\n\n| 급경사지명 | 행정구역(소재지) | 세부 위치 | 도면과의 거리 | 위치 구분 | 최신 위험등급 | 평가점수 | 최근 평가일자 |\n|---|---|---|:---:|:---:|:---:|:---:|:---:|\n| [고한2지구](#ref:r2) | 정선군 고한읍 | 고한리 막골 | 0.0m | 도면 내부 | **C** | 55.0점 | 2023-07-21 |\n| [구미정지구](#ref:r3) | 정선군 임계면 | 봉산리 구미정 일원 | 0.0m | 도면 내부 | **D** | 62.0점 | 2023-07-20 |\n| [봉산2지구](#ref:r4) | 정선군 임계면 | 반천리 사을기앞 | 0.0m | 도면 내부 | **C** | 48.0점 | 2023-07-20 |\n| [향교지구](#ref:r5) | 정선군 정선읍 | 봉양리 정선향교 일원 | 0.0m | 도면 내부 | **D** | 64.0점 | 2023-07-21 |\n| [동원A옆지구](#ref:r6) | 정선군 사북읍 | 사북리 | 0.0m | 도면 내부 | **B** | 40.0점 | 2023-07-21 |\n| [화암1지구(지방도421)](#ref:r7) | 정선군 화암면 | 화암리 | 0.0m | 도면 내부 | **C** | 43.0점 | 2010-12-01 |\n| [몰운5지구(지방도424)](#ref:r8) | 정선군 화암면 | 몰운리 | 0.0m | 도면 내부 | **D** | 64.0점 | 2022-03-01 |\n| [몰운6지구(지방도424)](#ref:r9) | 정선군 화암면 | 몰운리 | 0.0m | 도면 내부 | **C** | 50.0점 | 2010-12-01 |\n| [화암12지구(지방도424)](#ref:r10) | 정선군 화암면 | 화암리 | 0.0m | 도면 내부 | **D** | 65.0점 | 2016-06-16 |\n| [유천1지구(지방도415호)](#ref:r11) | 정선군 여량면 | 유천리 | 0.0m | 도면 내부 | **D** | 66.0점 | 2021-11-30 |\n| [강원 정선 여량 구절 N1지구](#ref:r12) | 정선군 여량면 | 구절리 | 0.0m | 도면 내부 | 미평가 | - | - |\n| [강원 정선 화암 화암 N3지구](#ref:r13) | 정선군 화암면 | 화암리 | 0.0m | 도면 내부 | 미평가 | - | - |\n| [강원 정선 화암 몰운 N1지구](#ref:r14) | 정선군 화암면 | 몰운리 | 0.0m | 도면 내부 | 미평가 | - | - |\n| [세대8지구](#ref:r15) | 정선군 정선읍 | 봉양리 | 0.0m | 도면 내부 | **D** *(지정고시)* | 64.0점 | - |\n| [막골2지구](#ref:r16) | 정선군 고한읍 | 고한리 | 0.0m | 도면 내부 | **D** *(지정고시)* | 63.0점 | - |\n| [석곡2지구(지방도424)](#ref:r17) | 정선군 화암면 | 석곡리 | 0.7m | 50m 이내 인접 | **D** | 70.0점 | 2016-08-16 |\n| [화암10지구(지방도421](#ref:r18) | 정선군 화암면 | 화암리 | 2.8m | 50m 이내 인접 | **C** | 52.0점 | 2016-06-16 |\n| [함백관지구](#ref:r19) | 정선군 고한읍 | 고한리 | 3.9m | 50m 이내 인접 | **A** | 14.0점 | 2023-07-21 |\n| [화암13](#ref:r20) | 정선군 화암면 | 화암리 | 5.7m | 50m 이내 인접 | **D** | 61.0점 | 2021-11-30 |\n| [태백 79km940(좌)](#ref:r21) | 정선군 고한읍 | 고한리 (철도공단) | 9.0m | 50m 이내 인접 | 미평가 | - | - |\n| [강원 정선 여량 유천 N1지구](#ref:r22) | 정선군 여량면 | 유천리 | 12.0m | 50m 이내 인접 | 미평가 | - | - |\n| [막골1지구](#ref:r23) | 정선군 고한읍 | 고한리 | 14.0m | 50m 이내 인접 | **C** | 43.0점 | 2023-07-21 |\n| [북실지구](#ref:r24) | 정선군 정선읍 | 북실리 | 22.8m | 50m 이내 인접 | **C** | 56.0점 | 2023-07-21 |\n| [화암11지구(지방도424](#ref:r25) | 정선군 화암면 | 화암리 | 32.2m | 50m 이내 인접 | **C** | 50.0점 | 2010-12-01 |\n| [낙동2지구](#ref:r26) | 정선군 남면 | 낙동리 군도4호 | 36.8m | 50m 이내 인접 | **D** | 61.0점 | 2023-07-21 |\n| [조동1지구(지방도421호)](#ref:r27) | 정선군 신동읍 | 조동리 | 44.7m | 50m 이내 인접 | **D** | 64.0점 | 2021-11-30 |\n| [막골3지구](#ref:r28) | 정선군 고한읍 | 고한리 | 47.8m | 50m 이내 인접 | **D** | 69.0점 | 2023-07-21 |\n| [강원 정선 사북 사북 N12지구](#ref:r29) | 정선군 사북읍 | 사북리 | 49.0m | 50m 이내 인접 | 미평가 | - | - |\n\n---\n\n### 3. 주요 분석 및 점검 권고사항\n\n1. **D등급(붕괴위험) 집중 관리 필요 (10곳 + 2곳)**:\n   - 점수가 60점 이상인 D등급 급경사지는 화암면(석곡2·몰운5·화암12·화암13), 고한읍(막골3), 정선읍(향교), 임계면(구미정), 여량면(유천1), 신동읍(조동1), 남면(낙동2) 등에 고루 분포합니다.\n   - [세대8지구](#ref:r15)와 [막골2지구](#ref:r16)는 정기평가 이력은 부재하나 법정 붕괴위험지구 지정 고시 시 각각 64점, 63점(D등급)으로 책정되어 동일 수준의 집중 모니터링이 요구됩니다.\n2. **도면 경계 인접(50m 이내) 급경사지 연계 관리**:\n   - [석곡2지구](#ref:r17)(0.7m), [화암10지구](#ref:r18)(2.8m), [함백관지구](#ref:r19)(3.9m), [화암13](#ref:r20)(5.7m) 등은 법정 붕괴위험지역 도면 경계선과 사실상 맞닿아 있어 사면 붕괴 시 도면 구역 내 도로·시설물로 직접 전파될 위험이 큽니다.\n3. **미평가 신규지구 및 장기 미평가 지구 안전점검**:\n   - `N1/N3/N12지구` 등 관리번호만 생성된 6곳은 현장 실태조사 및 위험도평가가 조속히 추진되어야 하며, 2010~2016년에 마지막 평가를 받은 화암면 일대 도로변 급경사지는 최신 상태 재평가가 필요합니다.",
+      "answer_format": "MARKDOWN",
+      "entities": [],
+      "result_groups": [],
+      "evidence_refs": [],
+      "follow_up_questions": [],
+      "refs": [
+        {
+          "ref": "r2",
+          "entity_type": "RISK_AREA",
+          "display_name": "고한2지구",
+          "map": {
+            "key": "slope_no",
+            "value": "4277000014",
+            "draw": "line"
+          }
+        },
+        {
+          "ref": "r3",
+          "entity_type": "RISK_AREA",
+          "display_name": "구미정지구",
+          "map": {
+            "key": "slope_no",
+            "value": "4277000062",
+            "draw": "line"
+          }
+        },
+        {
+          "ref": "r4",
+          "entity_type": "RISK_AREA",
+          "display_name": "봉산2지구",
+          "map": {
+            "key": "slope_no",
+            "value": "4277000063",
+            "draw": "line"
+          }
+        },
+        {
+          "ref": "r5",
+          "entity_type": "RISK_AREA",
+          "display_name": "향교지구",
+          "map": {
+            "key": "slope_no",
+            "value": "4277000071",
+            "draw": "line"
+          }
+        },
+        {
+          "ref": "r6",
+          "entity_type": "RISK_AREA",
+          "display_name": "동원A옆지구",
+          "map": {
+            "key": "slope_no",
+            "value": "4277000115",
+            "draw": "line"
+          }
+        },
+        {
+          "ref": "r7",
+          "entity_type": "RISK_AREA",
+          "display_name": "화암1지구(지방도421)",
+          "map": {
+            "key": "slope_no",
+            "value": "4277000201",
+            "draw": "line"
+          }
+        },
+        {
+          "ref": "r8",
+          "entity_type": "RISK_AREA",
+          "display_name": "몰운5지구(지방도424)",
+          "map": {
+            "key": "slope_no",
+            "value": "4277000217",
+            "draw": "line"
+          }
+        },
+        {
+          "ref": "r9",
+          "entity_type": "RISK_AREA",
+          "display_name": "몰운6지구(지방도424)",
+          "map": {
+            "key": "slope_no",
+            "value": "4277000218",
+            "draw": "line"
+          }
+        },
+        {
+          "ref": "r10",
+          "entity_type": "RISK_AREA",
+          "display_name": "화암12지구(지방도424)",
+          "map": {
+            "key": "slope_no",
+            "value": "4277000294",
+            "draw": "line"
+          }
+        },
+        {
+          "ref": "r11",
+          "entity_type": "RISK_AREA",
+          "display_name": "유천1지구(지방도415호)",
+          "map": {
+            "key": "slope_no",
+            "value": "4277000382",
+            "draw": "line"
+          }
+        },
+        {
+          "ref": "r12",
+          "entity_type": "RISK_AREA",
+          "display_name": "강원 정선 여량 구절 N1지구",
+          "map": {
+            "key": "slope_no",
+            "value": "4277000390",
+            "draw": "line"
+          }
+        },
+        {
+          "ref": "r13",
+          "entity_type": "RISK_AREA",
+          "display_name": "강원 정선 화암 화암 N3지구",
+          "map": {
+            "key": "slope_no",
+            "value": "4277000392",
+            "draw": "line"
+          }
+        },
+        {
+          "ref": "r14",
+          "entity_type": "RISK_AREA",
+          "display_name": "강원 정선 화암 몰운 N1지구",
+          "map": {
+            "key": "slope_no",
+            "value": "4277000424",
+            "draw": "line"
+          }
+        },
+        {
+          "ref": "r15",
+          "entity_type": "RISK_AREA",
+          "display_name": "세대8지구",
+          "map": {
+            "key": "slope_no",
+            "value": "5177000052",
+            "draw": "line"
+          }
+        },
+        {
+          "ref": "r16",
+          "entity_type": "RISK_AREA",
+          "display_name": "막골2지구",
+          "map": {
+            "key": "slope_no",
+            "value": "5177000053",
+            "draw": "line"
+          }
+        },
+        {
+          "ref": "r17",
+          "entity_type": "RISK_AREA",
+          "display_name": "석곡2지구(지방도424)",
+          "map": {
+            "key": "slope_no",
+            "value": "4277000293",
+            "draw": "line"
+          }
+        },
+        {
+          "ref": "r18",
+          "entity_type": "RISK_AREA",
+          "display_name": "화암10지구(지방도421",
+          "map": {
+            "key": "slope_no",
+            "value": "4277000210",
+            "draw": "line"
+          }
+        },
+        {
+          "ref": "r19",
+          "entity_type": "RISK_AREA",
+          "display_name": "함백관지구",
+          "map": {
+            "key": "slope_no",
+            "value": "4277000105",
+            "draw": "line"
+          }
+        },
+        {
+          "ref": "r20",
+          "entity_type": "RISK_AREA",
+          "display_name": "화암13",
+          "map": {
+            "key": "slope_no",
+            "value": "4277000384",
+            "draw": "line"
+          }
+        },
+        {
+          "ref": "r21",
+          "entity_type": "RISK_AREA",
+          "display_name": "태백 79km940(좌)",
+          "map": {
+            "key": "slope_no",
+            "value": "5177000147",
+            "draw": "line"
+          }
+        },
+        {
+          "ref": "r22",
+          "entity_type": "RISK_AREA",
+          "display_name": "강원 정선 여량 유천 N1지구",
+          "map": {
+            "key": "slope_no",
+            "value": "4277000391",
+            "draw": "line"
+          }
+        },
+        {
+          "ref": "r23",
+          "entity_type": "RISK_AREA",
+          "display_name": "막골1지구",
+          "map": {
+            "key": "slope_no",
+            "value": "4277000101",
+            "draw": "line"
+          }
+        },
+        {
+          "ref": "r24",
+          "entity_type": "RISK_AREA",
+          "display_name": "북실지구",
+          "map": {
+            "key": "slope_no",
+            "value": "4277000386",
+            "draw": "line"
+          }
+        },
+        {
+          "ref": "r25",
+          "entity_type": "RISK_AREA",
+          "display_name": "화암11지구(지방도424",
+          "map": {
+            "key": "slope_no",
+            "value": "4277000222",
+            "draw": "line"
+          }
+        },
+        {
+          "ref": "r26",
+          "entity_type": "RISK_AREA",
+          "display_name": "낙동2지구",
+          "map": {
+            "key": "slope_no",
+            "value": "4277000037",
+            "draw": "line"
+          }
+        },
+        {
+          "ref": "r27",
+          "entity_type": "RISK_AREA",
+          "display_name": "조동1지구(지방도421호)",
+          "map": {
+            "key": "slope_no",
+            "value": "4277000383",
+            "draw": "line"
+          }
+        },
+        {
+          "ref": "r28",
+          "entity_type": "RISK_AREA",
+          "display_name": "막골3지구",
+          "map": {
+            "key": "slope_no",
+            "value": "4277000102",
+            "draw": "line"
+          }
+        },
+        {
+          "ref": "r29",
+          "entity_type": "RISK_AREA",
+          "display_name": "강원 정선 사북 사북 N12지구",
+          "map": {
+            "key": "slope_no",
+            "value": "5177000239",
+            "draw": "line"
+          }
+        }
+      ],
+      "conversation_title": null,
+      "limitations": [
+        "유사사례는 예측·위험판단이 아닌 참고 정보"
+      ],
+      "context_used": {
+        "used_conditions": [],
+        "unused_conditions": [],
+        "reference_used": false
+      }
+    },
+    "data_gaps": [],
+    "warnings": [],
+    "meta": {
+      "source": "T3Q",
+      "base_time": "2026-10-28T01:34:12+09:00",
+      "quality_status": "VERIFIED",
+      "disclosure_level": "공개",
+      "elapsed_ms": 135580
+    }
+  },
+  "waitedMs": 136217,
+  "timeout": false
+}

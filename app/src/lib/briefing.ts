@@ -8,6 +8,7 @@
 import { useEffect, useState } from "react";
 import { useSession } from "./session";
 import { api } from "./api";
+import { DEFAULT_BRIEFING, libById } from "./library";
 
 export interface BriefItem { key: string; label: string; q: string; on: boolean; /** 기본 질의문 그대로일 때만 쓰는 의도 고정 키 */ preset?: string }
 export const BRIEF_MAX = 8;
@@ -15,13 +16,11 @@ export const BRIEF_MIN = 4;
 export const BRIEF_AIM_COUNT = 4;
 export const BRIEF_START_COUNT = 4;
 
-/** 기본 질문 4개 — 어디가 위험한가 → 실제 피해 이력 → 통제·대피 → 행동매뉴얼 할 일 (조건은 QueryContext로 함께 전달) */
-export const BRIEF_DEFAULT: BriefItem[] = [
-  { key: "risk", preset: "risk", label: "위험·취약지역", q: "우리 지역에서 먼저 점검해야 할 위험·취약지역은 어디인가요?", on: true },
-  { key: "history", preset: "similar", label: "과거 피해 이력", q: "위험·취약지역 중 과거 재난 때 실제로 피해가 났던 곳과 피해 내용은?", on: true },
-  { key: "control", label: "통제·대피 대상", q: "통제하거나 주민 대피가 필요할 수 있는 도로·지하차도·인명피해 우려지역은?", on: true },
-  { key: "manual", preset: "manual", label: "행동매뉴얼 대응절차", q: "현장조치 행동매뉴얼상 지금 단계에서 해야 할 일과 담당 부서는?", on: true },
-];
+/** 기본 질문 4개 — 질문 라이브러리 BR-01~04 ({지역} = 기준지역 이름). 질의문을 고치지 않았을 때만 자동 조회 데이터(preset = 라이브러리 id)를 함께 부른다 */
+export const BRIEF_DEFAULT: BriefItem[] = DEFAULT_BRIEFING.map((id) => {
+  const q = libById(id)!;
+  return { key: id, preset: id, label: q.category, q: q.text, on: true };
+});
 /** 기본 항목인지 (되돌리기 때 직접 추가한 항목은 지움) */
 export const isDefaultItem = (it: BriefItem) => BRIEF_DEFAULT.some((d) => d.key === it.key);
 

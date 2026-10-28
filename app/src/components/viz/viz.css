@@ -1,0 +1,81 @@
+/* 시각화(V2·V3·시설유형 막대) — dataviz 방법 · 기준 팔레트(validate_palette.js 통과, 대비 WARN → 값 표기·표 병기로 보완) · 빨강 계열 미사용 */
+.viz {
+  color-scheme: light;
+  --viz-surface: #ffffff;
+  --viz-ink: #1e2124;
+  --viz-ink-2: #464c53;
+  --viz-muted: #6d7882;
+  --viz-grid: #e6e8ea;
+  --viz-axis: #cdd1d5;
+  /* 빨강 계열 쓰지 않음(사용자 지시 2026-10-28) — 파랑·청록·보라·노랑·초록 순, validate_palette 통과(인접 CVD 최저 ΔE 16.2) */
+  --series-1: #2a78d6;
+  --series-2: #1baf7a;
+  --series-3: #6250d6;
+  --series-4: #eda100;
+  --series-5: #008300;
+  position: relative;
+  margin: 10px 0 6px;
+  font-variant-numeric: tabular-nums;
+}
+.viz-title { font-size: var(--fs-xs); font-weight: 700; color: var(--viz-ink); margin-bottom: 2px; }
+.viz-sub { font-size: var(--fs-2xs); color: var(--viz-muted); margin-bottom: 8px; }
+
+/* 가로 막대 (시설유형별 피해액) */
+.viz-bars { display: grid; grid-template-columns: minmax(120px, max-content) 1fr; column-gap: 12px; row-gap: 6px; align-items: center; }
+.viz-bars .lb { font-size: var(--fs-2xs); color: var(--viz-ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 280px; }
+/* 오른쪽 여백 = 막대 끝 값 자리(가장 긴 막대도 값이 잘리지 않게) */
+.viz-track { position: relative; height: 14px; display: flex; align-items: center; padding-right: 10.5em; }
+.viz-track .grid { position: absolute; top: -3px; bottom: -3px; width: 1px; background: var(--viz-grid); }
+.viz-track .grids { position: absolute; left: 0; top: 0; bottom: 0; right: 10.5em; pointer-events: none; }
+.viz-bar { position: relative; height: 12px; border-radius: 0 4px 4px 0; background: var(--series-1); outline: none; min-width: 2px; }
+.viz-bar:hover, .viz-bar:focus-visible { filter: brightness(1.12); box-shadow: 0 0 0 2px var(--viz-surface), 0 0 0 3px var(--viz-ink-2); }
+.viz-bar + .val { margin-left: 6px; font-size: var(--fs-2xs); color: var(--viz-ink); white-space: nowrap; }
+.viz-axis { display: flex; justify-content: space-between; font-size: 11px; color: var(--viz-muted); margin: 4px 10.5em 0 0; border-top: 1px solid var(--viz-axis); padding-top: 3px; }
+
+/* 받은 값 표 (보고 단계별 피해액·복구비 — 묶음 막대 대신, 결함 7) */
+.viz .md-table { margin: 4px 0 0; }
+.viz .md-table th.num, .viz .md-table td.num { text-align: right; }
+
+/* 누적 막대 (V2) */
+.viz-stack { display: flex; height: 18px; gap: 2px; background: none; }
+.viz-stack .seg { height: 100%; outline: none; }
+.viz-stack .seg:first-child { border-radius: 0; }
+.viz-stack .seg:last-of-type { border-radius: 0 4px 4px 0; }
+.viz-stack .seg:hover, .viz-stack .seg:focus-visible { filter: brightness(1.12); box-shadow: 0 0 0 2px var(--viz-surface), 0 0 0 3px var(--viz-ink-2); }
+.viz-stack .rest { flex: 1; height: 100%; background: repeating-linear-gradient(90deg, transparent 0 3px, var(--viz-grid) 3px 4px); }
+
+/* 범례 */
+.viz-legend { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 8px; font-size: var(--fs-2xs); color: var(--viz-ink-2); }
+.viz-legend .sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+.viz-legend .ln { display: inline-block; width: 14px; height: 2px; margin-right: 6px; vertical-align: 3px; }
+.viz-legend b { color: var(--viz-ink); font-weight: 700; margin-left: 4px; }
+
+/* 타임라인 (V3) */
+.viz-tl { position: relative; }
+.viz-tl .lane { position: relative; height: 28px; border-bottom: 1px solid var(--viz-grid); }
+.viz-tl .lane-lb { position: absolute; left: 0; top: 6px; font-size: var(--fs-2xs); color: var(--viz-ink-2); width: 92px; }
+.viz-tl .plot { position: absolute; left: 100px; right: 8px; top: 0; bottom: 0; }
+.viz-tl .dot { position: absolute; top: 50%; width: 10px; height: 10px; margin: -5px 0 0 -5px; border-radius: 50%; box-shadow: 0 0 0 2px var(--viz-surface); outline: none; cursor: default; }
+.viz-tl .dot::after { content: ""; position: absolute; inset: -7px; } /* 히트 영역 24px */
+.viz-tl .dot:hover, .viz-tl .dot:focus-visible { transform: scale(1.3); box-shadow: 0 0 0 2px var(--viz-surface), 0 0 0 3px var(--viz-ink-2); }
+.viz-tl .ticks { position: relative; margin-left: 100px; margin-right: 8px; height: 18px; font-size: 11px; color: var(--viz-muted); border-top: 1px solid var(--viz-axis); }
+.viz-tl .ticks span { position: absolute; top: 3px; transform: translateX(-50%); white-space: nowrap; }
+
+/* 툴팁 — 값이 먼저, 이름이 뒤 */
+.viz-tip { position: absolute; z-index: 20; pointer-events: none; background: #fff; border: 1px solid var(--viz-axis); border-radius: 6px; box-shadow: var(--shadow-2); padding: 6px 10px; font-size: var(--fs-2xs); color: var(--viz-ink-2); max-width: 320px; white-space: normal; }
+.viz-tip b { display: block; color: var(--viz-ink); font-size: var(--fs-xs); }
+
+.viz-table-toggle { margin-top: 4px; }
+@media (prefers-reduced-motion: reduce) { .viz-tl .dot:hover { transform: none; } }
+
+/* 누적 막대는 끝 값 자리가 없으므로 축을 막대 폭 전체로 */
+.viz-stack + .viz-axis { margin-right: 0; }
+
+/* 사건 상세 패널(EventDetail) — 접힌 섹션(유사도 근거) · 주의(⚠) 글 · 받은 글 */
+.ev-fold > summary { cursor: pointer; }
+.ev-fold > summary h3 { display: inline; margin: 0; }
+.ev-fold[open] > summary { margin-bottom: 6px; }
+.ev-caution { font-size: var(--fs-2xs); color: var(--c-warn-dk); margin: 4px 0; }
+.ev-raw { margin: 6px 0 2px; }
+/* 받은 글 그대로(줄바꿈·공백 포함) — 유사사례 카드의 사건 요약(.sim-sum)과 같은 규칙 */
+.ev-text { margin: 0; line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; }

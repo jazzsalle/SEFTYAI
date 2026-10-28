@@ -1,0 +1,140 @@
+{
+  "id": "P09-01-g",
+  "question": "서울 강남구 지하차도가 있는 법정동 가운데 100년 빈도 도시침수지도 침수심 0.5m 이상 구역이 있는 동은? (지하차도 좌표가 없어 동 단위)",
+  "request": {
+    "question": "서울 강남구 지하차도가 있는 법정동 가운데 100년 빈도 도시침수지도 침수심 0.5m 이상 구역이 있는 동은? (지하차도 좌표가 없어 동 단위)",
+    "question_source": "USER",
+    "query_context": {
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "region": {
+        "admin_code": "1168000000",
+        "name": "서울특별시 강남구",
+        "level": "SIGUNGU"
+      },
+      "disaster_types": [
+        "호우"
+      ]
+    }
+  },
+  "final": {
+    "schema_version": "2.0",
+    "request_id": "3faad454db886b0359f579d6ecfcf292",
+    "correlation_id": "corr-3faad454db886b0359f579d6ecfcf292",
+    "status": "SUCCESS",
+    "conversation_id": "CONV-20261028-b882e1",
+    "turn_no": 1,
+    "result": {
+      "response_id": "RES-20261028-d6ade4",
+      "question": "서울 강남구 지하차도가 있는 법정동 가운데 100년 빈도 도시침수지도 침수심 0.5m 이상 구역이 있는 동은? (지하차도 좌표가 없어 동 단위)",
+      "question_source": "USER",
+      "answer": "### 결론\n\n서울 강남구 관내 지하차도가 소재한 법정동은 **[개포동](#ref:r11)**, **[일원동](#ref:r21)**, **[수서동](#ref:r17)** 3개 동이며, 공간 분석 결과 **3개 법정동 모두** 100년 빈도 도시침수지도상 **침수심 0.5m 이상 구역**을 포함하고 있습니다.\n\n---\n\n### 1. 강남구 관내 지하차도 소재 현황 (총 5개소)\n\n지하차도 대장(`hazard.underpass`) 기준 강남구 소재 지하차도는 총 5개소이며, 모두 방재등급 4등급 및 통제기준 침수심 10cm로 관리되고 있습니다.\n\n| 법정동 | 지하차도명 | 박스구간 연장 | U자형 여부 | 하천 인접(500m) | 방재등급 | 통제기준 침수심 |\n|---|---|---|---|---|---|---|\n| **[개포동](#ref:r11)** | [개포지하차도](#ref:r1) | 400m | O | X | 4등급 | 10cm |\n| **[개포동](#ref:r11)** | [구룡지하차도](#ref:r2) | 770m | O | X | 4등급 | 10cm |\n| **[일원동](#ref:r21)** | [대치지하차도](#ref:r3) | 470m | X | O (탄천) | 4등급 | 10cm |\n| **[일원동](#ref:r21)** | [일원지하차도](#ref:r5) | 480m | O | X | 4등급 | 10cm |\n| **[수서동](#ref:r17)** | [수서지하차도](#ref:r4) | 245m | O | O (탄천) | 4등급 | 10cm |\n\n---\n\n### 2. 100년 빈도 도시침수지도(침수심 0.5m 이상) 중첩 분석\n\n강남구 법정동 영역(건축물 밀집 영역 기반 공간 경계)과 100년 빈도 도시침수지도(`gis.flood_map`, `URBAN_FLOOD-11680-100`)의 침수심 0.5m 이상 구간(`N331`~`N334`)을 공간 교차 분석한 결과입니다.\n\n| 법정동 | 침수심 0.5m 이상 구역 여부 | 주요 침수심 등급별 면적 | 0.5m 이상 침수구역 내 건축물 수 | 관내 지하차도 |\n|---|:---:|---|:---:|---|\n| **[개포동](#ref:r11)** | **포함 (True)** | • 0.5~1.0m: 10,255㎡<br>• 1.0~2.0m: 3,320㎡ | 2동 | [개포지하차도](#ref:r1), [구룡지하차도](#ref:r2) |\n| **[일원동](#ref:r21)** | **포함 (True)** | • 0.5~1.0m: 48,016㎡<br>• 1.0~2.0m: 9,033㎡<br>• 2.0~5.0m: 565㎡<br>• 5.0m 이상: 96㎡ | 50동 | [대치지하차도](#ref:r3), [일원지하차도](#ref:r5) |\n| **[수서동](#ref:r17)** | **포함 (True)** | • 0.5~1.0m: 93,534㎡<br>• 1.0~2.0m: 48,127㎡<br>• 2.0~5.0m: 8,668㎡ | 9동 | [수서지하차도](#ref:r4) |\n\n- **분석 특징**:\n  - **[일원동](#ref:r21)**과 **[수서동](#ref:r17)**은 탄천 인접 저지대를 중심으로 침수심 1.0m를 초과하는 고심도 침수구역이 비교적 넓게 분포합니다.\n  - 특히 [수서지하차도](#ref:r4)와 [대치지하차도](#ref:r3)는 탄천과 500m 이내로 인접해 있어 도시 내수침수뿐만 아니라 하천 수위 상승에 따른 배수 불량 영향에 유의해야 합니다.\n\n---\n\n### 3. 업무 담당자 점검 및 의사결정 권고사항\n\n1. **선제적 차량 통제 체계 가동**:\n   - 3개 동의 5개 지하차도 모두 통제기준 침수심이 **10cm**로 설정되어 있으므로, 집중호우 시 현장 침수 수위 도달 전 원격 진입차단시설(스크린 차단기 등) 작동 여부를 사전 점검해야 합니다.\n2. **동 단위 저지대 연계 모니터링**:\n   - 지하차도 자체뿐 아니라 지하차도 진·출입로가 접한 배후 법정동 도로망이 0.5m 이상 침수될 경우 차량 고립 위험이 급증하므로, 침수지도의 취약 구역을 중심으로 배수펌프 가동 및 사전 우회 안내가 필요합니다.",
+      "answer_format": "MARKDOWN",
+      "entities": [],
+      "result_groups": [],
+      "evidence_refs": [],
+      "follow_up_questions": [],
+      "refs": [
+        {
+          "ref": "r11",
+          "entity_type": "REGION",
+          "display_name": "개포동",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "1168010300",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r21",
+          "entity_type": "REGION",
+          "display_name": "일원동",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "1168011400",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r17",
+          "entity_type": "REGION",
+          "display_name": "수서동",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "1168011500",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r1",
+          "entity_type": "RISK_FACTOR",
+          "display_name": "개포지하차도",
+          "map": {
+            "key": "underpass_id",
+            "value": "670",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r2",
+          "entity_type": "RISK_FACTOR",
+          "display_name": "구룡지하차도",
+          "map": {
+            "key": "underpass_id",
+            "value": "671",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r3",
+          "entity_type": "RISK_FACTOR",
+          "display_name": "대치지하차도",
+          "map": {
+            "key": "underpass_id",
+            "value": "672",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r5",
+          "entity_type": "RISK_FACTOR",
+          "display_name": "일원지하차도",
+          "map": {
+            "key": "underpass_id",
+            "value": "674",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r4",
+          "entity_type": "RISK_FACTOR",
+          "display_name": "수서지하차도",
+          "map": {
+            "key": "underpass_id",
+            "value": "673",
+            "draw": "pin"
+          }
+        }
+      ],
+      "conversation_title": null,
+      "limitations": [
+        "유사사례는 예측·위험판단이 아닌 참고 정보"
+      ],
+      "context_used": {
+        "used_conditions": [],
+        "unused_conditions": [],
+        "reference_used": false
+      }
+    },
+    "data_gaps": [],
+    "warnings": [],
+    "meta": {
+      "source": "T3Q",
+      "base_time": "2026-10-28T02:12:20+09:00",
+      "quality_status": "VERIFIED",
+      "disclosure_level": "공개",
+      "elapsed_ms": 145823
+    }
+  },
+  "waitedMs": 148985,
+  "timeout": false
+}

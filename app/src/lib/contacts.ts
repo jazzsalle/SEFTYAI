@@ -91,14 +91,14 @@ export function useContacts(orgId: string | null, account: Account | null) {
       return { ...b, groups: [...b.groups, { id: uid("g"), orgId: orgId!, name: g.name.trim(), memberIds: g.memberIds, sort: 99 }] };
     }, `전파그룹 ${g.id ? "수정" : "추가"} ${g.name.trim()}`);
   const deleteGroup = (id: string) => mut((b) => ({ ...b, groups: b.groups.filter((g) => g.id !== id) }), `전파그룹 삭제 ${cur.current?.groups.find((g) => g.id === id)?.name ?? id}`);
-  /** 예시 연락망으로 되돌리기 — 서버가 아니라 화면에서 예시를 만들어 저장 (contactsSeed) */
-  const resetSeed = async () => {
-    const { seedBundle } = await import("./contactsSeed");
-    return mut(() => seedBundle(orgId!), "예시 연락망으로 되돌리기");
+  /** [샘플 연락망으로 되돌리기] — 구성 예시(샘플 표시)로 통째로 바꿈 */
+  const resetSample = async () => {
+    const { sampleBundle } = await import("./contactsSample");
+    return mut(() => sampleBundle(orgId!), "샘플 연락망으로 되돌리기");
   };
   /** 엑셀 일괄 등록 결과로 통째로 바꿈 */
   const replace = (nb: Bundle, what = "엑셀 일괄 등록") => mut(() => nb, what);
-  return { bundle: b ?? EMPTY, loaded: !!b, error: err, rev: b?.rev, updatedAt: b?.updatedAt, updatedBy: b?.updatedBy, canManage: can, reload: load, saveUnit, deleteUnit, saveContact, deleteContact, saveGroup, deleteGroup, resetSeed, replace };
+  return { bundle: b ?? EMPTY, loaded: !!b, error: err, rev: b?.rev, updatedAt: b?.updatedAt, updatedBy: b?.updatedBy, canManage: can, reload: load, saveUnit, deleteUnit, saveContact, deleteContact, saveGroup, deleteGroup, resetSample, replace };
 }
 
 /* ---------------------------------------------------------------- 상황전파 */

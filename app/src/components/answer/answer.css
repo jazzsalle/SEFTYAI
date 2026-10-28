@@ -1,0 +1,78 @@
+/* =====================================================================
+   답변 카드 · 답 글(마크다운) — 시각 설계 08 C·D, 적용 범위 R25(2026-10-28)
+   - 답 글은 글자 그대로. 이 파일은 모양만 정한다.
+   - 주의(노랑)는 사용자가 조심해야 할 때만: 재사용(D5) · 받은 뒤 특보(C9) · 경고·정보 부족 바로가기.
+   - 표 상자 규칙은 .md 안에서만(데이터 카드·사건 상세의 .md-table 은 그대로 둔다).
+   ===================================================================== */
+
+/* ── 머리 줄 · 도구 ── */
+.acard-h { flex-wrap: wrap; }
+.acard.ans { overflow: visible; }
+.ans-tools { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.ans-dd { position: relative; display: inline-flex; }
+.ans-dd > .btn { gap: 4px; }
+.ans-menu { position: absolute; right: 0; top: calc(100% + 4px); z-index: 40; min-width: 168px; max-height: 320px; overflow-y: auto;
+  background: #fff; border: 1px solid var(--c-bd); border-radius: var(--r-l); box-shadow: var(--shadow-2); padding: 6px;
+  display: flex; flex-direction: column; }
+.ans-menu button { text-align: left; padding: 8px 12px; border: 0; background: none; border-radius: var(--r-m);
+  font: inherit; font-size: var(--fs-xs); color: var(--c-text); cursor: pointer; white-space: nowrap; }
+.ans-menu button:hover, .ans-menu button:focus-visible { background: var(--c-sec-sub); }
+.ans-menu button[aria-checked="true"] { background: var(--c-primary-sub); color: var(--c-primary-dk); font-weight: 700; }
+
+/* ── 주의 ── */
+.ans-reuse { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 10px; margin-top: 10px; padding: 8px 12px;
+  background: var(--c-warn-sub); border: 1px solid #ffe0a3; border-radius: var(--r-l); font-size: var(--fs-xs); color: var(--c-text); }
+.ans-reuse b { color: var(--c-warn-dk); }
+.ans-reuse .ans-flag { font-weight: 700; color: var(--c-warn-dk); }
+.ans-caution { margin-top: 8px; font-size: var(--fs-2xs); font-weight: 600; color: var(--c-warn-dk); }
+.ans-jump { display: inline-block; margin-top: 8px; padding: 0; border: 0; background: none; font: inherit; font-size: var(--fs-2xs);
+  font-weight: 700; color: var(--c-warn-dk); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.gaps:focus { outline: 2px solid var(--c-primary); outline-offset: 2px; }
+
+/* ── 답변 대상 · 종류 거르기(C3, 개수 없음) ── */
+.refbox:focus { outline: 2px solid var(--c-primary); outline-offset: 2px; }
+.ans-filter { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.ans-fchip { height: 28px; padding: 0 10px; border: 1px solid var(--c-bd); border-radius: 999px; background: #fff;
+  font: inherit; font-size: var(--fs-2xs); font-weight: 600; color: var(--c-sub); cursor: pointer; }
+.ans-fchip:hover { border-color: var(--c-navy); }
+.ans-fchip[aria-pressed="true"] { border-color: var(--c-navy); background: var(--c-navy); color: #fff; }
+.reflist li.on { background: var(--c-primary-sub); }
+
+/* ── 답 글 ── */
+.md strong { font-weight: 600; }
+/* 목록 표지 — 전역 초기화(ul, ol { list-style: none })가 답 글의 번호(T3Q 가 쓴 6. · 9. 등, li value)를 숨기지 않게 */
+.md ul { list-style: disc; }
+.md ul ul { list-style: circle; }
+.md ul ul ul { list-style: square; }
+.md ol { list-style: decimal; }
+.md .contains-task-list { list-style: none; }
+/* 대상 링크 — 파랑 글자 + 1px 점선 밑줄, 바탕·기호 없음(줄 높이 그대로), 고르면 옅은 바탕만 */
+.md .ref-link { display: inline; margin: 0; padding: 0; border: 0; background: none; font: inherit; line-height: inherit;
+  text-align: inherit; color: var(--c-primary); text-decoration: underline dotted 1px; text-underline-offset: 3px; cursor: pointer; }
+.md .ref-link:hover { text-decoration-style: solid; }
+.md .ref-link.on { background: var(--c-primary-sub); border-radius: 3px; box-shadow: 0 0 0 2px var(--c-primary-sub); }
+
+/* ── 답 속 표(C11) ── */
+.md .md-tbl { margin: 10px 0; }
+.md .md-tbl-tools { display: flex; justify-content: flex-end; align-items: center; gap: 10px; margin-bottom: 4px; min-height: 28px; }
+.md .md-tblbox { position: relative; }
+.md .md-tbl .md-table { margin: 0; }
+.md .md-table th.num, .md .md-table td.num { text-align: right; font-variant-numeric: tabular-nums; }
+@media screen {
+  .md .md-table { overflow-x: auto; }
+  .md .md-table table { border-collapse: separate; border-spacing: 0; }
+  .md .md-table th, .md .md-table td { min-width: 3.2em; overflow-wrap: normal; word-break: keep-all; background: #fff; }
+  .md .md-table th { background: var(--c-sec-sub); }
+  .md .md-table tr:nth-child(even) td { background: #fbfcfd; }
+  .md .md-table tr:last-child td { border-bottom: 0; }
+  /* 첫 열 고정 — 옆으로 밀면 첫 열 옆에 그림자 */
+  .md .md-table th:first-child, .md .md-table td:first-child { position: sticky; left: 0; z-index: 1; box-shadow: 1px 0 0 var(--c-line); }
+  .md .md-table th:first-child { z-index: 2; }
+  .md .md-table.moved th:first-child, .md .md-table.moved td:first-child { box-shadow: 1px 0 0 var(--c-line), 6px 0 8px -6px rgba(0, 0, 0, .25); }
+  /* 오른쪽에 더 있으면 가장자리 그림자 */
+  .md .md-tblbox.more::after { content: ""; position: absolute; top: 1px; bottom: 1px; right: 1px; width: 22px; z-index: 3; pointer-events: none;
+    border-radius: 0 var(--r-m) var(--r-m) 0; background: linear-gradient(to left, rgba(19, 20, 22, .16), rgba(19, 20, 22, 0)); }
+}
+@media print {
+  .md [data-ui] { display: none !important; }
+}

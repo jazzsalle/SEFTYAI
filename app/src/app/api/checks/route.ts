@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 
 /** GET /api/checks — 소속 기관의 대응절차 체크 (기관 공용, 운영자는 개인) {key: {by, at}} */
 export async function GET(req: Request) {
-  const who = whoami(req);
+  const who = await whoami(req);
   if (!who) return fail(401, "로그인이 필요합니다.");
   if (!hasDb()) return fail(503, "서버 DB가 연결되지 않았습니다.");
   return json(await checksGet(checkScope(who)));
@@ -14,7 +14,7 @@ export async function GET(req: Request) {
 
 /** POST /api/checks — {key, done} */
 export async function POST(req: Request) {
-  const who = whoami(req);
+  const who = await whoami(req);
   if (!who) return fail(401, "로그인이 필요합니다.");
   if (!hasDb()) return fail(503, "서버 DB가 연결되지 않았습니다.");
   const body = (await req.json().catch(() => null)) as { key?: string; done?: boolean } | null;
@@ -25,7 +25,7 @@ export async function POST(req: Request) {
 
 /** DELETE /api/checks — 새 상황으로 시작 (기관 체크를 지난 상황으로 보관하고 비움, prefix 를 주면 그 매뉴얼만) {prefix, title, note, labels} */
 export async function DELETE(req: Request) {
-  const who = whoami(req);
+  const who = await whoami(req);
   if (!who) return fail(401, "로그인이 필요합니다.");
   if (!hasDb()) return fail(503, "서버 DB가 연결되지 않았습니다.");
   const body = (await req.json().catch(() => ({}))) as { prefix?: string } & CheckArchiveMeta;

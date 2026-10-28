@@ -1,0 +1,390 @@
+{
+  "id": "A-02-v2",
+  "question": "부산 사하구의 저지대 침수 위험 지역은 어디야? 상습침수 필지 수와 저지대 원인 침수흔적이 난 법정동을 같이 보여줘.",
+  "request": {
+    "question": "부산 사하구의 저지대 침수 위험 지역은 어디야? 상습침수 필지 수와 저지대 원인 침수흔적이 난 법정동을 같이 보여줘.",
+    "question_source": "USER",
+    "query_context": {
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "region": {
+        "admin_code": "2638000000",
+        "name": "부산광역시 사하구",
+        "level": "SIGUNGU"
+      },
+      "disaster_types": [
+        "호우"
+      ]
+    }
+  },
+  "final": {
+    "schema_version": "2.0",
+    "request_id": "be41433f535c40e369b3923d55671e11",
+    "correlation_id": "corr-be41433f535c40e369b3923d55671e11",
+    "status": "SUCCESS",
+    "conversation_id": "CONV-20261028-85df4c",
+    "turn_no": 1,
+    "result": {
+      "response_id": "RES-20261028-9b4cbd",
+      "question": "부산 사하구의 저지대 침수 위험 지역은 어디야? 상습침수 필지 수와 저지대 원인 침수흔적이 난 법정동을 같이 보여줘.",
+      "question_source": "USER",
+      "answer": "### 1. 결론\n\n부산광역시 사하구의 저지대 침수 위험 지역은 낙동강 하구와 남해안 연안에 인접한 **[다대동](#ref:r7), [장림동](#ref:r6), [신평동](#ref:r5), [괴정동](#ref:r2), [하단동](#ref:r4), [감천동](#ref:r9), [구평동](#ref:r8)** 일원입니다.\n\n- **상습침수 필지 수**: 사하구 관내 상습침수 판정 필지는 **총 82필지**이며, **[다대동](#ref:r7)**(40필지, 48.8%)과 **[장림동](#ref:r6)**(11필지)에 집중되어 있습니다.\n- **침수흔적 및 원인 분류 특성**: 사하구 관내 침수흔적(38건)은 행정 DB상 '저지대' 단독 문구 대신 저지대 지형과 직결된 **‘내수·방재시설 용량부족’, ‘배수용량초과’, ‘집중호우에 의한 하수역류/범람’**으로 등록되어 있습니다.\n- **부산시 '저지대 원인' 침수흔적 법정동**: 원인에 «저지대»(저지대침수, 저지대 및 내수배제 불량 등)가 직접 명시된 부산 관내 법정동은 **금정구(7곳), 해운대구(7곳), 동래구(5곳), 연제구(2곳), 강서구(1곳), 수영구(1곳), 부산진구(1곳), 동구(1곳)** 등 총 25개 법정동입니다.\n\n---\n\n### 2. 부산 사하구 법정동별 상습침수 필지 현황\n\n사하구 관내 상습침수 판정 필지(도심지 2회 이상 침수 기준)는 7개 법정동에 걸쳐 총 82필지가 분포합니다.\n\n| 연번 | 법정동명 | 법정동코드 | 상습침수 필지 수 | 주요 지목 및 특징 |\n|:---:|:---|:---:|:---:|:---|\n| 1 | **[다대동](#ref:r7)** | `2638010600` | **40필지** | 해안 배후 저지대 및 주거·상업 밀집지 |\n| 2 | **[장림동](#ref:r6)** | `2638010500` | **11필지** | 장림포구 및 산업단지 주변 저지대 |\n| 3 | **[감천동](#ref:r9)** | `2638010800` | **9필지** | 항만·산업시설 및 저지대 주거지역 |\n| 4 | **[신평동](#ref:r5)** | `2638010400` | **9필지** | 신평배수구역 및 공단 배후 저지대 |\n| 5 | **[괴정동](#ref:r2)** | `2638010100` | **7필지** | 괴정천 유역 복개구간 인근 저지대 |\n| 6 | **[구평동](#ref:r8)** | `2638010700` | **5필지** | 해안 인접 구평포구·산업단지 저지대 |\n| 7 | **[하단동](#ref:r4)** | `2638010300` | **1필지** | 낙동강 하구 하단교차로 인근 |\n| - | **[당리동](#ref:r3)** | `2638010200` | 0필지 | 상습침수 필지 없음 |\n| **합계** | **사하구 전체** | `2638000000` | **82필지** | - |\n\n---\n\n### 3. 사하구 주요 저지대 침수위험지구 (자연재해위험개선지구)\n\n사하구 내 지정된 자연재해위험개선지구(NDIZ) 중 침수위험지구는 5개소이며, 모두 집중호우 및 조위 상승 시 침수 취약지구로 관리 중입니다.\n\n| 지구명 | 소재지 법정동 | 위험등급 | 주요 침수 원인 및 방재시설 현황 |\n|:---|:---|:---:|:---|\n| **괴정지구** | **[괴정동](#ref:r2)** (괴정로 234 일원) | **가** | 괴정천 상류 우수집중 및 하수관거 통수능 부족 (하수박스·관거 정비) |\n| **하단지구** | **[하단동](#ref:r4)** (낙동남로 1349 일원) | **가** | 낙동강 외수위 상승 및 저지대 내수배제 불량 (배수펌프장·하수관거 정비) |\n| **장림지구** | **[장림동](#ref:r6)** (장림번영로 53 일원) | **가** | 장림유수지 및 포구 인근 저지대 침수 (배수펌프장 증설, 하수시설 정비) |\n| **감천지구** | **[감천동](#ref:r9)** (원양로 356번길 6 일원) | **가** | 계곡부 유출수 집중 및 저지대 토사 유입 (침사지·수호암거 설치) |\n| **다대지구** | **[다대동](#ref:r7)** (다대동 850-19 일원) | **나** | 만조 시 조위 상승 및 관로용량 부족 (배수관로 신설·개량, 유역분리) |\n\n---\n\n### 4. 사하구 침수흔적 이력 및 침수원인 분석\n\n사하구 관내 침수흔적 데이터(총 38건)에서 확인된 주요 침수 원인은 다음과 같습니다.\n\n1. **[하단동](#ref:r4)** (13건): 2012·2014·2016년 하단교차로·하단중학교·대진아파트 일원 중심 집중호우 및 태풍 시 하수역류, 배수범람\n2. **[장림동](#ref:r6)** (7건): 2009·2021·2024년 장림 1·2지구 및 산업단지 일원 집중호우 시 하수범람, 방재시설 용량부족\n3. **[다대동](#ref:r7)** (5건): 2021·2023·2024년 다대 1지구 등 집중호우·태풍 시 배수용량초과 및 방재시설 용량부족\n4. **[구평동](#ref:r8)** (5건): 2016·2021·2023년 구평 1·2지구 중심 내수침수, 집중호우, 태풍 월파\n5. **[신평동](#ref:r5)** (4건): 2021·2023·2024년 신평 1·2지구 집중호우 시 배수용량초과 및 내수침수\n6. **[괴정동](#ref:r2)** (2건): 2011·2024년 괴정지구 집중호우 및 내수·방재시설 용량부족\n7. **[감천동](#ref:r9)** (2건): 2011년 감천지구 집중호우 침수\n\n---\n\n### 5. 부산광역시 «저지대 원인» 침수흔적 등록 법정동 (25개소)\n\n침수흔적도 DB상 원인 상세(`cause_detail`)에 **«저지대»**(저지대침수, 저지대 및 내수배제 불량, 저지대 및 하천범람 등) 키워드가 명시된 부산광역시 내 법정동 목록입니다.\n\n| 자치구 | 침수흔적 발생 법정동 | 주요 기록 침수원인 |\n|:---|:---|:---|\n| **금정구** | **[두구동](#ref:r62)**, **[노포동](#ref:r63)**, **[남산동](#ref:r64)**, **[구서동](#ref:r65)**, **[장전동](#ref:r66)**, **[부곡동](#ref:r67)**, **[금사동](#ref:r68)** | 저지대 및 하천범람, 저지대 및 내수배제 불량 |\n| **해운대구** | **[반송동](#ref:r55)**, **[석대동](#ref:r56)**, **[반여동](#ref:r57)**, **[재송동](#ref:r58)**, **[우동](#ref:r59)**, **[중동](#ref:r60)**, **[송정동](#ref:r61)** | 수영강 만수위로 저지대 침수, 월파에 의한 저지대 침수, 배수불량 |\n| **동래구** | **[온천동](#ref:r53)**, **[안락동](#ref:r50)**, **[명륜동](#ref:r52)**, **[수안동](#ref:r51)**, **[사직동](#ref:r54)** | 온천천 인근 저지대 및 내수배제 불량 |\n| **연제구** | **[거제동](#ref:r70)**, **[연산동](#ref:r71)** | 저지대 및 내수배제 불량 |\n| **강서구** | **[대저2동](#ref:r69)** | 고지대 유출수 유입, 저지대 내수침수 및 배수관거 역류 |\n| **수영구** | **[광안동](#ref:r72)** | 저지대 및 내수배제 불량 |\n| **부산진구** | **[범천동](#ref:r49)** | 저지대침수 |\n| **동구** | **[초량동](#ref:r48)** | 집중호우, 저지대 지하도로, 배수불량 |\n\n---\n\n### 6. 점검 및 대응 권고사항\n\n1. **상습침수 밀집지 선제 점검**: 필지 수가 가장 많은 **[다대동](#ref:r7)**(40필지) 및 **[장림동](#ref:r6)**(11필지)의 해안·포구 배후 저지대 우수받이 및 빗물받이 준설 상태 점검\n2. **배수펌프장 가동 체계 점검**: 하단·장림·괴정 등 자연재해위험개선지구 내 유수지 수위 모니터링 및 조위 상승기 강제배수 체계 점검\n3. **지하 인프라 통제 대비**: 사하구 관내 U자형 지하구조물인 **감천지하차도([감천동](#ref:r9))** 및 **장평지하차도([장림동](#ref:r6)·[구평동](#ref:r8))**의 진입차단설비 및 배수펌프 점검\n\n---\n*출처: 행정안전부 재난안전정형 DB(mois_struct152) - `flood.v_chronic_parcel`, `flood.trace`, `hazard.zone`, `hazard.improvement_district`, `ref.legal_dong`*",
+      "answer_format": "MARKDOWN",
+      "entities": [],
+      "result_groups": [],
+      "evidence_refs": [],
+      "follow_up_questions": [],
+      "refs": [
+        {
+          "ref": "r7",
+          "entity_type": "REGION",
+          "display_name": "다대동",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "2638010600",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r6",
+          "entity_type": "REGION",
+          "display_name": "장림동",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "2638010500",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r5",
+          "entity_type": "REGION",
+          "display_name": "신평동",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "2638010400",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r2",
+          "entity_type": "REGION",
+          "display_name": "괴정동",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "2638010100",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r4",
+          "entity_type": "REGION",
+          "display_name": "하단동",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "2638010300",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r9",
+          "entity_type": "REGION",
+          "display_name": "감천동",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "2638010800",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r8",
+          "entity_type": "REGION",
+          "display_name": "구평동",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "2638010700",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r3",
+          "entity_type": "REGION",
+          "display_name": "당리동",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "2638010200",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r62",
+          "entity_type": "REGION",
+          "display_name": "두구동",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "2641010100",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r63",
+          "entity_type": "REGION",
+          "display_name": "노포동",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "2641010200",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r64",
+          "entity_type": "REGION",
+          "display_name": "남산동",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "2641010400",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r65",
+          "entity_type": "REGION",
+          "display_name": "구서동",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "2641010700",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r66",
+          "entity_type": "REGION",
+          "display_name": "장전동",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "2641010800",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r67",
+          "entity_type": "REGION",
+          "display_name": "부곡동",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "2641010900",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r68",
+          "entity_type": "REGION",
+          "display_name": "금사동",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "2641011100",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r55",
+          "entity_type": "REGION",
+          "display_name": "반송동",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "2635010100",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r56",
+          "entity_type": "REGION",
+          "display_name": "석대동",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "2635010200",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r57",
+          "entity_type": "REGION",
+          "display_name": "반여동",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "2635010300",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r58",
+          "entity_type": "REGION",
+          "display_name": "재송동",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "2635010400",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r59",
+          "entity_type": "REGION",
+          "display_name": "우동",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "2635010500",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r60",
+          "entity_type": "REGION",
+          "display_name": "중동",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "2635010600",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r61",
+          "entity_type": "REGION",
+          "display_name": "송정동",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "2635010800",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r53",
+          "entity_type": "REGION",
+          "display_name": "온천동",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "2626010800",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r50",
+          "entity_type": "REGION",
+          "display_name": "안락동",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "2626010200",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r52",
+          "entity_type": "REGION",
+          "display_name": "명륜동",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "2626010700",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r51",
+          "entity_type": "REGION",
+          "display_name": "수안동",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "2626010600",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r54",
+          "entity_type": "REGION",
+          "display_name": "사직동",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "2626010900",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r70",
+          "entity_type": "REGION",
+          "display_name": "거제동",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "2647010100",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r71",
+          "entity_type": "REGION",
+          "display_name": "연산동",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "2647010200",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r69",
+          "entity_type": "REGION",
+          "display_name": "대저2동",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "2644010200",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r72",
+          "entity_type": "REGION",
+          "display_name": "광안동",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "2650010400",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r49",
+          "entity_type": "REGION",
+          "display_name": "범천동",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "2623010400",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r48",
+          "entity_type": "REGION",
+          "display_name": "초량동",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "2617010100",
+            "draw": "pin"
+          }
+        }
+      ],
+      "conversation_title": null,
+      "limitations": [
+        "유사사례는 예측·위험판단이 아닌 참고 정보"
+      ],
+      "context_used": {
+        "used_conditions": [],
+        "unused_conditions": [],
+        "reference_used": false
+      }
+    },
+    "data_gaps": [],
+    "warnings": [],
+    "meta": {
+      "source": "T3Q",
+      "base_time": "2026-10-28T01:31:33+09:00",
+      "quality_status": "VERIFIED",
+      "disclosure_level": "공개",
+      "elapsed_ms": 125707
+    }
+  },
+  "waitedMs": 127223,
+  "timeout": false
+}

@@ -6,12 +6,12 @@
  *  · 중복 발송 차단: [전파] 한 번에 요청 키 하나(두 번 눌러도 한 번), 같은 내용·대상을 2분 안에 다시 보내면 확인을 받음
  *  · 현장 응답 링크는 보내지 않음
  */
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   CH_LABEL, LMS_MAX, newIdemKey, orgName, resolveRecipients, sendDispatch, SMS_MAX, smsBytes,
   useContacts, type Channel, type Dispatch, type Selection,
 } from "@/lib/contacts";
-import { ApiError } from "@/lib/api";
+import { api, ApiError } from "@/lib/api";
 import type { Account } from "@/lib/config";
 import { IcCheck, IcSend, IcUsers } from "../Icons";
 import { Modal } from "./ContactsUi";
@@ -32,6 +32,15 @@ export default function PropagateModal({ orgId, account, message, sel: sel0, cha
   const [dup, setDup] = useState<string | null>(null);
   // [전파] 한 번의 요청 키 — 발송 전 확인 화면에 들어올 때 새로 만듦 (두 번 눌러도 서버는 한 번만 처리)
   const [idem, setIdem] = useState(newIdemKey);
+  // 발송 모듈 — 모의 모듈이면 보내기 전에 주의 표시(실제 발송사 연결 전까지)
+  const [prov, setProv] = useState<string | null>(null);
+  useEffect(() => {
+    let alive = true;
+    api<{ provider: string }>("/api/dispatch/provider").then((r) => alive && setProv(r.provider)).catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, []);
   const rec = useMemo(() => resolveRecipients(b, sel), [b, sel]);
   const unitName = useMemo(() => new Map(b.units.map((u) => [u.id, u.name])), [b.units]);
   const chans = (Object.keys(ways) as Channel[]).filter((c) => ways[c]);
@@ -88,6 +97,7 @@ export default function PropagateModal({ orgId, account, message, sel: sel0, cha
           )}
         </>
       )}>
+      {prov === "mock" && <div className="notice warn" style={{ marginBottom: 10 }}>모의 발송 — 실제로 문자·메일을 보내지 않으며, 발송 결과는 시험 규칙으로 표시됩니다.</div>}
       {step === "write" ? (
         <>
           <div className="ct-lb">전파 내용</div>

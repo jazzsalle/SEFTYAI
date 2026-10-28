@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 
 /** GET /api/dispatch?org= — 상황전파 이력 (자기 기관, 운영자는 모든 기관 조회) */
 export async function GET(req: Request) {
-  const who = whoami(req);
+  const who = await whoami(req);
   const org = new URL(req.url).searchParams.get("org");
   if (!who) return fail(401, "로그인이 필요합니다.");
   if (!isOrg(org)) return fail(400, "기관을 고르세요.");
@@ -18,8 +18,9 @@ export async function GET(req: Request) {
 
 /** POST /api/dispatch — 상황전파 발송 (자기 기관 담당자만, 시스템 운영자 불가) */
 export async function POST(req: Request) {
-  const who = whoami(req);
+  const who = await whoami(req);
   if (!who) return fail(401, "로그인이 필요합니다.");
+  if (who.mustChangePw) return fail(403, "초기 비밀번호를 먼저 바꿔 주세요.");
   if (!canSend(who)) return fail(403, "시스템 운영자는 상황전파를 보낼 수 없습니다. 전파 이력 조회만 할 수 있습니다.");
   if (!hasDb()) return fail(503, "서버 DB가 연결되지 않았습니다.");
   const body = (await req.json().catch(() => null)) as DispatchRequest | null;

@@ -31,7 +31,7 @@ export default function BriefingSettings() {
   return (
     <div className="page">
       <div className="page-in narrow">
-        <div className="ph"><div><h1>내 브리핑 항목</h1><p>시작 화면과 AI 모드에 ‘브리핑 질문’으로 나오는 항목입니다. <b>사용</b>에 체크한 항목이 내 브리핑 세트가 됩니다. AI 모드는 체크한 항목을 <b>위에서부터 {BRIEF_AIM_COUNT}개</b>, 시작 화면은 체크한 항목 중 접속할 때마다 <b>무작위 {BRIEF_START_COUNT}개</b>를 보여 줍니다. (최대 {BRIEF_MAX}개 · {BRIEF_MIN}개 이상 체크 · 계정별 저장)</p></div></div>
+        <div className="ph"><div><h1>내 브리핑 항목</h1><p>시작 화면과 AI 모드에 ‘브리핑 질문’으로 나오는 항목입니다. <b>사용</b>에 체크한 항목이 내 브리핑 세트가 됩니다. AI 모드는 체크한 항목을 <b>위에서부터 {BRIEF_AIM_COUNT}개</b>, 시작 화면은 체크한 항목 중 접속할 때마다 <b>무작위 {BRIEF_START_COUNT}개</b>를 보여 줍니다. (최대 {BRIEF_MAX}개 · {BRIEF_MIN}개 이상 체크 · 계정별 저장) 기준지역·재난상황 조건은 질의와 함께 전달됩니다. 기본 질의문을 그대로 두면 관련 데이터를 먼저 조회해 함께 보여 줍니다.</p></div></div>
         <table className="tbl">
           <thead><tr><th style={{ width: 60 }}>사용</th><th style={{ width: 170 }}>항목</th><th>질의문</th><th style={{ width: 150 }}>순서 · 삭제</th></tr></thead>
           <tbody>

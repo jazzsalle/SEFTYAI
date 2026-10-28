@@ -1,0 +1,120 @@
+{
+  "id": "P08-03-g",
+  "question": "서울 강남구 2022년 침수흔적 범위 가운데 100년 빈도 도시침수지도 침수구역과 겹치는 건 몇 건이야? (계획상 위험과 실제 피해 겹침)",
+  "request": {
+    "question": "서울 강남구 2022년 침수흔적 범위 가운데 100년 빈도 도시침수지도 침수구역과 겹치는 건 몇 건이야? (계획상 위험과 실제 피해 겹침)",
+    "question_source": "USER",
+    "query_context": {
+      "reference_time": "2022-08-09T09:00:00+09:00",
+      "region": {
+        "admin_code": "1168000000",
+        "name": "서울특별시 강남구",
+        "level": "SIGUNGU"
+      },
+      "disaster_types": [
+        "호우"
+      ]
+    }
+  },
+  "final": {
+    "schema_version": "2.0",
+    "request_id": "4c73ad8ddba8e203a6832dd15625cf91",
+    "correlation_id": "corr-4c73ad8ddba8e203a6832dd15625cf91",
+    "status": "SUCCESS",
+    "conversation_id": "CONV-20261028-eb0a1b",
+    "turn_no": 1,
+    "result": {
+      "response_id": "RES-20261028-4534cc",
+      "question": "서울 강남구 2022년 침수흔적 범위 가운데 100년 빈도 도시침수지도 침수구역과 겹치는 건 몇 건이야? (계획상 위험과 실제 피해 겹침)",
+      "question_source": "USER",
+      "answer": "### 결론\n\n서울 강남구의 2022년 침수흔적 범위 총 190건 중 **100년 빈도 도시침수지도(URBAN_FLOOD) 침수구역과 겹치는 건수는 117건(61.6%)**입니다.\n\n---\n\n### 분석 세부 근거\n\n#### 1. 총괄 현황\n* **2022년 강남구 침수흔적 건수**: 총 190건 (`flood.trace` 및 `gis.flood_trace`)\n* **100년 빈도 도시침수지도 중첩 건수**: **117건** (중첩률 **61.6%**)\n* **비중첩 건수**: 73건 (38.4%)\n\n---\n\n#### 2. 법정동별 중첩 현황\n\n| 법정동코드 | 법정동명 | 2022년 침수흔적 건수 | 100년 빈도 도시침수지도 중첩 건수 | 중첩률 (%) |\n|:---:|:---:|---:|---:|---:|\n| 1168010800 | [논현동](#ref:r2) | 76 | 69 | 90.8% |\n| 1168010100 | [역삼동](#ref:r3) | 37 | 36 | 97.3% |\n| 1168011400 | [일원동](#ref:r4) | 18 | 12 | 66.7% |\n| 1168010300 | [개포동](#ref:r5) | 43 | 0 | 0.0% |\n| 1168010500 | [삼성동](#ref:r6) | 15 | 0 | 0.0% |\n| 1168010600 | [대치동](#ref:r7) | 1 | 0 | 0.0% |\n| **합계** | - | **190** | **117** | **61.6%** |\n\n> **참고**: [대치동](#ref:r7)의 침수흔적 1건은 도시침수지도가 아닌 **100년 빈도 지방하천(양재천/탄천) 하천범람지도** 침수구역과 중첩됩니다.\n\n---\n\n#### 3. 도시침수지도 침수심 구간별 중첩 분포 (복수 구간 포함)\n\n| 침수심 코드 | 침수심 구간 | 중첩 흔적 건수 | 비고 |\n|:---:|:---:|---:|:---|\n| N330 | 0.5m 미만 | 114 | 저심도 침수 예상 구역 중첩 |\n| N331 | 0.5 ~ 1.0m | 56 | 중심도 침수 예상 구역 중첩 |\n| N332 | 1.0 ~ 2.0m | 22 | 고심도 침수 예상 구역 중첩 |\n\n---\n\n### 주요 해석 및 시사점\n\n1. **내수 취약지역의 높은 일치도**:\n   - 강남역 일대 저지대 및 도심 배수 취약축에 해당하는 **[역삼동](#ref:r3)(97.3%)**과 **[논현동](#ref:r2)(90.8%)**은 방재계획상 100년 빈도 도시침수 예상구역과 실제 피해 범위가 90% 이상 일치했습니다.\n2. **계획 외 피해 발생 구역**:\n   - **[개포동](#ref:r5)(43건)** 및 **[삼성동](#ref:r6)(15건)**은 2022년 침수흔적이 다수 기록되었으나 100년 빈도 도시침수지도 구역과 중첩되지 않았습니다. 이는 도시침수지도 수립 시 반영되지 않은 국지적 배수 불량, 우수관거 통수 단면 부족, 지하/반지하 주거 밀집 등 미세 배수체계 영향에 따른 침수 가능성을 시사합니다.\n\n---\n\n### 다음 점검사항\n* **개포·삼성동 침수 원인 상세 점검**: 도시침수지도 미반영 구역의 하수관로 정비 현황, 저지대 펌프장 가동 이력 및 관거 용량 초과 여부 확인\n* **하천 복합영향 구역 검토**: 대치동 등 양재천·탄천 배수위 영향(외수위 상승으로 인한 내수배제 지연) 구간에 대한 하천범람지도와의 복합 분석 수행",
+      "answer_format": "MARKDOWN",
+      "entities": [],
+      "result_groups": [],
+      "evidence_refs": [],
+      "follow_up_questions": [],
+      "refs": [
+        {
+          "ref": "r2",
+          "entity_type": "REGION",
+          "display_name": "논현동",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "1168010800",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r3",
+          "entity_type": "REGION",
+          "display_name": "역삼동",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "1168010100",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r4",
+          "entity_type": "REGION",
+          "display_name": "일원동",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "1168011400",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r5",
+          "entity_type": "REGION",
+          "display_name": "개포동",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "1168010300",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r6",
+          "entity_type": "REGION",
+          "display_name": "삼성동",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "1168010500",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r7",
+          "entity_type": "REGION",
+          "display_name": "대치동",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "1168010600",
+            "draw": "pin"
+          }
+        }
+      ],
+      "conversation_title": null,
+      "limitations": [
+        "유사사례는 예측·위험판단이 아닌 참고 정보"
+      ],
+      "context_used": {
+        "used_conditions": [],
+        "unused_conditions": [],
+        "reference_used": false
+      }
+    },
+    "data_gaps": [],
+    "warnings": [],
+    "meta": {
+      "source": "T3Q",
+      "base_time": "2026-10-28T02:10:38+09:00",
+      "quality_status": "VERIFIED",
+      "disclosure_level": "공개",
+      "elapsed_ms": 145907
+    }
+  },
+  "waitedMs": 149027,
+  "timeout": false
+}

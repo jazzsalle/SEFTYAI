@@ -1,0 +1,686 @@
+{
+  "risk": {
+    "schema_version": "2.0",
+    "request_id": "e28d4c8397bd2478a2870de62fac48e2",
+    "correlation_id": "corr-e28d4c8397bd2478a2870de62fac48e2",
+    "status": "SUCCESS",
+    "result": {
+      "total_count": 88042,
+      "category_counts": [
+        {
+          "category": "자연재해위험개선지구",
+          "count": 2848
+        },
+        {
+          "category": "풍수해생활권 종합정비지구",
+          "count": 259
+        },
+        {
+          "category": "붕괴위험지역(정비 중기계획)",
+          "count": 2358
+        },
+        {
+          "category": "홍수취약지구",
+          "count": 1849
+        },
+        {
+          "category": "자연재해저감 종합계획 위험지구",
+          "count": 1396
+        },
+        {
+          "category": "급경사지",
+          "count": 43964
+        },
+        {
+          "category": "산사태취약지역",
+          "count": 33421
+        },
+        {
+          "category": "지하차도(취약시설)",
+          "count": 1097
+        },
+        {
+          "category": "재해위험저수지",
+          "count": 850
+        }
+      ],
+      "items": [
+        {
+          "object_id": "HZ-3",
+          "spatial_object_id": null,
+          "data_group": "RISK_AREA",
+          "category": "자연재해위험개선지구",
+          "type": "침수위험",
+          "source_subtype": null,
+          "name": "노암",
+          "grade": {
+            "value": "나",
+            "status": "PROVIDED"
+          },
+          "address": "강원 강릉 노암동 824-9",
+          "admin_code": "5115000000",
+          "admin_name": "강원특별자치도 강릉시",
+          "has_geometry": false,
+          "disclosure_level": "공개"
+        },
+        {
+          "object_id": "HZ-4",
+          "spatial_object_id": null,
+          "data_group": "RISK_AREA",
+          "category": "자연재해위험개선지구",
+          "type": "침수위험",
+          "source_subtype": null,
+          "name": "분소골",
+          "grade": {
+            "value": "가",
+            "status": "PROVIDED"
+          },
+          "address": "강원 강릉 정동진리 351-4",
+          "admin_code": "5115034000",
+          "admin_name": "강원특별자치도 강릉시 강동면",
+          "has_geometry": false,
+          "disclosure_level": "공개"
+        },
+        {
+          "object_id": "HZ-5",
+          "spatial_object_id": null,
+          "data_group": "RISK_AREA",
+          "category": "자연재해위험개선지구",
+          "type": "침수위험",
+          "source_subtype": null,
+          "name": "초당포남",
+          "grade": {
+            "value": "가",
+            "status": "PROVIDED"
+          },
+          "address": "강원 강릉 282",
+          "admin_code": "5115011300",
+          "admin_name": "강원특별자치도 강릉시 강문동",
+          "has_geometry": false,
+          "disclosure_level": "공개"
+        },
+        {
+          "object_id": "HZ-6",
+          "spatial_object_id": null,
+          "data_group": "RISK_AREA",
+          "category": "자연재해위험개선지구",
+          "type": "침수위험",
+          "source_subtype": null,
+          "name": "강문",
+          "grade": {
+            "value": "나",
+            "status": "PROVIDED"
+          },
+          "address": "강원 강릉 강문동 182-1",
+          "admin_code": "5115011300",
+          "admin_name": "강원특별자치도 강릉시 강문동",
+          "has_geometry": false,
+          "disclosure_level": "공개"
+        },
+        {
+          "object_id": "HZ-7",
+          "spatial_object_id": null,
+          "data_group": "RISK_AREA",
+          "category": "자연재해위험개선지구",
+          "type": "침수위험",
+          "source_subtype": null,
+          "name": "안목",
+          "grade": {
+            "value": "가",
+            "status": "PROVIDED"
+          },
+          "address": "강원 강릉 190-82",
+          "admin_code": "5115011500",
+          "admin_name": "강원특별자치도 강릉시 견소동",
+          "has_geometry": false,
+          "disclosure_level": "공개"
+        },
+        {
+          "object_id": "HZ-8",
+          "spatial_object_id": null,
+          "data_group": "RISK_AREA",
+          "category": "자연재해위험개선지구",
+          "type": "침수위험",
+          "source_subtype": null,
+          "name": "섬석천",
+          "grade": {
+            "value": "가",
+            "status": "PROVIDED"
+          },
+          "address": "강원 강릉 병산동 833 일원",
+          "admin_code": "5115012900",
+          "admin_name": "강원특별자치도 강릉시 병산동",
+          "has_geometry": false,
+          "disclosure_level": "공개"
+        },
+        {
+          "object_id": "HZ-9",
+          "spatial_object_id": null,
+          "data_group": "RISK_AREA",
+          "category": "자연재해위험개선지구",
+          "type": "침수위험",
+          "source_subtype": null,
+          "name": "뒷불",
+          "grade": {
+            "value": "나",
+            "status": "PROVIDED"
+          },
+          "address": "강원 강릉 사천면 진리해변길 111-1",
+          "admin_code": "5115036000",
+          "admin_name": "강원특별자치도 강릉시 사천면",
+          "has_geometry": false,
+          "disclosure_level": "공개"
+        },
+        {
+          "object_id": "HZ-10",
+          "spatial_object_id": null,
+          "data_group": "RISK_AREA",
+          "category": "자연재해위험개선지구",
+          "type": "해일위험",
+          "source_subtype": null,
+          "name": "뒷불",
+          "grade": {
+            "value": "나",
+            "status": "PROVIDED"
+          },
+          "address": "강원 강릉 사천진리 266-2",
+          "admin_code": "5115036000",
+          "admin_name": "강원특별자치도 강릉시 사천면",
+          "has_geometry": false,
+          "disclosure_level": "공개"
+        },
+        {
+          "object_id": "HZ-11",
+          "spatial_object_id": null,
+          "data_group": "RISK_AREA",
+          "category": "자연재해위험개선지구",
+          "type": "해일위험",
+          "source_subtype": null,
+          "name": "안목",
+          "grade": {
+            "value": "가",
+            "status": "PROVIDED"
+          },
+          "address": "강원 강릉 창해로14번길 201-1(견소동)",
+          "admin_code": "5115011400",
+          "admin_name": "강원특별자치도 강릉시 송정동",
+          "has_geometry": false,
+          "disclosure_level": "공개"
+        },
+        {
+          "object_id": "HZ-12",
+          "spatial_object_id": null,
+          "data_group": "RISK_AREA",
+          "category": "자연재해위험개선지구",
+          "type": "침수위험",
+          "source_subtype": null,
+          "name": "송정동",
+          "grade": {
+            "value": "나",
+            "status": "PROVIDED"
+          },
+          "address": "강원 강릉 110-22",
+          "admin_code": "5115011400",
+          "admin_name": "강원특별자치도 강릉시 송정동",
+          "has_geometry": false,
+          "disclosure_level": "공개"
+        },
+        {
+          "object_id": "HZ-14",
+          "spatial_object_id": null,
+          "data_group": "RISK_AREA",
+          "category": "자연재해위험개선지구",
+          "type": "침수위험",
+          "source_subtype": null,
+          "name": "사근진",
+          "grade": {
+            "value": "나",
+            "status": "PROVIDED"
+          },
+          "address": "강원 강릉 해안로604번길 16(안현동)",
+          "admin_code": "5115013800",
+          "admin_name": "강원특별자치도 강릉시 안현동",
+          "has_geometry": false,
+          "disclosure_level": "공개"
+        },
+        {
+          "object_id": "HZ-15",
+          "spatial_object_id": null,
+          "data_group": "RISK_AREA",
+          "category": "자연재해위험개선지구",
+          "type": "침수위험",
+          "source_subtype": null,
+          "name": "영진",
+          "grade": {
+            "value": "다",
+            "status": "PROVIDED"
+          },
+          "address": "강원 강릉 연곡면 해안로 1431",
+          "admin_code": "5115037000",
+          "admin_name": "강원특별자치도 강릉시 연곡면",
+          "has_geometry": false,
+          "disclosure_level": "공개"
+        },
+        {
+          "object_id": "HZ-16",
+          "spatial_object_id": null,
+          "data_group": "RISK_AREA",
+          "category": "자연재해위험개선지구",
+          "type": "침수위험",
+          "source_subtype": null,
+          "name": "금진",
+          "grade": {
+            "value": "나",
+            "status": "PROVIDED"
+          },
+          "address": "강원 강릉 금진안길 40-2",
+          "admin_code": "5115035000",
+          "admin_name": "강원특별자치도 강릉시 옥계면",
+          "has_geometry": false,
+          "disclosure_level": "공개"
+        },
+        {
+          "object_id": "HZ-17",
+          "spatial_object_id": null,
+          "data_group": "RISK_AREA",
+          "category": "자연재해위험개선지구",
+          "type": "침수위험",
+          "source_subtype": null,
+          "name": "낙풍",
+          "grade": {
+            "value": "가",
+            "status": "PROVIDED"
+          },
+          "address": "강원 강릉 옥계면 낙풍리 706-21번지",
+          "admin_code": "5115035000",
+          "admin_name": "강원특별자치도 강릉시 옥계면",
+          "has_geometry": false,
+          "disclosure_level": "공개"
+        },
+        {
+          "object_id": "HZ-18",
+          "spatial_object_id": null,
+          "data_group": "RISK_AREA",
+          "category": "자연재해위험개선지구",
+          "type": "침수위험",
+          "source_subtype": null,
+          "name": "성남",
+          "grade": {
+            "value": "나",
+            "status": "PROVIDED"
+          },
+          "address": "강원 강릉 금성로 21(성남동)",
+          "admin_code": "5115000000",
+          "admin_name": "강원특별자치도 강릉시",
+          "has_geometry": false,
+          "disclosure_level": "공개"
+        },
+        {
+          "object_id": "HZ-19",
+          "spatial_object_id": null,
+          "data_group": "RISK_AREA",
+          "category": "자연재해위험개선지구",
+          "type": "침수위험",
+          "source_subtype": null,
+          "name": "지변",
+          "grade": {
+            "value": "가",
+            "status": "PROVIDED"
+          },
+          "address": "강원 강릉 지변동 675",
+          "admin_code": "5115013200",
+          "admin_name": "강원특별자치도 강릉시 지변동",
+          "has_geometry": false,
+          "disclosure_level": "공개"
+        },
+        {
+          "object_id": "HZ-20",
+          "spatial_object_id": null,
+          "data_group": "RISK_AREA",
+          "category": "자연재해위험개선지구",
+          "type": "해일위험",
+          "source_subtype": null,
+          "name": "주문7리",
+          "grade": {
+            "value": "가",
+            "status": "PROVIDED"
+          },
+          "address": "강원 강릉 122-1",
+          "admin_code": "5115025000",
+          "admin_name": "강원특별자치도 강릉시 주문진읍",
+          "has_geometry": false,
+          "disclosure_level": "공개"
+        },
+        {
+          "object_id": "HZ-21",
+          "spatial_object_id": null,
+          "data_group": "RISK_AREA",
+          "category": "자연재해위험개선지구",
+          "type": "침수위험",
+          "source_subtype": null,
+          "name": "소돌",
+          "grade": {
+            "value": "나",
+            "status": "PROVIDED"
+          },
+          "address": "강원 강릉 주문진읍 주문리791-7번지",
+          "admin_code": "5115025000",
+          "admin_name": "강원특별자치도 강릉시 주문진읍",
+          "has_geometry": false,
+          "disclosure_level": "공개"
+        },
+        {
+          "object_id": "HZ-22",
+          "spatial_object_id": null,
+          "data_group": "RISK_AREA",
+          "category": "자연재해위험개선지구",
+          "type": "침수위험",
+          "source_subtype": null,
+          "name": "교항",
+          "grade": {
+            "value": "나",
+            "status": "PROVIDED"
+          },
+          "address": "강원 강릉 주문진읍 향호리 1번지",
+          "admin_code": "5115025000",
+          "admin_name": "강원특별자치도 강릉시 주문진읍",
+          "has_geometry": false,
+          "disclosure_level": "공개"
+        },
+        {
+          "object_id": "HZ-23",
+          "spatial_object_id": null,
+          "data_group": "RISK_AREA",
+          "category": "자연재해위험개선지구",
+          "type": "해일위험",
+          "source_subtype": null,
+          "name": "우암",
+          "grade": {
+            "value": "가",
+            "status": "PROVIDED"
+          },
+          "address": "강원 강릉 주문진읍 해안로 1989",
+          "admin_code": "5115025000",
+          "admin_name": "강원특별자치도 강릉시 주문진읍",
+          "has_geometry": false,
+          "disclosure_level": "공개"
+        },
+        {
+          "object_id": "HZ-24",
+          "spatial_object_id": null,
+          "data_group": "RISK_AREA",
+          "category": "자연재해위험개선지구",
+          "type": "침수위험",
+          "source_subtype": null,
+          "name": "우암",
+          "grade": {
+            "value": "가",
+            "status": "PROVIDED"
+          },
+          "address": "강원 강릉 주문리 829-143",
+          "admin_code": "5115025000",
+          "admin_name": "강원특별자치도 강릉시 주문진읍",
+          "has_geometry": false,
+          "disclosure_level": "공개"
+        },
+        {
+          "object_id": "HZ-25",
+          "spatial_object_id": null,
+          "data_group": "RISK_AREA",
+          "category": "자연재해위험개선지구",
+          "type": "붕괴위험",
+          "source_subtype": null,
+          "name": "주문",
+          "grade": {
+            "value": "나",
+            "status": "PROVIDED"
+          },
+          "address": "강원 강릉 주문진읍 주문리 853-4번지",
+          "admin_code": "5115025000",
+          "admin_name": "강원특별자치도 강릉시 주문진읍",
+          "has_geometry": false,
+          "disclosure_level": "공개"
+        },
+        {
+          "object_id": "HZ-26",
+          "spatial_object_id": null,
+          "data_group": "RISK_AREA",
+          "category": "자연재해위험개선지구",
+          "type": "침수위험",
+          "source_subtype": null,
+          "name": "교항1-4",
+          "grade": {
+            "value": "가",
+            "status": "PROVIDED"
+          },
+          "address": "강원 강릉 교항리 1252-18",
+          "admin_code": "5115025000",
+          "admin_name": "강원특별자치도 강릉시 주문진읍",
+          "has_geometry": false,
+          "disclosure_level": "공개"
+        },
+        {
+          "object_id": "HZ-27",
+          "spatial_object_id": null,
+          "data_group": "RISK_AREA",
+          "category": "자연재해위험개선지구",
+          "type": "해일위험",
+          "source_subtype": null,
+          "name": "향호리",
+          "grade": {
+            "value": "나",
+            "status": "PROVIDED"
+          },
+          "address": "강원 강릉 향호리 78-47",
+          "admin_code": "5115025000",
+          "admin_name": "강원특별자치도 강릉시 주문진읍",
+          "has_geometry": false,
+          "disclosure_level": "공개"
+        },
+        {
+          "object_id": "HZ-28",
+          "spatial_object_id": null,
+          "data_group": "RISK_AREA",
+          "category": "자연재해위험개선지구",
+          "type": "붕괴위험",
+          "source_subtype": null,
+          "name": "남산",
+          "grade": {
+            "value": "나",
+            "status": "PROVIDED"
+          },
+          "address": "강원 강릉 내곡동 10-2번지",
+          "admin_code": "5115000000",
+          "admin_name": "강원특별자치도 강릉시",
+          "has_geometry": false,
+          "disclosure_level": "공개"
+        },
+        {
+          "object_id": "HZ-29",
+          "spatial_object_id": null,
+          "data_group": "RISK_AREA",
+          "category": "자연재해위험개선지구",
+          "type": "침수위험",
+          "source_subtype": null,
+          "name": "포남",
+          "grade": {
+            "value": "나",
+            "status": "PROVIDED"
+          },
+          "address": "강원 강릉 강변북길 145(포남동)",
+          "admin_code": "5115000000",
+          "admin_name": "강원특별자치도 강릉시",
+          "has_geometry": false,
+          "disclosure_level": "공개"
+        },
+        {
+          "object_id": "HZ-30",
+          "spatial_object_id": null,
+          "data_group": "RISK_AREA",
+          "category": "자연재해위험개선지구",
+          "type": "붕괴위험",
+          "source_subtype": null,
+          "name": "가작",
+          "grade": {
+            "value": "나",
+            "status": "PROVIDED"
+          },
+          "address": "강원 강릉 명륜로 37-5(교동)",
+          "admin_code": "5115000000",
+          "admin_name": "강원특별자치도 강릉시",
+          "has_geometry": false,
+          "disclosure_level": "공개"
+        },
+        {
+          "object_id": "HZ-33",
+          "spatial_object_id": null,
+          "data_group": "RISK_AREA",
+          "category": "자연재해위험개선지구",
+          "type": "해일위험",
+          "source_subtype": null,
+          "name": "송포",
+          "grade": {
+            "value": "가",
+            "status": "PROVIDED"
+          },
+          "address": "강원 고성 송포리 165",
+          "admin_code": "5182025300",
+          "admin_name": "강원특별자치도 고성군 거진읍",
+          "has_geometry": false,
+          "disclosure_level": "공개"
+        },
+        {
+          "object_id": "HZ-34",
+          "spatial_object_id": null,
+          "data_group": "RISK_AREA",
+          "category": "자연재해위험개선지구",
+          "type": "붕괴위험",
+          "source_subtype": null,
+          "name": "거진3",
+          "grade": {
+            "value": "가",
+            "status": "PROVIDED"
+          },
+          "address": "강원 고성 거진리 1-3",
+          "admin_code": "5182025300",
+          "admin_name": "강원특별자치도 고성군 거진읍",
+          "has_geometry": false,
+          "disclosure_level": "공개"
+        },
+        {
+          "object_id": "HZ-35",
+          "spatial_object_id": null,
+          "data_group": "RISK_AREA",
+          "category": "자연재해위험개선지구",
+          "type": "유실위험",
+          "source_subtype": null,
+          "name": "인정",
+          "grade": {
+            "value": "가",
+            "status": "PROVIDED"
+          },
+          "address": "강원 고성 인정리 18",
+          "admin_code": "5182032000",
+          "admin_name": "강원특별자치도 고성군 죽왕면",
+          "has_geometry": false,
+          "disclosure_level": "공개"
+        }
+      ]
+    },
+    "data_gaps": [],
+    "warnings": [],
+    "meta": {
+      "source": "T3Q",
+      "base_time": "2026-10-20T00:00:00+09:00",
+      "quality_status": "VERIFIED",
+      "disclosure_level": "공개",
+      "elapsed_ms": 2432
+    }
+  },
+  "geom": {
+    "schema_version": "2.0",
+    "request_id": "67143ce2a6729b9c8ef76b8f1874a958",
+    "correlation_id": "corr-67143ce2a6729b9c8ef76b8f1874a958",
+    "status": "NO_RESULT",
+    "result": {
+      "type": "FeatureCollection",
+      "features": [],
+      "missing": [
+        {
+          "ref": "x0",
+          "value": "HZ-3",
+          "reason": "NOT_FOUND"
+        },
+        {
+          "ref": "x1",
+          "value": "HZ-4",
+          "reason": "NOT_FOUND"
+        },
+        {
+          "ref": "x2",
+          "value": "HZ-5",
+          "reason": "NOT_FOUND"
+        },
+        {
+          "ref": "x3",
+          "value": "HZ-6",
+          "reason": "NOT_FOUND"
+        },
+        {
+          "ref": "x4",
+          "value": "HZ-7",
+          "reason": "NOT_FOUND"
+        },
+        {
+          "ref": "x5",
+          "value": "HZ-8",
+          "reason": "NOT_FOUND"
+        },
+        {
+          "ref": "x6",
+          "value": "HZ-9",
+          "reason": "NOT_FOUND"
+        },
+        {
+          "ref": "x7",
+          "value": "HZ-10",
+          "reason": "NOT_FOUND"
+        },
+        {
+          "ref": "x8",
+          "value": "HZ-11",
+          "reason": "NOT_FOUND"
+        },
+        {
+          "ref": "x9",
+          "value": "HZ-12",
+          "reason": "NOT_FOUND"
+        },
+        {
+          "ref": "x10",
+          "value": "HZ-14",
+          "reason": "NOT_FOUND"
+        },
+        {
+          "ref": "x11",
+          "value": "HZ-15",
+          "reason": "NOT_FOUND"
+        }
+      ]
+    },
+    "data_gaps": [
+      {
+        "component": "spatial_object",
+        "reason": "NOT_IN_SOURCE"
+      }
+    ],
+    "warnings": [],
+    "meta": {
+      "source": "T3Q",
+      "base_time": "2026-10-20T00:00:00+09:00",
+      "quality_status": "VERIFIED",
+      "disclosure_level": "공개",
+      "elapsed_ms": 606
+    }
+  }
+}

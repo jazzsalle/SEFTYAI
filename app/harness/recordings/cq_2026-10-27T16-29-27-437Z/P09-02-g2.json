@@ -1,0 +1,440 @@
+{
+  "id": "P09-02-g2",
+  "question": "그중 100년 빈도 하천범람지도 침수구역 안에 드는 야영장은? 침수심 등급별로.",
+  "request": {
+    "question": "그중 100년 빈도 하천범람지도 침수구역 안에 드는 야영장은? 침수심 등급별로.",
+    "question_source": "USER",
+    "query_context": {
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "region": {
+        "admin_code": "4182000000",
+        "name": "경기도 가평군",
+        "level": "SIGUNGU"
+      },
+      "disaster_types": [
+        "호우"
+      ]
+    }
+  },
+  "final": {
+    "schema_version": "2.0",
+    "request_id": "16922ec021ed8bf825ba702f3c40a5b7",
+    "correlation_id": "corr-16922ec021ed8bf825ba702f3c40a5b7",
+    "status": "SUCCESS",
+    "conversation_id": "CONV-20261028-cd71eb",
+    "turn_no": 1,
+    "result": {
+      "response_id": "RES-20261028-7ead86",
+      "question": "그중 100년 빈도 하천범람지도 침수구역 안에 드는 야영장은? 침수심 등급별로.",
+      "question_source": "USER",
+      "answer": "### 결론\n\n경기도 가평군 관내 야영장시설(`usage_cd = '31000'`) 중 **100년 빈도 하천범람지도(지방하천)** 침수구역 내에 위치한 시설은 **총 62개 동(35개 필지)**입니다. 국가하천 하천범람지도 구역 내에는 포함된 대상이 없으며, 전량 지방하천 하천범람 위험구역에 해당합니다.\n\n침수심 등급별 분포는 다음과 같습니다:\n- **5.0m 이상 (심각 침수)**: **3개 동** (상면 행현리 축령로 일원)\n- **2.0~5.0m (대규모 침수)**: **20개 동** (조종면 상판리 명지산로 일원 18동, 북면 목동리 1동, 조종면 현리 1동)\n- **1.0~2.0m (중간 침수)**: **7개 동** (북면 목동리 2동, 북면 제령리 3동, 상면 행현리 2동)\n- **0.5~1.0m (성인 무릎~허리 침수)**: **20개 동** (상면 7동, 북면 5동, 조종면 7동, 가평읍 1동)\n- **0.5m 미만 (초기 침수)**: **12개 동** (조종면 5동, 상면 3동, 북면 2동, 설악면 2동)\n\n---\n\n### 침수심 등급별 상세 현황\n\n#### 1. 침수심 5.0m 이상 (3개 동 / 3개 필지)\n급격한 수위 상승 시 지붕층까지 수몰될 수 있는 최극단 위험 구역입니다.\n| 법정동 | 지번 | 도로명주소 | 동명칭 | 대상 시설 링크 |\n|---|---|---|---|---|\n| 상면 행현리 | 805-17 | 축령로 183-182 | 주1동 | [상면 행현리 805-17(주1동)](#ref:r1) |\n| 상면 행현리 | 820-3 | 축령로 151-2 | 단일동 | [상면 행현리 820-3](#ref:r2) |\n| 상면 행현리 | 800 | 축령로 183-53 | 주1동 | [상면 행현리 800(주1동)](#ref:r3) |\n\n---\n\n#### 2. 침수심 2.0~5.0m (20개 동 / 3개 필지)\n지상 1층 이상이 완전히 침수되는 고위험 구역으로 신속한 사전 대피가 필수적인 구역입니다.\n| 법정동 | 지번 | 도로명주소 | 동수 | 세부 동명칭 | 대상 시설 링크 |\n|---|---|---|:---:|---|---|\n| 조종면 상판리 | 443-1 | 명지산로 327-55 | 18동 | 주1동~주18동 | [조종면 상판리 443-1(18개 동)](#ref:r6) |\n| 북면 목동리 | 800 | 가화로 988-83 | 1동 | 주건축물제1동 | [북면 목동리 800(주1동)](#ref:r4) |\n| 조종면 현리 | 7-2 | 운악청계로 238-84 | 1동 | 주건축물제1동 | [조종면 현리 7-2(주1동)](#ref:r5) |\n\n---\n\n#### 3. 침수심 1.0~2.0m (7개 동 / 5개 필지)\n성인 신장 높이의 침수가 발생하는 침수구역입니다.\n| 법정동 | 지번 | 도로명주소 | 동수 | 동명칭 | 대상 시설 링크 |\n|---|---|---|:---:|---|---|\n| 북면 제령리 | 220-1 | 제령아랫말길 72 | 2동 | 주건축물제1동, 주건축물제2동 | [북면 제령리 220-1(주1동)](#ref:r27) / [제2동](#ref:r26) |\n| 북면 제령리 | 225-17 | 제령아랫말길 67-61 | 1동 | 단일동 | [북면 제령리 225-17](#ref:r28) |\n| 북면 목동리 | 679-3 | 화악산로 162-21 | 1동 | 단일동 | [북면 목동리 679-3](#ref:r25) |\n| 북면 목동리 | 679-4 | 화악산로 162-25 | 1동 | 단일동 | [북면 목동리 679-4](#ref:r24) |\n| 상면 행현리 | 910 | 축령로 296 | 2동 | 1동(취사장 등), 2동(창고) | [상면 행현리 910(1동)](#ref:r30) / [2동](#ref:r29) |\n\n---\n\n#### 4. 침수심 0.5~1.0m (20개 동 / 15개 필지)\n차량 침수 및 보행 대피가 곤란해지는 구역입니다.\n| 법정동 | 대표 지번 | 대표 도로명주소 | 동수 | 주요 동명칭 | 대상 시설 링크 |\n|---|---|---|:---:|---|---|\n| 북면 제령리 | 224-1 | 가화로 1073-146 | 3동 | 주A동, 주B동, 주C동 | [북면 제령리 224-1(3개 동)](#ref:r34) |\n| 상면 행현리 | 916 | 축령로 306 | 2동 | C동, D동 | [상면 행현리 916(2개 동)](#ref:r42) |\n| 상면 임초리 | 609-1 | 임초밤안골로 288 | 2동 | D동, E동 | [상면 임초리 609-1(2개 동)](#ref:r40) |\n| 상면 봉수리 | 14 | 물골길 102 | 2동 | 주1동, 주2동 | [상면 봉수리 14(2개 동)](#ref:r38) |\n| 상면 행현리 | 910 | 축령로 296 | 1동 | 3동(안내소) | [상면 행현리 910(3동)](#ref:r44) |\n| 북면 목동리 | 819-3 | 가화로 988 | 1동 | 2동 | [북면 목동리 819-3(2동)](#ref:r31) |\n| 북면 소법리 | 170-5 | 화악산로 296 | 1동 | 주건축물제1동 | [북면 소법리 170-5(주1동)](#ref:r33) |\n| 북면 소법리 | 133-6 | 화악산로 245 | 1동 | 단일동 | [북면 소법리 133-6](#ref:r32) |\n| 북면 화악리 | 834-7 | 화악산로 1039-16 | 1동 | 단일동 | [북면 화악리 834-7](#ref:r37) |\n| 가평읍 마장리 | 69-2 | 물안산길 83 | 1동 | 단일동 | [가평읍 마장리 69-2](#ref:r45) |\n| 조종면 상판리 | 442-2 | 명지산로 327-131 | 1동 | 주건축물제1동 | [조종면 상판리 442-2(주1동)](#ref:r46) |\n| 조종면 상판리 | 153-1 | 명지산로 337-321 | 1동 | 주2동 | [조종면 상판리 153-1(주2동)](#ref:r47) |\n| 조종면 신상리 | 123-1 | 세곡로 155 | 1동 | 단일동 | [조종면 신상리 123-1](#ref:r48) |\n| 조종면 신상리 | 257-4 | 운악청계로 351-42 | 1동 | 단일동 | [조종면 신상리 257-4](#ref:r49) |\n| 조종면 신상리 | 695-9 | 운악청계로491번길 87-1 | 1동 | 단일동 | [조종면 신상리 695-9](#ref:r50) |\n\n---\n\n#### 5. 침수심 0.5m 미만 (12개 동 / 10개 필지)\n| 법정동 | 대표 지번 | 대표 도로명주소 | 동수 | 주요 동명칭 | 대상 시설 링크 |\n|---|---|---|:---:|---|---|\n| 상면 임초리 | 614 | 임초밤안골로 247-6 | 2동 | 주건축물제1동, 주2동 | [상면 임초리 614(2개 동)](#ref:r53) |\n| 조종면 신상리 | 115-2 | 운악청계로333번길 19 | 2동 | 주1동, 주2동 | [조종면 신상리 115-2(2개 동)](#ref:r61) |\n| 상면 임초리 | 258-3 | 임초밤안골로 83 | 1동 | 단일동 | [상면 임초리 258-3](#ref:r54) |\n| 조종면 상판리 | 483-3 | 명지산로 327-49 | 1동 | 단일동 | [조종면 상판리 483-3](#ref:r58) |\n| 조종면 상판리 | 445-2 | 명지산로 337-62 | 1동 | 단일동 | [조종면 상판리 445-2](#ref:r59) |\n| 조종면 상판리 | 146 | 명지산로 475 | 1동 | 단일동 | [조종면 상판리 146](#ref:r60) |\n| 북면 소법리 | 137-2 | 화악산로 233 | 1동 | 단일동 | [북면 소법리 137-2](#ref:r51) |\n| 북면 제령리 | 218-4 | 제령아랫말길 70 | 1동 | 2동 | [북면 제령리 218-4(2동)](#ref:r52) |\n| 설악면 가일리 | 194 | 유명산길 31 | 1동 | 주건축물제1동 | [설악면 가일리 194(주1동)](#ref:r56) |\n| 설악면 선촌리 | 451-1 | - | 1동 | 주2동 | [설악면 선촌리 451-1(주2동)](#ref:r57) |\n\n---\n\n### 분석 근거 및 현장 대응 확인사항\n\n1. **분석 기준 및 데이터 출처**\n   - **야영장 기준**: 건축물대장 표제부(`bldg.building`) 및 건축물 위치 점(`gis.building_point`) 상 주용도코드 `usage_cd = '31000'` (야영장시설).\n   - **침수지도 기준**: 환경부 홍수위험지도 성과의 100년 빈도 침수구역 멀티폴리곤(`gis.flood_map`, `gis.flood_map_part`).\n2. **현장 우선 점검 및 안전관리 권고사항**\n   - **조종면 상판리 산443-1 일원(18개 동)** 및 **상면 행현리 일원(3개 동)**은 100년 빈도 호우 시 침수심이 **2.0m~5.0m 이상**에 달하는 최위험 집중 취약지입니다.\n   - 호우주의보·경보 발효 시 계곡부 및 소하천 수위가 급상승하므로, 해당 구역 야영객 사전 퇴실 조치 및 진입로 차단선 구축을 우선 권고합니다.",
+      "answer_format": "MARKDOWN",
+      "entities": [],
+      "result_groups": [],
+      "evidence_refs": [],
+      "follow_up_questions": [],
+      "refs": [
+        {
+          "ref": "r1",
+          "entity_type": "FACILITY",
+          "display_name": "상면",
+          "map": {
+            "key": "bdst_ldgr_unq_no",
+            "value": "11301100237907",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r2",
+          "entity_type": "FACILITY",
+          "display_name": "상면",
+          "map": {
+            "key": "bdst_ldgr_unq_no",
+            "value": "11301100269734",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r3",
+          "entity_type": "FACILITY",
+          "display_name": "상면",
+          "map": {
+            "key": "bdst_ldgr_unq_no",
+            "value": "11301100259193",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r6",
+          "entity_type": "FACILITY",
+          "display_name": "조종면",
+          "map": {
+            "key": "bdst_ldgr_unq_no",
+            "value": "1000000000000004466772",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r4",
+          "entity_type": "FACILITY",
+          "display_name": "북면",
+          "map": {
+            "key": "bdst_ldgr_unq_no",
+            "value": "1000000000000001293904",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r5",
+          "entity_type": "FACILITY",
+          "display_name": "조종면",
+          "map": {
+            "key": "bdst_ldgr_unq_no",
+            "value": "11301100290712",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r27",
+          "entity_type": "FACILITY",
+          "display_name": "북면",
+          "map": {
+            "key": "bdst_ldgr_unq_no",
+            "value": "1000000000000003587777",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r26",
+          "entity_type": "FACILITY",
+          "display_name": "북면",
+          "map": {
+            "key": "bdst_ldgr_unq_no",
+            "value": "1000000000000003587778",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r28",
+          "entity_type": "FACILITY",
+          "display_name": "북면",
+          "map": {
+            "key": "bdst_ldgr_unq_no",
+            "value": "1000000000000003822441",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r25",
+          "entity_type": "FACILITY",
+          "display_name": "북면",
+          "map": {
+            "key": "bdst_ldgr_unq_no",
+            "value": "11301100282492",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r24",
+          "entity_type": "FACILITY",
+          "display_name": "북면",
+          "map": {
+            "key": "bdst_ldgr_unq_no",
+            "value": "11301100282493",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r30",
+          "entity_type": "FACILITY",
+          "display_name": "상면",
+          "map": {
+            "key": "bdst_ldgr_unq_no",
+            "value": "11301100270414",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r29",
+          "entity_type": "FACILITY",
+          "display_name": "상면",
+          "map": {
+            "key": "bdst_ldgr_unq_no",
+            "value": "11301100270415",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r34",
+          "entity_type": "FACILITY",
+          "display_name": "북면",
+          "map": {
+            "key": "bdst_ldgr_unq_no",
+            "value": "1000000000000004430557",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r42",
+          "entity_type": "FACILITY",
+          "display_name": "상면",
+          "map": {
+            "key": "bdst_ldgr_unq_no",
+            "value": "11301100250832",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r40",
+          "entity_type": "FACILITY",
+          "display_name": "상면",
+          "map": {
+            "key": "bdst_ldgr_unq_no",
+            "value": "1130114184",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r38",
+          "entity_type": "FACILITY",
+          "display_name": "상면",
+          "map": {
+            "key": "bdst_ldgr_unq_no",
+            "value": "11301100260854",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r44",
+          "entity_type": "FACILITY",
+          "display_name": "상면",
+          "map": {
+            "key": "bdst_ldgr_unq_no",
+            "value": "11301100270416",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r31",
+          "entity_type": "FACILITY",
+          "display_name": "북면",
+          "map": {
+            "key": "bdst_ldgr_unq_no",
+            "value": "11301100225987",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r33",
+          "entity_type": "FACILITY",
+          "display_name": "북면",
+          "map": {
+            "key": "bdst_ldgr_unq_no",
+            "value": "11301100290072",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r32",
+          "entity_type": "FACILITY",
+          "display_name": "북면",
+          "map": {
+            "key": "bdst_ldgr_unq_no",
+            "value": "11301100231466",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r37",
+          "entity_type": "FACILITY",
+          "display_name": "북면",
+          "map": {
+            "key": "bdst_ldgr_unq_no",
+            "value": "11301100234309",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r45",
+          "entity_type": "FACILITY",
+          "display_name": "가평읍",
+          "map": {
+            "key": "bdst_ldgr_unq_no",
+            "value": "11301100277412",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r46",
+          "entity_type": "FACILITY",
+          "display_name": "조종면",
+          "map": {
+            "key": "bdst_ldgr_unq_no",
+            "value": "11301100291912",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r47",
+          "entity_type": "FACILITY",
+          "display_name": "조종면",
+          "map": {
+            "key": "bdst_ldgr_unq_no",
+            "value": "1000000000000004173461",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r48",
+          "entity_type": "FACILITY",
+          "display_name": "조종면",
+          "map": {
+            "key": "bdst_ldgr_unq_no",
+            "value": "11301100253792",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r49",
+          "entity_type": "FACILITY",
+          "display_name": "조종면",
+          "map": {
+            "key": "bdst_ldgr_unq_no",
+            "value": "11301100228666",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r50",
+          "entity_type": "FACILITY",
+          "display_name": "조종면",
+          "map": {
+            "key": "bdst_ldgr_unq_no",
+            "value": "11301100285192",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r53",
+          "entity_type": "FACILITY",
+          "display_name": "상면",
+          "map": {
+            "key": "bdst_ldgr_unq_no",
+            "value": "1000000000000002755458",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r61",
+          "entity_type": "FACILITY",
+          "display_name": "조종면",
+          "map": {
+            "key": "bdst_ldgr_unq_no",
+            "value": "1000000000000000406558",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r54",
+          "entity_type": "FACILITY",
+          "display_name": "상면",
+          "map": {
+            "key": "bdst_ldgr_unq_no",
+            "value": "11301100201592",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r58",
+          "entity_type": "FACILITY",
+          "display_name": "조종면",
+          "map": {
+            "key": "bdst_ldgr_unq_no",
+            "value": "11301100204283",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r59",
+          "entity_type": "FACILITY",
+          "display_name": "조종면",
+          "map": {
+            "key": "bdst_ldgr_unq_no",
+            "value": "1000000000000006508967",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r60",
+          "entity_type": "FACILITY",
+          "display_name": "조종면",
+          "map": {
+            "key": "bdst_ldgr_unq_no",
+            "value": "11301100276154",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r51",
+          "entity_type": "FACILITY",
+          "display_name": "북면",
+          "map": {
+            "key": "bdst_ldgr_unq_no",
+            "value": "11301100252553",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r52",
+          "entity_type": "FACILITY",
+          "display_name": "북면",
+          "map": {
+            "key": "bdst_ldgr_unq_no",
+            "value": "11301100234489",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r56",
+          "entity_type": "FACILITY",
+          "display_name": "설악면",
+          "map": {
+            "key": "bdst_ldgr_unq_no",
+            "value": "11301100290153",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r57",
+          "entity_type": "FACILITY",
+          "display_name": "설악면",
+          "map": {
+            "key": "bdst_ldgr_unq_no",
+            "value": "1000000000000002697519",
+            "draw": "pin"
+          }
+        }
+      ],
+      "conversation_title": null,
+      "limitations": [
+        "유사사례는 예측·위험판단이 아닌 참고 정보"
+      ],
+      "context_used": {
+        "used_conditions": [],
+        "unused_conditions": [],
+        "reference_used": false
+      }
+    },
+    "data_gaps": [],
+    "warnings": [],
+    "meta": {
+      "source": "T3Q",
+      "base_time": "2026-10-28T02:13:43+09:00",
+      "quality_status": "VERIFIED",
+      "disclosure_level": "공개",
+      "elapsed_ms": 175885
+    }
+  },
+  "waitedMs": 176817,
+  "timeout": false
+}

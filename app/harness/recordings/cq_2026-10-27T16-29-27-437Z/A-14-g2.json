@@ -1,0 +1,190 @@
+{
+  "id": "A-14-g2",
+  "question": "그 소하천 50m 안 주택 가운데 100년 빈도 침수지도에서 침수심 0.5m 이상 구역에 드는 집은 몇 동이야?",
+  "request": {
+    "question": "그 소하천 50m 안 주택 가운데 100년 빈도 침수지도에서 침수심 0.5m 이상 구역에 드는 집은 몇 동이야?",
+    "question_source": "USER",
+    "query_context": {
+      "reference_time": "2026-08-25T14:00:00+09:00",
+      "region": {
+        "admin_code": "4477000000",
+        "name": "충청남도 서천군",
+        "level": "SIGUNGU"
+      },
+      "disaster_types": [
+        "호우"
+      ]
+    }
+  },
+  "final": {
+    "schema_version": "2.0",
+    "request_id": "c471011972b170d3cbc3914906589125",
+    "correlation_id": "corr-c471011972b170d3cbc3914906589125",
+    "status": "SUCCESS",
+    "conversation_id": "CONV-20261028-9e7294",
+    "turn_no": 1,
+    "result": {
+      "response_id": "RES-20261028-948c4a",
+      "question": "그 소하천 50m 안 주택 가운데 100년 빈도 침수지도에서 침수심 0.5m 이상 구역에 드는 집은 몇 동이야?",
+      "question_source": "USER",
+      "answer": "### 결론\n\n충청남도 서천군 관내 **소하천구역 경계 50m 이내 주택(총 254동) 중 100년 빈도 침수지도에서 침수심 0.5m 이상 구역에 포함되는 주택은 총 10동**(주건축물 8동, 부속건축물 2동)입니다.\n\n모두 **지방하천 하천범람지도(100년 빈도)** 침수구역에 해당하며, 침수심 구간별로는 **1.0~2.0m가 7동**, **0.5~1.0m가 2동**, **2.0~5.0m가 1동**입니다. (도시침수지도 및 국가하천 하천범람지도의 0.5m 이상 구역에는 중복 포함 주택 없음)\n\n---\n\n### 1. 침수심 구간별 집계 현황\n\n| 침수지도 구분 | 침수심 등급 코드 | 침수심 구간 | 해당 주택 수 | 비고 |\n|---|---|---|:---:|---|\n| [지방하천 하천범람지도(100년)](#ref:r12) | N331 | 0.5 ~ 1.0m | **2동** | 주건축물 2동 |\n| [지방하천 하천범람지도(100년)](#ref:r13) | N332 | 1.0 ~ 2.0m | **7동** | 주건축물 5동, 부속건축물 2동 |\n| [지방하천 하천범람지도(100년)](#ref:r11) | N333 | 2.0 ~ 5.0m | **1동** | 주건축물 1동 (최고 위험) |\n| **합계 (0.5m 이상)** | - | - | **10동** | **주 8동 / 부속 2동** |\n| *(참고) 지방하천 하천범람지도* | N330 | 0.5m 미만 | 5동 | 기준 미만 |\n| *(참고) 도시침수지도* | N330 | 0.5m 미만 | 1동 | 기준 미만 |\n\n---\n\n### 2. 소하천별 해당 주택 목록\n\n| 소하천명 | 행정구역 | 건축물 용도 / 구조 | 소하천과의 거리 | 침수심 구간 | 대상 링크 |\n|---|---|---|:---:|:---:|:---:|\n| **홍현천** | 시초면 신곡리 | 단독주택 (지상 1층) | 5.6m | 1.0 ~ 2.0m | [단독주택](#ref:r19) |\n| **홍현천** | 시초면 신곡리 | 단독주택 (지상 1층) | 8.8m | 0.5 ~ 1.0m | [단독주택](#ref:r20) |\n| **홍현천** | 시초면 신곡리 | 단독주택 (지상 1층) | 18.3m | 0.5 ~ 1.0m | [단독주택](#ref:r21) |\n| **홍현천** | 시초면 신곡리 | 단독주택 (지상 1층) | 21.7m | 1.0 ~ 2.0m | [단독주택](#ref:r23) |\n| **홍현천** | 시초면 신곡리 | 창고 (단독주택 부속 1동) | 21.7m | 1.0 ~ 2.0m | [부속창고](#ref:r22) |\n| **성내천** | 비인면 선도리 | 단독주택 (지상 1층) | 17.2m | 1.0 ~ 2.0m | [단독주택](#ref:r16) |\n| **성내천** | 비인면 선도리 | 단독주택 (부속 1동) | 17.2m | 1.0 ~ 2.0m | [단독주택(부속)](#ref:r17) |\n| **성내천** | 비인면 선도리 | 단독주택 (지상 2층) | 28.7m | 1.0 ~ 2.0m | [단독주택](#ref:r18) |\n| **동산천** | 한산면 동산리 | 단독주택 (지상 1층) | 14.5m | **2.0 ~ 5.0m** | [단독주택](#ref:r15) |\n| **장마루천** | 서천읍 신송리 | 단독주택 (지상 1층) | 33.9m | 1.0 ~ 2.0m | [단독주택](#ref:r24) |\n\n---\n\n### 3. 주요 위험 특성 및 현장 점검 권고사항\n\n1. **최고 침수심 위험 지점 점검**:\n   - [한산면 동산리 단독주택](#ref:r15)(동산천 14.5m 인접)은 **침수심 2.0~5.0m** 구간에 위치해 하천 범람 시 건물 1층 전체가 수몰될 위험이 매우 높으므로 최우선 대피 대상 지점입니다.\n2. **시초면 신곡리 홍현천 일대 밀집 위험**:\n   - 홍현천 반경 30m 이내에 5동([r19](#ref:r19), [r20](#ref:r20), [r21](#ref:r21), [r22](#ref:r22), [r23](#ref:r23))의 가구가 밀집해 있으며 침수심 0.5~2.0m 위험에 노출되어 있으므로, 집중호우 예보 시 소하천 수위 상승에 따른 조기 주민대피로 확보가 필요합니다.",
+      "answer_format": "MARKDOWN",
+      "entities": [],
+      "result_groups": [],
+      "evidence_refs": [],
+      "follow_up_questions": [],
+      "refs": [
+        {
+          "ref": "r12",
+          "entity_type": "FLOOD_MAP",
+          "display_name": null,
+          "map": {
+            "key": "flood_map_id",
+            "value": "RIVER_FLOOD_LOCAL-44770-100-N331",
+            "draw": "layer"
+          }
+        },
+        {
+          "ref": "r13",
+          "entity_type": "FLOOD_MAP",
+          "display_name": null,
+          "map": {
+            "key": "flood_map_id",
+            "value": "RIVER_FLOOD_LOCAL-44770-100-N332",
+            "draw": "layer"
+          }
+        },
+        {
+          "ref": "r11",
+          "entity_type": "FLOOD_MAP",
+          "display_name": null,
+          "map": {
+            "key": "flood_map_id",
+            "value": "RIVER_FLOOD_LOCAL-44770-100-N333",
+            "draw": "layer"
+          }
+        },
+        {
+          "ref": "r19",
+          "entity_type": "FACILITY",
+          "display_name": "시초면",
+          "map": {
+            "key": "bdst_ldgr_unq_no",
+            "value": "1000000000000002781811",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r20",
+          "entity_type": "FACILITY",
+          "display_name": "시초면",
+          "map": {
+            "key": "bdst_ldgr_unq_no",
+            "value": "1000000000000003847499",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r21",
+          "entity_type": "FACILITY",
+          "display_name": "시초면",
+          "map": {
+            "key": "bdst_ldgr_unq_no",
+            "value": "1000000000000002680323",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r23",
+          "entity_type": "FACILITY",
+          "display_name": "시초면",
+          "map": {
+            "key": "bdst_ldgr_unq_no",
+            "value": "1000000000000006556637",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r22",
+          "entity_type": "FACILITY",
+          "display_name": "시초면",
+          "map": {
+            "key": "bdst_ldgr_unq_no",
+            "value": "1000000000000006556638",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r16",
+          "entity_type": "FACILITY",
+          "display_name": "비인면",
+          "map": {
+            "key": "bdst_ldgr_unq_no",
+            "value": "11801100210033",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r17",
+          "entity_type": "FACILITY",
+          "display_name": "비인면",
+          "map": {
+            "key": "bdst_ldgr_unq_no",
+            "value": "11801100210034",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r18",
+          "entity_type": "FACILITY",
+          "display_name": "비인면",
+          "map": {
+            "key": "bdst_ldgr_unq_no",
+            "value": "11801100208769",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r15",
+          "entity_type": "FACILITY",
+          "display_name": "한산면",
+          "map": {
+            "key": "bdst_ldgr_unq_no",
+            "value": "11801100217079",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r24",
+          "entity_type": "FACILITY",
+          "display_name": "서천읍",
+          "map": {
+            "key": "bdst_ldgr_unq_no",
+            "value": "118019194",
+            "draw": "pin"
+          }
+        }
+      ],
+      "conversation_title": null,
+      "limitations": [
+        "유사사례는 예측·위험판단이 아닌 참고 정보"
+      ],
+      "context_used": {
+        "used_conditions": [],
+        "unused_conditions": [],
+        "reference_used": false
+      }
+    },
+    "data_gaps": [],
+    "warnings": [],
+    "meta": {
+      "source": "T3Q",
+      "base_time": "2026-10-28T01:39:27+09:00",
+      "quality_status": "VERIFIED",
+      "disclosure_level": "공개",
+      "elapsed_ms": 165836
+    }
+  },
+  "waitedMs": 167381,
+  "timeout": false
+}

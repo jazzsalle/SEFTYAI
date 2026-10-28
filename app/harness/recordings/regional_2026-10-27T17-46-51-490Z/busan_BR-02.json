@@ -1,0 +1,279 @@
+{
+  "id": "busan:BR-02",
+  "question": "위험·취약지역 중 과거 재난 때 실제로 피해가 났던 곳과 피해 내용은?",
+  "request": {
+    "question": "위험·취약지역 중 과거 재난 때 실제로 피해가 났던 곳과 피해 내용은?",
+    "question_source": "BRIEFING",
+    "query_context": {
+      "region": {
+        "admin_code": "2600000000",
+        "name": "부산광역시",
+        "level": "SIDO"
+      },
+      "disaster_types": [
+        "호우"
+      ]
+    }
+  },
+  "final": {
+    "schema_version": "2.0",
+    "request_id": "0de72772f5cf461faed82eee19616f3e",
+    "correlation_id": "corr-0de72772f5cf461faed82eee19616f3e",
+    "status": "SUCCESS",
+    "conversation_id": "CONV-20261028-5a392f",
+    "turn_no": 1,
+    "result": {
+      "response_id": "RES-20261028-da7094",
+      "question": "위험·취약지역 중 과거 재난 때 실제로 피해가 났던 곳과 피해 내용은?",
+      "question_source": "BRIEFING",
+      "answer": "### 결론\n\n부산광역시 관내 법정 위험·취약지역(자연재해위험개선지구, 침수위험 지하차도, 급경사지·하천변 등) 중 과거 호우 및 태풍 재난 시 실제 피해가 발생했던 주요 지역과 세부 피해 내용은 다음과 같습니다.\n\n---\n\n### 주요 피해 지역 및 세부 피해 내용\n\n#### 1. 지하차도 및 도심 저지대 (차량 침수 및 인명피해 우려지역)\n* **부산 동구 [초량제1지하차도](#ref:r69) ([초량 자연재해위험개선지구](#ref:r43))**\n  * **재난 및 일시**: 2020년 7월 23일 집중호우\n  * **피해 내용**: 초량천 인접 저지대로 분당 수십 mm의 폭우가 유입되어 지하차도가 완전 침수, 차량 다수 고립 및 인명피해(사망 3명) 발생. 이후 자연재해위험개선지구(«가» 등급, 침수위험)로 지정되어 배수펌프장 신설 및 유입관로 정비사업 추진.\n* **부산 사상구 [삼락생태공원](#ref:r54) 일원 ([삼락생태공원(1)·(2) 지하차도](#ref:r56) 인접)**\n  * **재난 및 일시**: 2019년 10월 제18호 태풍 미탁\n  * **피해 내용**: 낙동강 수위 상승 및 하천 범람으로 생태공원 일원 둔치 및 도로 침수, 침수 차량 81대 긴급 견인 조치 및 수변 유입 폐기물 250톤 처리.\n* **부산 남구 [문현지하차도](#ref:r50) 및 문현동 일원 ([동천·문현 자연재해위험개선지구](#ref:r9))**\n  * **재난 및 일시**: 2020년 7월 호우 및 2022년 9월 태풍 힌남노\n  * **피해 내용**: 동천 수위 급상승으로 배수 정체 발생, 우암로 일원 하수관로(L=50m) 침수 및 도로 측구 막힘 등 저지대 침수 피해.\n\n#### 2. 하천 범람 및 사면·시설 유실 지역 (내륙 하천·소하천 취약지)\n* **부산 강서구 [봉림동](#ref:r2) (조만강 일원)**\n  * **재난 및 일시**: 2024년 9월 20일 호우\n  * **피해 내용**: 집중호우로 인한 조만강 수위 상승 및 범람으로 제방둑 파손(L=30m, B=4m).\n* **부산 강서구 [강동동(상덕마을)](#ref:r47) 및 [식만동](#ref:r108) ([상덕](#ref:r47)·[식만 자연재해위험개선지구](#ref:r46))**\n  * **재난 및 일시**: 2024년 9월 및 2025년 7월 호우\n  * **피해 내용**: 저지대 농경지 배수 불량 및 하천 수위 상승으로 시설원예(화훼류), 대파·토마토 등 채소류 하우스 대규모 침수 피해 반복 발생.\n* **부산 해운대구 [반여동](#ref:r13) 및 [재송동](#ref:r16) 일원**\n  * **재난 및 일시**: 2020년 7월 23일 집중호우\n  * **피해 내용**: 수영강 지류 저수호안 유실(L=12m, H=2m), 산지 계류 범람에 따른 사면 유실(700㎡) 및 인접 아파트 단지 토사·침수 피해 발생.\n* **부산 금정구 [장전동](#ref:r14) (온천천 일원) 및 [서동](#ref:r12)**\n  * **재난 및 일시**: 2020년 7월 23일 집중호우\n  * **피해 내용**: 온천천 하천 사면 유실(600㎡) 및 체육시설 파손, 서동 급경사지 옹벽 유실로 인한 지반침하·붕괴 위험 및 상하수도관 파손.\n* **부산 기장군 [철마면·일광읍·장안읍](#ref:r24) 소하천 일원**\n  * **재난 및 일시**: 2020년 7월 호우 및 과거 2014년 8월 집중호우\n  * **피해 내용**: 장안읍 한골천 토사 유실 및 하천 제방 침식(기룡리 일원 L=75m), 일광면 용천천 급류 범람에 따른 인접 사유지 침수 및 중계펌프장 수중펌프·배전반 침수 소손.\n\n#### 3. 해안 월파 및 침수 취약지 (해안가 및 방재시설)\n* **부산 서구 [암남동 송도 오션파크](#ref:r6) 및 [남부민동 남항방재호안](#ref:r7) ([암남5 지구](#ref:r6))**\n  * **재난 및 일시**: 2022년 9월 6일 제11호 태풍 힌남노\n  * **피해 내용**: 폭풍해일 및 월파로 해수펌프장 해수펌프(2대)·진공펌프(1대) 침수 파손, 남항체육공원 인조잔디 및 펜스 훼손, 쓰레기·토사 대량 유입.\n* **부산 수영구 [광안동 광안리 해변](#ref:r4) 및 [민락동 민락수변공원](#ref:r5)**\n  * **재난 및 일시**: 2022년 9월 6일 제11호 태풍 힌남노\n  * **피해 내용**: 해일 및 월파 침수로 광안리 스마트타운 시설물 피해(약 1억 7백만 원), 민락수변공원 방파제 일원 가로등 10본 및 배전함 4면 침수 파손.\n\n#### 4. 과거 상습 침수흔적지구 (도심 내수침수 빈발 구역)\n* **부산 금정구 [회동1·2지구](#ref:r112)**: 2020년 7월 23일 호우 시 수영강 지류 배수 불량으로 저지대 공장 및 부지 내수침수(8,000㎡ 이상).\n* **부산 연제구 [연산동 105-1 일원](#ref:r126)**: 2021년 8월 21일 호우 시 저지대 역류 및 내수침수 흔적 기록.\n* **부산 남구 [용호지구](#ref:r114)**: 2011년 집중호우 시 도심 저지대 주택가 광범위 침수(침수면적 약 65만㎡).\n\n---\n\n### 대응 담당자 우선 확인사항 (Next Action)\n\n1. **지하차도 선제 통제**: 방재등급 4등급 및 동천/낙동강 인접 지하차도([초량제1](#ref:r69), [문현](#ref:r50), [삼락생태공원](#ref:r56) 등)는 통제기준 침수심(5~15cm) 도달 전 진입차단시설 작동 및 현장 인력 배치 확인.\n2. **배수펌프장 및 수문 사전 가동 점검**: 기장군 일광·장안 중계펌프장, 강서구 [상덕](#ref:r47)·[식만](#ref:r46) 펌프장, 동구 [초량](#ref:r43) 배수시설의 비상발전기 및 모터 소손 방지 조치 점검.\n3. **하천 하상도로 및 친수공간 차단**: 온천천, 수영강, 조만강, 낙동강 둔치 일원 주차 차량 이동 조치 및 산책로 진입 통제.",
+      "answer_format": "MARKDOWN",
+      "entities": [],
+      "result_groups": [],
+      "evidence_refs": [],
+      "follow_up_questions": [],
+      "refs": [
+        {
+          "ref": "r69",
+          "entity_type": "RISK_FACTOR",
+          "display_name": "초량제1지하차도",
+          "map": {
+            "key": "underpass_id",
+            "value": "614",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r43",
+          "entity_type": "REGION",
+          "display_name": "범일2",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "2617000000",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r54",
+          "entity_type": "RISK_FACTOR",
+          "display_name": "삼락생태공원(1)",
+          "map": {
+            "key": "underpass_id",
+            "value": "645",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r56",
+          "entity_type": "RISK_FACTOR",
+          "display_name": "삼락생태공원(2)",
+          "map": {
+            "key": "underpass_id",
+            "value": "647",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r50",
+          "entity_type": "RISK_FACTOR",
+          "display_name": "문현지하차도",
+          "map": {
+            "key": "underpass_id",
+            "value": "610",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r9",
+          "entity_type": "REGION",
+          "display_name": "9.3~7. 제11호 태풍 힌남노(확정)",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "2629010900",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r2",
+          "entity_type": "REGION",
+          "display_name": "9.19.~21. 호우",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "2644010800",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r47",
+          "entity_type": "REGION",
+          "display_name": "상덕",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "2644010300",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r108",
+          "entity_type": "REGION",
+          "display_name": "7.16.~20. 호우",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "2644010600",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r46",
+          "entity_type": "REGION",
+          "display_name": "식만",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "2644000000",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r13",
+          "entity_type": "REGION",
+          "display_name": "7.23.~25. 호우 강풍 풍랑",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "2635010300",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r16",
+          "entity_type": "REGION",
+          "display_name": "7.23.~25. 호우 강풍 풍랑",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "2635010400",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r14",
+          "entity_type": "REGION",
+          "display_name": "7.23.~25. 호우 강풍 풍랑",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "2641010800",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r12",
+          "entity_type": "REGION",
+          "display_name": "7.23.~25. 호우 강풍 풍랑",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "2641011000",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r24",
+          "entity_type": "REGION",
+          "display_name": "7.23.~25. 호우 강풍 풍랑",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "2671025328",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r6",
+          "entity_type": "REGION",
+          "display_name": "9.3~7. 제11호 태풍 힌남노(확정)",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "2614012400",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r7",
+          "entity_type": "REGION",
+          "display_name": "9.3~7. 제11호 태풍 힌남노(확정)",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "2614012300",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r4",
+          "entity_type": "REGION",
+          "display_name": "9.3~7. 제11호 태풍 힌남노(확정)",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "2650010400",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r5",
+          "entity_type": "REGION",
+          "display_name": "9.3~7. 제11호 태풍 힌남노(확정)",
+          "map": {
+            "key": "legal_dong_code",
+            "value": "2650010300",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r112",
+          "entity_type": "FLOOD_TRACE",
+          "display_name": "회동 1지구",
+          "map": {
+            "key": "trace_code",
+            "value": "I_111324",
+            "draw": "layer"
+          }
+        },
+        {
+          "ref": "r126",
+          "entity_type": "FLOOD_TRACE",
+          "display_name": "연산동 105-1 일",
+          "map": {
+            "key": "trace_code",
+            "value": "I_15966",
+            "draw": "layer"
+          }
+        },
+        {
+          "ref": "r114",
+          "entity_type": "FLOOD_TRACE",
+          "display_name": "용호지구",
+          "map": {
+            "key": "trace_code",
+            "value": "I_33802",
+            "draw": "layer"
+          }
+        }
+      ],
+      "conversation_title": null,
+      "limitations": [
+        "유사사례는 예측·위험판단이 아닌 참고 정보"
+      ],
+      "context_used": {
+        "used_conditions": [],
+        "unused_conditions": [],
+        "reference_used": false
+      }
+    },
+    "data_gaps": [],
+    "warnings": [],
+    "meta": {
+      "source": "T3Q",
+      "base_time": "2026-10-28T02:48:37+09:00",
+      "quality_status": "VERIFIED",
+      "disclosure_level": "공개",
+      "elapsed_ms": 105641
+    }
+  },
+  "waitedMs": 108594,
+  "timeout": false
+}

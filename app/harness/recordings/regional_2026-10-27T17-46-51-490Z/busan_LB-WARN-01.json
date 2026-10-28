@@ -1,0 +1,349 @@
+{
+  "id": "busan:LB-WARN-01",
+  "question": "부산광역시에 호우경보가 발효되면 먼저 확인할 대상 — 하천 500m 안 지하차도, D·E 급경사지, 지정 중인 개선지구를 알려줘.",
+  "request": {
+    "question": "부산광역시에 호우경보가 발효되면 먼저 확인할 대상 — 하천 500m 안 지하차도, D·E 급경사지, 지정 중인 개선지구를 알려줘.",
+    "question_source": "SUGGEST",
+    "query_context": {
+      "region": {
+        "admin_code": "2600000000",
+        "name": "부산광역시",
+        "level": "SIDO"
+      },
+      "disaster_types": [
+        "호우"
+      ]
+    }
+  },
+  "final": {
+    "schema_version": "2.0",
+    "request_id": "10a1b0066132f51e4a0c9da2bc51b5b8",
+    "correlation_id": "corr-10a1b0066132f51e4a0c9da2bc51b5b8",
+    "status": "SUCCESS",
+    "conversation_id": "CONV-20261028-0101e4",
+    "turn_no": 1,
+    "result": {
+      "response_id": "RES-20261028-178035",
+      "question": "부산광역시에 호우경보가 발효되면 먼저 확인할 대상 — 하천 500m 안 지하차도, D·E 급경사지, 지정 중인 개선지구를 알려줘.",
+      "question_source": "SUGGEST",
+      "answer": "부산광역시에 **호우경보**가 발효될 경우 최우선으로 확인·점검해야 할 대상은 **하천 500m 이내 지하차도 22개소**, **D·E 등급 급경사지 7개소**, **현재 지정·관리 중인 자연재해위험개선지구 22개소**입니다.\n\n---\n\n### 1. 하천 500m 이내 지하차도 (총 22개소)\n\n하천 범람 시 유입 위험이 크며, 대다수(17개소)가 행안부 **인명피해우려지역**으로 지정되어 있어 원격 진입차단 및 현장 통제 기준(통제수위 5~15cm)을 선제 점검해야 합니다.\n\n| 연번 | 지하차도명 | 자치구 | 인접 하천 | 방재등급 | 박스길이 | U자형 | 통제침수심 | 인명피해우려 |\n|:---:|---|:---:|:---:|:---:|---:|:---:|---:|:---:|\n| 1 | [대남지하차도](#ref:r1) | 남구 | 남천 | 4등급 | 125m | O | 5cm | O |\n| 2 | [문현지하차도](#ref:r2) | 남구 | 동천 | 4등급 | 86.2m | O | 5cm | O |\n| 3 | [초량제1지하차도](#ref:r3) | 동구 | 초량천 | 4등급 | 165m | O | 5cm | O |\n| 4 | [화명2지하차도](#ref:r4) | 북구 | 낙동강 | 4등급 | 37m | X | 15cm | O |\n| 5 | [화명5지하차도(화명대림쌍용)](#ref:r5) | 북구 | 낙동강 | 4등급 | 37m | X | 15cm | O |\n| 6 | [금호지하차도](#ref:r6) | 강서구 | 낙동강 | 4등급 | 120m | O | 15cm | O |\n| 7 | [봉림지하차도](#ref:r7) | 강서구 | 서낙동강 | 4등급 | 470m | O | 15cm | O |\n| 8 | [구서지하차도](#ref:r8) | 금정구 | 온천천 | 4등급 | 140m | O | 5cm | O |\n| 9 | [영락공원지하차도](#ref:r9) | 금정구 | 수영강 | 4등급 | 40m | X | 5cm | X |\n| 10 | [장전지하차도(1)](#ref:r10) | 금정구 | 온천천 | 2등급 | 1,220m | O | 5cm | X |\n| 11 | [장전지하차도(2)](#ref:r11) | 금정구 | 온천천 | 4등급 | 320m | X | 5cm | O |\n| 12 | [무곡지하차도](#ref:r12) | 기장군 | 죽성천 | 4등급 | 16.6m | O | 5cm | O |\n| 13 | [삼성1지하차도](#ref:r13) | 기장군 | 일광천 | 4등급 | 368m | X | 15cm | X |\n| 14 | [내성지하차도](#ref:r14) | 동래구 | 온천천 | 4등급 | 185m | O | 5cm | O |\n| 15 | [삼락생태공원(3)](#ref:r15) | 사상구 | 낙동강 | 4등급 | 32m | O | 15cm | O |\n| 16 | [범일지하도](#ref:r16) | 부산진구 | 동천 | 4등급 | 27.7m | X | 15cm | X |\n| 17 | [개금지하차도](#ref:r17) | 부산진구 | 동천 | 4등급 | 55m | O | 5cm | O |\n| 18 | [당감지하차도](#ref:r18) | 부산진구 | 가야천 | 4등급 | 50.5m | O | 5cm | O |\n| 19 | [센텀지하차도](#ref:r19) | 해운대구 | 수영강 | 4등급 | 100m | O | 15cm | O |\n| 20 | [용천지하차도](#ref:r20) | 해운대구 | 수영강 | 4등급 | 6m | X | 15cm | O |\n| 21 | [센텀시티지하차도](#ref:r21) | 해운대구 | 수영강 | 3등급 | 1,095m | O | 5cm | X |\n| 22 | [수영강변지하차도](#ref:r22) | 해운대구 | 수영강 | 4등급 | 127m | O | 15cm | O |\n\n> **주요 유의점**: [초량제1지하차도](#ref:r3), [대남지하차도](#ref:r1), [문현지하차도](#ref:r2), [구서지하차도](#ref:r8), [내성지하차도](#ref:r14), [개금지하차도](#ref:r17), [당감지하차도](#ref:r18) 등은 U자형 구조에 통제기준 수위가 5cm로 매우 낮아 초기 침수 시 즉각 차단 조치가 필요합니다.\n\n---\n\n### 2. D·E 등급 급경사지 (총 7개소)\n\n집중호우 시 사면 붕괴 및 토석류 위험이 높은 취약 급경사지입니다.\n\n| 연번 | 관리번호 | 대상명 | 자치구/관리청 | 등급 | 평가점수 | 최근 점검결과 | 비고 / 위험 요인 |\n|:---:|:---:|---|:---:|:---:|:---:|:---:|---|\n| 1 | 2620000042 | [영선2지구](#ref:r23) | 영도구 | **E** | 83.0점 | 안전 (2026-05) | **최고 위험 등급(E)** |\n| 2 | 2620000053 | [영선3지구](#ref:r24) | 영도구 | **D** | 79.0점 | 안전 (2026-05) | 고위험 D등급 |\n| 3 | 2632000064 | [만덕동 산100](#ref:r25) | 북구청 | **D** | 78.0점 | **불안전 (2026-05)** | **최근 점검 시 '불안전' 판정 (최우선 예찰)** |\n| 4 | 2620000054 | [영선2-1지구](#ref:r26) | 영도구 | **D** | 77.0점 | 안전 (2026-05) | 절개지 취약 구간 |\n| 5 | 2641000098 | [윤산로](#ref:r27) | 금정구 | **D** | 74.0점 | 안전 (2026-06) | 도로 사면 붕괴 우려 |\n| 6 | 2620000055 | [영선2-2지구](#ref:r28) | 영도구 | **D** | 68.0점 | 안전 (2026-05) | 사면 정비 대상 |\n| 7 | 2614000027 | [암남동 산92-7](#ref:r29) | 개인 (서구) | **D** | 64.0점 | 안전 (2026-05) | 사유지 급경사지 |\n\n> **주요 유의점**: 북구 [만덕동 산100](#ref:r25) 사면은 최근 점검에서 **'불안전'**으로 기록되었으므로 호우 시 최우선 현장 통제 및 인접 거주민 사전 대피 검토가 필요합니다. 또한 영도구 영선동 일대에 D·E 등급(4개소)이 집중되어 있습니다.\n\n---\n\n### 3. 현재 지정·정비 중인 자연재해위험개선지구 (총 22개소)\n\n정비 완료(해제)되지 않고 관리 중인 지구들로, 특히 **인명피해 발생 우려가 높은 «가» 등급 6개소**를 집중 점검해야 합니다.\n\n#### ① «가» 등급 지구 (6개소 - 인명피해 우려 극심)\n- **초량지구 (동구 초량동 일원)**: 침수위험지구 / 초량제1지하차도 인근으로 배수펌프장·수문 및 관로 정비 진행 중\n- **하단지구 (사하구 하단동 일원)**: 침수위험지구 / 저지대 상습침수 구역 (낙동남로 인근)\n- **삼락지구 (사상구 삼락동 일원)**: 침수위험지구 / 면적 0.78㎢의 대규모 저지대 침수구역 (삼락천 및 관거 정비 중)\n- **민락2지구 (수영구 민락동 일원)**: 침수위험지구 / 해안 인접 저지대 피복호안 정비 중\n- **수영만지구 (해운대구 우동 마린시티 일원)**: 해일·월파위험지구 / 고조 및 호우 복합 시 월파 침수 위험\n- **중동1지구 (해운대구 중동 미포 일원)**: 해일위험지구 / 해안가 월파 및 세굴 취약 구역\n\n#### ② «나» 등급 지구 (16개소 - 재산피해 및 침수위험)\n- **동구**: 범일2지구 (침수위험, 자성로 일원 저류조/펌프장)\n- **북구**: 덕천교차로지구 (침수위험, 낙동대로 구포동 일원 배수펌프장)\n- **부산 서구**: 암남5지구 (해일위험, 방재호안)\n- **금정구**: 금사1지구 (침수위험, 금사동 배수펌프장·유수지)\n- **동래구**: 안락2(안락서원)지구 (침수위험, 빗물펌프장)\n- **연제구**: 토곡지구 (침수위험, 연산동 배수펌프장 및 관로)\n- **수영구**: 민락1지구 (저류조), 망미2지구 (고지배수로·게이트펌프장)\n- **해운대구**: 반여4지구 (침수위험, 삼어로 배수펌프장)\n- **사하구**: 다대지구 (침수위험, 다대동 관로개량)\n- **사상구**: 학장2지구 (사상교차로 일원 펌프장), 감전2지구 (감전동 하수박스·펌프장)\n- **강서구**: 작지지구 (대저2동 배수펌프장), 명지2지구 (명지동 차수판·월류방지벽)\n- **기장군**: 방곡지구 (정관읍 우수관거), 길천3지구 (장안읍 배수펌프장)\n\n---\n\n### 대응 담당자 우선 조치 사항\n1. **지하차도 선제 통제**: 온천천, 수영강, 동천 수위 상승 추세를 모니터링하고, 통제기준(5cm~15cm) 도달 전 진입차단시설 가동 및 현장 통제관 배치\n2. **사면 예찰 및 대피**: 특히 불안전 판정을 받은 북구 [만덕동 산100](#ref:r25) 및 영도구 영선동 일대 급경사지 인근 주민 대피로 확보\n3. **배수펌프장 즉시 가동 점검**: 초량, 하단, 삼락, 덕천교차로 등 지정 개선지구 내 기존 펌프 시설 수전·유수지 수위 점검",
+      "answer_format": "MARKDOWN",
+      "entities": [],
+      "result_groups": [],
+      "evidence_refs": [],
+      "follow_up_questions": [],
+      "refs": [
+        {
+          "ref": "r1",
+          "entity_type": "RISK_FACTOR",
+          "display_name": "대남지하차도",
+          "map": {
+            "key": "underpass_id",
+            "value": "609",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r2",
+          "entity_type": "RISK_FACTOR",
+          "display_name": "문현지하차도",
+          "map": {
+            "key": "underpass_id",
+            "value": "610",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r3",
+          "entity_type": "RISK_FACTOR",
+          "display_name": "초량제1지하차도",
+          "map": {
+            "key": "underpass_id",
+            "value": "614",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r4",
+          "entity_type": "RISK_FACTOR",
+          "display_name": "화명2지하차도",
+          "map": {
+            "key": "underpass_id",
+            "value": "620",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r5",
+          "entity_type": "RISK_FACTOR",
+          "display_name": "화명5지하차도(화명대림쌍용아파트지하차도)",
+          "map": {
+            "key": "underpass_id",
+            "value": "622",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r6",
+          "entity_type": "RISK_FACTOR",
+          "display_name": "금호지하차도",
+          "map": {
+            "key": "underpass_id",
+            "value": "623",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r7",
+          "entity_type": "RISK_FACTOR",
+          "display_name": "봉림지하차도",
+          "map": {
+            "key": "underpass_id",
+            "value": "626",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r8",
+          "entity_type": "RISK_FACTOR",
+          "display_name": "구서지하차도",
+          "map": {
+            "key": "underpass_id",
+            "value": "628",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r9",
+          "entity_type": "RISK_FACTOR",
+          "display_name": "영락공원지하차도",
+          "map": {
+            "key": "underpass_id",
+            "value": "629",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r10",
+          "entity_type": "RISK_FACTOR",
+          "display_name": "장전지하차도(1)",
+          "map": {
+            "key": "underpass_id",
+            "value": "630",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r11",
+          "entity_type": "RISK_FACTOR",
+          "display_name": "장전지하차도(2)",
+          "map": {
+            "key": "underpass_id",
+            "value": "631",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r12",
+          "entity_type": "RISK_FACTOR",
+          "display_name": "무곡지하차도",
+          "map": {
+            "key": "underpass_id",
+            "value": "633",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r13",
+          "entity_type": "RISK_FACTOR",
+          "display_name": "삼성1지하차도",
+          "map": {
+            "key": "underpass_id",
+            "value": "634",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r14",
+          "entity_type": "RISK_FACTOR",
+          "display_name": "내성지하차도",
+          "map": {
+            "key": "underpass_id",
+            "value": "636",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r15",
+          "entity_type": "RISK_FACTOR",
+          "display_name": "삼락생태공원(3)",
+          "map": {
+            "key": "underpass_id",
+            "value": "649",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r16",
+          "entity_type": "RISK_FACTOR",
+          "display_name": "범일지하도",
+          "map": {
+            "key": "underpass_id",
+            "value": "654",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r17",
+          "entity_type": "RISK_FACTOR",
+          "display_name": "개금지하차도",
+          "map": {
+            "key": "underpass_id",
+            "value": "655",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r18",
+          "entity_type": "RISK_FACTOR",
+          "display_name": "당감지하차도",
+          "map": {
+            "key": "underpass_id",
+            "value": "656",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r19",
+          "entity_type": "RISK_FACTOR",
+          "display_name": "센텀지하차도",
+          "map": {
+            "key": "underpass_id",
+            "value": "660",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r20",
+          "entity_type": "RISK_FACTOR",
+          "display_name": "용천지하차도",
+          "map": {
+            "key": "underpass_id",
+            "value": "661",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r21",
+          "entity_type": "RISK_FACTOR",
+          "display_name": "센텀시티지하차도",
+          "map": {
+            "key": "underpass_id",
+            "value": "665",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r22",
+          "entity_type": "RISK_FACTOR",
+          "display_name": "수영강변지하차도",
+          "map": {
+            "key": "underpass_id",
+            "value": "666",
+            "draw": "pin"
+          }
+        },
+        {
+          "ref": "r23",
+          "entity_type": "RISK_AREA",
+          "display_name": "영선2지구",
+          "map": {
+            "key": "slope_no",
+            "value": "2620000042",
+            "draw": "line"
+          }
+        },
+        {
+          "ref": "r24",
+          "entity_type": "RISK_AREA",
+          "display_name": "영선3지구",
+          "map": {
+            "key": "slope_no",
+            "value": "2620000053",
+            "draw": "line"
+          }
+        },
+        {
+          "ref": "r25",
+          "entity_type": "RISK_AREA",
+          "display_name": "만덕동 산100",
+          "map": {
+            "key": "slope_no",
+            "value": "2632000064",
+            "draw": "line"
+          }
+        },
+        {
+          "ref": "r26",
+          "entity_type": "RISK_AREA",
+          "display_name": "영선2-1지구",
+          "map": {
+            "key": "slope_no",
+            "value": "2620000054",
+            "draw": "line"
+          }
+        },
+        {
+          "ref": "r27",
+          "entity_type": "RISK_AREA",
+          "display_name": "윤산로",
+          "map": {
+            "key": "slope_no",
+            "value": "2641000098",
+            "draw": "line"
+          }
+        },
+        {
+          "ref": "r28",
+          "entity_type": "RISK_AREA",
+          "display_name": "영선2-2지구",
+          "map": {
+            "key": "slope_no",
+            "value": "2620000055",
+            "draw": "line"
+          }
+        },
+        {
+          "ref": "r29",
+          "entity_type": "RISK_AREA",
+          "display_name": "암남동 산92-7",
+          "map": {
+            "key": "slope_no",
+            "value": "2614000027",
+            "draw": "line"
+          }
+        }
+      ],
+      "conversation_title": null,
+      "limitations": [
+        "유사사례는 예측·위험판단이 아닌 참고 정보"
+      ],
+      "context_used": {
+        "used_conditions": [],
+        "unused_conditions": [],
+        "reference_used": false
+      }
+    },
+    "data_gaps": [],
+    "warnings": [],
+    "meta": {
+      "source": "T3Q",
+      "base_time": "2026-10-28T02:54:39+09:00",
+      "quality_status": "VERIFIED",
+      "disclosure_level": "공개",
+      "elapsed_ms": 95452
+    }
+  },
+  "waitedMs": 95980,
+  "timeout": false
+}
