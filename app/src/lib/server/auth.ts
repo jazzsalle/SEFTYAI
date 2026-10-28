@@ -6,12 +6,12 @@ import { db, ensureSchema } from "./db";
 
 /**
  * 로그인·세션 (R7, UFR-007) — 사전 발급 5계정, scrypt 해시, 서명 쿠키 sa_sid
- * 유휴 30분(슬라이딩, last_seen 갱신은 60초에 1회) · 절대 12시간 · 같은 계정 새 로그인 시 기존 세션 종료
+ * 유휴 4시간(슬라이딩, last_seen 갱신은 60초에 1회) · 절대 12시간 · 같은 계정 새 로그인 시 기존 세션 종료
  * 비밀번호 9자 이상 + 영문·숫자·특수문자 · 5회 실패 15분 잠금
  */
 const scrypt = promisify(_scrypt) as (pw: string, salt: Buffer, len: number, opt: object) => Promise<Buffer>;
 export const COOKIE = "sa_sid";
-const IDLE_MS = 30 * 60_000;
+const IDLE_MS = 4 * 3600_000; // 유휴 4시간(사용자 결정 2026-10-28, R34 — 이전 30분)
 const ABS_MS = 12 * 3600_000;
 const LOCK_MS = 15 * 60_000;
 const MAX_FAIL = 5;
@@ -108,7 +108,7 @@ export const currentSid = (req: Request) => unsign(cookieOf(req));
 
 /**
  * 요청의 세션 → 계정. 만료·폐기·계정 비활성이면 null.
- * 유휴 30분은 **사용자 조작**으로만 연장한다 — 화면이 사용자 입력 직후 보낸 요청(x-sa-activity: 1)만 last_seen 을 올린다(60초에 1회).
+ * 유휴 4시간은 **사용자 조작**으로만 연장한다 — 화면이 사용자 입력 직후 보낸 요청(x-sa-activity: 1)만 last_seen 을 올린다(60초에 1회).
  * 백그라운드 폴링(질문 목록·체크·특보)은 세션을 연장하지 않는다.
  */
 export async function sessionAccount(req: Request): Promise<Account | null> {

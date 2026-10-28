@@ -19,6 +19,7 @@ const session = vi.hoisted(() => ({
 vi.mock("@/lib/session", () => ({ useSession: () => session }));
 
 import AnswerCard, { advisoriesAfter, fmtYmdHm, regionOfRequest, seenAdvisories } from "@/components/answer/AnswerCard";
+import { kmaAdvId, legacyAdvIds } from "@/lib/wxMatch";
 
 /** 이 컴퓨터 시간대의 2026-10-28 h:m → ISO(시간대와 무관하게 화면 글자를 맞추려고) */
 const local = (h: number, m: number, day = 28) => new Date(2026, 9, day, h, m).toISOString();
@@ -295,14 +296,16 @@ describe("진행 중", () => {
 });
 
 describe("도우미", () => {
-  it("요청의 기준지역 — 행정코드 앞자리로(시도 2·시군구 5), 지역 없음 = 전국, 시범지역 밖·요청 없음 = 모름", () => {
-    expect(regionOfRequest(BUSAN)).toBe("busan");
-    expect(regionOfRequest({ query_context: { region: { admin_code: "2611000000" } } })).toBe("busan");
-    expect(regionOfRequest({ query_context: { region: { admin_code: "5181025000" } } })).toBe("inje");
-    expect(regionOfRequest({ query_context: { region: { admin_code: "4723000000" } } })).toBe("yeongcheon");
-    expect(regionOfRequest({ query_context: {} })).toBe("national");
-    expect(regionOfRequest({ query_context: { region: { admin_code: "1100000000" } } })).toBeNull();
-    expect(regionOfRequest(undefined)).toBeNull();
+  it("요청의 기준지역(R32) — region 이름·단계로 시·도·시·군·구(읍·면·동이면 그 시·군·구), 지역 없음 = 전국(null), 요청·이름 없음 = 모름(undefined)", () => {
+    expect(regionOfRequest(BUSAN)).toEqual({ sido: "부산광역시", sigungu: null });
+    expect(regionOfRequest({ query_context: { region: { admin_code: "2635000000", level: "SIGUNGU", name: "부산광역시 해운대구" } } })).toEqual({ sido: "부산광역시", sigungu: "해운대구" });
+    expect(regionOfRequest({ query_context: { region: { admin_code: "5181025000", level: "EMD", name: "강원특별자치도 인제군 인제읍" } } })).toEqual({ sido: "강원특별자치도", sigungu: "인제군" });
+    expect(regionOfRequest({ query_context: { region: { admin_code: "4723000000", level: "SIGUNGU", name: "경상북도 영천시" } } })).toEqual({ sido: "경상북도", sigungu: "영천시" });
+    // 시범 지역 밖도 — 예전에는 모름(null)이라 받은 뒤 특보를 보지 못했다
+    expect(regionOfRequest({ query_context: { region: { admin_code: "1100000000", level: "SIDO", name: "서울특별시" } } })).toEqual({ sido: "서울특별시", sigungu: null });
+    expect(regionOfRequest({ query_context: {} })).toBeNull();
+    expect(regionOfRequest({ query_context: { region: { admin_code: "2611000000" } } })).toBeUndefined();
+    expect(regionOfRequest(undefined)).toBeUndefined();
   });
   it("받은 시각 — 재사용이면 원래 답을 받은 시각, 아니면 이 작업이 끝난 시각. 모르면 null(답의 base_time 으로 메우지 않음)", () => {
     const fresh = makeJob();
@@ -321,15 +324,48 @@ describe("도우미", () => {
     expect(seenAdvisories(makeJob({ cached_from: "job-0", wx_seen: [], source_wx_seen: null }))).toBeNull();
   });
   it("받은 뒤 특보 — 그때 목록에 없고 발표 시각이 받은 시각보다 뒤인 그 지역 특보만, 전국이면 모든 지역", () => {
+    const BS = { sido: "부산광역시", sigungu: null };
+    const IJ = { sido: "강원특별자치도", sigungu: "인제군" };
     const w = weather([adv({}), adv({ id: "a2", regionId: "inje", area: "강원도(인제평지)" }), adv({ id: "a3", issuedAt: local(2, 30) })]);
-    expect(advisoriesAfter(w, "busan", local(2, 48), []).map((a) => a.id)).toEqual(["a1"]);
-    expect(advisoriesAfter(w, "national", local(2, 48), []).map((a) => a.id)).toEqual(["a1", "a2"]);
-    expect(advisoriesAfter(w, "national", local(2, 48), [seenOf(adv({}))]).map((a) => a.id)).toEqual(["a2"]);
-    expect(advisoriesAfter(w, "busan", local(2, 48), [seenOf(adv({}))])).toEqual([]);
-    expect(advisoriesAfter(w, null, local(2, 48), [])).toEqual([]);
-    expect(advisoriesAfter(w, "busan", null, [])).toEqual([]);
-    expect(advisoriesAfter(w, "busan", local(2, 48), null)).toEqual([]);
-    expect(advisoriesAfter(weather([adv({})], false), "busan", local(2, 48), [])).toEqual([]);
+    expect(advisoriesAfter(w, BS, local(2, 48), []).map((a) => a.id)).toEqual(["a1"]);
+    expect(advisoriesAfter(w, IJ, local(2, 48), []).map((a) => a.id)).toEqual(["a2"]);
+    expect(advisoriesAfter(w, null, local(2, 48), []).map((a) => a.id)).toEqual(["a1", "a2"]);
+    expect(advisoriesAfter(w, null, local(2, 48), [seenOf(adv({}))]).map((a) => a.id)).toEqual(["a2"]);
+    expect(advisoriesAfter(w, BS, local(2, 48), [seenOf(adv({}))])).toEqual([]);
+    expect(advisoriesAfter(w, undefined, local(2, 48), [])).toEqual([]);
+    expect(advisoriesAfter(w, BS, null, [])).toEqual([]);
+    expect(advisoriesAfter(w, BS, local(2, 48), null)).toEqual([]);
+    expect(advisoriesAfter(weather([adv({})], false), BS, local(2, 48), [])).toEqual([]);
+  });
+  it("받은 뒤 특보 — 시범 지역 밖 기준지역도 같은 규칙(lib/wxMatch). 그때 있던 특보는 특보 id 의 구역 글로 알아본다", () => {
+    const JJ = { sido: "제주특별자치도", sigungu: null };
+    const sea = adv({ id: "KMA-풍랑주의보-제주도남쪽바깥먼바다", type: "풍랑", level: "주의보", area: "제주도남쪽바깥먼바다", regionId: undefined });
+    const far = adv({ id: "KMA-풍랑주의보-동해중부바깥먼바다", type: "풍랑", level: "주의보", area: "동해중부바깥먼바다", regionId: undefined });
+    const w = weather([sea, far]);
+    expect(advisoriesAfter(w, JJ, local(2, 48), []).map((a) => a.id)).toEqual([sea.id]);
+    // 같은 종류·단계가 그 지역에 그때 있었으면(구역 글자가 달라도) 새 특보가 아니다
+    const before = { id: "KMA-풍랑주의보-제주도남동쪽안쪽먼바다", type: "풍랑", level: "주의보", regionId: null };
+    expect(advisoriesAfter(w, JJ, local(2, 48), [before])).toEqual([]);
+    // 다른 지역 같은 특보만 있었으면 새 특보
+    expect(advisoriesAfter(w, JJ, local(2, 48), [{ ...seenOf(far), regionId: null }]).map((a) => a.id)).toEqual([sea.id]);
+  });
+  it("받은 뒤 특보 — 전환용: 예전 판이 괄호 안 괄호 구역을 쪼개 남긴 wx_seen 도 같은 특보로 알아본다(그때 발효 중이던 특보를 새 특보로 보이지 않음)", () => {
+    // 기상청 실응답(2026-10-28 05:00 현황)의 한 구역 — 지금은 한 특보(id 하나)
+    const area = "전라남도(담양, 장성, 화순, 보성, 광양, 순천, 함평, 영광(낙월면 제외), 나주동남부, 나주서북부, 곡성북부, 곡성남부, 구례평지)";
+    const cold = adv({ id: kmaAdvId("한파", "주의보", area), type: "한파", level: "주의보", area, regionId: undefined });
+    const w = weather([cold]);
+    // 예전 kma.ts 가 같은 현황에서 남긴 id(괄호 안 괄호에서 끊긴 조각들)
+    const old: WxSeen[] = ["전라남도(담양,장성,화순,보성,광양,순천,함평,영광(낙월면제외)", "나주동남부", "나주서북부", "곡성북부", "곡성남부", "구례평지)"].map((p) => ({
+      id: `KMA-한파주의보-${p}`, type: "한파", level: "주의보", regionId: null,
+    }));
+    const NJ = { sido: "전남광주통합특별시", sigungu: "나주시" };
+    expect(advisoriesAfter(w, null, local(2, 48), old)).toEqual([]);
+    expect(advisoriesAfter(w, NJ, local(2, 48), old)).toEqual([]);
+    // 조각 일부만 있었으면(그때는 다른 구역 글) 새 특보, 없었으면 새 특보
+    expect(advisoriesAfter(w, null, local(2, 48), old.slice(0, 3)).map((a) => a.id)).toEqual([cold.id]);
+    expect(advisoriesAfter(w, NJ, local(2, 48), []).map((a) => a.id)).toEqual([cold.id]);
+    // 괄호 안 괄호가 없는 구역은 지금 id 하나 그대로
+    expect(legacyAdvIds("한파", "주의보", "경상북도(영덕, 포항, 경주남부 제외)")).toEqual([kmaAdvId("한파", "주의보", "경상북도(영덕, 포항, 경주남부 제외)")]);
   });
   it("시각 표기", () => {
     expect(fmtYmdHm(local(2, 48))).toBe("2026-10-28 02:48");

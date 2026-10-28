@@ -3,11 +3,12 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useSession } from "@/lib/session";
-import { REGIONS } from "@/lib/config";
-import type { RegionId } from "@/lib/contract/agent";
 import { GovLogo, IcChevR, IcSiren } from "./Icons";
 import type { Advisory } from "@/lib/contract/agent";
 import { advLabel, advTime, advTone } from "@/lib/wxref";
+import { wxCovers } from "@/lib/wxMatch";
+import { baseKey, baseName, baseTarget } from "@/lib/baseRegion";
+import BasePicker from "./BasePicker";
 import { SopProvider } from "@/lib/sopState";
 import SopBar from "./sop/SopBar";
 import { openHelp } from "./HelpCenter";
@@ -23,14 +24,21 @@ const fmtT = (iso?: string) => {
   return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
 };
 
-/** 특보 바 (목업 SCR-UNE-101001 : 긴급 · 지역 특보 발효 중 · 발표/갱신 · 특보로 질문) */
+/**
+ * 특보 바 (목업 SCR-UNE-101001 : 긴급 · 지역 특보 발효 중 · 발표/갱신 · 특보로 질문)
+ * 지금 기준지역을 덮는 특보만(R32 — lib/wxMatch). 기준지역이 바뀌면 그 지역으로 다시 보인다(특보 참조는 setBase 가 뗀다). 전국이면 모든 특보
+ */
 export function WxBar() {
   const { weather, account, cond, wxRef, setWxRef, aimOn } = useSession();
   const router = useRouter();
   const [pick, setPick] = useState(false);
+  const bk = baseKey(cond.base);
+  // 기준지역이 바뀌면 열려 있던 특보 고르기 목록을 닫는다(이전 지역 목록이 남지 않게)
+  useEffect(() => setPick(false), [bk]);
   if (!account) return null;
-  const region = cond.region;
-  const mine = (weather?.advisories ?? []).filter((a) => a.status !== "해제" && a.status !== "변경" && (region === "national" || a.regionId === region));
+  const national = !cond.base;
+  const target = baseTarget(cond.base);
+  const mine = (weather?.advisories ?? []).filter((a) => a.status !== "해제" && a.status !== "변경" && wxCovers(a.area, target));
   const top = [...mine].sort((a, b) => (b.level === "경보" ? 1 : 0) - (a.level === "경보" ? 1 : 0))[0];
   // 지역 화면은 나머지 특보를 이름 그대로(유엔이가 센 건수는 보이지 않음, R25). 전국 화면만 건수
   const rest = top ? mine.filter((a) => a !== top) : [];
@@ -48,7 +56,7 @@ export function WxBar() {
     meta = `${fmtT(top.issuedAt)} 발표 · 기상청 ${fmtT(weather.status.fetchedAt)} 갱신`;
   } else {
     tag = <span className="tag none">특보 없음</span>;
-    title = region === "national" ? "발효 중인 기상특보가 없습니다" : `${REGIONS[region].name}에 발효 중인 기상특보가 없습니다`;
+    title = national ? "발효 중인 기상특보가 없습니다" : `${baseName(cond.base)}에 발효 중인 기상특보가 없습니다`;
     meta = `${weather.status.message} · 조회 ${fmtT(weather.status.fetchedAt)}`;
   }
   // [특보로 질문] = 특보를 채팅 입력창에 참조로 건다 (1건이면 바로, 여러 건이면 고르기 · 한 번에 하나)
@@ -69,7 +77,7 @@ export function WxBar() {
     <div className={`wxbar ${top && top.level === "경보" ? "danger" : ""}`}>
       {tag}
       <span className="tit">{title}</span>
-      {rest.length > 0 && <span className="more">외 {region === "national" ? `${rest.length}건` : rest.map(advLabel).join(" · ")}</span>}
+      {rest.length > 0 && <span className="more">외 {national ? `${rest.length}건` : rest.map(advLabel).join(" · ")}</span>}
       <span className="meta">{meta}</span>
       <span className="sp" />
       <div className="wxask">
@@ -106,35 +114,21 @@ export function WxBar() {
  * 로고 · 메인 메뉴 · 기준지역 · 도움말 · 글자 크기 · AI 모드 · 사용자. KRDS 공식 배너 띠는 생략(허용됨).
  */
 export default function AppShell({ children }: { children: React.ReactNode }) {
-  const { ready, account, logout, cond, setCond, toastMsg, aimOn, setAimOn, weather, t3qOk, setWxRef } = useSession();
+  const { ready, account, logout, cond, toastMsg, aimOn, setAimOn, weather, t3qOk } = useSession();
   const router = useRouter();
   const path = usePathname();
   const [menu, setMenu] = useState(false);
   const [modal, setModal] = useState<"pw" | "me" | null>(null);
-  // 기준지역 선택지(시·군·구 이름·코드, 읍·면·동 이름) — 사용자가 고르는 보기일 뿐 화면에 자료로 보이지 않는다
-  const [sgg, setSgg] = useState<{ code: string; name: string }[]>([]);
-  const [emds, setEmds] = useState<Record<string, string[]>>({});
 
   useEffect(() => {
     if (ready && !account) router.replace("/login");
   }, [ready, account, router]);
-  useEffect(() => {
-    if (cond.region === "national") return setSgg([]);
-    fetch("/data/regions.json")
-      .then((r) => r.json())
-      .then((j) => setSgg(j.regions.find((x: { id: string }) => x.id === cond.region)?.sigungu ?? []))
-      .catch(() => setSgg([]));
-  }, [cond.region]);
-  useEffect(() => {
-    fetch("/data/emd_index.json").then((r) => r.json()).then(setEmds).catch(() => {});
-  }, []);
 
   if (!ready || !account) return null;
-  const mine = (weather?.advisories ?? []).filter((a) => a.status === "발효" && (cond.region === "national" || a.regionId === cond.region));
+  // AI 모드 단추 색 — 지금 기준지역을 덮는 발효 특보로(R32)
+  const target = baseTarget(cond.base);
+  const mine = (weather?.advisories ?? []).filter((a) => a.status === "발효" && wxCovers(a.area, target));
   const st = !aimOn ? "" : weather && !weather.status.ok ? "gray" : mine.some((a) => a.level === "경보") ? "red" : mine.length ? "yellow" : "green";
-  const sggName = cond.sigunguName ?? (sgg.length === 1 ? sgg[0].name : undefined);
-  const emdList = sggName ? emds[sggName] ?? [] : [];
-  const local = account.role === "지자체";
   // 연락망·상황전파는 사용자 메뉴로 옮김(사용자 지시 2026-10-28)
   const nav: [string, string][] = [["/explore", "통합 탐색"], ["/history", "대화 이력"], ...(account.role === "운영자" ? ([["/admin", "운영관리"]] as [string, string][]) : [])];
 
@@ -152,30 +146,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           ))}
         </nav>
         <span className="sp" />
-        <div className="scope">
-          <span className="xs muted">기준지역</span>
-          <select className="select sm" value={cond.region} disabled={local} title={local ? "지자체 계정은 관할 지역이 기준지역입니다" : undefined}
-            onChange={(e) => { setWxRef(null); setCond({ region: e.target.value as RegionId, sigungu: undefined, sigunguName: undefined, emd: undefined, emdName: undefined }); }} aria-label="기준지역">
-            {(["national", "busan", "yeongcheon", "inje"] as RegionId[]).map((r) => (
-              <option key={r} value={r}>{r === "national" ? "전국" : REGIONS[r].name.replace(/^(경상북도|강원특별자치도)\s/, "")}</option>
-            ))}
-          </select>
-          {cond.region !== "national" && sgg.length > 1 && (
-            <select className="select sm" value={cond.sigungu ?? ""} onChange={(e) => {
-              const o = sgg.find((x) => x.code === e.target.value);
-              setCond({ sigungu: o?.code, sigunguName: o?.name, emd: undefined, emdName: undefined });
-            }} aria-label="시군구">
-              <option value="">시·군·구 전체</option>
-              {sgg.map((x) => <option key={x.code} value={x.code}>{x.name}</option>)}
-            </select>
-          )}
-          {emdList.length > 0 && (
-            <select className="select sm" value={cond.emdName ?? ""} onChange={(e) => setCond({ emdName: e.target.value || undefined, ...(sgg.length === 1 ? { sigungu: e.target.value ? sgg[0].code : undefined, sigunguName: e.target.value ? sgg[0].name : undefined } : {}) })} aria-label="읍면동">
-              <option value="">읍·면·동 전체</option>
-              {emdList.map((x) => <option key={x} value={x}>{x}</option>)}
-            </select>
-          )}
-        </div>
+        <BasePicker />
         <button className="hbtn" onClick={() => openHelp()}>도움말</button>
         <FontSize />
         <button className={`ai-pill ${aimOn ? "on st-" + st : ""}`} onClick={() => { setAimOn(!aimOn); if (!path?.startsWith("/explore")) router.push("/explore"); }} aria-pressed={aimOn} title="AI 모드 — 기상특보 기반 상황 점검">
@@ -203,8 +174,9 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       {t3qOk === false && <div className="sysbar">에이전트 서버에 연결할 수 없습니다. 새 질문은 연결되면 처리되고, 이전 답변은 대화 이력에서 볼 수 있습니다.</div>}
       <WxBar />
       <SopBar />
-      {children}
+      {/* AI 모드 — 접으면 이 자리(내용 맨 위)에 띠로 남고 아래 내용이 그만큼 내려간다. 펼친 창은 화면 위에 뜬다 */}
       {aimOn && <AiModeModal />}
+      {children}
       {modal === "pw" && <PasswordModal onClose={() => setModal(null)} />}
       {account.mustChangePw && modal !== "pw" && <PasswordModal forced onClose={() => {}} onDone={() => window.location.reload()} />}
       {modal === "me" && <MyInfoModal onClose={() => setModal(null)} />}

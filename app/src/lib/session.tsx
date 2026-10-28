@@ -4,6 +4,7 @@ import type { Advisory, DisasterType, RegionId, WeatherResponse } from "./contra
 import { api, ApiError } from "./api";
 import type { Account } from "./config";
 import { isActive, type JobFull, type JobSource, type JobSummary } from "./jobTypes";
+import { basePilot, baseWire, defaultBase, type BaseRegion } from "./baseRegion";
 
 /** 지난 상황으로 보관할 때 함께 보내는 화면 정보 (조치 이름·단계 — 누가·언제는 서버 값) */
 export interface CheckArchiveMeta { title?: string; note?: string; labels?: Record<string, { label: string; step: string }> }
@@ -30,7 +31,10 @@ export interface Turn {
 export interface Conversation {
   id: string;
   title: string;
+  /** 시범 지역 id(기준지역에서 끌어낸 값 — lib/baseRegion basePilot) */
   region: RegionId;
+  /** 대화를 시작할 때의 기준지역 이름(R32 — 대화 이력 표시). 예전 대화에는 없다 */
+  baseName?: string;
   /** 대화를 시작할 때의 재난유형 조건(대화 이력 표시·필터, UFR-006-001-06) */
   disasterType?: string;
   createdAt: string;
@@ -41,11 +45,10 @@ export interface Conversation {
 
 /** 재난상황 조건 — 사용자가 고르거나 입력한 값만 (R6) */
 export interface Cond {
+  /** 기준지역(R32) — 시·도 → 시·군·구 → 읍·면·동(브이월드 이름·코드 그대로). null = 전국. 바꿀 때는 setBase 로만 */
+  base: BaseRegion | null;
+  /** 시범 지역 id — base 에서 끌어낸 값(질문 모음·시작 화면·지도 첫 화면·대화 이력). 직접 바꾸지 않는다 */
   region: RegionId;
-  sigungu?: string;
-  sigunguName?: string;
-  emd?: string;
-  emdName?: string;
   disasterType?: DisasterType;
   referenceTime?: string;
   periodFrom?: string;
@@ -77,7 +80,15 @@ interface SessionState {
   logout: () => Promise<void>;
   sessionExpired: boolean;
   cond: Cond;
-  setCond: (c: Partial<Cond>) => void;
+  /** 기준지역 밖의 조건(재난유형·기준시각·상황 상세정보) */
+  setCond: (c: Partial<Omit<Cond, "base" | "region">>) => void;
+  /** 기준지역 바꾸기 — 질의·응답이 진행 중이면 바꾸지 않고 false. 바꾸면 특보 참조를 뗀다 */
+  setBase: (b: BaseRegion | null) => boolean;
+  /** 이 계정의 질의·응답이 진행 중(보내는 중이거나 작업이 대기·제출·답변 생성 중) — 기준지역을 바꿀 수 없다 */
+  asking: boolean;
+  /** 통합 탐색 화면에 질문이 하나라도 있는 대화가 열려 있는가(그 화면이 알려 준다) — 기준지역을 바꾸면 새 대화로 시작할지 묻는다 */
+  convOpen: boolean;
+  setConvOpen: (v: boolean) => void;
   weather: WeatherResponse | null;
   reloadWeather: () => void;
   convs: Conversation[];
@@ -107,6 +118,11 @@ interface SessionState {
 }
 
 const Ctx = createContext<SessionState | null>(null);
+/** 로그인·세션 복원 때의 조건 — 기준지역은 계정 기본(지자체 = 자기 지역, 그 밖 = 전국), 나머지 조건은 비움 */
+const condFor = (acc: Account): Cond => {
+  const base = defaultBase(acc);
+  return { base, region: basePilot(base) };
+};
 const LS = {
   get<T>(k: string, d: T): T {
     try {
@@ -129,7 +145,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   const [ready, setReady] = useState(false);
   const [account, setAccount] = useState<Account | null>(null);
   const [sessionExpired, setExpired] = useState(false);
-  const [cond, setCondS] = useState<Cond>({ region: "national" });
+  const [cond, setCondS] = useState<Cond>({ base: null, region: "national" });
   const [weather, setWeather] = useState<WeatherResponse | null>(null);
   const [convs, setConvs] = useState<Conversation[]>([]);
   const [checkInfo, setCheckInfo] = useState<Record<string, { by: string; at: string }>>({});
@@ -143,8 +159,13 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   const [medianMs, setMedian] = useState<number | null>(null);
   const [full, setFull] = useState<Record<string, JobFull>>({});
   const [t3qOk, setT3qOk] = useState<boolean | null>(null);
+  /** 접수 응답을 기다리는 질문 수(보내는 중인 턴) — 화면용 값과 바로 읽는 값 */
+  const [sending, setSending] = useState(0);
+  const sendingRef = useRef(0);
+  const [convOpen, setConvOpen] = useState(false);
   const jobsRef = useRef(jobs);
   jobsRef.current = jobs;
+  const asking = sending > 0 || Object.values(jobs).some((j) => isActive(j.state));
 
   const toast = useCallback((m: string) => {
     setToast(m);
@@ -162,7 +183,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     api<{ account: Account }>("/api/auth/me")
       .then((r) => {
         setAccount(r.account);
-        setCondS({ region: r.account.region });
+        setCondS(condFor(r.account));
         setAimOnS(LS.get<boolean>("sa.aim", false));
       })
       .catch(() => setAccount(null))
@@ -176,7 +197,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     const r = await api<{ account: Account }>("/api/auth/login", { method: "POST", json: { id, password } });
     setAccount(r.account);
     setExpired(false);
-    setCondS({ region: r.account.region });
+    setCondS(condFor(r.account));
   }, []);
 
   const logout = useCallback(async () => {
@@ -224,7 +245,13 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     return () => clearInterval(t);
   }, [account]);
 
-  const setCond = useCallback((c: Partial<Cond>) => setCondS((p) => ({ ...p, ...c })), []);
+  const setCond = useCallback((c: Partial<Omit<Cond, "base" | "region">>) => setCondS((p) => ({ ...p, ...c })), []);
+  const setBase = useCallback((b: BaseRegion | null) => {
+    if (sendingRef.current > 0 || Object.values(jobsRef.current).some((j) => isActive(j.state))) return false;
+    setCondS((p) => ({ ...p, base: b, region: basePilot(b) }));
+    setWxRef(null);
+    return true;
+  }, []);
 
   const saveConv = useCallback(
     (c: Conversation) => {
@@ -273,6 +300,8 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
 
   // ── 질문 큐 (R1·R2) ──
   const putJob = useCallback((j: JobSummary) => {
+    // 바로 읽는 값도 함께(화면을 다시 그리기 전에 기준지역 변경을 막을 수 있게 — setBase)
+    jobsRef.current = { ...jobsRef.current, [j.id]: { ...jobsRef.current[j.id], ...j } };
     setJobs((p) => ({ ...p, [j.id]: { ...p[j.id], ...j } }));
     setJobOrder((o) => (o.includes(j.id) ? o : [j.id, ...o]));
   }, []);
@@ -322,26 +351,32 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   const submit = useCallback(
     async (a: SubmitArgs) => {
       const c = cond;
-      const r = await api<{ job: JobSummary }>("/api/agent/jobs", {
-        method: "POST",
-        json: {
-          ...a,
-          condition: {
-            region: c.region,
-            // 읍·면·동 코드는 없으므로 시·군·구 코드 + 이름에 읍·면·동을 붙여 보낸다
-            sub: c.sigungu ? { code: c.sigungu, name: [c.sigunguName, c.emdName].filter(Boolean).join(" ") } : null,
-            disasterTypes: c.disasterType && c.disasterType !== "전체" ? [c.disasterType] : [],
-            referenceTime: c.referenceTime || null,
-            period: c.periodFrom || c.periodTo ? { from: c.periodFrom || null, to: c.periodTo || null } : null,
-            warningKind: c.warningKind || null,
-            warningLevel: c.warningLevel || null,
-            keywords: c.keywords ?? [],
-            conditions: c.conditions ?? [],
+      sendingRef.current += 1;
+      setSending(sendingRef.current);
+      try {
+        const r = await api<{ job: JobSummary }>("/api/agent/jobs", {
+          method: "POST",
+          json: {
+            ...a,
+            condition: {
+              // 기준지역(R32) — 가장 아래 단계 하나(코드·시·도부터 이은 이름·단계). 전국이면 null
+              base: baseWire(c.base),
+              disasterTypes: c.disasterType && c.disasterType !== "전체" ? [c.disasterType] : [],
+              referenceTime: c.referenceTime || null,
+              period: c.periodFrom || c.periodTo ? { from: c.periodFrom || null, to: c.periodTo || null } : null,
+              warningKind: c.warningKind || null,
+              warningLevel: c.warningLevel || null,
+              keywords: c.keywords ?? [],
+              conditions: c.conditions ?? [],
+            },
           },
-        },
-      });
-      putJob(r.job);
-      return r.job;
+        });
+        putJob(r.job);
+        return r.job;
+      } finally {
+        sendingRef.current -= 1;
+        setSending(sendingRef.current);
+      }
     },
     [cond, putJob],
   );
@@ -380,12 +415,12 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
 
   const value = useMemo<SessionState>(
     () => ({
-      ready, account, login, logout, sessionExpired, cond, setCond, weather,
+      ready, account, login, logout, sessionExpired, cond, setCond, setBase, asking, convOpen, setConvOpen, weather,
       reloadWeather: () => setWxTick((t) => t + 1),
       convs, saveConv, deleteConvs, checks, checkInfo, toggleCheck, resetChecks, toast, toastMsg, aimOn, setAimOn, wxRef, setWxRef,
       jobs, jobOrder, medianMs, submit, cancel, full, loadFull, watch, t3qOk,
     }),
-    [ready, account, login, logout, sessionExpired, cond, setCond, weather, convs, saveConv, deleteConvs, checks, checkInfo, toggleCheck, resetChecks, toast, toastMsg, aimOn, setAimOn, wxRef, setWxRef, jobs, jobOrder, medianMs, submit, cancel, full, loadFull, watch, t3qOk],
+    [ready, account, login, logout, sessionExpired, cond, setCond, setBase, asking, convOpen, weather, convs, saveConv, deleteConvs, checks, checkInfo, toggleCheck, resetChecks, toast, toastMsg, aimOn, setAimOn, wxRef, setWxRef, jobs, jobOrder, medianMs, submit, cancel, full, loadFull, watch, t3qOk],
   );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

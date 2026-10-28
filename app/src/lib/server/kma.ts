@@ -1,5 +1,6 @@
 import "server-only";
 import type { Advisory, RegionId } from "../contract/agent";
+import { kmaAdvId, splitTop } from "../wxMatch";
 
 /**
  * 기상청 기상특보 조회서비스 (data.go.kr WthrWrnInfoService)
@@ -9,6 +10,7 @@ import type { Advisory, RegionId } from "../contract/agent";
 const BASE = "https://apis.data.go.kr/1360000/WthrWrnInfoService";
 const KEY = process.env.KMA_SERVICE_KEY ?? "";
 
+/** 대응절차(SOP) 단계 추천용 시범 지역 표시(regionId) — 기준지역 맞추기는 lib/wxMatch(구역 글 그대로)로 한다 */
 const REGION_KEYS: [RegionId, RegExp][] = [
   ["busan", /부산/],
   ["yeongcheon", /영천/],
@@ -28,12 +30,12 @@ export function parseStatusText(text: string, issuedAt: string): Advisory[] {
     const m = line.match(/^o\s*([가-힣]+?)(주의보|경보)\s*:\s*(.+)$/);
     if (!m) continue;
     const [, type, level, areas] = m;
-    // 광역 단위로 분해 : "경상북도(영천, 경산)" → 경상북도(영천, 경산)
-    const parts = areas.match(/[^,(]+(?:\([^)]*\))?/g)?.map((p) => p.trim()).filter(Boolean) ?? [];
+    // 광역 단위로 분해 : "경상북도(영천, 경산)" → 경상북도(영천, 경산). 괄호 안 괄호(「전라남도(신안(흑산면제외), 흑산도.홍도)」)도 한 구역으로
+    const parts = splitTop(areas);
     for (const part of parts) {
       const regionId = REGION_KEYS.find(([, re]) => re.test(part))?.[0];
       out.push({
-        id: `KMA-${type}${level}-${part}`.replace(/\s/g, ""),
+        id: kmaAdvId(type, level, part),
         type,
         level: level as "경보" | "주의보",
         area: part,

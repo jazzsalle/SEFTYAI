@@ -98,7 +98,7 @@ export default function LoginPage() {
 
       <div className="lgn-body">
         <section className="lgn-intro" aria-label="서비스 소개">
-          <p className="lgn-eyebrow">과학기술정보통신부 · 한국지능정보사회진흥원</p>
+          <p className="lgn-eyebrow">행정안전부 · 한국지능정보사회진흥원</p>
           <h1>
             재난안전 AI데이터
             <br />

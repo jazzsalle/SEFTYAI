@@ -1,7 +1,12 @@
 "use client";
-import { useState } from "react";
+import "./composer.css";
+import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { useSession, type Cond } from "@/lib/session";
 import { DISASTER_TYPES } from "@/lib/config";
+import { baseName } from "@/lib/baseRegion";
+import { useBriefItems, type BriefItem } from "@/lib/briefing";
+import { IcChevR } from "@/components/Icons";
 import type { DisasterType } from "@/lib/contract/agent";
 
 /**
@@ -19,7 +24,6 @@ export default function Composer({ onAsk, onBriefing, onLibrary, followUpLabel, 
   const [q, setQ] = useState("");
   const [busy, setBusy] = useState(false);
   const [condOpen, setCondOpen] = useState(false);
-  const [menu, setMenu] = useState(false);
   const c = s.cond;
   const send = async () => {
     const t = q.trim();
@@ -67,21 +71,80 @@ export default function Composer({ onAsk, onBriefing, onLibrary, followUpLabel, 
         }}
       />
       <div className="cmp-row">
-        <div className="dd">
-          <button className="btn sm" onClick={() => setMenu((v) => !v)} aria-expanded={menu}>브리핑 세트 ▾</button>
-          {menu && (
-            <div className="dd-menu" onMouseLeave={() => setMenu(false)}>
-              <button onClick={() => { setMenu(false); onBriefing(); }}>현재 상황 브리핑 시작</button>
-              <a href="/settings/briefing">브리핑 항목 설정</a>
-            </div>
-          )}
-        </div>
+        <BriefSetMenu onBriefing={onBriefing} />
         <button className="btn sm ghost" onClick={onLibrary}>질문 목록 보기</button>
         <span className="sp" />
         <span className="xs muted">{q.length.toLocaleString()} / 2,000</span>
         <button className="btn primary" disabled={!q.trim() || busy} onClick={send}>질의</button>
       </div>
       {condOpen && <CondModal onClose={() => setCondOpen(false)} />}
+    </div>
+  );
+}
+
+/**
+ * [브리핑 세트▾] 2단 패널 — 왼쪽: 브리핑 시작·항목 설정, 오른쪽: 내 브리핑 세트 질문 전체(설정에서 '사용' 체크한 항목, 최대 8개).
+ * 질문을 누르면 그 질문만 보낸다(시작 화면·AI 모드 타일과 같은 sa:ask-brief). 바깥을 누르거나 Esc 로 닫는다.
+ */
+function BriefSetMenu({ onBriefing }: { onBriefing: () => void }) {
+  const s = useSession();
+  const items = useBriefItems();
+  const regionName = baseName(s.cond.base);
+  const [open, setOpen] = useState(false);
+  const box = useRef<HTMLDivElement>(null);
+  const btn = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const down = (e: PointerEvent) => {
+      if (!box.current?.contains(e.target as Node)) setOpen(false);
+    };
+    const key = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      setOpen(false);
+      btn.current?.focus();
+    };
+    document.addEventListener("pointerdown", down);
+    document.addEventListener("keydown", key);
+    return () => {
+      document.removeEventListener("pointerdown", down);
+      document.removeEventListener("keydown", key);
+    };
+  }, [open]);
+  const askOne = (b: BriefItem) => {
+    setOpen(false);
+    window.dispatchEvent(new CustomEvent("sa:ask-brief", { detail: { q: b.q, preset: b.preset } }));
+  };
+  return (
+    <div className="dd" ref={box}>
+      <button ref={btn} className="btn sm" onClick={() => setOpen((v) => !v)} aria-expanded={open} aria-controls="bs-pop">브리핑 세트 ▾</button>
+      {open && (
+        <div id="bs-pop" className="bs-pop" role="dialog" aria-label="브리핑 세트">
+          <div className="bs-act">
+            <button className="bs-start" onClick={() => { setOpen(false); onBriefing(); }}>현재 상황 브리핑 시작</button>
+            <Link className="bs-set" href="/settings/briefing" onClick={() => setOpen(false)}>브리핑 항목 설정 <IcChevR size={14} /></Link>
+          </div>
+          <div className="bs-list">
+            <b className="bs-h">내 브리핑 세트</b>
+            {items.length ? (
+              <ol>
+                {items.map((b, i) => (
+                  <li key={b.key}>
+                    <button onClick={() => askOne(b)}>
+                      <span className="no">{i + 1}</span>
+                      <span className="tx">
+                        {b.label.trim() && <span className="k">{b.label}</span>}
+                        <span className="q">{b.q.replaceAll("{지역}", regionName)}</span>
+                      </span>
+                    </button>
+                  </li>
+                ))}
+              </ol>
+            ) : (
+              <p className="bs-empty">브리핑 항목이 없습니다.</p>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -9,7 +9,7 @@ import { REGIONS } from "@/lib/config";
 import { api } from "@/lib/api";
 import type { Citation } from "@/lib/contract/agent";
 import { activeAdvisories, warningsPayload } from "@/lib/wxref";
-import { joinName } from "@/lib/t3q/region";
+import { baseName, baseTarget, type BaseRegion } from "@/lib/baseRegion";
 import { SOURCE_LABEL, type JobSummary, type T3qRef } from "@/lib/jobTypes";
 import { ExploreContext, type ExploreApi, type PanelTab } from "@/components/explore/ExploreCtx";
 import RightPanel from "@/components/explore/RightPanel";
@@ -26,6 +26,8 @@ import { IcChevL } from "@/components/Icons";
 const SOP_TAB: PanelTab = { key: "sop", kind: "sop", title: "대응절차", pinned: true };
 const MAP_TAB: PanelTab = { key: "map", kind: "map", title: "지도" };
 type AskArgs = Omit<SubmitArgs, "convId" | "turnNo">;
+/** 대화를 시작한 기준지역(이름)이 지금 기준지역과 다른가(R32 — 대화 하나는 기준지역 하나). 이름이 없는 예전 대화는 따지지 않는다 */
+const otherBase = (c: Conversation | null | undefined, now: BaseRegion | null) => !!c?.baseName && c.baseName !== baseName(now);
 
 export default function ExplorePage() {
   return (
@@ -60,7 +62,26 @@ function Explore() {
   const sRef = useRef(s);
   sRef.current = s;
 
-  const regionName = s.cond.region === "national" ? "전국" : joinName(REGIONS[s.cond.region].name, s.cond.sigunguName, s.cond.emdName);
+  // 기준지역(R32) — 이름(질문의 {지역})·특보 맞추기는 지금 고른 기준지역으로
+  const regionName = baseName(s.cond.base);
+  const wxTarget = baseTarget(s.cond.base);
+
+  /** 새 대화 — 빈 대화(시작 화면)로. [＋ 새 대화] 단추와 머리줄 기준지역 변경(sa:new-conv)이 함께 쓴다 */
+  const newConv = useCallback(() => {
+    setConv(null);
+    setFollow(null);
+    router.replace("/explore");
+  }, [router]);
+  useEffect(() => {
+    window.addEventListener("sa:new-conv", newConv);
+    return () => window.removeEventListener("sa:new-conv", newConv);
+  }, [newConv]);
+
+  // 질문이 있는 대화가 열려 있는지 머리줄에 알린다(기준지역을 바꾸면 새 대화로 시작할지 묻도록) — 화면을 떠나면 닫힌 것으로
+  const { setConvOpen } = s;
+  const hasTurns = !!conv?.turns.length;
+  useEffect(() => setConvOpen(hasTurns), [hasTurns, setConvOpen]);
+  useEffect(() => () => setConvOpen(false), [setConvOpen]);
 
   // 이력에서 연 대화 (?c=) — 그 id 로 한 번만 연다(이후 새 대화를 시작해도 되돌아가지 않게)
   const openedC = useRef<string | null>(null);
@@ -126,7 +147,10 @@ function Explore() {
       const base = baseId ? current(baseId) : null;
       const c: Conversation = base
         ? { ...base, turns: [...base.turns, ...add], updatedAt: now }
-        : { id: uid("c"), title: title.slice(0, 60), region: sRef.current.cond.region, disasterType: sRef.current.cond.disasterType, createdAt: now, updatedAt: now, turns: add, v: 2 };
+        : {
+            id: uid("c"), title: title.slice(0, 60), region: sRef.current.cond.region, baseName: baseName(sRef.current.cond.base),
+            disasterType: sRef.current.cond.disasterType, createdAt: now, updatedAt: now, turns: add, v: 2,
+          };
       return commit(c, !baseId);
     },
     [commit],
@@ -156,12 +180,15 @@ function Explore() {
     [patchTurn],
   );
 
-  /** 질문 보내기 */
+  /** 질문 보내기 — 이력에서 다시 연 대화의 기준지역이 지금과 다르면 새 대화로(질문은 지금 기준지역으로 가므로) */
   const ask = useCallback(
     async (a: AskArgs, extra?: Partial<Turn>, newConv = false) => {
+      const open = convRef.current;
+      const moved = !newConv && otherBase(open, sRef.current.cond.base);
+      if (moved) sRef.current.toast(`기준지역이 이 대화(${open?.baseName})와 달라 새 대화로 보냅니다.`);
       const tid = uid("t");
       const t: Turn = { id: tid, jobId: "", pending: true, q: a.question, source: a.source, libraryId: a.libraryId ?? null, at: new Date().toISOString(), args: a, ...extra };
-      const c = appendTurns(a.question, [t], newConv ? null : convRef.current?.id ?? null);
+      const c = appendTurns(a.question, [t], newConv || moved ? null : open?.id ?? null);
       return submitInto(c.id, tid, a, c.turns.length);
     },
     [appendTurns, submitInto],
@@ -169,7 +196,7 @@ function Explore() {
   const toastErr = (e: unknown) => s.toast((e as Error).message);
 
   /** 지금 기준지역에서 발효 중인 특보(AI 모드 질의·브리핑에 원문 그대로) */
-  const liveWarnings = () => warningsPayload(s.weather, activeAdvisories(s.weather, s.cond.region));
+  const liveWarnings = () => warningsPayload(s.weather, activeAdvisories(s.weather, wxTarget));
 
   const askText = async (q: string) => {
     if (follow) {
@@ -179,7 +206,7 @@ function Explore() {
     }
     const ref = s.wxRef;
     // 참조 특보가 그사이 해제됐으면 떼고 보낸다(해제된 특보를 현재 특보로 보내지 않게)
-    const still = ref ? activeAdvisories(s.weather, s.cond.region).find((a) => a.id === ref.id) : undefined;
+    const still = ref ? activeAdvisories(s.weather, wxTarget).find((a) => a.id === ref.id) : undefined;
     if (ref && !still) {
       s.setWxRef(null);
       s.toast("참조한 특보가 해제되어 특보 참조 없이 보냅니다.");
@@ -226,8 +253,10 @@ function Explore() {
     async (convId: string, t: Turn) => {
       if (!t.jobId) {
         if (!t.args) return;
-        patchTurn(convId, t.id, { pending: true, error: undefined });
         const c = current(convId);
+        // 지금 기준지역으로 보내게 되므로 — 이 대화를 시작한 기준지역과 다르면 다시 보내지 않는다(R32 대화 하나는 기준지역 하나)
+        if (otherBase(c, sRef.current.cond.base)) return sRef.current.toast(`기준지역이 이 대화(${c?.baseName})와 달라 다시 보낼 수 없습니다.`);
+        patchTurn(convId, t.id, { pending: true, error: undefined });
         await submitInto(convId, t.id, t.args, (c?.turns.findIndex((x) => x.id === t.id) ?? 0) + 1).catch(toastErr);
         return;
       }
@@ -363,7 +392,7 @@ function Explore() {
                   }}
                 />
                 <span className="sp" />
-                <button className="btn sm" onClick={() => { setConv(null); setFollow(null); router.replace("/explore"); }}>＋ 새 대화</button>
+                <button className="btn sm" onClick={newConv}>＋ 새 대화</button>
               </div>
               {blocks.map((b, bi) =>
                 b.group ? (
@@ -374,7 +403,7 @@ function Explore() {
                     {/* 기준지역 — 보낼 때 남긴 이름(group.region)이 없는 예전 브리핑은 이 대화의 기준지역(지금 고른 지역이 아니라) */}
                     <BriefBoard
                       turns={b.turns}
-                      regionName={conv.region === "national" ? "전국" : (REGIONS[conv.region]?.name ?? regionName)}
+                      regionName={conv.baseName ?? (conv.region === "national" ? "전국" : (REGIONS[conv.region]?.name ?? regionName))}
                       renderBody={(t) => <TurnBody t={t} compact onRetry={() => retryTurn(conv.id, t)} />}
                     />
                   </section>

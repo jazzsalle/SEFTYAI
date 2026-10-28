@@ -2,9 +2,12 @@
 import { SOURCE_LABEL } from "@/lib/jobTypes";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useSession } from "@/lib/session";
+import { useSession, type Conversation } from "@/lib/session";
 import { REGIONS } from "@/lib/config";
 import { IcSearch } from "@/components/Icons";
+
+/** 대화의 기준지역 이름 — 대화를 시작할 때 남긴 이름(R32), 예전 대화는 시범 지역 이름 */
+const regionOf = (c: Conversation) => c.baseName ?? REGIONS[c.region]?.name ?? c.region;
 
 const fmt = (iso: string) => {
   const d = new Date(iso);
@@ -29,9 +32,11 @@ export default function HistoryPage() {
     const now = Date.now();
     const lim = period === "오늘" ? 864e5 : period === "1주일" ? 7 * 864e5 : period === "1개월" ? 30 * 864e5 : Infinity;
     return [...convs]
-      .filter((c) => (!qApplied || c.title.includes(qApplied) || c.turns.some((t) => t.q.includes(qApplied))) && now - new Date(c.updatedAt).getTime() <= lim && (dt === "전체" || (c.disasterType ?? "전체") === dt) && (rg === "전체" || c.region === rg))
+      .filter((c) => (!qApplied || c.title.includes(qApplied) || c.turns.some((t) => t.q.includes(qApplied))) && now - new Date(c.updatedAt).getTime() <= lim && (dt === "전체" || (c.disasterType ?? "전체") === dt) && (rg === "전체" || regionOf(c) === rg))
       .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
   }, [convs, qApplied, period, dt, rg]);
+  // 기준지역 거르개 — 내 대화에 있는 기준지역 이름만(전국 기준지역 R32)
+  const regionNames = useMemo(() => [...new Set(convs.map(regionOf))].sort((a, b) => a.localeCompare(b, "ko")), [convs]);
   const pages = Math.max(1, Math.ceil(list.length / size));
   const view = list.slice((page - 1) * size, page * size);
 
@@ -54,9 +59,9 @@ export default function HistoryPage() {
             {["전체", "호우", "태풍", "홍수", "침수", "산사태", "대설", "강풍"].map((x) => <option key={x}>{x}</option>)}
           </select>
           <b className="xs">기준지역</b>
-          <select className="select sm" value={rg} onChange={(e) => { setRg(e.target.value); setPage(1); }}>
+          <select className="select sm" value={rg} onChange={(e) => { setRg(e.target.value); setPage(1); }} aria-label="기준지역">
             <option>전체</option>
-            {Object.values(REGIONS).map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
+            {regionNames.map((r) => <option key={r} value={r}>{r}</option>)}
           </select>
           <span className="sp" />
           <button className="btn xs ghost" onClick={() => { setQ(""); setQApplied(""); setPeriod("전체"); setDt("전체"); setRg("전체"); }}>↻ 초기화</button>
@@ -83,7 +88,7 @@ export default function HistoryPage() {
                 <td><b>{c.title}</b><div className="xs mute2" style={{ marginTop: 2 }}>{c.turns.map((t) => t.q).slice(0, 2).join(" · ")}</div></td>
                 <td>{c.disasterType && c.disasterType !== "전체" ? c.disasterType : "전체"}</td>
                 <td>{c.v === 2 ? [...new Set(c.turns.map((t) => SOURCE_LABEL[t.source] ?? "-"))].join(", ") : "이전 버전(표시 불가)"}</td>
-                <td>{REGIONS[c.region].name}</td>
+                <td>{regionOf(c)}</td>
                 <td>{c.turns.length}</td>
                 <td className="num">{fmt(c.updatedAt)}</td>
               </tr>

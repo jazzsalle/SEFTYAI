@@ -1,0 +1,26 @@
+/* 입력창 [브리핑 세트▾] 2단 패널 — 왼쪽 시작·설정 | 오른쪽 내 브리핑 세트 질문(최대 8개). 입력창 위로 열린다 */
+.bs-pop { position: absolute; left: 0; bottom: 100%; margin-bottom: 8px; z-index: 70; display: flex; width: min(700px, calc(100vw - 80px)); max-height: min(640px, calc(100vh - 220px)); background: #fff; border: 1px solid var(--c-bd); border-radius: var(--r-xl); box-shadow: var(--shadow-2); overflow: hidden; animation: bs-up 0.16s ease-out; }
+.bs-act { flex: none; width: 196px; display: flex; flex-direction: column; gap: 4px; padding: 12px; background: var(--c-surface); border-right: 1px solid var(--c-line); }
+.bs-act .bs-start { width: 100%; padding: 10px 12px; border: 0; border-radius: var(--r-l); background: var(--c-primary); color: #fff; font-size: var(--fs-xs); font-weight: 700; text-align: left; cursor: pointer; }
+.bs-act .bs-start:hover { background: var(--c-primary-dk); }
+.bs-act .bs-set { display: flex; align-items: center; justify-content: space-between; padding: 9px 12px; border-radius: var(--r-l); color: var(--c-text); font-size: var(--fs-xs); text-decoration: none; }
+.bs-act .bs-set:hover { background: var(--c-sec-sub); }
+.bs-list { flex: 1; min-width: 0; min-height: 0; display: flex; flex-direction: column; padding: 12px 6px 10px 12px; animation: bs-slide 0.22s ease-out; }
+.bs-h { padding: 0 8px 8px; font-size: var(--fs-xs); color: var(--c-navy); }
+.bs-list ol { flex: 1 1 auto; min-height: 0; overflow-y: auto; list-style: none; margin: 0; padding: 0 6px 0 0; display: flex; flex-direction: column; gap: 2px; }
+.bs-list li button { width: 100%; display: flex; align-items: flex-start; gap: 10px; padding: 8px; border: 0; border-radius: var(--r-l); background: none; text-align: left; cursor: pointer; }
+.bs-list li button:hover, .bs-list li button:focus-visible { background: var(--c-primary-sub); }
+.bs-list .no { flex: none; width: 22px; height: 22px; border-radius: 50%; background: var(--c-sec-sub); color: var(--c-navy); font-size: var(--fs-2xs); font-weight: 700; display: grid; place-items: center; }
+.bs-list .tx { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.bs-list .k { font-size: var(--fs-2xs); font-weight: 700; color: var(--c-primary); }
+.bs-list .q { font-size: var(--fs-xs); line-height: 1.45; color: var(--c-text); }
+.bs-empty { margin: 0; padding: 8px; font-size: var(--fs-xs); color: var(--c-sub); }
+@keyframes bs-up { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes bs-slide { from { opacity: 0; transform: translateX(-14px); } to { opacity: 1; transform: none; } }
+@media (max-width: 760px) {
+  .bs-pop { flex-direction: column; }
+  .bs-act { width: auto; border-right: 0; border-bottom: 1px solid var(--c-line); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bs-pop, .bs-list { animation: none; }
+}

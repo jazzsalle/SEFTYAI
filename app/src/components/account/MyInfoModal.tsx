@@ -5,7 +5,8 @@
  * 사용: {open && <MyInfoModal onClose={() => setOpen(false)} />}
  */
 import { useSession } from "@/lib/session";
-import { REGIONS, type Account } from "@/lib/config";
+import type { Account } from "@/lib/config";
+import { baseName, defaultBase } from "@/lib/baseRegion";
 import { canSend } from "@/lib/contactsCore";
 import { Dialog } from "./Dialog";
 
@@ -15,10 +16,10 @@ const USER_TYPE: Record<Account["role"], string> = {
   운영자: "시스템 운영자",
 };
 
+/** 기본 기준지역(R32 — 지자체 = 소속 지역, 그 밖 = 전국). 어느 계정이든 머리줄에서 전국 어디로든 바꿀 수 있다 */
 function regionText(a: Account): [string, string] {
-  if (a.role === "지자체") return [REGIONS[a.region].name, "질의는 소속 지역을 기준으로 합니다."];
-  if (a.role === "중앙정부") return ["전국", "시범 지역(부산·영천·인제)으로 바꿔 질의할 수 있습니다."];
-  return ["전국", "운영 확인용으로 지역을 바꿔 볼 수 있습니다."];
+  if (a.role === "운영자") return [baseName(defaultBase(a)), "운영 확인용으로 지역을 바꿔 볼 수 있습니다."];
+  return [baseName(defaultBase(a)), "머리줄 기준지역에서 시·도·시·군·구·읍·면·동으로 바꿔 질의할 수 있습니다."];
 }
 
 function menus(a: Account): { name: string; level: string; on: boolean }[] {

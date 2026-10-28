@@ -22,7 +22,7 @@ function Report() {
     <div className="report">
       <div className="no-print" style={{ marginBottom: 12 }}><button className="btn" onClick={() => window.print()}>인쇄</button></div>
       <h1>{conv.title}</h1>
-      <div className="xs muted">기준지역 {REGIONS[conv.region]?.name ?? conv.region} · {new Date(conv.updatedAt).toLocaleString("ko-KR")} · 답변은 재난안전 AI 응답 원문입니다.</div>
+      <div className="xs muted">기준지역 {conv.baseName ?? REGIONS[conv.region]?.name ?? conv.region} · {new Date(conv.updatedAt).toLocaleString("ko-KR")} · 답변은 재난안전 AI 응답 원문입니다.</div>
       {conv.turns.map((t, i) => {
         const raw = t.jobId ? s.full[t.jobId]?.raw : null;
         return (

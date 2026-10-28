@@ -1,7 +1,7 @@
 "use client";
 /**
  * 서버 API 호출 — 로그인 세션은 쿠키(sa_sid)로 간다 (R7). 401 이면 세션 만료 이벤트를 알린다.
- * 유휴 30분: 사용자가 최근 1분 안에 화면을 조작했을 때만 x-sa-activity: 1 을 보내 세션을 연장한다(백그라운드 폴링은 연장하지 않음).
+ * 유휴 4시간: 사용자가 최근 1분 안에 화면을 조작했을 때만 x-sa-activity: 1 을 보내 세션을 연장한다(백그라운드 폴링은 연장하지 않음).
  */
 let lastActivity = Date.now();
 if (typeof window !== "undefined") {

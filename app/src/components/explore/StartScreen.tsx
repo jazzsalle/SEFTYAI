@@ -43,7 +43,7 @@ export default function StartScreen({ regionName, onBriefing, onAskBrief, onAskL
           </button>
         ))}
       </div>
-      {s.cond.region === "national" && <p className="xs muted" style={{ textAlign: "center" }}>기준지역이 전국이면 지역 질문 대신 기준지역을 먼저 고르세요(상단 기준지역).</p>}
+      {!s.cond.base && <p className="xs muted" style={{ textAlign: "center" }}>기준지역이 전국이면 지역 질문 대신 기준지역을 먼저 고르세요(상단 기준지역).</p>}
     </div>
   );
 }

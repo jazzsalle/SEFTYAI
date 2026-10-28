@@ -11,7 +11,12 @@
 .gnb a { height: 56px; display: inline-flex; align-items: center; padding: 0 12px; font-size: var(--fs-s); font-weight: 600; color: var(--c-sub); border-bottom: 3px solid transparent; }
 .gnb a.on { color: var(--c-navy); border-bottom-color: var(--c-navy); font-weight: 800; }
 .gnb a:hover { color: var(--c-primary-dk); }
-.gh.one .scope { display: flex; align-items: center; gap: 6px; }
+.gh.one .scope { display: flex; align-items: center; gap: 6px; min-width: 0; flex: 0 1 auto; }
+/* 기준지역 고르기 셋(시·도·시·군·구·읍·면·동)이 들어가도 머리줄 한 줄 — 고르기가 먼저 줄어든다 */
+.gh.one .logo, .gh.one .gnb a, .gh.one .scope > span, .gh.one .hbtn, .gh.one .ai-pill, .gh.one .user > button { white-space: nowrap; }
+.gh.one .scope .select.sm { max-width: 170px; min-width: 84px; flex: 0 1 auto; text-overflow: ellipsis; }
+.gh.one .scope .select.sm:disabled { background-color: var(--c-sec-sub); color: var(--c-sub); cursor: not-allowed; }
+.gh.one .scope-err { display: inline-flex; align-items: center; gap: 6px; color: var(--c-dang-dk); white-space: nowrap; }
 .hbtn { height: 34px; padding: 0 10px; border: 0; background: none; font-size: var(--fs-xs); color: var(--c-sub); border-radius: var(--r-m); }
 .hbtn:hover { background: var(--c-sec-sub); }
 .sysbar { flex: none; padding: 6px 24px; background: var(--c-dang-sub); color: var(--c-dang-dk); font-size: var(--fs-xs); font-weight: 600; }
@@ -136,7 +141,7 @@
 @media (max-width: 1300px) { .start-tiles { grid-template-columns: repeat(2, 1fr); } }
 
 /* 입력창 */
-.ex-main .composer { flex: none; max-width: 1040px; width: calc(100% - 56px); margin: 0 auto 16px; background: #fff; border: 1px solid var(--c-bd); border-radius: var(--r-xl); padding: 14px 20px; box-shadow: var(--shadow-2); display: flex; flex-direction: column; gap: 10px; }
+.ex-main .composer { flex: none; max-width: 1040px; width: calc(100% - 56px); margin: 0 auto 16px; background: #fff; border: 2px solid var(--c-primary); border-radius: var(--r-xl); padding: 14px 20px; box-shadow: var(--shadow-2); display: flex; flex-direction: column; gap: 10px; }
 .cmp-cond { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
 .cmp-follow { display: flex; gap: 8px; align-items: center; background: var(--c-primary-sub); padding: 6px 10px; border-radius: var(--r-m); }
 .cmp-input { width: 100%; min-height: 56px; max-height: 180px; resize: vertical; border: 1px solid var(--c-input-bd); border-radius: var(--r-l); padding: 14px 16px; font: inherit; font-size: var(--fs-s); }
@@ -160,7 +165,20 @@
 .aim-card.calm { background: var(--c-sec-sub); }
 .aim-ai { margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(0, 0, 0, 0.08); max-height: 46vh; overflow-y: auto; }
 .pager { display: inline-flex; align-items: center; gap: 6px; }
-button.aim-strip { position: fixed; left: 50%; transform: translateX(-50%); bottom: 18px; z-index: 90; border: 0; border-radius: 999px; padding: 10px 20px; background: var(--c-navy); color: #fff; font-weight: 700; box-shadow: var(--shadow-2); }
+/* AI 모드 접힘 띠 — 대응절차 줄 아래 내용 맨 위(아래 내용을 밀어 내림). 점 색 = 머리줄 AI 모드 단추 */
+.aim-bar-wrap { flex: none; padding: 10px 24px 2px; background: var(--c-bg); }
+.aim-bar { display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 8px 10px 8px 22px; border-radius: 999px; background: var(--c-navy-2); color: #fff; box-shadow: var(--shadow-1); }
+.aim-bar .aim-dot { flex: none; width: 10px; height: 10px; border-radius: 50%; background: #8a949e; }
+.aim-bar .aim-dot.st-red { background: #ff6b5b; box-shadow: 0 0 0 4px rgba(255, 107, 91, 0.3); animation: blink 1.4s infinite; }
+.aim-bar .aim-dot.st-yellow { background: #fdb022; box-shadow: 0 0 0 4px rgba(253, 176, 34, 0.3); }
+.aim-bar .aim-dot.st-green { background: #3ddc84; box-shadow: 0 0 0 4px rgba(61, 220, 132, 0.25); }
+.aim-bar .aim-w { min-width: 0; font-size: var(--fs-s); }
+.aim-bar .aim-t { flex: none; font-size: var(--fs-xs); color: rgba(255, 255, 255, 0.72); }
+.aim-bar .aim-open { flex: none; height: 36px; padding: 0 16px; border: 1px solid rgba(255, 255, 255, 0.55); border-radius: var(--r-l); background: transparent; color: #fff; font-size: var(--fs-xs); font-weight: 700; cursor: pointer; }
+.aim-bar .aim-open:hover { background: rgba(255, 255, 255, 0.12); }
+.aim-bar .aim-open:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+@media (max-width: 760px) { .aim-bar { flex-wrap: wrap; border-radius: var(--r-xl); } .aim-bar .aim-t { flex: 1 1 100%; } }
+@media (prefers-reduced-motion: reduce) { .aim-bar .aim-dot.st-red { animation: none; } }
 
 /* 질문 모음 */
 .ex-main ~ .drawer, .explore .drawer { position: fixed; right: 0; top: 0; bottom: 0; width: min(560px, 96vw); background: #fff; z-index: 95; box-shadow: var(--shadow-2); display: flex; flex-direction: column; }

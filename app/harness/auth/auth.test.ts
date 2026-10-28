@@ -62,8 +62,10 @@ describe("로그인·세션", () => {
     await A.sessionAccount(req(ck, true));
     const [s2] = await sql.query("select last_seen_at from sa_sessions where revoked_at is null and account_id = 'ij_safety01'");
     expect(Date.now() - new Date(String(s2.last_seen_at)).getTime()).toBeLessThan(60_000); // 사용자 조작은 연장
-    await sql.query("update sa_sessions set last_seen_at = now() - interval '31 minutes'");
-    expect(await A.sessionAccount(req(ck))).toBeNull(); // 유휴 30분 만료
+    await sql.query("update sa_sessions set last_seen_at = now() - interval '239 minutes'");
+    expect(await A.sessionAccount(req(ck))).not.toBeNull(); // 유휴 4시간 안 — 아직 유효
+    await sql.query("update sa_sessions set last_seen_at = now() - interval '241 minutes'");
+    expect(await A.sessionAccount(req(ck))).toBeNull(); // 유휴 4시간 만료(R34)
   });
 
   it("비밀번호 변경: 같은 비밀번호 거절, 바꾸면 다른 세션은 끊긴다", async () => {

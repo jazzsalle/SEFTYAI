@@ -1,9 +1,8 @@
 import "server-only";
 import { createHash, createHmac, randomUUID } from "node:crypto";
 import type { Account } from "../config";
-import type { RegionId } from "../contract/agent";
 import { newRequestId, t3q } from "../t3q/client";
-import { PILOT_T3Q } from "../t3q/region";
+import { wxCovers, wxTargetOfT3q, type WxTarget } from "../wxMatch";
 import { db, ensureSchema } from "./db";
 import { fetchLiveAdvisories } from "./kma";
 import { traceAdd } from "./kvStore";
@@ -171,8 +170,8 @@ export async function submitJob(acc: Account, input: SubmitInput): Promise<Job> 
         [cacheKey, new Date(Date.now() - CACHE_TTL_MS)],
       )
     )[0];
-    // D5 — 1시간보다 오래된 답이면 그 지역 특보 발효 여부를 본다(발효 중이면 다시 쓰지 않음)
-    if (hit && Date.now() - new Date(hit.finished_at ?? 0).getTime() > WARN_CACHE_TTL_MS && (await warningInEffect(regionOf(input.queryContext)))) hit = undefined;
+    // D5 — 1시간보다 오래된 답이면 그 기준지역 특보 발효 여부를 본다(발효 중이면 다시 쓰지 않음)
+    if (hit && Date.now() - new Date(hit.finished_at ?? 0).getTime() > WARN_CACHE_TTL_MS && (await warningInEffect(wxTargetOfT3q(input.queryContext?.region)))) hit = undefined;
     if (hit) {
       const [row] = await q(
         `insert into sa_agent_jobs (id, account_id, conv_id, turn_no, source, library_id, question_user, question_sent, request, cache_key,
@@ -197,16 +196,6 @@ export async function submitJob(acc: Account, input: SubmitInput): Promise<Job> 
 const warnKeys = (w?: Record<string, unknown> | null) =>
   ((w?.items as { warning_key?: string; kind?: string; level?: string; area?: string }[]) ?? []).map((i) => [i.warning_key, i.kind, i.level, i.area]);
 
-/** 작업의 기준지역 — 보낸 query_context.region 행정코드로 가린다. 지역을 보내지 않았으면 전국, 시범지역 밖이면 null */
-function regionOf(qc: Record<string, unknown> | null | undefined): RegionId | null {
-  const code = String((qc?.region as { admin_code?: unknown } | null | undefined)?.admin_code ?? "");
-  if (!code) return "national";
-  const ids = Object.keys(PILOT_T3Q) as Exclude<RegionId, "national">[];
-  const digits = { SIDO: 2, SIGUNGU: 5, EMD: 8 } as const;
-  // 시도는 앞 2자리, 시군구는 앞 5자리가 같으면 그 지역(그 아래 시군구·읍면동을 고른 경우 포함)
-  return ids.find((id) => code.startsWith(PILOT_T3Q[id].admin_code.slice(0, digits[PILOT_T3Q[id].level]))) ?? null;
-}
-
 type LiveWeather = Awaited<ReturnType<typeof fetchLiveAdvisories>>;
 let wxCache: { at: number; p: Promise<LiveWeather | null> } | null = null;
 
@@ -225,15 +214,15 @@ async function liveWeather(): Promise<LiveWeather | null> {
 }
 
 /**
- * D5 — 접수 시각에 그 지역에 기상특보가 발효 중인가(발효·변경 — 예비·해제는 아님).
- * 지역 맞추기는 화면(wxref.activeAdvisories)과 같다: 전국이면 모든 특보, 아니면 특보의 regionId 가 같은 것.
- * 조회 실패·지연·지역을 가릴 수 없음 → false(24시간 기준 그대로)
+ * D5 — 접수 시각에 작업의 기준지역(보낸 query_context.region)에 기상특보가 발효 중인가(발효·변경 — 예비·해제는 아님).
+ * 지역 맞추기는 화면(특보 줄·AI 모드)과 같은 함수 lib/wxMatch.wxCovers: 지역을 보내지 않았으면(전국) 모든 특보, 아니면 특보 구역이 기준지역을 덮는 것.
+ * 조회 실패·지연·지역 이름을 읽을 수 없음(undefined) → false(24시간 기준 그대로)
  */
-async function warningInEffect(region: RegionId | null): Promise<boolean> {
-  if (!region) return false;
+async function warningInEffect(target: WxTarget | null | undefined): Promise<boolean> {
+  if (target === undefined) return false;
   const w = await liveWeather();
   if (!w?.ok) return false;
-  return w.advisories.some((a) => (a.status === "발효" || a.status === "변경") && (region === "national" || a.regionId === region));
+  return w.advisories.some((a) => (a.status === "발효" || a.status === "변경") && wxCovers(a.area, target));
 }
 
 /**

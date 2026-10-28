@@ -1,4 +1,5 @@
-import type { Advisory, RegionId, WeatherResponse } from "./contract/agent";
+import type { Advisory, WeatherResponse } from "./contract/agent";
+import { wxCovers, type WxTarget } from "./wxMatch";
 
 /** [특보로 질문] 빠른질의 (목업 QQ-01~03) — 참조 특보와 함께 전송, presetKey 로 의도 고정 */
 export const WX_QQ = [
@@ -16,9 +17,9 @@ export const advTime = (iso: string) => {
 };
 export const advTone = (a: { level: string }) => (a.level === "경보" ? "w" : a.level === "주의보" ? "a" : "p");
 
-/** 지금 발효 중인 특보(해제 제외) — 기준지역이 전국이면 전체 */
-export function activeAdvisories(weather: WeatherResponse | null | undefined, region: RegionId): Advisory[] {
-  return (weather?.advisories ?? []).filter((a) => a.status !== "해제" && (region === "national" || a.regionId === region));
+/** 지금 발효 중인 특보(해제 제외) — 특보 구역이 기준지역을 덮는 것만(lib/wxMatch, 서버 재사용 기준과 같은 함수). 기준지역이 전국(null)이면 전체 */
+export function activeAdvisories(weather: WeatherResponse | null | undefined, target: WxTarget | null): Advisory[] {
+  return (weather?.advisories ?? []).filter((a) => a.status !== "해제" && wxCovers(a.area, target));
 }
 
 /**

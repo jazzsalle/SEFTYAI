@@ -6,8 +6,8 @@ import { isActive, receivedAt, STATE_LABEL, type JobFull, type JobSummary, type 
 import { gapName, GAP_KO, statusKo } from "@/lib/labels";
 import { fmtAgo, fmtElapsed, fmtRunning } from "@/lib/format";
 import { activeAdvisories, advLabel, advTime } from "@/lib/wxref";
-import { PILOT_T3Q } from "@/lib/t3q/region";
-import type { Advisory, RegionId, WeatherResponse } from "@/lib/contract/agent";
+import { legacyAdvIds, seenArea, wxCovers, wxTargetOfT3q, type WxTarget } from "@/lib/wxMatch";
+import type { Advisory, WeatherResponse } from "@/lib/contract/agent";
 import { useExplore } from "../explore/ExploreCtx";
 import { IcChevD } from "../Icons";
 import { AnswerMarkdown, entityLabel, mdPlainText } from "./Markdown";
@@ -23,15 +23,14 @@ export { entityLabel } from "./Markdown";
  * 유엔이가 센 값·설명 문구는 두지 않는다.
  */
 
-/** 이 답을 보낸 기준지역 — 요청 query_context.region 행정코드(서버 jobs.regionOf 와 같은 규칙). 지역을 보내지 않았으면 전국, 시범지역 밖·요청 없음이면 null */
-export function regionOfRequest(request: unknown): RegionId | null {
-  if (!request || typeof request !== "object") return null;
-  const qc = (request as { query_context?: { region?: { admin_code?: unknown } | null } | null }).query_context;
-  const code = String(qc?.region?.admin_code ?? "");
-  if (!code) return "national";
-  const digits = { SIDO: 2, SIGUNGU: 5, EMD: 8 } as const;
-  const ids = Object.keys(PILOT_T3Q) as Exclude<RegionId, "national">[];
-  return ids.find((id) => code.startsWith(PILOT_T3Q[id].admin_code.slice(0, digits[PILOT_T3Q[id].level]))) ?? null;
+/**
+ * 이 답을 보낸 기준지역 — 요청 query_context.region(이름·단계, 서버 재사용 기준 D5 와 같은 함수 lib/wxMatch).
+ * 지역을 보내지 않았으면 전국(null), 요청이 없거나 지역 이름을 읽을 수 없으면 undefined(모름)
+ */
+export function regionOfRequest(request: unknown): WxTarget | null | undefined {
+  if (!request || typeof request !== "object") return undefined;
+  const qc = (request as { query_context?: { region?: unknown } | null }).query_context;
+  return wxTargetOfT3q(qc?.region);
 }
 
 /** 이 답을 받은 때 발효 중이던 특보(서버가 남긴 목록) — 재사용이면 원래 답을 받은 때의 것. 모르면 null */
@@ -43,16 +42,27 @@ export function seenAdvisories(job: JobSummary, full?: JobFull | null): WxSeen[]
 /**
  * 답을 받은 뒤 그 지역에 새로 발표된 특보(받은 순서 그대로) — 답을 받은 때 발효 중이던 특보 목록(seen)에 없고,
  * 기상청 발표 시각도 받은 시각(at) 뒤인 것만. 특보 현황의 발표 시각(issuedAt)은 특보마다의 시각이 아니라 현황 한 장의 시각이라
- * 그것만으로는 가리지 않는다(다른 지역 특보가 새로 나와도 시각이 바뀐다). 기준지역이면 같은 지역·종류·단계가 그때 있었는지,
- * 전국이면 같은 특보(구역 포함)가 있었는지로 본다. 무엇이든 모르면(특보 조회 실패·목록 없음·시각 없음) 빈 목록 — 주의를 지어내지 않는다
+ * 그것만으로는 가리지 않는다(다른 지역 특보가 새로 나와도 시각이 바뀐다). 기준지역이면 그 기준지역을 덮는 같은 종류·단계 특보가
+ * 그때 있었는지(구역 글은 특보 id 에서, 예전 시험 자료처럼 id 꼴이 다르면 시범 지역 표시로), 전국이면 같은 특보(구역 포함)가 있었는지로 본다.
+ * 무엇이든 모르면(특보 조회 실패·목록 없음·시각 없음·지역 모름) 빈 목록 — 주의를 지어내지 않는다
  */
-export function advisoriesAfter(weather: WeatherResponse | null | undefined, region: RegionId | null, at: string | null, seen: WxSeen[] | null | undefined): Advisory[] {
-  if (!weather?.status.ok || !region || !at || !seen) return [];
+export function advisoriesAfter(weather: WeatherResponse | null | undefined, target: WxTarget | null | undefined, at: string | null, seen: WxSeen[] | null | undefined): Advisory[] {
+  if (!weather?.status.ok || target === undefined || !at || !seen) return [];
   const t = Date.parse(at);
   if (!Number.isFinite(t)) return [];
-  const known = (a: Advisory) =>
-    seen.some((w) => (region === "national" ? w.id === a.id : w.regionId === a.regionId && w.type === a.type && w.level === a.level));
-  return activeAdvisories(weather, region).filter((a) => {
+  const ids = new Set(seen.map((w) => w.id));
+  const known = (a: Advisory) => {
+    // 전환용(임시) — 예전 판이 괄호 안 괄호 구역을 쪼개 남긴 wx_seen: 같은 구역 글의 예전 id 가 모두 있으면 그때도 발효 중이던 같은 특보
+    const old = legacyAdvIds(a.type, a.level, a.area);
+    if (old.length > 1 && old.every((id) => ids.has(id))) return true;
+    return seen.some((w) => {
+      if (!target) return w.id === a.id;
+      if (w.type !== a.type || w.level !== a.level) return false;
+      const area = seenArea(w);
+      return area !== null ? wxCovers(area, target) : !!w.regionId && w.regionId === a.regionId;
+    });
+  };
+  return activeAdvisories(weather, target).filter((a) => {
     const i = Date.parse(a.issuedAt);
     return Number.isFinite(i) && i > t && !known(a);
   });

@@ -1,4 +1,5 @@
 import { buildQueryContext, type ClientCondition } from "@/lib/server/queryContext";
+import { parseBaseWire } from "@/lib/baseRegion";
 import { runPreview } from "@/lib/server/preview";
 import { jobSummary, listJobs, medianMs, setPreview, submitJob, sweepAny, type JobSource } from "@/lib/server/jobs";
 import { hasDb } from "@/lib/server/db";
@@ -42,13 +43,17 @@ export async function POST(req: Request) {
   if (!question) return fail(400, "질문을 입력하세요.");
   if (question.length > 2000) return fail(400, "질문은 2,000자까지 입력할 수 있습니다.");
   const source = SOURCES.includes(b!.source as JobSource) ? (b!.source as JobSource) : "USER";
+  // 기준지역(R32) — 숫자 코드 2·5·8자리·단계 일치·이름 80자까지. 틀린 값은 보내지 않고 거절한다(null = 전국)
+  const base = b?.condition?.base;
+  if (base !== undefined && base !== null && !parseBaseWire(base)) return fail(400, "기준지역 값이 올바르지 않습니다.");
   const dupKey = `${who.id}:${question}:${b?.convId ?? ""}`;
   const last = recent.get(dupKey);
   if (last && Date.now() - last < 3000 && !b?.noCache) return fail(429, "같은 질문을 방금 보냈습니다.");
   recent.set(dupKey, Date.now());
 
   const lib = b?.libraryId ? libById(b.libraryId) : undefined;
-  const queryContext = buildQueryContext(who, b?.condition, lib?.disasterTypes);
+  // 질문 글은 R33(임시) 판단에만 넘긴다 — 보내는 질문은 그대로
+  const queryContext = buildQueryContext(who, b?.condition, lib?.disasterTypes, question);
   // R3 — 정의된 질문(라이브러리·브리핑·특보)만 Data API 자동 조회. 자유 질문은 하지 않는다
   const previewP = b?.libraryId ? runPreview(b.libraryId, queryContext).catch(() => undefined) : Promise.resolve(undefined);
   let job = await submitJob(who, {
