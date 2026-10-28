@@ -10,9 +10,10 @@ export const dynamic = "force-dynamic";
  * 헤더 x-seed-secret = env SEED_SECRET 이어야 한다. SEED_SECRET 이 없으면 비활성.
  */
 export async function POST(req: Request) {
-  const secret = process.env.SEED_SECRET;
-  const got = req.headers.get("x-seed-secret") ?? "";
-  if (!secret || got.length !== secret.length || !timingSafeEqual(Buffer.from(got), Buffer.from(secret))) return fail(404, "Not Found");
+  // 앞뒤 공백·줄바꿈은 무시(Vercel 값 칸에 붙여 넣을 때 섞여 들어가는 일이 있음). 길이는 바이트로 비교(timingSafeEqual 은 길이가 다르면 예외)
+  const secret = process.env.SEED_SECRET?.trim();
+  const got = Buffer.from((req.headers.get("x-seed-secret") ?? "").trim()), want = Buffer.from(secret ?? "");
+  if (!secret || got.length !== want.length || !timingSafeEqual(got, want)) return fail(404, "Not Found");
   const b = (await req.json().catch(() => null)) as { accounts?: Record<string, string>; mustChange?: boolean } | null;
   if (!b?.accounts) return fail(400, "accounts 가 필요합니다.");
   const done: string[] = [];
