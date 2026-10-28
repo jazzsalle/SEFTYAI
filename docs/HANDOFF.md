@@ -1,6 +1,6 @@
 # 인수인계 — 재난안전 AI 시범서비스 · T3Q 실연동판 (2026-10-28 기준)
 
-다음 작업을 시작할 때 이 문서부터 읽는다. 결정의 이유는 [`renewal/design/00_decisions.md`](renewal/design/00_decisions.md)(R0~R35), 설계는 `renewal/design/01~09`에 있다(08_visual = 시각화 설계안, 승인 대기). 이전(가정 응답) 판 인수인계는 git 이력(`c813959` 이전 HANDOFF)에 있다.
+다음 작업을 시작할 때 이 문서부터 읽는다. 결정의 이유는 [`renewal/design/00_decisions.md`](renewal/design/00_decisions.md)(R0~R36), 설계는 `renewal/design/01~09`에 있다(08_visual = 시각화 설계안, 승인 대기). 이전(가정 응답) 판 인수인계는 git 이력(`c813959` 이전 HANDOFF)에 있다.
 
 ## 1. 현재 상태
 | 항목 | 값 |

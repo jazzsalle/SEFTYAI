@@ -17,7 +17,9 @@ import { BRIEF_AIM_COUNT, useBriefItems } from "@/lib/briefing";
  * 특보·점검 지역 = 지금 기준지역(R32, lib/wxMatch). 기준지역이 바뀌면 점검 상태를 비우고 새 지역으로 바로 다시 점검한다. 전국이면 점검하지 않는다.
  */
 const INTERVAL_MIN = 10;
-const AIM_Q = (region: string) => `${region}의 현재 기상특보 상황을 점검하고, 담당자가 지금 먼저 확인해야 할 대상과 부족한 정보를 알려주세요.`;
+/** 점검 질의 = 상세 요구사항 정의서 v1.72 UFR-001-001-05 「Agent 질의 내용」 원문 그대로(특보마다 2문장·공백 포함 80자 내외). 지역은 query_context.region, 특보는 weather_warnings 로 따로 보낸다 */
+const AIM_Q =
+  "제공된 기상특보 정보를 기준으로, 해당 지역 담당자가 지금 상황확인 또는 재난대응 착수를 우선 검토해야 합니까? 활용 가능한 재난안전 데이터를 참고하여, 발효 중인 특보가 있으면 특보마다 담당자가 먼저 확인할 내용을 과거 사례나 위험지역 근거와 함께 2문장 이내(공백 포함 80자 내외)로 작성하고, 참고한 근거를 함께 반환하십시오. 발효 중인 특보가 없으면, 과거 사례나 위험지역은 언급하지 말고 제공된 정보에서 대응 검토가 필요한 사유를 확인하지 못했다는 점검 결과만 2문장 이내로 반환하십시오. 제공되지 않은 관측값이나 피해 발생 여부는 추정하지 마십시오.";
 
 export default function AiModeModal() {
   const s = useSession();
@@ -45,7 +47,7 @@ export default function AiModeModal() {
       if (!cur.cond.base) return;
       try {
         const job = await cur.submit({
-          question: AIM_Q(regionName),
+          question: AIM_Q,
           source: "AI_MODE",
           aiMode: { check_id: uid("CHK-"), trigger, interval_min: INTERVAL_MIN },
           // 사용자가 직접 [지금 다시 점검] 하면 10분 캐시를 쓰지 않고 새로 묻는다
@@ -58,7 +60,7 @@ export default function AiModeModal() {
         cur.toast((e as Error).message);
       }
     },
-    [regionName],
+    [],
   );
 
   // 기준지역이 바뀌면 처음부터 — 이전 지역의 점검 답·시각·특보 쪽수를 비우고, 아래 효과가 새 지역으로 바로 점검(START)한다.
@@ -85,7 +87,8 @@ export default function AiModeModal() {
   useEffect(() => {
     const t = setInterval(() => check("INTERVAL"), INTERVAL_MIN * 60_000);
     return () => clearInterval(t);
-  }, [check]);
+    // 기준지역이 바뀌면 10분 주기도 그 시각부터 다시 센다
+  }, [check, bk]);
 
   const job = jobId ? s.jobs[jobId] : null;
   const full = jobId ? s.full[jobId] : undefined;

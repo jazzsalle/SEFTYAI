@@ -275,7 +275,7 @@ await p.waitForSelector(".modal.aim", { timeout: 10000 });
 const aim2 = await text(p, ".modal.aim");
 ok(aim2.includes("제주") && !aim2.includes("부산광역시 수영구"), "AI 모드 — 기준지역을 바꾸면 제주특별자치도로 처음부터 다시 점검");
 const latest = await p.evaluate(async () => (await fetch("/api/agent/jobs?limit=3", { credentials: "same-origin" }).then((x) => x.json())).jobs.filter((j) => j.source === "AI_MODE").map((j) => `${j.state}:${j.question_user}`));
-ok(latest[0]?.includes("제주특별자치도의 현재 기상특보 상황을 점검"), `새 AI 모드 점검 질문: ${latest[0]}`);
+ok(latest[0]?.startsWith("제공된 기상특보 정보를 기준으로"), `새 AI 모드 점검 질문(요구사항 원문): ${latest[0]?.slice(0, 40)}`);
 await shot(p, "10_aimode_restarted_jeju");
 console.log("  취소한 진행 작업:", (await cancelActive(p)).join(" | "));
 await enabledAgain(p);

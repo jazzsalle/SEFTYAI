@@ -1,0 +1,123 @@
+[
+  {
+    "id": "none",
+    "status": "SUCCESS",
+    "elapsedMs": 17970,
+    "waitedMs": 18812,
+    "answerChars": 129,
+    "answer": "현재 부산광역시에 발효 중인 기상특보가 없어 제공된 정보상 즉각적인 재난대응 착수나 상황확인을 우선 검토할 사유는 확인되지 않았습니다. 따라서 현 시점에서는 기상특보에 따른 별도의 비상 대응 검토가 필요하지 않은 상태로 판단됩니다.",
+    "refs": 0,
+    "raw": {
+      "schema_version": "2.0",
+      "request_id": "fe9fcaebde90ca1d3fd4fe776ccbedc1",
+      "correlation_id": "corr-fe9fcaebde90ca1d3fd4fe776ccbedc1",
+      "status": "SUCCESS",
+      "result": {
+        "response_id": "RES-20261028-1cc1da",
+        "question": "제공된 기상특보 정보를 기준으로, 해당 지역 담당자가 지금 상황확인 또는 재난대응 착수를 우선 검토해야 합니까? 활용 가능한 재난안전 데이터를 참고하여, 발효 중인 특보가 있으면 특보마다 담당자가 먼저 확인할 내용을 과거 사례나 위험지역 근거와 함께 2문장 이내(공백 포함 80자 내외)로 작성하고, 참고한 근거를 함께 반환하십시오. 발효 중인 특보가 없으면, 과거 사례나 위험지역은 언급하지 말고 제공된 정보에서 대응 검토가 필요한 사유를 확인하지 못했다는 점검 결과만 2문장 이내로 반환하십시오. 제공되지 않은 관측값이나 피해 발생 여부는 추정하지 마십시오.",
+        "question_source": "AI_MODE",
+        "answer": "현재 부산광역시에 발효 중인 기상특보가 없어 제공된 정보상 즉각적인 재난대응 착수나 상황확인을 우선 검토할 사유는 확인되지 않았습니다. 따라서 현 시점에서는 기상특보에 따른 별도의 비상 대응 검토가 필요하지 않은 상태로 판단됩니다.",
+        "answer_format": "MARKDOWN",
+        "entities": [],
+        "result_groups": [],
+        "evidence_refs": [],
+        "follow_up_questions": [],
+        "refs": [],
+        "conversation_title": null,
+        "limitations": [
+          "유사사례는 예측·위험판단이 아닌 참고 정보"
+        ],
+        "context_used": {
+          "used_conditions": [],
+          "unused_conditions": [],
+          "reference_used": false
+        },
+        "check_id": "CHK-PROBE-none",
+        "checked_at": "2026-10-28T20:08:42+09:00",
+        "region": {
+          "admin_code": "2600000000",
+          "name": "부산광역시"
+        },
+        "priority_review": null,
+        "warning_guides": [],
+        "no_warning_message": null,
+        "info_gaps": []
+      },
+      "data_gaps": [],
+      "warnings": [],
+      "meta": {
+        "source": "T3Q",
+        "base_time": "2026-10-28T20:08:42+09:00",
+        "quality_status": "VERIFIED",
+        "disclosure_level": "공개",
+        "elapsed_ms": 17970
+      }
+    }
+  },
+  {
+    "id": "rain-warning",
+    "status": "SUCCESS",
+    "elapsedMs": 65295,
+    "waitedMs": 68425,
+    "answerChars": 535,
+    "answer": "**검토 의견**: **네, 상황확인 및 재난대응 착수를 즉시 우선 검토해야 합니다.**\n\n### 1. 특보별 담당자 우선 확인 내용 (호우경보)\n호우경보에 따라 인명피해 우려구역인 [초량제1지하차도](#ref:r4) 등 지하차도 차단 여부를 즉시 확인해야 합니다. 과거 대규모 침수 피해에 대비해 저지대 배수와 대피 태세를 점검하십시오.\n\n---\n\n### 2. 참고 근거\n1. **제공된 기상특보 정보**:\n   - 부산 지역 호우경보 발효 (`effective_at`: 2026-10-28 11:08:24 UTC, 관리번호: TEST-AIM-1)\n2. **위험지역 근거 (`hazard.underpass`)**:\n   - 부산 동구 [초량제1지하차도](#ref:r4) 등 행정안전부 인명피해 우려지역 지정 시설(통제기준 침수심 5.0cm) 다수 위치\n3. **과거 재난 사례 근거 (`disaster.event`)**:\n   - 2020년 7월 집중호우(부산 지하차도 침수 인명·재산 피해 발생) 및 2024년 9월 호우 등 대규모 침수 피해 이력 등록",
+    "refs": 1,
+    "raw": {
+      "schema_version": "2.0",
+      "request_id": "2038ce30b64682a77d0dde7d23710a15",
+      "correlation_id": "corr-2038ce30b64682a77d0dde7d23710a15",
+      "status": "SUCCESS",
+      "result": {
+        "response_id": "RES-20261028-82be01",
+        "question": "제공된 기상특보 정보를 기준으로, 해당 지역 담당자가 지금 상황확인 또는 재난대응 착수를 우선 검토해야 합니까? 활용 가능한 재난안전 데이터를 참고하여, 발효 중인 특보가 있으면 특보마다 담당자가 먼저 확인할 내용을 과거 사례나 위험지역 근거와 함께 2문장 이내(공백 포함 80자 내외)로 작성하고, 참고한 근거를 함께 반환하십시오. 발효 중인 특보가 없으면, 과거 사례나 위험지역은 언급하지 말고 제공된 정보에서 대응 검토가 필요한 사유를 확인하지 못했다는 점검 결과만 2문장 이내로 반환하십시오. 제공되지 않은 관측값이나 피해 발생 여부는 추정하지 마십시오.",
+        "question_source": "AI_MODE",
+        "answer": "**검토 의견**: **네, 상황확인 및 재난대응 착수를 즉시 우선 검토해야 합니다.**\n\n### 1. 특보별 담당자 우선 확인 내용 (호우경보)\n호우경보에 따라 인명피해 우려구역인 [초량제1지하차도](#ref:r4) 등 지하차도 차단 여부를 즉시 확인해야 합니다. 과거 대규모 침수 피해에 대비해 저지대 배수와 대피 태세를 점검하십시오.\n\n---\n\n### 2. 참고 근거\n1. **제공된 기상특보 정보**:\n   - 부산 지역 호우경보 발효 (`effective_at`: 2026-10-28 11:08:24 UTC, 관리번호: TEST-AIM-1)\n2. **위험지역 근거 (`hazard.underpass`)**:\n   - 부산 동구 [초량제1지하차도](#ref:r4) 등 행정안전부 인명피해 우려지역 지정 시설(통제기준 침수심 5.0cm) 다수 위치\n3. **과거 재난 사례 근거 (`disaster.event`)**:\n   - 2020년 7월 집중호우(부산 지하차도 침수 인명·재산 피해 발생) 및 2024년 9월 호우 등 대규모 침수 피해 이력 등록",
+        "answer_format": "MARKDOWN",
+        "entities": [],
+        "result_groups": [],
+        "evidence_refs": [],
+        "follow_up_questions": [],
+        "refs": [
+          {
+            "ref": "r4",
+            "entity_type": "RISK_FACTOR",
+            "display_name": "초량제1지하차도",
+            "map": {
+              "key": "underpass_id",
+              "value": "614",
+              "draw": "pin"
+            }
+          }
+        ],
+        "conversation_title": null,
+        "limitations": [
+          "유사사례는 예측·위험판단이 아닌 참고 정보"
+        ],
+        "context_used": {
+          "used_conditions": [],
+          "unused_conditions": [],
+          "reference_used": false
+        },
+        "check_id": "CHK-PROBE-rain-warning",
+        "checked_at": "2026-10-28T20:09:30+09:00",
+        "region": {
+          "admin_code": "2600000000",
+          "name": "부산광역시"
+        },
+        "priority_review": null,
+        "warning_guides": [],
+        "no_warning_message": null,
+        "info_gaps": []
+      },
+      "data_gaps": [],
+      "warnings": [],
+      "meta": {
+        "source": "T3Q",
+        "base_time": "2026-10-28T20:09:30+09:00",
+        "quality_status": "VERIFIED",
+        "disclosure_level": "공개",
+        "elapsed_ms": 65295
+      }
+    }
+  }
+]
