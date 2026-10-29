@@ -1,7 +1,7 @@
 import "server-only";
 import type { Account } from "../config";
 import { WeatherResponse } from "../contract/agent";
-import { scenarioAdvisories, withScenario } from "../scenario";
+import { scenarioWeather } from "../scenario";
 import { fetchLiveAdvisories } from "./kma";
 import { scenarioGet } from "./scenario";
 
@@ -26,10 +26,10 @@ export async function liveWeather(): Promise<WeatherResponse> {
 }
 
 /**
- * 이 계정 화면이 받는 특보 — 기상청 실시간 + 시연 시나리오 특보(R43: 시연 계정 · 켜짐 · 끝나는 시각 전일 때만, 서버에서 판단).
+ * 이 계정 화면이 받는 특보 — 기상청 실시간. 시연 시나리오를 켠 동안의 시연 계정(R45: 시연 계정 · 켜짐 · 끝나는 시각 전 · 그 지역 켬, 서버에서 판단)은
+ * 기상청을 부르지 않고 시나리오 특보만(예비특보 없음 · 조회 시각 = 지금, 특보 발표 시각 = 켠 시각 · realtimeCut — lib/scenario scenarioWeather).
  * /api/weather 와 「시연 세트 예열」(브리핑 특보)이 같이 쓴다
  */
 export async function weatherFor(acc: Account): Promise<WeatherResponse> {
-  const live = await liveWeather();
-  return withScenario(live, scenarioAdvisories(await scenarioGet(), acc.id));
+  return scenarioWeather(await scenarioGet(), acc.id) ?? (await liveWeather());
 }

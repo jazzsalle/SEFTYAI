@@ -11,8 +11,8 @@ import { describe, expect, it } from "vitest";
 import { DISASTER_TYPES, type Account } from "@/lib/config";
 import { basePilot, baseTarget, baseWire, defaultBase, type BaseRegion } from "@/lib/baseRegion";
 import type { WeatherResponse } from "@/lib/contract/agent";
-import { SCN_ACCOUNT, SCN_REGIONS, scenarioAdvisories, sentWithScenario, withScenario, type ScenarioState, type ScnRegion } from "@/lib/scenario";
-import { activeAdvisories, warningsPayload } from "@/lib/wxref";
+import { SCN_ACCOUNT, SCN_REGIONS, SCN_SOURCE, scenarioWeather, sentWithScenario, type ScenarioState, type ScnRegion } from "@/lib/scenario";
+import { KMA_SOURCE, activeAdvisories, warningsPayload } from "@/lib/wxref";
 import {
   COND_ITEMS, DEFAULT_BRIEFING, DEMO_DAY, DEMO_DAY_BRIEFING, LIBRARY, briefRequest, demoAsk, demoFor, libById, libraryFor, presetCondition, presetLines, presetManual, wireCondition,
   type DemoItem,
@@ -38,13 +38,12 @@ function screenInput(acc: Account, cond: Cond, a: SubmitArgs): SubmitInput {
 /** 화면 요청의 재사용 열쇠(jobs.ts 와 같은 함수) */
 const screenKey = (acc: Account, cond: Cond, a: SubmitArgs) => cacheKeyOf(screenInput(acc, cond, a));
 
-/** 묶음 항목 ↔ 녹화(대본 질문 글·조건의 원본). YC-01 은 새 질문 글 실측(demo_v3/YC-01-v3)이 재난유형 없이 보내져 질문 글만 맞춘다 — 프리셋은 대본 §7.3(호우), 실시간 장면이라 예열 열쇠와는 상관없다 */
+/** 묶음 항목 ↔ 녹화(대본 질문 글·조건의 원본). YC-01 은 새 질문 글 실측(demo_v3/YC-01-v3 — 재난유형 없이 보냄)과 조건까지 같게 */
 const RECORDING: Record<string, string> = {
   "DD-BS-02": "demo_chain_busan/BS-02", "DD-BS-04": "demo_chain_busan/BS-04", "DD-BS-05": "demo_chain_busan/BS-05", "DD-BS-06": "demo_chain_busan/BS-06", "DD-BS-07": "demo_v3/BS-07-v3",
   "DD-IJ-01": "demo_chain_inje/IJ-01", "DD-IJ-02": "demo_chain_inje/IJ-02", "DD-IJ-04": "demo_chain_inje/IJ-04", "DD-IJ-05": "demo_chain_inje/IJ-05", "DD-IJ-05-R": "demo_chain_inje/IJ-05-R", "DD-IJ-07-R": "demo_chain_inje/IJ-07-R",
   "DD-YC-01": "demo_v3/YC-01-v3", "DD-YC-02": "demo_chain_yeongcheon/YC-02", "DD-YC-04": "demo_chain_yeongcheon/YC-04", "DD-YC-05": "demo_chain_yeongcheon/YC-05", "DD-YC-06": "demo_chain_yeongcheon/YC-06", "DD-YC-09": "demo_v3/YC-09",
 };
-const QUESTION_ONLY = new Set(["DD-YC-01"]);
 const PREFIX = { busan: "DD-BS-", inje: "DD-IJ-", yeongcheon: "DD-YC-" } as const;
 const PRESET_KEYS = ["disasterType", "periodFrom", "periodTo", "warningKind", "warningLevel", "keywords", "conditions"];
 
@@ -71,8 +70,8 @@ describe("묶음 「재난담당자의 하루」 정의", () => {
     expect(LIBRARY.some((q) => q.text === rec("demo_v3/BRF-BS-4").question)).toBe(false);
   });
 
-  it("실시간 항목 = 부산 BS-02 · 인제 IJ-05-R · 영천 YC-01 (대본 v3.1 §5.4 규칙 3), 정비계획·공사 질문 없음", () => {
-    expect(DEMO_DAY.filter((d) => d.live).map((d) => d.id)).toEqual(["DD-BS-02", "DD-IJ-05-R", "DD-YC-01"]);
+  it("실시간 항목 = 부산 BS-02 · 인제 IJ-05-R · 영천 YC-02 (사용자 결정 2026-10-30 — YC-01 새 질문 136초), 정비계획·공사 질문 없음", () => {
+    expect(DEMO_DAY.filter((d) => d.live).map((d) => d.id)).toEqual(["DD-BS-02", "DD-IJ-05-R", "DD-YC-02"]);
     for (const d of DEMO_DAY) expect(d.text).not.toMatch(/정비계획|정비사업|정비 상태|공사/);
   });
 
@@ -102,7 +101,7 @@ describe("묶음 「재난담당자의 하루」 정의", () => {
       const acc = accOf(d.regions[0]);
       const k = screenInput(acc, condOf(d.base ?? defaultBase(acc)), demoAsk(d));
       expect(k.question, d.id).toBe(r.question);
-      if (!QUESTION_ONLY.has(d.id)) expect(k.queryContext, d.id).toEqual(r.request.query_context);
+      expect(k.queryContext, d.id).toEqual(r.request.query_context);
       expect(warnKeys(k.weatherWarnings), d.id).toEqual([]); // 사슬 질문에는 특보를 붙이지 않는다(가정 조건만)
     }
   });
@@ -135,13 +134,18 @@ describe("시연 세트 예열 ↔ 화면 — 같은 재사용 열쇠", () => {
   it("부산 브리핑 세트(BR-01~03 + 4번 「하천 옆 지하차도」) — 출처 · 특보 · briefing 칸", () => {
     const acc = accOf("busan");
     const brf4 = rec("demo_v3/BRF-BS-4");
-    // 특보 = 시연 시나리오를 켠 때 그 계정 화면이 받는 특보(서버 weatherFor 와 같은 계산 — 기상청 실시간 없음 + 시나리오)
+    // 특보 = 시연 시나리오를 켠 때 그 계정 화면이 받는 특보(서버 weatherFor 와 같은 계산 — 기상청 실시간 끊음, 시나리오만 — R45)
     const on: ScenarioState = { on: true, regions: SCN_REGIONS, startedAt: "2026-11-05T08:00:00+09:00", until: "2026-11-05T12:00:00+09:00", by: "시험" };
     const live: WeatherResponse = { mode: "live", status: { ok: true, fetchedAt: "2026-11-05T08:30:00+09:00", message: "현재 발효 특보 없음" }, advisories: [], preliminary: [] };
-    const weather = withScenario(live, scenarioAdvisories(on, acc.id, Date.parse("2026-11-05T08:30:00+09:00")));
-    // 예열(route → briefWarningsOf) = 화면(AI 모드 켜짐 · 기준지역 = 계정 기본 → explore liveWarnings)
+    const weather = scenarioWeather(on, acc.id, Date.parse("2026-11-05T08:30:00+09:00"))!;
+    expect(weather.realtimeCut).toBe(true);
+    // 예열(route → briefWarningsOf) = 끊긴 화면(AI 모드 켜짐 · 기준지역 = 계정 기본 → explore liveWarnings)
     const ww = briefWarningsOf(weather, acc);
     expect(ww).toEqual(warningsPayload(weather, activeAdvisories(weather, baseTarget(condOf(defaultBase(acc)).base))));
+    // 녹화(demo_v3/BRF-BS-4)의 weather_warnings 와 시각만 다르다 — 수집 시각 = 특보 응답을 받은 시각, 발표·발효 시각 = 켠 시각
+    const rw = brf4.request.weather_warnings as unknown as { collected_at: string; items: Record<string, string>[] };
+    const at = (s: string) => (s === rw.collected_at ? on.startedAt : s);
+    expect(ww).toEqual({ ...rw, collected_at: new Date(Date.parse("2026-11-05T08:30:00+09:00")).toISOString(), items: rw.items.map((i) => Object.fromEntries(Object.entries(i).map(([k, v]) => [k, at(v)]))) });
     // 녹화(demo_v3/BRF-BS-4 — 대본 실측)와 열쇠 성분·출처가 같다(시각은 열쇠에 안 들어감)
     expect(warnKeys(ww)).toEqual(warnKeys(brf4.request.weather_warnings as unknown as Record<string, unknown>));
     expect(ww.source).toBe((brf4.request.weather_warnings as unknown as { source: string }).source);
@@ -181,6 +185,22 @@ describe("시연 세트 예열 ↔ 화면 — 같은 재사용 열쇠", () => {
     expect(sentWithScenario(rec("demo_chain_busan/BS-02").request)).toBe(false);
     expect(sentWithScenario({ weather_warnings: { items: [{ warning_key: "L1010100-호우-경보" }] } })).toBe(false);
     expect(sentWithScenario(null)).toBe(false);
+    // R45 — 끊긴 계정이 기준지역을 시나리오 구역 밖으로 두고 보낸 빈 목록(출처 시나리오)도 — 기상청 실시간을 확인한 답이 아니다
+    expect(sentWithScenario({ weather_warnings: { collect_status: "COLLECTED", source: SCN_SOURCE, items: [] } })).toBe(true);
+    expect(sentWithScenario({ weather_warnings: { collect_status: "COLLECTED", source: KMA_SOURCE, items: [] } })).toBe(false);
+  });
+
+  it("재사용 열쇠 — 끊긴 계정의 구역 밖 빈 목록(출처 시나리오)은 기상청 「특보 없음」과 열쇠가 다르고, 항목이 있으면 출처와 무관하게 지금 그대로(R45)", () => {
+    const at = "2026-11-05T08:30:00+09:00";
+    const base = { question: "점검", source: "AI_MODE" as JobSource, queryContext: { region: { name: "서울특별시" } } };
+    const key = (w: Record<string, unknown>) => cacheKeyOf({ ...base, weatherWarnings: w }, { now: Date.parse(at) });
+    const empty = (source: string) => ({ collect_status: "COLLECTED", collected_at: at, source, items: [] });
+    expect(key(empty(SCN_SOURCE))).not.toBe(key(empty(KMA_SOURCE)));
+    // 기상청 빈 목록은 예전 열쇠 그대로(출처·시각 무관)
+    expect(key(empty(KMA_SOURCE))).toBe(key({ ...empty(KMA_SOURCE), collected_at: "2026-11-05T09:00:00+09:00" }));
+    // 항목이 있으면 출처가 열쇠에 들지 않는다 — 예열한 SCN-* 열쇠·기상청 열쇠가 바뀌지 않음
+    const item = { warning_key: "SCN-BS-1", kind: "호우", level: "경보", area: "부산", announced_at: at, effective_at: at, change: "발효" };
+    expect(key({ ...empty(SCN_SOURCE), items: [item] })).toBe(key({ ...empty(KMA_SOURCE), items: [item] }));
   });
 });
 

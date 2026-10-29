@@ -227,19 +227,19 @@ describe("재사용 기준(D5) — 원래 받은 시각 기준 24시간, 접수 
     expect(wx.calls).toBeGreaterThan(0);
   });
 
-  it("시연 시나리오 특보가 켜져 있어도 D5 는 기상청 실시간만 본다 — 인제(기상청 특보 없음)는 시나리오 특보를 실은 2시간 전 답도 다시 쓴다(R43)", async () => {
+  it("시연 시나리오 특보는 D5 의 특보에 들지 않는다 — 인제(기상청 특보 없음)는 시나리오 특보를 실은 2시간 전 답도 다시 쓴다(R43)", async () => {
     const { ACCOUNTS } = await import("@/lib/config");
     const { scenarioSet } = await import("@/lib/server/scenario");
-    const { scenarioAdvisories, scenarioLive } = await import("@/lib/scenario");
+    const { scenarioLive, scenarioWeather } = await import("@/lib/scenario");
     const { warningsPayload } = await import("@/lib/wxref");
     const admin = ACCOUNTS.find((a) => a.id === "admin01")!;
     const st = await scenarioSet(admin, { on: true, until: new Date(Date.now() + 4 * 3_600_000).toISOString() });
     try {
       expect(scenarioLive(st)).toBe(true);
-      const scn = scenarioAdvisories(st, inje.id);
-      expect(scn.map((a) => a.id)).toEqual(["SCN-IJ-1"]);
+      const w = scenarioWeather(st, inje.id)!;
+      expect(w.advisories.map((a) => a.id)).toEqual(["SCN-IJ-1"]);
       // 브리핑처럼 시나리오 특보를 weather_warnings 로 싣는다(재사용 열쇠에 SCN-IJ-1 이 든다)
-      const ww = warningsPayload({ mode: "live", status: { ok: true, fetchedAt: new Date().toISOString(), message: "" }, advisories: scn, preliminary: [] }, scn);
+      const ww = warningsPayload(w, w.advisories);
       const first = await J.submitJob(inje, { question: "재사용 시험 시나리오", source: "BRIEFING", queryContext: QC.inje, weatherWarnings: ww, noCache: true });
       await sql.query("update sa_agent_jobs set state = 'DONE', t3q_status = 'SUCCESS', http_status = 200, raw = $2, finished_at = now() - interval '2 hours' where id = $1", [first.id, JSON.stringify(RAW)]);
       const j = await J.submitJob(inje, { question: "재사용 시험 시나리오", source: "BRIEFING", queryContext: QC.inje, weatherWarnings: ww });
@@ -248,10 +248,42 @@ describe("재사용 기준(D5) — 원래 받은 시각 기준 24시간, 접수 
     } finally {
       await scenarioSet(admin, { on: false });
     }
-    // 작업 엔진은 시나리오(lib/scenario · server/scenario · server/weather)를 읽지 않는다 — D5·답을 받은 때 특보(wx_seen)는 kma.ts 만
+    // 작업 엔진은 화면 특보(server/weather)를 읽지 않는다 — D5·답을 받은 때 특보(wx_seen)의 특보는 kma.ts 만, 시나리오 상태는 끊김 판정(R45)에만
     const src = (await import("node:fs")).readFileSync(new URL("../../src/lib/server/jobs.ts", import.meta.url), "utf8");
-    expect(src).not.toMatch(/from "[^"]*(scenario|server\/weather|\.\/weather)"/);
+    expect(src).not.toMatch(/from "[^"]*(server\/weather|\.\/weather)"/);
     expect(src).toMatch(/import \{ fetchLiveAdvisories \} from "\.\/kma";/);
+    expect(src).toMatch(/import \{ SCN_SOURCE, scenarioCuts \} from "\.\.\/scenario";/);
+  });
+
+  it("기상청 실시간이 끊긴 시연 계정(R45)은 실시간 특보가 발효 중이어도 24시간 — 같은 지역을 보는 다른 계정(행안부)은 지금처럼 1시간", async () => {
+    const { ACCOUNTS } = await import("@/lib/config");
+    const { scenarioSet } = await import("@/lib/server/scenario");
+    const admin = ACCOUNTS.find((a) => a.id === "admin01")!;
+    // 기상청 흉내: 부산 호우경보 발효 중(이 묶음 맨 위) — 시나리오 없이는 부산 2시간 전 답을 다시 쓰지 않는다(위 「특보 발효 중인 지역(부산)」 시험)
+    const src = await answered(busan, "재사용 시험 끊김", QC.busan, "2 hours");
+    await scenarioSet(admin, { on: true, until: new Date(Date.now() + 4 * 3_600_000).toISOString(), regions: ["busan"] });
+    try {
+      const j = await ask(busan, "재사용 시험 끊김", QC.busan);
+      expect(j.cached_from).toBe(src.id);
+      expect(j.state).toBe("DONE");
+      // 끊긴 계정이 기준지역을 구(해운대구)로 바꿔도 같은 규칙 — 계정으로 판단
+      const gu = await answered(busan, "재사용 시험 끊김 구", QC.busanGu, "2 hours");
+      expect((await ask(busan, "재사용 시험 끊김 구", QC.busanGu)).cached_from).toBe(gu.id);
+      // 같은 질문·같은 지역 — 행안부(끊지 않음)는 기상청 부산 호우경보로 1시간 기준(새로 묻는다)
+      const m = await ask(central, "재사용 시험 끊김", QC.busan);
+      expect(m.cached_from).toBeNull();
+      expect(ACTIVE).toContain(m.state);
+      // 그 지역을 켜지 않은 시연 계정(인제)은 지금처럼 — 인제는 기상청 특보가 없어 24시간
+      const ij = await answered(inje, "재사용 시험 끊김 인제", QC.inje, "2 hours");
+      expect((await ask(inje, "재사용 시험 끊김 인제", QC.inje)).cached_from).toBe(ij.id);
+    } finally {
+      await scenarioSet(admin, { on: false });
+    }
+    // 끄면 다시 1시간 기준(그 계정도)
+    const again = await answered(busan, "재사용 시험 끊김 끈 뒤", QC.busan, "2 hours");
+    const k = await ask(busan, "재사용 시험 끊김 끈 뒤", QC.busan);
+    expect(k.cached_from).toBeNull();
+    expect(k.id).not.toBe(again.id);
   });
 
   // 마지막에 둔다 — 새 모듈(빈 특보 캐시)로 조회 실패를 흉내 낸다. DB 는 같은 PGlite

@@ -198,10 +198,12 @@ export const DEMO_DAY: DemoItem[] = [
     text: "2023년 9월 16일 이후 인제군에 보낸 긴급재난문자 가운데 계곡·급경사지 출입 통제나 대피 안내가 들어간 문자를 날짜순으로 보여줘.", cond: { disasterType: "호우" } },
   { id: "DD-IJ-07-R", regions: ["inje"], scene: "15", title: "2020년 9월 태풍 피해액·복구비 합계와 근거 쪽", category: "과거 피해 이력", stage: "복구", preview: ["SIMILAR_EVENT"],
     text: "2020년 9월 1일~7일 태풍 마이삭·하이선(T10105-20200901-0001) 때 인제군 공공시설 피해액·복구비 합계와 근거 문서 이름·쪽을 알려줘.", cond: { disasterType: "태풍" } },
-  // ── 영천 — 소하천 범람·침수 (YC-01 실시간 · YC-02 예열 — 대본 v3.1 §2·§5.4 규칙 3·§7.1 #3·#7·§7.3) ──
-  { id: "DD-YC-01", regions: ["yeongcheon"], scene: "16", live: true, title: "소하천이 있는 미해제 위험지구", category: "위험·취약지역", stage: "평시", preview: ["RISK_AREA"],
-    text: "영천시 자연재해위험개선지구·풍수해생활권 종합정비지구 가운데 해제되지 않았고 소하천이 있는 지구를 지구명·읍면·위험등급·재해유형·지정일로 보여줘.", cond: { disasterType: "호우" } },
-  { id: "DD-YC-02", regions: ["yeongcheon"], scene: "17", title: "호우경보 때 북안면·신녕면·화북면 재해위험저수지", category: "통제·대피 대상", stage: "특보", preview: ["RISK_FACILITY"],
+  // ── 영천 — 소하천 범람·침수 (YC-01 예열 · YC-02 실시간 — 사용자 결정 2026-10-30: YC-01 새 질문 실측 136초라 YC-02(75초)를 무대에서 실시간으로) ──
+  { id: "DD-YC-01", regions: ["yeongcheon"], scene: "16", title: "소하천이 있는 미해제 위험지구", category: "위험·취약지역", stage: "평시", preview: ["RISK_AREA"],
+    text: "영천시 자연재해위험개선지구·풍수해생활권 종합정비지구 가운데 해제되지 않았고 소하천이 있는 지구를 지구명·읍면·위험등급·재해유형·지정일로 보여줘.",
+    // 조건 없음 — 새 질문 글 실측(녹화 demo_v3/YC-01-v3)을 재난유형 없이 보냈다. 예열 답이 녹화(네 지구)와 같은 조건이 되게
+    cond: {} },
+  { id: "DD-YC-02", regions: ["yeongcheon"], scene: "17", live: true, title: "호우경보 때 북안면·신녕면·화북면 재해위험저수지", category: "통제·대피 대상", stage: "특보", preview: ["RISK_FACILITY"],
     text: "영천시에 호우경보가 발효되고 1시간 강우가 50mm일 때, 북안명주·신양·자천·오산 지구가 있는 북안면·신녕면·화북면에서 먼저 확인할 재해위험저수지를 안전등급·하류 주택 거리·하류 거주인구와 함께 알려줘.",
     cond: { disasterType: "호우", warningKind: "호우", warningLevel: "경보", conditions: [{ item: "RAIN_1H", value: 50 }] } },
   { id: "DD-YC-04", regions: ["yeongcheon"], scene: "18", title: "힌남노 때 북안면 피해·복구", category: "과거 피해 이력", stage: "복구", preview: ["SIMILAR_EVENT"],

@@ -5,8 +5,8 @@ import { useEffect, useRef, useState } from "react";
 import { useSession } from "@/lib/session";
 import { GovLogo, IcChevR, IcSiren } from "./Icons";
 import type { Advisory } from "@/lib/contract/agent";
-import { advLabel, advName, advTime, advTone } from "@/lib/wxref";
-import { SCN_LABEL } from "@/lib/scenario";
+import { advLabel, advName, advTime, advTone, aimTone } from "@/lib/wxref";
+import { SCN_CUT_LABEL, SCN_LABEL } from "@/lib/scenario";
 import { wxCovers } from "@/lib/wxMatch";
 import { baseKey, baseName, baseTarget } from "@/lib/baseRegion";
 import BasePicker from "./BasePicker";
@@ -31,7 +31,8 @@ const fmtT = (iso?: string) => {
 /**
  * 특보 바 (목업 SCR-UNE-101001 : 긴급 · 지역 특보 발효 중 · 발표/갱신 · 특보로 질문)
  * 지금 기준지역을 덮는 특보만(R32 — lib/wxMatch). 기준지역이 바뀌면 그 지역으로 다시 보인다(특보 참조는 setBase 가 뗀다). 전국이면 모든 특보
- * 시연 시나리오 특보(R43 — 서버가 시연 계정에만 붙임)는 이름 옆에 「시연 시나리오」, 시각은 켠 시각. 기상청 조회가 실패해도 시나리오 특보는 보이고 실패는 갱신 줄에
+ * 시연 시나리오 특보(R43 — 서버가 시연 계정에만 줌)는 이름 옆에 「시연 시나리오」, 시각은 켠 시각. 켠 동안 그 계정은 기상청 실시간 특보를 받지 않아(R45)
+ * 갱신 칸은 「HH:MM 켬 · 기상청 실시간 특보 끊음」, 기준지역이 시나리오 구역 밖이면 「실시간 끊음」 꼬리표(회색)·갱신 칸 「기상청 실시간 특보 끊음」 — 「특보 없음」이라 하지 않는다
  */
 export function WxBar() {
   const { weather, account, cond, wxRef, setWxRef, aimOn } = useSession();
@@ -72,6 +73,8 @@ export function WxBar() {
   // 이름은 첫 특보와 같이 「구역 + 특보」 — 특보 이름만 이으면 구역이 다른 특보가 「강풍주의보 · 강풍주의보」로 같아 보인다
   const rest = top ? mine.filter((a) => a !== top) : [];
   const restText = rest.map((a) => `${a.area} ${advName(a)}`).join(" · ");
+  // 시연 시나리오를 켠 시연 계정(R45) — 서버가 기상청 실시간을 부르지 않고 시나리오 특보만 준다. 기상청 시각 자리에 끊음을 알리고 「특보 없음」이라 하지 않는다
+  const cut = !!weather?.realtimeCut;
   let tag: React.ReactNode, title: React.ReactNode, meta = "";
   if (!weather) {
     tag = <span className="tag fail">조회 중</span>;
@@ -85,8 +88,13 @@ export function WxBar() {
     title = <>{top.area} {top.type}{top.level} 발효 중{top.scenario && <> <ScnTag a={top} /></>}</>;
     meta = [
       `${fmtT(top.issuedAt)} ${top.scenario ? "켬" : "발표"}`,
-      weather.status.ok ? `기상청 ${fmtT(weather.status.fetchedAt)} 갱신` : `${weather.status.message} · 최종 시도 ${fmtT(weather.status.fetchedAt)}`,
+      cut ? SCN_CUT_LABEL : weather.status.ok ? `기상청 ${fmtT(weather.status.fetchedAt)} 갱신` : `${weather.status.message} · 최종 시도 ${fmtT(weather.status.fetchedAt)}`,
     ].join(" · ");
+  } else if (cut) {
+    // 기준지역이 시나리오 구역 밖 — 실시간을 확인한 것이 아니므로 「발효 중인 기상특보가 없습니다」라고 하지 않는다(회색)
+    tag = <span className="tag fail">실시간 끊음</span>;
+    title = national ? `${SCN_LABEL} 특보가 없습니다` : `${baseName(cond.base)}에는 ${SCN_LABEL} 특보가 없습니다`;
+    meta = SCN_CUT_LABEL;
   } else {
     tag = <span className="tag none">특보 없음</span>;
     title = national ? "발효 중인 기상특보가 없습니다" : `${baseName(cond.base)}에 발효 중인 기상특보가 없습니다`;
@@ -179,10 +187,10 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   }, [ready, account, router]);
 
   if (!ready || !account) return null;
-  // AI 모드 단추 색 — 지금 기준지역을 덮는 발효 특보로(R32)
+  // AI 모드 단추 색 — 지금 기준지역을 덮는 발효 특보로(R32). 기상청 실시간이 끊긴 계정(R45)에 덮는 특보가 없으면 녹색(특보 없음)이 아니라 회색(lib/wxref aimTone)
   const target = baseTarget(cond.base);
   const mine = (weather?.advisories ?? []).filter((a) => a.status === "발효" && wxCovers(a.area, target));
-  const st = !aimOn ? "" : weather && !weather.status.ok && !mine.length ? "gray" : mine.some((a) => a.level === "경보") ? "red" : mine.length ? "yellow" : "green";
+  const st = !aimOn ? "" : aimTone(weather, mine);
   // 연락망·상황전파는 사용자 메뉴로 옮김(사용자 지시 2026-10-28)
   const nav: [string, string][] = [["/explore", "통합 탐색"], ["/history", "대화 이력"], ...(account.role === "운영자" ? ([["/admin", "운영관리"]] as [string, string][]) : [])];
 

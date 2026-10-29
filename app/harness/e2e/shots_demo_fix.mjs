@@ -1,6 +1,6 @@
 // 하네스 — R42·R43 검토 지적 반영 화면 확인(실제 T3Q 에이전트 질의 없음)
-//  (가) 영천 yc_safety02 — 「재난담당자의 하루」 탭: 실시간 YC-01 회색 주의 · YC-02 「사용자 입력 조건」 · 소개 글 · 마우스를 올리면 항목 이름에만 밑줄
-//  (나) 운영관리 admin01 — 「시연 세트 예열」: 실시간 안내에 YC-01, 표에 YC-02(YC-01 없음) · 계정 = 시연 계정 · 빨강 표지 없음 · 무대 질의 대기 주의
+//  (가) 영천 yc_safety02 — 「재난담당자의 하루」 탭: 실시간 주의 없음(운영관리에만) · YC-02 「사용자 입력 조건」 · 소개 글 · 마우스를 올리면 항목 이름에만 밑줄
+//  (나) 운영관리 admin01 — 「시연 세트 예열」: 실시간 안내에 YC-02, 표에 YC-01(YC-02 없음 — 사용자 결정 2026-10-30) · 계정 = 시연 계정 · 빨강 표지 없음 · 무대 질의 대기 주의
 //  (다) 부산 bs_safety01 — /explore?brief=1 이 저장된 「내 브리핑 항목」으로 보내는지(기본 4문항이 아니라). 접수 요청은 가로채 보내지 않는다(대화 저장도 막음)
 //       시험 동안 이 계정 브리핑 항목을 대본 세트(BR-01~03 + 「하천 옆 지하차도」)로 바꾸고 끝나면 원래 값으로 되돌린다
 //  (라) 시나리오 켬 → 부산 [특보로 질문] 으로 시나리오 참조 → 끔 → 참조가 저절로 떨어짐
@@ -101,9 +101,9 @@ try {
   await admin.page.goto(base + "/admin?tab=demo");
   await admin.page.getByRole("heading", { name: "시연 세트 예열" }).waitFor({ timeout: 20000 });
   const note = await text(admin.page, ".adm-note");
-  ok(note.includes("소하천이 있는 미해제 위험지구") && !note.includes("재해위험저수지") && note.includes("차례를 기다릴 수 있습니다"), `실시간 안내 「${note.slice(0, 160)}」`);
+  ok(note.includes("재해위험저수지") && !note.includes("소하천이 있는 미해제 위험지구") && note.includes("차례를 기다릴 수 있습니다"), `실시간 안내 「${note.slice(0, 160)}」`);
   const titles = await admin.page.$$eval(".adm-sec .adm-q b", (l) => l.map((e) => e.textContent));
-  ok(titles.includes("호우경보 때 북안면·신녕면·화북면 재해위험저수지") && !titles.includes("소하천이 있는 미해제 위험지구"), "예열 표 — YC-02 있음 · YC-01 없음");
+  ok(titles.includes("소하천이 있는 미해제 위험지구") && !titles.includes("호우경보 때 북안면·신녕면·화북면 재해위험저수지"), "예열 표 — YC-01 있음 · YC-02 없음");
   const accs = [...new Set(await admin.page.$$eval(".adm-sec .adm-tbl tbody tr td:nth-child(4)", (l) => l.map((e) => e.textContent)))].sort();
   ok(accs.join() === "bs_safety01,ij_safety01,yc_safety02", `예열 계정 ${accs.join(" · ")}`);
   const red = await admin.page.locator(".adm-sec .badge.danger, .panel .notice.danger, section[aria-label='시연 시나리오 특보'] .notice.danger").count();

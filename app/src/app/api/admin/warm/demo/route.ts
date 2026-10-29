@@ -75,7 +75,8 @@ export async function POST(req: Request) {
     let plan: DemoWarmEntry[] = demoChainPlan(acc, r);
     if (DEMO_DAY_BRIEFING.includes(r)) {
       try {
-        // 특보 = 그 계정 화면이 받는 특보(시연 시나리오 포함, R43)로 AI 모드가 켜진 화면과 같게 — 시나리오를 켠 채 예열해야 무대와 열쇠가 같다
+        // 특보 = 그 계정 화면이 받는 특보(시나리오를 켠 동안은 시나리오 특보만, R43·R45)로 AI 모드가 켜진 화면과 같게 — 시나리오를 켠 채 예열해야 무대와 열쇠가 같다.
+        // 접수(submitJob)도 같은 시연 계정 명의라 재사용 기준 D5 가 화면 질의와 같다(켠 동안 24시간)
         plan = [...demoBriefPlan(acc, await briefItemsOf(acc), briefWarningsOf(await weatherFor(acc), acc)), ...plan];
       } catch (e) {
         items.push({ ...head, kind: "BRIEFING", itemId: "—", scene: "2", title: "브리핑 세트", question: "", outcome: "ERROR", job: null, error: "브리핑 세트를 읽지 못했습니다. " + errText(e) });

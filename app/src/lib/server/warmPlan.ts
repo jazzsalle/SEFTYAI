@@ -62,7 +62,7 @@ export function demoBriefPlan(acc: Account, items: BriefLike[], warnings: Record
 
 /**
  * 브리핑에 함께 보내는 특보 — AI 모드가 켜진 화면이 [브리핑 시작] 때 보내는 것(explore liveWarnings)과 같은 계산:
- * 그 계정 화면이 받는 특보(lib/server/weather weatherFor — 기상청 실시간 + 시연 시나리오 특보)에서 계정 기본 기준지역을 덮는 발효 특보
+ * 그 계정 화면이 받는 특보(lib/server/weather weatherFor — 기상청 실시간, 시연 시나리오를 켠 동안의 시연 계정은 시나리오 특보만 — R45)에서 계정 기본 기준지역을 덮는 발효 특보
  */
 /** 실린 특보 번호(warning_key) — 운영관리 예열 표의 브리핑 줄에 받은 값 그대로 보인다 */
 export const warnNosOf = (w?: Record<string, unknown> | null): string[] =>

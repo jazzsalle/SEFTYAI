@@ -124,6 +124,10 @@ export interface JobFull extends JobSummary {
 
 export const ACTIVE_STATES: JobState[] = ["QUEUED", "SUBMITTED", "RUNNING"];
 export const isActive = (s: JobState) => ACTIVE_STATES.includes(s);
+/** 이 출처의 질의가 기준지역을 잠그는가(R32) — AI 모드 점검(AI_MODE)은 잠그지 않는다(R44: AI 모드 창은 기준지역이 바뀌면 새 지역으로 다시 점검한다) */
+export const sourceLocksBase = (src: JobSource) => src !== "AI_MODE";
+/** 이 작업이 기준지역을 잠그는가 — 진행 중(대기·제출·답변 생성 중)이고 AI 모드 점검이 아님(R32·R44). lib/session 의 asking·setBase 가 쓴다 */
+export const locksBase = (j: Pick<JobSummary, "state" | "source">) => isActive(j.state) && sourceLocksBase(j.source);
 
 export const SOURCE_LABEL: Record<JobSource, string> = {
   USER: "직접 질문", BRIEFING: "브리핑", QUICK: "특보 질문", SUGGEST: "추천 질문", LIBRARY: "지역 질문", FOLLOW_UP: "이어서 묻기", AI_MODE: "AI 모드",

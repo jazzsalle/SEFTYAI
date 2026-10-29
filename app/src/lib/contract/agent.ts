@@ -22,7 +22,7 @@ export const Citation = z.object({
 });
 export type Citation = z.infer<typeof Citation>;
 
-/** 기상특보 — 기상청 기상특보 조회서비스 실시간 (R6). scenario = 시연 시나리오 특보(R43 — 운영자가 켠 동안 시연 계정에만, 서버 /api/weather 가 붙인다) */
+/** 기상특보 — 기상청 기상특보 조회서비스 실시간 (R6). scenario = 시연 시나리오 특보(R43 — 운영자가 켠 동안 시연 계정에만, 서버 /api/weather 가 기상청 실시간 대신 준다 — R45) */
 export const Advisory = z.object({
   id: z.string(),
   type: z.string(),
@@ -44,5 +44,7 @@ export const WeatherResponse = z.object({
   preliminary: z.array(z.object({ text: z.string(), at: z.string() })),
   /** 이 응답을 받은 로그인 계정(/api/weather — 화면이 자기 계정과 견준다, R43). 서버 안에서 쓰는 값에는 없다 */
   accountId: z.string().optional(),
+  /** 시연 시나리오를 켠 동안의 시연 계정 — 기상청 실시간 특보(예비특보 포함)를 부르지 않고 시나리오 특보만 담았다(R45, lib/scenario scenarioWeather). 끊지 않으면 없다 */
+  realtimeCut: z.boolean().optional(),
 });
 export type WeatherResponse = z.infer<typeof WeatherResponse>;

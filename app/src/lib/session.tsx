@@ -3,7 +3,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import type { Advisory, DisasterType, RegionId, WeatherResponse } from "./contract/agent";
 import { api, ApiError } from "./api";
 import type { Account } from "./config";
-import { isActive, type JobFull, type JobSource, type JobSummary } from "./jobTypes";
+import { isActive, locksBase, sourceLocksBase, type JobFull, type JobSource, type JobSummary } from "./jobTypes";
 import { basePilot, baseWire, defaultBase, type BaseRegion } from "./baseRegion";
 import { presetCondition, wireCondition, type CondPreset } from "./library";
 
@@ -94,9 +94,12 @@ interface SessionState {
   cond: Cond;
   /** 기준지역 밖의 조건(재난유형·기준시각·상황 상세정보) */
   setCond: (c: Partial<Omit<Cond, "base" | "region">>) => void;
-  /** 기준지역 바꾸기 — 질의·응답이 진행 중이면 바꾸지 않고 false. 바꾸면 특보 참조를 뗀다 */
+  /** 기준지역 바꾸기 — 질의·응답이 진행 중이면(asking 과 같은 기준 — AI 모드 점검은 빼고, R44) 바꾸지 않고 false. 바꾸면 특보 참조를 뗀다 */
   setBase: (b: BaseRegion | null) => boolean;
-  /** 이 계정의 질의·응답이 진행 중(보내는 중이거나 작업이 대기·제출·답변 생성 중) — 기준지역을 바꿀 수 없다 */
+  /**
+   * 이 계정의 질의·응답이 진행 중(보내는 중이거나 작업이 대기·제출·답변 생성 중) — 기준지역을 바꿀 수 없다.
+   * AI 모드 점검(AI_MODE)은 세지 않는다(R44 — jobTypes locksBase · sourceLocksBase)
+   */
   asking: boolean;
   /** 통합 탐색 화면에 질문이 하나라도 있는 대화가 열려 있는가(그 화면이 알려 준다) — 기준지역을 바꾸면 새 대화로 시작할지 묻는다 */
   convOpen: boolean;
@@ -130,6 +133,8 @@ interface SessionState {
 }
 
 const Ctx = createContext<SessionState | null>(null);
+/** 화면 쪽 특보 조회 실패(fetch 실패·2xx 아님·계정 다름)로 만든 응답 — 서버가 답한 조회 실패와 가른다(참조 특보 떼기) */
+const LOCAL_WX_FAIL = new WeakSet<WeatherResponse>();
 /** 로그인·세션 복원 때의 조건 — 기준지역은 계정 기본(지자체 = 자기 지역, 그 밖 = 전국), 나머지 조건은 비움 */
 const condFor = (acc: Account): Cond => {
   const base = defaultBase(acc);
@@ -171,13 +176,13 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   const [medianMs, setMedian] = useState<number | null>(null);
   const [full, setFull] = useState<Record<string, JobFull>>({});
   const [t3qOk, setT3qOk] = useState<boolean | null>(null);
-  /** 접수 응답을 기다리는 질문 수(보내는 중인 턴) — 화면용 값과 바로 읽는 값 */
+  /** 접수 응답을 기다리는 질문 수(보내는 중인 턴 — AI 모드 점검 접수는 세지 않음, R44) — 화면용 값과 바로 읽는 값 */
   const [sending, setSending] = useState(0);
   const sendingRef = useRef(0);
   const [convOpen, setConvOpen] = useState(false);
   const jobsRef = useRef(jobs);
   jobsRef.current = jobs;
-  const asking = sending > 0 || Object.values(jobs).some((j) => isActive(j.state));
+  const asking = sending > 0 || Object.values(jobs).some(locksBase);
 
   const toast = useCallback((m: string) => {
     setToast(m);
@@ -228,12 +233,16 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     api<Conversation[]>("/api/conversations").then(setConvs).catch(() => setConvs([]));
   }, [account]);
 
-  // 기상특보 — 기상청 실시간, 60초마다. 2xx 가 아니면(세션 끊김 401 등) 오류 본문을 특보로 두지 않고 조회 실패로 — 401 은 세션 만료도 알린다(api() 와 같게).
+  // 기상특보 — 기상청 실시간(시연 시나리오를 켠 시연 계정은 시나리오 특보만 — 서버가 정함, R45), 60초마다. 2xx 가 아니면(세션 끊김 401 등) 오류 본문을 특보로 두지 않고 조회 실패로 — 401 은 세션 만료도 알린다(api() 와 같게).
   // 응답 계정이 이 화면 계정과 다르면(같은 브라우저 다른 창에서 다른 계정으로 로그인해 쿠키가 바뀜) 특보를 버리고 세션 만료로 — 시연 시나리오 특보(R43)가 다른 계정 화면에 보이지 않게
   useEffect(() => {
     if (!account) return;
     let alive = true;
-    const failed = (): WeatherResponse => ({ mode: "live", status: { ok: false, fetchedAt: new Date().toISOString(), message: "기상특보 조회 실패" }, advisories: [], preliminary: [] });
+    const failed = (): WeatherResponse => {
+      const w: WeatherResponse = { mode: "live", status: { ok: false, fetchedAt: new Date().toISOString(), message: "기상특보 조회 실패" }, advisories: [], preliminary: [] };
+      LOCAL_WX_FAIL.add(w);
+      return w;
+    };
     const load = () =>
       fetch("/api/weather")
         .then((r) => {
@@ -258,13 +267,21 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   }, [account, wxTick]);
 
   // [특보로 질문] 참조 특보가 특보 목록에서 사라지면(해제 · 시연 시나리오 끔·끝나는 시각 지남) 뗀다 — 「참조 중」 표지가 남지 않게.
-  // 기상청 조회 실패로 목록이 비었을 때는 기상청 특보 참조를 그대로 둔다(보낼 때 다시 확인 — explore askText). 시나리오 특보는 서버가 조회 실패 때도 붙이므로 목록에 없으면 뗀다
+  // 기상청 조회 실패로 목록이 비었을 때는 기상청 특보 참조를 그대로 둔다(보낼 때 다시 확인 — explore askText).
+  // 시나리오 특보는 끊긴 응답(R45 — 늘 ok)에만 있으므로, 서버가 답한 조회 실패(끊지 않는 응답)면 시나리오가 꺼진 것이라 떼고, 화면 쪽 조회 실패(LOCAL_WX_FAIL)면 모르니 그대로 둔다
   useEffect(() => {
     if (!wxRef || !weather) return;
-    if (!weather.status.ok && !wxRef.scenario) return;
+    if (!weather.status.ok && (!wxRef.scenario || LOCAL_WX_FAIL.has(weather))) return;
     if (weather.advisories.some((a) => a.id === wxRef.id && a.status !== "해제")) return;
     setWxRef(null);
-    toast("참조한 특보가 해제되어 특보 참조를 뗐습니다.");
+    // 시나리오 특보는 해제가 아니라 끔·끝나는 시각 지남, 끊긴 계정(R45)의 기상청 특보 참조는 끊김으로 떨어진다
+    toast(
+      wxRef.scenario
+        ? "시연 시나리오 특보가 끝나 특보 참조를 뗐습니다."
+        : weather.realtimeCut
+          ? "기상청 실시간 특보를 끊어 특보 참조를 뗐습니다."
+          : "참조한 특보가 해제되어 특보 참조를 뗐습니다.",
+    );
   }, [weather, wxRef, toast]);
 
   // T3Q 연결 상태 (30초)
@@ -278,7 +295,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
 
   const setCond = useCallback((c: Partial<Omit<Cond, "base" | "region">>) => setCondS((p) => ({ ...p, ...c })), []);
   const setBase = useCallback((b: BaseRegion | null) => {
-    if (sendingRef.current > 0 || Object.values(jobsRef.current).some((j) => isActive(j.state))) return false;
+    if (sendingRef.current > 0 || Object.values(jobsRef.current).some(locksBase)) return false;
     setCondS((p) => ({ ...p, base: b, region: basePilot(b) }));
     setWxRef(null);
     return true;
@@ -382,15 +399,21 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   const submit = useCallback(
     async (a: SubmitArgs) => {
       const c = cond;
-      sendingRef.current += 1;
-      setSending(sendingRef.current);
+      // AI 모드 점검 접수는 보내는 중으로 세지 않는다 — 기준지역을 잠그지 않음(R44)
+      const lock = sourceLocksBase(a.source);
+      if (lock) {
+        sendingRef.current += 1;
+        setSending(sendingRef.current);
+      }
       try {
         const r = await api<{ job: JobSummary }>("/api/agent/jobs", { method: "POST", json: submitBody(c, a) });
         putJob(r.job);
         return r.job;
       } finally {
-        sendingRef.current -= 1;
-        setSending(sendingRef.current);
+        if (lock) {
+          sendingRef.current -= 1;
+          setSending(sendingRef.current);
+        }
       }
     },
     [cond, putJob],

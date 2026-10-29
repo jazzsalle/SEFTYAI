@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 
 /**
  * GET /api/weather — 기상청 기상특보 실시간 (R6: 훈련 시나리오 삭제, 실시간만). 로그인 필요.
- * 시연 시나리오 특보(R43)는 로그인 계정이 시연 계정이고 운영자가 켠 동안에만 붙는다(lib/server/weather weatherFor). 기상청 조회는 60초 서버 캐시
+ * 로그인 계정이 시연 계정이고 운영자가 그 지역 시연 시나리오를 켠 동안에는 기상청 실시간 대신 시나리오 특보만(R43·R45 — lib/server/weather weatherFor). 기상청 조회는 60초 서버 캐시
  */
 export async function GET(req: Request) {
   const who = await whoami(req);

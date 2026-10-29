@@ -195,7 +195,7 @@ function Explore() {
   );
   const toastErr = (e: unknown) => s.toast((e as Error).message);
 
-  /** 지금 기준지역에서 발효 중인 특보(AI 모드 질의·브리핑에 원문 그대로) — 시연 시나리오 특보 포함(R43, 서버가 붙인 그대로). 「시연 세트 예열」 lib/server/warmPlan briefWarningsOf 와 같은 계산 */
+  /** 지금 기준지역에서 발효 중인 특보(AI 모드 질의·브리핑에 원문 그대로) — 시연 시나리오를 켠 시연 계정은 서버가 준 시나리오 특보만(R45 — 기상청 실시간 끊음). 「시연 세트 예열」 lib/server/warmPlan briefWarningsOf 와 같은 계산 */
   const liveWarnings = () => warningsPayload(s.weather, activeAdvisories(s.weather, wxTarget));
 
   const askText = async (q: string) => {

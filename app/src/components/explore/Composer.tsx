@@ -169,7 +169,8 @@ function CondModal({ onClose }: { onClose: () => void }) {
     <div className="modal-bg" role="dialog" aria-modal="true" aria-label="재난상황 조건 편집">
       <div className="modal" style={{ width: 640 }}>
         <div className="modal-h"><b>재난상황 조건</b><span className="sp" /><button className="lnk" onClick={onClose} aria-label="닫기">×</button></div>
-        <p className="xs muted">입력한 조건만 질의에 함께 보냅니다. 비워 두면 보내지 않습니다. 실시간 특보는 상단 기상특보(기상청)를 쓰세요.</p>
+        {/* 시연 시나리오를 켠 시연 계정(R45)은 상단 특보 줄이 기상청이 아니라 시나리오 특보 */}
+        <p className="xs muted">입력한 조건만 질의에 함께 보냅니다. 비워 두면 보내지 않습니다. {s.weather?.realtimeCut ? "특보는 상단 특보 줄을 쓰세요." : "실시간 특보는 상단 기상특보(기상청)를 쓰세요."}</p>
         <div className="form-grid">
           <label>재난유형
             <select value={d.disasterType ?? "전체"} onChange={(e) => setD({ ...d, disasterType: e.target.value as DisasterType })}>

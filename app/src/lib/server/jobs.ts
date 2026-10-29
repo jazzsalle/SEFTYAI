@@ -4,13 +4,16 @@ import type { Account } from "../config";
 import { newRequestId, t3q } from "../t3q/client";
 import { wxCovers, wxTargetOfT3q, type WxTarget } from "../wxMatch";
 import { db, ensureSchema } from "./db";
+import { SCN_SOURCE, scenarioCuts } from "../scenario";
 import { fetchLiveAdvisories } from "./kma";
 import { traceAdd } from "./kvStore";
+import { scenarioGet } from "./scenario";
 
 /**
  * 질의 작업 (R1·R2·R8·R22) — T3Q Agent ASYNC 를 Neon 작업 표로 감싼다.
  * - 접수: 캐시(24h) 적중 → 즉시 완료 작업 / 같은 키 진행 중 → 합류 / 슬롯(계정 4·전체 8) 있으면 T3Q 제출, 없으면 QUEUED
  * - 재사용 기간(D5)은 원래 답을 받은 시각 기준 24h — 접수 때 그 지역에 기상특보가 발효 중이면 1h(특보 조회 실패면 24h 그대로).
+ *   시연 시나리오를 켜 기상청 실시간 특보가 끊긴 시연 계정(R45 — lib/scenario scenarioCuts)이 접수한 질의는 1h 단축 없이 24h(기상청을 보지 않음).
  *   재사용 작업은 원래 답을 받은 시각(source_finished_at)·그때 발효 중이던 특보(source_wx_seen)를 함께 준다.
  *   AI 모드 점검(10분 구간)은 원래 답이 같은 계정 것이면 사본을 만들지 않고 그 작업을 그대로 돌려준다(R39)
  * - 답을 받으면(DONE) 그때 발효 중인 기상청 특보 목록을 wx_seen 에 남긴다(C9·D5 「답변을 받은 뒤 특보」를 특보 발표 시각이 아니라 목록으로 가리려고)
@@ -187,8 +190,15 @@ export async function submitJob(acc: Account, input: SubmitInput): Promise<Job> 
         aim ? [cacheKey, new Date(Date.now() - CACHE_TTL_MS), acc.id] : [cacheKey, new Date(Date.now() - CACHE_TTL_MS)],
       )
     )[0];
-    // D5 — 1시간보다 오래된 답이면 그 기준지역 특보 발효 여부를 본다(발효 중이면 다시 쓰지 않음)
-    if (hit && Date.now() - new Date(hit.finished_at ?? 0).getTime() > WARN_CACHE_TTL_MS && (await warningInEffect(wxTargetOfT3q(input.queryContext?.region)))) hit = undefined;
+    // D5 — 1시간보다 오래된 답이면 그 기준지역 특보 발효 여부를 본다(발효 중이면 다시 쓰지 않음).
+    // 기상청 실시간 특보가 끊긴 계정(R45 — 시연 시나리오를 켠 시연 계정)은 보지 않는다(24시간)
+    if (
+      hit &&
+      Date.now() - new Date(hit.finished_at ?? 0).getTime() > WARN_CACHE_TTL_MS &&
+      !scenarioCuts(await scenarioGet(), acc.id) &&
+      (await warningInEffect(wxTargetOfT3q(input.queryContext?.region)))
+    )
+      hit = undefined;
     // R39 — 같은 계정이 같은 10분 구간에 다시 보낸 AI 모드 점검(새로 고침·새 탭·껐다 켬)은 사본 행 없이 원래 점검 작업 그대로.
     // 다른 계정의 원래 답이면 아래처럼 사본
     if (hit && aim && hit.account_id === acc.id) return { ...hit, ...NO_SOURCE };
@@ -213,8 +223,14 @@ export async function submitJob(acc: Account, input: SubmitInput): Promise<Job> 
   return { ...((await dispatch(row)) ?? row), ...NO_SOURCE };
 }
 
-const warnKeys = (w?: Record<string, unknown> | null) =>
-  ((w?.items as { warning_key?: string; kind?: string; level?: string; area?: string }[]) ?? []).map((i) => [i.warning_key, i.kind, i.level, i.area]);
+/**
+ * 재사용 열쇠의 특보 성분 — 번호·종류·단계·구역(출처·시각은 넣지 않는다). 다만 항목이 없고 출처가 시연 시나리오이면(R45 — 끊긴 계정이 기준지역을
+ * 시나리오 구역 밖으로 두고 보낸 질의) 출처를 표시해 기상청 「특보 없음」 질의와 답을 주고받지 않게 한다. 항목이 있는 열쇠(SCN-* 예열·기상청)는 그대로
+ */
+const warnKeys = (w?: Record<string, unknown> | null) => {
+  const items = ((w?.items as { warning_key?: string; kind?: string; level?: string; area?: string }[]) ?? []).map((i) => [i.warning_key, i.kind, i.level, i.area]);
+  return !items.length && w?.source === SCN_SOURCE ? [[SCN_SOURCE]] : items;
+};
 
 type LiveWeather = Awaited<ReturnType<typeof fetchLiveAdvisories>>;
 let wxCache: { at: number; p: Promise<LiveWeather | null> } | null = null;
@@ -237,7 +253,8 @@ async function liveWeather(): Promise<LiveWeather | null> {
  * D5 — 접수 시각에 작업의 기준지역(보낸 query_context.region)에 기상특보가 발효 중인가(발효·변경 — 예비·해제는 아님).
  * 지역 맞추기는 화면(특보 줄·AI 모드)과 같은 함수 lib/wxMatch.wxCovers: 지역을 보내지 않았으면(전국) 모든 특보, 아니면 특보 구역이 기준지역을 덮는 것.
  * 조회 실패·지연·지역 이름을 읽을 수 없음(undefined) → false(24시간 기준 그대로).
- * 기상청 실시간(kma.ts)만 본다 — 시연 시나리오 특보(R43, /api/weather 가 시연 계정에만 붙임)는 넣지 않는다(예열한 답은 시나리오가 켜져 있어도 24시간). 시험 harness/jobs
+ * 기상청 실시간(kma.ts)만 본다 — 시연 시나리오 특보(R43)는 넣지 않는다. 기상청 실시간이 끊긴 시연 계정(R45)이 접수하면 부르지 않는다(submitJob — 24시간).
+ * 같은 지역을 보는 다른 계정(행안부 등)은 지금처럼 기상청 특보로 1시간. 시험 harness/jobs
  */
 async function warningInEffect(target: WxTarget | null | undefined): Promise<boolean> {
   if (target === undefined) return false;
@@ -248,7 +265,9 @@ async function warningInEffect(target: WxTarget | null | undefined): Promise<boo
 
 /**
  * C9·D5 — 지금(답을 받은 때) 발효 중인 특보(해제 제외) — 기상청 특보 현황에서 받은 값 그대로, 지역을 가리지 않고 전부. 시연 시나리오 특보는 들지 않는다(R43).
- * 조회 실패·지연(WX_WAIT_MS)이면 null(모름) — 화면은 모르면 「받은 뒤 특보」를 보이지 않는다
+ * 조회 실패·지연(WX_WAIT_MS)이면 null(모름) — 화면은 모르면 「받은 뒤 특보」를 보이지 않는다.
+ * 기상청 실시간이 끊긴 시연 계정(R45)의 작업도 그대로 남긴다 — 이 기록은 그 답을 다시 쓰는 다른 계정(source_wx_seen)과 시나리오를 끈 뒤의
+ * 그 계정 화면이 쓰는 기상청 기록이고, 끊긴 화면은 시나리오 특보만 받아 「답변을 받은 뒤 특보」(시나리오 제외)가 뜨지 않는다
  */
 async function wxSnapshot(): Promise<WxSeen[] | null> {
   const w = await liveWeather();

@@ -25,25 +25,30 @@ export function activeAdvisories(weather: WeatherResponse | null | undefined, ta
   return (weather?.advisories ?? []).filter((a) => a.status !== "해제" && wxCovers(a.area, target));
 }
 
+/**
+ * 머리줄 AI 모드 단추 색 — 지금 기준지역을 덮는 발효 특보(mine)로(R32): 경보 빨강 · 주의보 노랑 · 없음 녹색.
+ * 조회 실패이거나 기상청 실시간이 끊긴 계정(R45)에 덮는 특보가 없으면 회색(「특보 없음」을 확인한 것이 아니므로). 특보를 아직 받지 않았으면 녹색
+ */
+export function aimTone(weather: WeatherResponse | null | undefined, mine: { level: string }[]): "gray" | "red" | "yellow" | "green" {
+  if (weather && (!weather.status.ok || weather.realtimeCut) && !mine.length) return "gray";
+  return mine.some((a) => a.level === "경보") ? "red" : mine.length ? "yellow" : "green";
+}
+
 export const KMA_SOURCE = "기상청 기상특보 조회서비스";
 
 /**
  * 기상청 특보 → 에이전트 질의 weather_warnings (원문 항목 그대로).
  * 수집 상태·수집 시각은 실제 조회 결과로(조회 실패면 FAILED) — 꾸미지 않는다(R6).
- * 시연 시나리오 특보(R43)가 있으면 source 를 「시연 시나리오(가상 특보)」로, 기상청 특보와 섞이면 두 출처를 함께 적고 항목마다 source 를 단다
- * (warning_key 는 시나리오 고정 번호 SCN-* — 재사용 열쇠 jobs.ts warnKeys 에는 source 가 안 들어간다)
+ * 시연 시나리오를 켠 시연 계정(R45 — 기상청 실시간 특보 끊음, weather.realtimeCut)은 source 「시연 시나리오(가상 특보)」, 수집 시각 = 그 응답을 받은 시각(발표·발효 시각 = 켠 시각)
+ * (기준지역이 시나리오 구역 밖이라 항목이 없어도 — 기상청을 조회한 것처럼 보내지 않는다). 끊긴 응답에는 기상청 특보가 없어 두 출처가 섞이지 않는다.
+ * warning_key 는 시나리오 고정 번호 SCN-* — 재사용 열쇠 jobs.ts warnKeys 에는 source 가 안 들어간다(항목이 없는 시나리오 출처만 따로 표시)
  */
 export function warningsPayload(weather: WeatherResponse | null | undefined, advs: Advisory[]) {
-  const scn = advs.some((a) => a.scenario);
-  const kma = advs.some((a) => !a.scenario);
-  const mixed = scn && kma;
+  const scn = !!weather?.realtimeCut || advs.some((a) => a.scenario);
   return {
     collect_status: weather?.status.ok ? "COLLECTED" : "FAILED",
     collected_at: weather?.status.fetchedAt ?? null,
-    source: mixed ? `${KMA_SOURCE} · ${SCN_SOURCE}` : scn ? SCN_SOURCE : KMA_SOURCE,
-    items: advs.map((a) => ({
-      warning_key: a.id, kind: a.type, level: a.level, area: a.area, announced_at: a.issuedAt, effective_at: a.issuedAt, change: a.status,
-      ...(mixed ? { source: a.scenario ? SCN_SOURCE : KMA_SOURCE } : {}),
-    })),
+    source: scn ? SCN_SOURCE : KMA_SOURCE,
+    items: advs.map((a) => ({ warning_key: a.id, kind: a.type, level: a.level, area: a.area, announced_at: a.issuedAt, effective_at: a.issuedAt, change: a.status })),
   };
 }
