@@ -7,6 +7,7 @@ import { SOURCE_LABEL, type T3qRef } from "@/lib/jobTypes";
 import { AnswerMarkdown } from "@/components/answer/Markdown";
 import { RawFoot } from "@/components/answer/AnswerCard";
 import { statusKo } from "@/lib/labels";
+import { SCN_SENT_LABEL, sentWithScenario } from "@/lib/scenario";
 
 /** 대화 인쇄용 — 질문과 T3Q 답 원문을 그대로 (R0) */
 function Report() {
@@ -25,9 +26,10 @@ function Report() {
       <div className="xs muted">기준지역 {conv.baseName ?? REGIONS[conv.region]?.name ?? conv.region} · {new Date(conv.updatedAt).toLocaleString("ko-KR")} · 답변은 재난안전 AI 응답 원문입니다.</div>
       {conv.turns.map((t, i) => {
         const raw = t.jobId ? s.full[t.jobId]?.raw : null;
+        const scn = t.jobId ? sentWithScenario(s.full[t.jobId]?.request) : false;
         return (
           <section key={t.id} className="rep-turn">
-            <h2>{i + 1}. {t.q} <span className="xs muted">({SOURCE_LABEL[t.source]})</span></h2>
+            <h2>{i + 1}. {t.q} <span className="xs muted">({SOURCE_LABEL[t.source]}{scn ? ` · ${SCN_SENT_LABEL}` : ""})</span></h2>
             {raw?.result?.answer ? (
               <AnswerMarkdown text={raw.result.answer} refs={(raw.result.refs ?? []) as T3qRef[]} />
             ) : (

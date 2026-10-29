@@ -5,6 +5,7 @@ import { api, ApiError } from "./api";
 import type { Account } from "./config";
 import { isActive, type JobFull, type JobSource, type JobSummary } from "./jobTypes";
 import { basePilot, baseWire, defaultBase, type BaseRegion } from "./baseRegion";
+import { presetCondition, wireCondition, type CondPreset } from "./library";
 
 /** 지난 상황으로 보관할 때 함께 보내는 화면 정보 (조치 이름·단계 — 누가·언제는 서버 값) */
 export interface CheckArchiveMeta { title?: string; note?: string; labels?: Record<string, { label: string; step: string }> }
@@ -26,7 +27,7 @@ export interface Turn {
   at: string;
   /** 브리핑 세트로 함께 보낸 묶음 */
   group?: { id: string; no: number; total: number; title: string };
-  refAdv?: { type: string; level: string; area: string; issuedAt: string };
+  refAdv?: { type: string; level: string; area: string; issuedAt: string; scenario?: boolean };
 }
 export interface Conversation {
   id: string;
@@ -71,6 +72,17 @@ export interface SubmitArgs {
   aiMode?: Record<string, unknown> | null;
   followUp?: { jobId: string; refs?: { display_name?: string | null; entity_type?: string | null }[] } | null;
   noCache?: boolean;
+  /** 질문별 조건 프리셋(질문 모음 「재난담당자의 하루」) — 이 질문 요청에만 싣는다. 세션 조건은 바꾸지 않는다 */
+  cond?: CondPreset | null;
+}
+
+/**
+ * 질의 접수 본문(POST /api/agent/jobs) — 세션 조건을 함께 싣는다. 기준지역(R32)은 가장 아래 단계 하나(코드·시·도부터 이은 이름·단계), 전국이면 null.
+ * 프리셋(a.cond)이 있으면 기준지역만 세션 값, 나머지 조건은 프리셋 값만 — 세션 조건(c)은 읽기만 한다
+ */
+export function submitBody(c: Cond, a: SubmitArgs) {
+  const { cond: preset, ...rest } = a;
+  return { ...rest, condition: preset ? presetCondition(baseWire(c.base), preset) : wireCondition(baseWire(c.base), c) };
 }
 
 interface SessionState {
@@ -216,18 +228,27 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     api<Conversation[]>("/api/conversations").then(setConvs).catch(() => setConvs([]));
   }, [account]);
 
-  // 기상특보 — 기상청 실시간, 60초마다. 2xx 가 아니면(세션 끊김 401 등) 오류 본문을 특보로 두지 않고 조회 실패로 — 401 은 세션 만료도 알린다(api() 와 같게)
+  // 기상특보 — 기상청 실시간, 60초마다. 2xx 가 아니면(세션 끊김 401 등) 오류 본문을 특보로 두지 않고 조회 실패로 — 401 은 세션 만료도 알린다(api() 와 같게).
+  // 응답 계정이 이 화면 계정과 다르면(같은 브라우저 다른 창에서 다른 계정으로 로그인해 쿠키가 바뀜) 특보를 버리고 세션 만료로 — 시연 시나리오 특보(R43)가 다른 계정 화면에 보이지 않게
   useEffect(() => {
     if (!account) return;
     let alive = true;
+    const failed = (): WeatherResponse => ({ mode: "live", status: { ok: false, fetchedAt: new Date().toISOString(), message: "기상특보 조회 실패" }, advisories: [], preliminary: [] });
     const load = () =>
       fetch("/api/weather")
         .then((r) => {
           if (r.status === 401) window.dispatchEvent(new Event("sa:session-expired"));
           return r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`));
         })
-        .then((j: WeatherResponse) => alive && setWeather(j))
-        .catch(() => alive && setWeather({ mode: "live", status: { ok: false, fetchedAt: new Date().toISOString(), message: "기상특보 조회 실패" }, advisories: [], preliminary: [] }));
+        .then((j: WeatherResponse) => {
+          if (!alive) return;
+          if (j.accountId && j.accountId !== account.id) {
+            window.dispatchEvent(new Event("sa:session-expired"));
+            return setWeather(failed());
+          }
+          setWeather(j);
+        })
+        .catch(() => alive && setWeather(failed()));
     load();
     const t = setInterval(load, 60_000);
     return () => {
@@ -235,6 +256,16 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       clearInterval(t);
     };
   }, [account, wxTick]);
+
+  // [특보로 질문] 참조 특보가 특보 목록에서 사라지면(해제 · 시연 시나리오 끔·끝나는 시각 지남) 뗀다 — 「참조 중」 표지가 남지 않게.
+  // 기상청 조회 실패로 목록이 비었을 때는 기상청 특보 참조를 그대로 둔다(보낼 때 다시 확인 — explore askText). 시나리오 특보는 서버가 조회 실패 때도 붙이므로 목록에 없으면 뗀다
+  useEffect(() => {
+    if (!wxRef || !weather) return;
+    if (!weather.status.ok && !wxRef.scenario) return;
+    if (weather.advisories.some((a) => a.id === wxRef.id && a.status !== "해제")) return;
+    setWxRef(null);
+    toast("참조한 특보가 해제되어 특보 참조를 뗐습니다.");
+  }, [weather, wxRef, toast]);
 
   // T3Q 연결 상태 (30초)
   useEffect(() => {
@@ -354,23 +385,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       sendingRef.current += 1;
       setSending(sendingRef.current);
       try {
-        const r = await api<{ job: JobSummary }>("/api/agent/jobs", {
-          method: "POST",
-          json: {
-            ...a,
-            condition: {
-              // 기준지역(R32) — 가장 아래 단계 하나(코드·시·도부터 이은 이름·단계). 전국이면 null
-              base: baseWire(c.base),
-              disasterTypes: c.disasterType && c.disasterType !== "전체" ? [c.disasterType] : [],
-              referenceTime: c.referenceTime || null,
-              period: c.periodFrom || c.periodTo ? { from: c.periodFrom || null, to: c.periodTo || null } : null,
-              warningKind: c.warningKind || null,
-              warningLevel: c.warningLevel || null,
-              keywords: c.keywords ?? [],
-              conditions: c.conditions ?? [],
-            },
-          },
-        });
+        const r = await api<{ job: JobSummary }>("/api/agent/jobs", { method: "POST", json: submitBody(c, a) });
         putJob(r.job);
         return r.job;
       } finally {

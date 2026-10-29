@@ -96,6 +96,23 @@ const canon = (v: unknown): string =>
   JSON.stringify(v ?? null, (_k, x) => (x && typeof x === "object" && !Array.isArray(x) ? Object.fromEntries(Object.entries(x).sort()) : x));
 const pseudo = (id: string) => "U-" + createHmac("sha256", process.env.SESSION_SECRET || "dev").update(id).digest("hex").slice(0, 12);
 
+/**
+ * 재사용 열쇠 — 보내는 질문 글 · 질문 출처(T3Q) · query_context · 특보(번호·종류·단계·구역) · 참조 · 이어서 묻기 대화 · AI 모드 10분 구간.
+ * 계정은 들어가지 않는다. 이어서 묻기는 submitJob 이 이전 작업에서 만든 질문 글·대화를 넘긴다(없으면 입력 그대로).
+ * 「시연 세트 예열」 시험(harness/region/demoWarmKey)이 화면 요청과 예열 요청의 열쇠를 이 함수로 견준다
+ */
+export function cacheKeyOf(
+  input: Pick<SubmitInput, "question" | "source" | "queryContext" | "weatherWarnings" | "reference">,
+  o: { questionSent?: string; reference?: unknown; t3qConv?: string | null; now?: number } = {},
+) {
+  // AI 모드 정기 점검은 10분 단위로 새로 묻는다(R6)
+  const bucket = input.source === "AI_MODE" ? Math.floor((o.now ?? Date.now()) / 600_000) : null;
+  const reference = o.reference === undefined ? input.reference ?? null : o.reference;
+  return createHash("sha256")
+    .update([o.questionSent ?? input.question.trim(), T3Q_SOURCE[input.source], canon(input.queryContext ?? null), canon(warnKeys(input.weatherWarnings)), canon(reference), o.t3qConv ?? "", bucket ?? ""].join("‖"))
+    .digest("hex");
+}
+
 export interface SubmitInput {
   question: string;
   source: JobSource;
@@ -154,11 +171,7 @@ export async function submitJob(acc: Account, input: SubmitInput): Promise<Job> 
     ...(input.aiMode ? { ai_mode: input.aiMode } : {}),
     ...(input.weatherWarnings ? { weather_warnings: input.weatherWarnings } : {}),
   };
-  // AI 모드 정기 점검은 10분 단위로 새로 묻는다(R6)
-  const bucket = input.source === "AI_MODE" ? Math.floor(Date.now() / 600_000) : null;
-  const cacheKey = createHash("sha256")
-    .update([questionSent, request.question_source, canon(request.query_context), canon(warnKeys(input.weatherWarnings)), canon(reference), t3qConv ?? "", bucket ?? ""].join("‖"))
-    .digest("hex");
+  const cacheKey = cacheKeyOf(input, { questionSent, reference, t3qConv });
 
   const id = randomUUID();
   const base = [id, acc.id, input.convId ?? null, input.turnNo ?? null, input.source, input.libraryId ?? null, input.question.trim(), questionSent, JSON.stringify(request), cacheKey];
@@ -223,7 +236,8 @@ async function liveWeather(): Promise<LiveWeather | null> {
 /**
  * D5 — 접수 시각에 작업의 기준지역(보낸 query_context.region)에 기상특보가 발효 중인가(발효·변경 — 예비·해제는 아님).
  * 지역 맞추기는 화면(특보 줄·AI 모드)과 같은 함수 lib/wxMatch.wxCovers: 지역을 보내지 않았으면(전국) 모든 특보, 아니면 특보 구역이 기준지역을 덮는 것.
- * 조회 실패·지연·지역 이름을 읽을 수 없음(undefined) → false(24시간 기준 그대로)
+ * 조회 실패·지연·지역 이름을 읽을 수 없음(undefined) → false(24시간 기준 그대로).
+ * 기상청 실시간(kma.ts)만 본다 — 시연 시나리오 특보(R43, /api/weather 가 시연 계정에만 붙임)는 넣지 않는다(예열한 답은 시나리오가 켜져 있어도 24시간). 시험 harness/jobs
  */
 async function warningInEffect(target: WxTarget | null | undefined): Promise<boolean> {
   if (target === undefined) return false;
@@ -233,7 +247,7 @@ async function warningInEffect(target: WxTarget | null | undefined): Promise<boo
 }
 
 /**
- * C9·D5 — 지금(답을 받은 때) 발효 중인 특보(해제 제외) — 기상청 특보 현황에서 받은 값 그대로, 지역을 가리지 않고 전부.
+ * C9·D5 — 지금(답을 받은 때) 발효 중인 특보(해제 제외) — 기상청 특보 현황에서 받은 값 그대로, 지역을 가리지 않고 전부. 시연 시나리오 특보는 들지 않는다(R43).
  * 조회 실패·지연(WX_WAIT_MS)이면 null(모름) — 화면은 모르면 「받은 뒤 특보」를 보이지 않는다
  */
 async function wxSnapshot(): Promise<WxSeen[] | null> {

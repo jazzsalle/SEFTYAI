@@ -1,0 +1,232 @@
+{
+ "step": "YC-07b",
+ "region": "yeongcheon",
+ "question": "영천시 북안면 용계리·유상리·상리·북리·자포리에 지정된 위험지구나 소하천·하천 정비계획이 있어?",
+ "request": {
+  "question_source": "USER",
+  "query_context": {
+   "region": {
+    "admin_code": "4723000000",
+    "level": "SIGUNGU",
+    "name": "경상북도 영천시"
+   },
+   "disaster_types": [
+    "호우"
+   ]
+  }
+ },
+ "status": "SUCCESS",
+ "http": 200,
+ "elapsedMs": 246583,
+ "waitedMs": 248325,
+ "at": "2026-10-28T12:19:13.310Z",
+ "raw": {
+  "schema_version": "2.0",
+  "request_id": "5442cfb44c358643c120cac1eff0b169",
+  "correlation_id": "corr-5442cfb44c358643c120cac1eff0b169",
+  "status": "SUCCESS",
+  "conversation_id": "CONV-20261028-2ac7a1",
+  "turn_no": 1,
+  "result": {
+   "response_id": "RES-20261028-259077",
+   "question": "영천시 북안면 용계리·유상리·상리·북리·자포리에 지정된 위험지구나 소하천·하천 정비계획이 있어?",
+   "question_source": "USER",
+   "answer": "### 결론\n\n영천시 북안면 5개 리(용계리·유상리·상리·북리·자포리) 일원에는 **자연재해위험개선지구 1개소(상리)**와 **재해위험저수지 1개소(유상리)**가 지정되어 정비가 완료(해제)된 이력이 있으며, **산사태취약지역 9개소(상리 5, 유상리 2, 북리 1, 용계리 1)** 및 **급경사지 관리대상 23개소(상리 13, 북리 5, 자포리 5)**가 관리되고 있습니다.\n\n하천 및 소하천 정비계획의 경우:\n1. **[원곡지구](#ref:r19)(상리)**를 중심으로 지방하천인 **원곡천 하천정비(L=2.4km)**가 완료(2015~2016년 시행, 2018년 지정 해제)되었습니다.\n2. 현재 추진 중인 광역 정비사업으로는 북안면 일원에 지정된 **북안명주 풍수해생활권 종합정비계획(2025~2030년)** 내에 **북안천 및 원곡천 등(지방하천·소하천·세천) 하천정비(L=9.1km, 교량개체 29개소)**가 포함되어 있습니다.\n\n---\n\n### 세부 현황 및 근거\n\n#### 1. 위험지구 지정 현황 (`hazard.zone`, `hazard.improvement_district`, `hazard.reservoir`)\n\n| 구분 | 지구/시설명 | 소재지 | 유형/등급 | 면적/규모 | 지정·해제 이력 | 정비 내용 |\n|---|---|---|---|---|---|---|\n| **자연재해위험개선지구** | **[원곡지구](#ref:r19)** | 북안면 **상리** 209 (신리리 153-2 일원) | 침수위험 (나등급) | 0.18 ㎢ | • 지정: 2013-11-19<br>• 해제: 2018-01-31 | • 대상: 원곡천 (지방하천)<br>• 내용: 하천정비 L=2.4km (2015~2016년 영천시 시행) |\n| **재해위험저수지** | **[금곡2지](#ref:r5)** | 북안면 **유상리** 345 | 안전등급 D등급 | 제당 130m, 높이 12m, 저수량 99.8천톤 | • 지정: 2015-05-11<br>• 해제: 2020-01-07 | • 하류 120m 내 주택 60명 거주<br>• 국비 정비사업 완료로 지정 해제 |\n\n*※ 용계리, 북리, 자포리는 법정 자연재해위험개선지구 및 재해위험저수지 지정 내역이 없습니다.*\n\n---\n\n#### 2. 소하천 및 하천 정비계획 현황 (`hazard.improvement_district`, `gis.small_river_zone`)\n\n1. **상리 원곡천 기완료 하천정비**\n   - 상리 일원을 흐르는 원곡천은 과거 침수위험 해소를 위해 2015~2016년 L=2.4km 구간의 하천정비사업이 완료되었습니다.\n2. **북안명주 풍수해생활권 연계 하천·소하천 정비계획 (추진 중)**\n   - 북안면 일원에 지정된 **북안명주 지구**(2024-04-30 지정, 위험등급 '가') 중기계획에 따라 **북안천 및 원곡천 등(지방하천, 소하천, 세천 일원)**에 대한 종합정비사업이 수립되어 있습니다.\n   - **사업기간**: 2025년 ~ 2030년 (시행기관: 영천시)\n   - **주요내용**: 하천정비 L=9.1km, 교량개체 29개소 등\n3. **소하천 정비계획**\n   - 영천시 소하천구역 관리도상 용계·유상·상리·북리·자포리 일대에 다수의 소하천구역이 지정·고시되어 있으나, 해당 5개 리만을 대상으로 단독 추진 중인 별도의 소하천 종합정비사업은 없으며, 원곡천·북안천 일원 종합정비계획과 연계되어 관리됩니다.\n\n---\n\n#### 3. 급경사지 및 산사태취약지역 관리 현황 (`slope.steep_slope`, `slope.landslide_area`)\n\n- **급경사지 관리대장 등재 시설 (총 23개소)**\n  - **상리 (13개소)**: [상 N1~N15지구](#ref:r56), [상리지구](#ref:r77) 등\n  - **북리 (5개소)**: [북 N1~N3지구](#ref:r63) 등\n  - **자포리 (5개소)**: [영남 중앙선 2-1~2-4 사면](#ref:r70), [중앙 355km730](#ref:r60), [자포 N1지구](#ref:r75) (국가철도공단 등 관리)\n  - *(용계리, 유상리는 급경사지 관리대장 등재 없음 / 23개소 모두 법정 붕괴위험지구로 승격 지정된 내역은 없음)*\n- **산사태취약지역 (총 9개소, 모두 토석류 B등급, 영천시 관리)**\n  - **상리 (5개소)**: [B-마마33836153-23-001](#ref:r85), [B-마마34056145-20-001](#ref:r86), [M-마마33966192-15-001](#ref:r89), [M-마마34036168-17-001](#ref:r90), [M-마마35086206-17-001](#ref:r91) (구거 2, 임야 3)\n  - **유상리 (2개소)**: [M-마마33416888-16-001](#ref:r87), [M-마마33736824-16-001](#ref:r88) (임야 2)\n  - **북리 (1개소)**: [B-마마33526240-21-001](#ref:r84) (임야 1)\n  - **용계리 (1개소)**: [M-마마36026470-17-001](#ref:r92) (임야 1)\n  - *(자포리는 산사태취약지역 지정 없음)*\n\n---\n\n### 담당자 확인 및 점검 사항\n\n1. **상리·북리 급경사지 및 산사태 취약구간 모니터링**: 상리와 북리는 급경사지와 산사태취약지역이 밀집해 있으므로 집중호우 시 사면 붕괴 및 토석류 유출 여부를 우선 점검해야 합니다.\n2. **원곡천 및 소하천 통수단면 확인**: 상리 원곡천 정비구간과 하류 연결구간, 그리고 소하천 합류부의 지장물 적치 여부를 점검할 필요가 있습니다.\n3. **자포리 철도 인접 사면 점검**: 자포리의 경우 국가철도공단 관리 철도변 절개사면이 위치하므로 호우 시 유실 위험 여부에 대한 유관기관 합동 확인이 권장됩니다.",
+   "answer_format": "MARKDOWN",
+   "entities": [],
+   "result_groups": [],
+   "evidence_refs": [],
+   "follow_up_questions": [],
+   "refs": [
+    {
+     "ref": "r19",
+     "entity_type": "REGION",
+     "display_name": "원곡",
+     "map": {
+      "key": "legal_dong_code",
+      "value": "4723000000",
+      "draw": "pin"
+     }
+    },
+    {
+     "ref": "r5",
+     "entity_type": "REGION",
+     "display_name": "경상북도",
+     "map": {
+      "key": "legal_dong_code",
+      "value": "4723039044",
+      "draw": "pin"
+     }
+    },
+    {
+     "ref": "r56",
+     "entity_type": "RISK_AREA",
+     "display_name": "경북 영천 북안 상 N6지구",
+     "map": {
+      "key": "slope_no",
+      "value": "4723000129",
+      "draw": "line"
+     }
+    },
+    {
+     "ref": "r77",
+     "entity_type": "RISK_AREA",
+     "display_name": "상리지구",
+     "map": {
+      "key": "slope_no",
+      "value": "4723000006",
+      "draw": "line"
+     }
+    },
+    {
+     "ref": "r63",
+     "entity_type": "RISK_AREA",
+     "display_name": "경북 영천 북안 북 N1지구",
+     "map": {
+      "key": "slope_no",
+      "value": "4723000097",
+      "draw": "line"
+     }
+    },
+    {
+     "ref": "r70",
+     "entity_type": "RISK_AREA",
+     "display_name": "영남 중앙선 2-4(영신)",
+     "map": {
+      "key": "slope_no",
+      "value": "4723000079",
+      "draw": "line"
+     }
+    },
+    {
+     "ref": "r60",
+     "entity_type": "RISK_AREA",
+     "display_name": "중앙 355km730(중)",
+     "map": {
+      "key": "slope_no",
+      "value": "4723000144",
+      "draw": "line"
+     }
+    },
+    {
+     "ref": "r75",
+     "entity_type": "RISK_AREA",
+     "display_name": "경북 영천 북안 자포 N1지구",
+     "map": {
+      "key": "slope_no",
+      "value": "4723000341",
+      "draw": "line"
+     }
+    },
+    {
+     "ref": "r85",
+     "entity_type": "RISK_AREA",
+     "display_name": "상리",
+     "map": {
+      "key": "landslide_area_id",
+      "value": "B-마마33836153-23-001",
+      "draw": "pin"
+     }
+    },
+    {
+     "ref": "r86",
+     "entity_type": "RISK_AREA",
+     "display_name": "상리",
+     "map": {
+      "key": "landslide_area_id",
+      "value": "B-마마34056145-20-001",
+      "draw": "pin"
+     }
+    },
+    {
+     "ref": "r89",
+     "entity_type": "RISK_AREA",
+     "display_name": "상리",
+     "map": {
+      "key": "landslide_area_id",
+      "value": "M-마마33966192-15-001",
+      "draw": "pin"
+     }
+    },
+    {
+     "ref": "r90",
+     "entity_type": "RISK_AREA",
+     "display_name": "상리",
+     "map": {
+      "key": "landslide_area_id",
+      "value": "M-마마34036168-17-001",
+      "draw": "pin"
+     }
+    },
+    {
+     "ref": "r91",
+     "entity_type": "RISK_AREA",
+     "display_name": "상리",
+     "map": {
+      "key": "landslide_area_id",
+      "value": "M-마마35086206-17-001",
+      "draw": "pin"
+     }
+    },
+    {
+     "ref": "r87",
+     "entity_type": "RISK_AREA",
+     "display_name": "유상리",
+     "map": {
+      "key": "landslide_area_id",
+      "value": "M-마마33416888-16-001",
+      "draw": "pin"
+     }
+    },
+    {
+     "ref": "r88",
+     "entity_type": "RISK_AREA",
+     "display_name": "유상리",
+     "map": {
+      "key": "landslide_area_id",
+      "value": "M-마마33736824-16-001",
+      "draw": "pin"
+     }
+    },
+    {
+     "ref": "r84",
+     "entity_type": "RISK_AREA",
+     "display_name": "북리",
+     "map": {
+      "key": "landslide_area_id",
+      "value": "B-마마33526240-21-001",
+      "draw": "pin"
+     }
+    },
+    {
+     "ref": "r92",
+     "entity_type": "RISK_AREA",
+     "display_name": "용계리",
+     "map": {
+      "key": "landslide_area_id",
+      "value": "M-마마36026470-17-001",
+      "draw": "pin"
+     }
+    }
+   ],
+   "conversation_title": null,
+   "limitations": [
+    "유사사례는 예측·위험판단이 아닌 참고 정보"
+   ],
+   "context_used": {
+    "used_conditions": [],
+    "unused_conditions": [],
+    "reference_used": false
+   }
+  },
+  "data_gaps": [],
+  "warnings": [],
+  "meta": {
+   "source": "T3Q",
+   "base_time": "2026-10-28T21:23:20+09:00",
+   "quality_status": "VERIFIED",
+   "disclosure_level": "공개",
+   "elapsed_ms": 246583
+  }
+ }
+}

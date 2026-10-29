@@ -1,0 +1,98 @@
+{
+ "id": "AIM-BS",
+ "group": "가",
+ "what": "AI 모드 점검 · 호우경보(부산) 시나리오",
+ "question": "제공된 기상특보 정보를 기준으로, 해당 지역 담당자가 지금 먼저 확인할 내용을 알려 주십시오. 발효 중인 특보가 있으면 특보마다 2문장 이내(공백 포함 80자 내외)로만 쓰고, 제목·과거 사례·근거 목록은 쓰지 마십시오. 발효 중인 특보가 없으면 대응 검토가 필요한 사유를 확인하지 못했다는 점검 결과만 1문장으로 쓰십시오. 제공되지 않은 관측값이나 피해 발생 여부는 추정하지 마십시오.",
+ "request": {
+  "question": "제공된 기상특보 정보를 기준으로, 해당 지역 담당자가 지금 먼저 확인할 내용을 알려 주십시오. 발효 중인 특보가 있으면 특보마다 2문장 이내(공백 포함 80자 내외)로만 쓰고, 제목·과거 사례·근거 목록은 쓰지 마십시오. 발효 중인 특보가 없으면 대응 검토가 필요한 사유를 확인하지 못했다는 점검 결과만 1문장으로 쓰십시오. 제공되지 않은 관측값이나 피해 발생 여부는 추정하지 마십시오.",
+  "response_mode": "ASYNC",
+  "caller": {
+   "user_id": "U-harness-v3",
+   "role": "LOCAL_GOV_OFFICER",
+   "org_admin_code": "2600000000"
+  },
+  "conversation_id": null,
+  "turn_no": 1,
+  "question_source": "AI_MODE",
+  "query_context": {
+   "region": {
+    "admin_code": "2600000000",
+    "level": "SIDO",
+    "name": "부산광역시"
+   }
+  },
+  "reference": null,
+  "ai_mode": {
+   "check_id": "CHK-V3-BS-1793270937221",
+   "trigger": "START",
+   "interval_min": 10
+  },
+  "weather_warnings": {
+   "collect_status": "COLLECTED",
+   "collected_at": "2026-10-29T10:48:57.221Z",
+   "source": "시연 시나리오(가상 특보)",
+   "items": [
+    {
+     "warning_key": "SCN-BS-1",
+     "kind": "호우",
+     "level": "경보",
+     "area": "부산",
+     "announced_at": "2026-10-29T10:48:57.221Z",
+     "effective_at": "2026-10-29T10:48:57.221Z",
+     "change": "발효"
+    }
+   ]
+  }
+ },
+ "status": "SUCCESS",
+ "http": 200,
+ "elapsedMs": 35804,
+ "waitedMs": 37384,
+ "at": "2026-10-29T10:48:57.224Z",
+ "raw": {
+  "schema_version": "2.0",
+  "request_id": "92e51db7389ce7c9e0cebfa0b9ecf163",
+  "correlation_id": "corr-92e51db7389ce7c9e0cebfa0b9ecf163",
+  "status": "SUCCESS",
+  "result": {
+   "response_id": "RES-20261029-b851c8",
+   "question": "제공된 기상특보 정보를 기준으로, 해당 지역 담당자가 지금 먼저 확인할 내용을 알려 주십시오. 발효 중인 특보가 있으면 특보마다 2문장 이내(공백 포함 80자 내외)로만 쓰고, 제목·과거 사례·근거 목록은 쓰지 마십시오. 발효 중인 특보가 없으면 대응 검토가 필요한 사유를 확인하지 못했다는 점검 결과만 1문장으로 쓰십시오. 제공되지 않은 관측값이나 피해 발생 여부는 추정하지 마십시오.",
+   "question_source": "AI_MODE",
+   "answer": "부산 지역 호우경보 발효에 따라 지하차도와 저지대 침수 통제 상황을 점검하십시오. 하천변 산책로 통제와 배수시설 가동 상태를 즉시 확인하십시오.",
+   "answer_format": "MARKDOWN",
+   "entities": [],
+   "result_groups": [],
+   "evidence_refs": [],
+   "follow_up_questions": [],
+   "refs": [],
+   "conversation_title": null,
+   "limitations": [
+    "유사사례는 예측·위험판단이 아닌 참고 정보"
+   ],
+   "context_used": {
+    "used_conditions": [],
+    "unused_conditions": [],
+    "reference_used": false
+   },
+   "check_id": "CHK-V3-BS-1793270937221",
+   "checked_at": "2026-10-29T19:49:33+09:00",
+   "region": {
+    "admin_code": "2600000000",
+    "name": "부산광역시"
+   },
+   "priority_review": null,
+   "warning_guides": [],
+   "no_warning_message": null,
+   "info_gaps": []
+  },
+  "data_gaps": [],
+  "warnings": [],
+  "meta": {
+   "source": "T3Q",
+   "base_time": "2026-10-29T19:49:33+09:00",
+   "quality_status": "VERIFIED",
+   "disclosure_level": "공개",
+   "elapsed_ms": 35804
+  }
+ }
+}

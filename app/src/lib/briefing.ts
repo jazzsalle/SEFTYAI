@@ -49,13 +49,17 @@ export async function saveBrief(accountId: string | undefined, items: BriefItem[
 }
 const usable = (l: BriefItem[]) => l.filter((x) => x.on && x.q.trim());
 
-/** 체크한 브리핑 항목 (순서 유지) */
-export function useBriefItems(): BriefItem[] {
+/**
+ * 체크한 브리핑 항목 (순서 유지) + 이 계정 값을 서버에서 다 읽었는지(loaded).
+ * 읽기 전에는 기본 4문항이 보인다 — 곧바로 보내는 경로(explore ?brief=1)는 loaded 를 기다린다(기본 항목이 잘못 나가지 않게)
+ */
+export function useBriefState(): { items: BriefItem[]; loaded: boolean } {
   const { account } = useSession();
-  const [items, setItems] = useState<BriefItem[]>(usable(BRIEF_DEFAULT));
+  const [st, setSt] = useState<{ acct: string | undefined | null; items: BriefItem[] }>({ acct: null, items: usable(BRIEF_DEFAULT) });
   useEffect(() => {
     let alive = true;
-    const load = () => loadBrief(account?.id).then((l) => alive && setItems(usable(l)));
+    const acct = account?.id;
+    const load = () => loadBrief(acct).then((l) => alive && setSt({ acct, items: usable(l) }));
     load();
     window.addEventListener(EVT, load);
     return () => {
@@ -63,8 +67,9 @@ export function useBriefItems(): BriefItem[] {
       window.removeEventListener(EVT, load);
     };
   }, [account?.id]);
-  return items;
+  return { items: st.items, loaded: st.acct === account?.id };
 }
+export const useBriefItems = (): BriefItem[] => useBriefState().items;
 
 /** 무작위 n개 (접속할 때마다 다르게 — 화면이 열릴 때 한 번 섞음) */
 export function useRandomBrief(n: number): BriefItem[] {

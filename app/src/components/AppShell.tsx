@@ -5,7 +5,8 @@ import { useEffect, useRef, useState } from "react";
 import { useSession } from "@/lib/session";
 import { GovLogo, IcChevR, IcSiren } from "./Icons";
 import type { Advisory } from "@/lib/contract/agent";
-import { advLabel, advTime, advTone } from "@/lib/wxref";
+import { advLabel, advName, advTime, advTone } from "@/lib/wxref";
+import { SCN_LABEL } from "@/lib/scenario";
 import { wxCovers } from "@/lib/wxMatch";
 import { baseKey, baseName, baseTarget } from "@/lib/baseRegion";
 import BasePicker from "./BasePicker";
@@ -18,6 +19,9 @@ import { PasswordModal } from "./account/PasswordModal";
 import { MyInfoModal } from "./account/MyInfoModal";
 import { SessionExpiredModal } from "./account/SessionExpiredModal";
 
+/** 시연 시나리오 특보 표지(R43) — 특보 이름 옆에. 기상청 특보가 아님을 보이는 것이라 좁은 화면에서도 숨기지 않는다 */
+export const ScnTag = ({ a }: { a: Pick<Advisory, "scenario"> }) => (a.scenario ? <span className="scn-tag">{SCN_LABEL}</span> : null);
+
 const fmtT = (iso?: string) => {
   if (!iso) return "";
   const d = new Date(iso);
@@ -27,6 +31,7 @@ const fmtT = (iso?: string) => {
 /**
  * 특보 바 (목업 SCR-UNE-101001 : 긴급 · 지역 특보 발효 중 · 발표/갱신 · 특보로 질문)
  * 지금 기준지역을 덮는 특보만(R32 — lib/wxMatch). 기준지역이 바뀌면 그 지역으로 다시 보인다(특보 참조는 setBase 가 뗀다). 전국이면 모든 특보
+ * 시연 시나리오 특보(R43 — 서버가 시연 계정에만 붙임)는 이름 옆에 「시연 시나리오」, 시각은 켠 시각. 기상청 조회가 실패해도 시나리오 특보는 보이고 실패는 갱신 줄에
  */
 export function WxBar() {
   const { weather, account, cond, wxRef, setWxRef, aimOn } = useSession();
@@ -66,19 +71,22 @@ export function WxBar() {
   // 나머지 특보는 지역·전국 모두 받은 이름 그대로, 받은 순서대로 · 로 잇는다(유엔이가 센 「외 n건」 없음, R25·R40). 길면 한 줄 말줄임, [모두 보기] = 전체 목록
   // 이름은 첫 특보와 같이 「구역 + 특보」 — 특보 이름만 이으면 구역이 다른 특보가 「강풍주의보 · 강풍주의보」로 같아 보인다
   const rest = top ? mine.filter((a) => a !== top) : [];
-  const restText = rest.map((a) => `${a.area} ${advLabel(a)}`).join(" · ");
+  const restText = rest.map((a) => `${a.area} ${advName(a)}`).join(" · ");
   let tag: React.ReactNode, title: React.ReactNode, meta = "";
   if (!weather) {
     tag = <span className="tag fail">조회 중</span>;
     title = "기상특보를 확인하고 있습니다";
-  } else if (!weather.status.ok) {
+  } else if (!weather.status.ok && !top) {
     tag = <span className="tag fail">조회 실패</span>;
     title = "기상특보를 불러오지 못했습니다";
     meta = `${weather.status.message} · 최종 시도 ${fmtT(weather.status.fetchedAt)}`;
   } else if (top) {
     tag = <span className={`tag ${top.level === "경보" ? "" : "warn"}`}><IcSiren size={16} /> {top.level === "경보" ? "긴급" : "주의"}</span>;
-    title = <>{top.area} {top.type}{top.level} 발효 중</>;
-    meta = `${fmtT(top.issuedAt)} 발표 · 기상청 ${fmtT(weather.status.fetchedAt)} 갱신`;
+    title = <>{top.area} {top.type}{top.level} 발효 중{top.scenario && <> <ScnTag a={top} /></>}</>;
+    meta = [
+      `${fmtT(top.issuedAt)} ${top.scenario ? "켬" : "발표"}`,
+      weather.status.ok ? `기상청 ${fmtT(weather.status.fetchedAt)} 갱신` : `${weather.status.message} · 최종 시도 ${fmtT(weather.status.fetchedAt)}`,
+    ].join(" · ");
   } else {
     tag = <span className="tag none">특보 없음</span>;
     title = national ? "발효 중인 기상특보가 없습니다" : `${baseName(cond.base)}에 발효 중인 기상특보가 없습니다`;
@@ -115,8 +123,8 @@ export function WxBar() {
                   <div key={a.id} role="listitem" className="row">
                     {/* 읽기만 하는 목록 — 단계 색(빨강) 없이 받은 이름 그대로 */}
                     <span className="lvb">{advLabel(a)}</span>
-                    <span className="ar">{a.area}</span>
-                    <span className="t">{advTime(a.issuedAt)} 발표</span>
+                    <span className="ar">{a.area}{a.scenario && <> <ScnTag a={a} /></>}</span>
+                    <span className="t">{advTime(a.issuedAt)} {a.scenario ? "켬" : "발표"}</span>
                   </div>
                 ))}
               </div>
@@ -135,7 +143,7 @@ export function WxBar() {
           aria-haspopup={cands.length > 1}
           aria-expanded={pop === "ask"}
         >
-          {aimOn ? "AI 모드 · 특보 자동 반영" : wxRef ? `참조 중 · ${advLabel(wxRef)}` : "특보로 질문"} {!aimOn && !wxRef && <IcChevR size={14} />}
+          {aimOn ? "AI 모드 · 특보 자동 반영" : wxRef ? `참조 중 · ${advName(wxRef)}` : "특보로 질문"} {!aimOn && !wxRef && <IcChevR size={14} />}
         </button>
         {wxRef && !aimOn && <button className="lnk xs" onClick={() => setWxRef(null)} aria-label="특보 참조 해제" title="특보 참조 해제">해제 ×</button>}
         {pop === "ask" && (
@@ -144,8 +152,8 @@ export function WxBar() {
             {cands.map((a) => (
               <button key={a.id} role="menuitem" className={wxRef?.id === a.id ? "on" : ""} onClick={() => attach(a)}>
                 <span className={`lvb ${advTone(a)}`}>{advLabel(a)}</span>
-                <span className="ar">{a.area}</span>
-                <span className="t">{advTime(a.issuedAt)} 발표</span>
+                <span className="ar">{a.area}{a.scenario && <> <ScnTag a={a} /></>}</span>
+                <span className="t">{advTime(a.issuedAt)} {a.scenario ? "켬" : "발표"}</span>
               </button>
             ))}
           </div>
@@ -174,7 +182,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   // AI 모드 단추 색 — 지금 기준지역을 덮는 발효 특보로(R32)
   const target = baseTarget(cond.base);
   const mine = (weather?.advisories ?? []).filter((a) => a.status === "발효" && wxCovers(a.area, target));
-  const st = !aimOn ? "" : weather && !weather.status.ok ? "gray" : mine.some((a) => a.level === "경보") ? "red" : mine.length ? "yellow" : "green";
+  const st = !aimOn ? "" : weather && !weather.status.ok && !mine.length ? "gray" : mine.some((a) => a.level === "경보") ? "red" : mine.length ? "yellow" : "green";
   // 연락망·상황전파는 사용자 메뉴로 옮김(사용자 지시 2026-10-28)
   const nav: [string, string][] = [["/explore", "통합 탐색"], ["/history", "대화 이력"], ...(account.role === "운영자" ? ([["/admin", "운영관리"]] as [string, string][]) : [])];
 

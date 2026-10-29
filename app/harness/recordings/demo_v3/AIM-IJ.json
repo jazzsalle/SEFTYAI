@@ -1,0 +1,98 @@
+{
+ "id": "AIM-IJ",
+ "group": "가",
+ "what": "AI 모드 점검 · 호우주의보(강원도(인제평지, 인제산지)) 시나리오",
+ "question": "제공된 기상특보 정보를 기준으로, 해당 지역 담당자가 지금 먼저 확인할 내용을 알려 주십시오. 발효 중인 특보가 있으면 특보마다 2문장 이내(공백 포함 80자 내외)로만 쓰고, 제목·과거 사례·근거 목록은 쓰지 마십시오. 발효 중인 특보가 없으면 대응 검토가 필요한 사유를 확인하지 못했다는 점검 결과만 1문장으로 쓰십시오. 제공되지 않은 관측값이나 피해 발생 여부는 추정하지 마십시오.",
+ "request": {
+  "question": "제공된 기상특보 정보를 기준으로, 해당 지역 담당자가 지금 먼저 확인할 내용을 알려 주십시오. 발효 중인 특보가 있으면 특보마다 2문장 이내(공백 포함 80자 내외)로만 쓰고, 제목·과거 사례·근거 목록은 쓰지 마십시오. 발효 중인 특보가 없으면 대응 검토가 필요한 사유를 확인하지 못했다는 점검 결과만 1문장으로 쓰십시오. 제공되지 않은 관측값이나 피해 발생 여부는 추정하지 마십시오.",
+  "response_mode": "ASYNC",
+  "caller": {
+   "user_id": "U-harness-v3",
+   "role": "LOCAL_GOV_OFFICER",
+   "org_admin_code": "5181000000"
+  },
+  "conversation_id": null,
+  "turn_no": 1,
+  "question_source": "AI_MODE",
+  "query_context": {
+   "region": {
+    "admin_code": "5181000000",
+    "level": "SIGUNGU",
+    "name": "강원특별자치도 인제군"
+   }
+  },
+  "reference": null,
+  "ai_mode": {
+   "check_id": "CHK-V3-IJ-1793270937270",
+   "trigger": "START",
+   "interval_min": 10
+  },
+  "weather_warnings": {
+   "collect_status": "COLLECTED",
+   "collected_at": "2026-10-29T10:48:57.270Z",
+   "source": "시연 시나리오(가상 특보)",
+   "items": [
+    {
+     "warning_key": "SCN-IJ-1",
+     "kind": "호우",
+     "level": "주의보",
+     "area": "강원도(인제평지, 인제산지)",
+     "announced_at": "2026-10-29T10:48:57.270Z",
+     "effective_at": "2026-10-29T10:48:57.270Z",
+     "change": "발효"
+    }
+   ]
+  }
+ },
+ "status": "SUCCESS",
+ "http": 200,
+ "elapsedMs": 15979,
+ "waitedMs": 18885,
+ "at": "2026-10-29T10:48:57.270Z",
+ "raw": {
+  "schema_version": "2.0",
+  "request_id": "9652c7488622ec7a15498ea6a5be2189",
+  "correlation_id": "corr-9652c7488622ec7a15498ea6a5be2189",
+  "status": "SUCCESS",
+  "result": {
+   "response_id": "RES-20261029-8d5f32",
+   "question": "제공된 기상특보 정보를 기준으로, 해당 지역 담당자가 지금 먼저 확인할 내용을 알려 주십시오. 발효 중인 특보가 있으면 특보마다 2문장 이내(공백 포함 80자 내외)로만 쓰고, 제목·과거 사례·근거 목록은 쓰지 마십시오. 발효 중인 특보가 없으면 대응 검토가 필요한 사유를 확인하지 못했다는 점검 결과만 1문장으로 쓰십시오. 제공되지 않은 관측값이나 피해 발생 여부는 추정하지 마십시오.",
+   "question_source": "AI_MODE",
+   "answer": "인제평지 및 산지의 산사태 취약지와 하천변 위험구역 점검을 우선 실시하십시오. 취약시설 예찰을 강화하고 위험징후 발생 시 신속한 주민 대피를 준비하십시오.",
+   "answer_format": "MARKDOWN",
+   "entities": [],
+   "result_groups": [],
+   "evidence_refs": [],
+   "follow_up_questions": [],
+   "refs": [],
+   "conversation_title": null,
+   "limitations": [
+    "유사사례는 예측·위험판단이 아닌 참고 정보"
+   ],
+   "context_used": {
+    "used_conditions": [],
+    "unused_conditions": [],
+    "reference_used": false
+   },
+   "check_id": "CHK-V3-IJ-1793270937270",
+   "checked_at": "2026-10-29T19:49:13+09:00",
+   "region": {
+    "admin_code": "5181000000",
+    "name": "강원특별자치도 인제군"
+   },
+   "priority_review": null,
+   "warning_guides": [],
+   "no_warning_message": null,
+   "info_gaps": []
+  },
+  "data_gaps": [],
+  "warnings": [],
+  "meta": {
+   "source": "T3Q",
+   "base_time": "2026-10-29T19:49:13+09:00",
+   "quality_status": "VERIFIED",
+   "disclosure_level": "공개",
+   "elapsed_ms": 15979
+  }
+ }
+}

@@ -1,0 +1,61 @@
+{
+ "step": "YC-06",
+ "region": "yeongcheon",
+ "question": "2024년 7월 10일 호우 때 영천시 단포교·영동교·금창교에 내려진 홍수특보를 하천별로 발령·해제 시각과 함께 보여줘.",
+ "request": {
+  "question_source": "USER",
+  "query_context": {
+   "region": {
+    "admin_code": "4723000000",
+    "level": "SIGUNGU",
+    "name": "경상북도 영천시"
+   },
+   "disaster_types": [
+    "호우"
+   ]
+  }
+ },
+ "status": "SUCCESS",
+ "http": 200,
+ "elapsedMs": 135672,
+ "waitedMs": 137090,
+ "at": "2026-10-28T12:11:29.232Z",
+ "raw": {
+  "schema_version": "2.0",
+  "request_id": "39a06caef114c4669c1b755f7c2f4d72",
+  "correlation_id": "corr-39a06caef114c4669c1b755f7c2f4d72",
+  "status": "SUCCESS",
+  "conversation_id": "CONV-20261028-291c2b",
+  "turn_no": 1,
+  "result": {
+   "response_id": "RES-20261028-e02b59",
+   "question": "2024년 7월 10일 호우 때 영천시 단포교·영동교·금창교에 내려진 홍수특보를 하천별로 발령·해제 시각과 함께 보여줘.",
+   "question_source": "USER",
+   "answer": "### 2024년 7월 10일 영천시 홍수특보 발령·해제 현황\n\n2024년 7월 10일 호우 당시 영천시 관내 **3개 지점(단포교·영동교·금창교)**에 대해 낙동강홍수통제소가 발령 및 해제한 홍수특보 내역은 다음과 같습니다.\n\n---\n\n### 하천별 홍수특보 상세 내역\n\n| 하천명 | 지점명 | 발령 시각 (특보번호) | 해제 시각 (특보번호) | 특보 지속 시간 |\n|---|---|---|---|:---:|\n| **자호천** | **영천시(단포교)** | **2024-07-10 08:00**<br>(낙동강 제2024-25호) | **2024-07-10 13:30**<br>(낙동강 제2024-38호) | 5시간 30분 |\n| **금호강** | **영천시(영동교)** | **2024-07-10 08:20**<br>(낙동강 제2024-29호) | **2024-07-10 13:30**<br>(낙동강 제2024-38호) | 5시간 10분 |\n| **금호강** | **영천시(금창교)** | **2024-07-10 09:20**<br>(낙동강 제2024-32호) | **2024-07-10 20:40**<br>(낙동강 제2024-42호) | 11시간 20분 |\n\n---\n\n### 주요 특이사항 및 경과\n\n1. **발령 순서 및 상·하류 흐름**:\n   - 오전 집중호우로 인해 **자호천 단포교 지점(08:00)**에 가장 먼저 홍수특보가 발령되었습니다.\n   - 20분 뒤 금호강 상류부인 **영동교 지점(08:20)**에 발령되었고, 이후 1시간 뒤 하류부인 **금창교 지점(09:20)**으로 특보가 확대 발령되었습니다.\n2. **해제 순서**:\n   - 강우 소강 및 수위 안정에 따라 **단포교·영동교 지점**은 당일 **13:30(낙동강 제38호)**에 동시에 해제되었습니다.\n   - 하류에 위치한 **금창교 지점**은 유입량 잔류 영향으로 야간인 **20:40(낙동강 제42호)**까지 특보가 유지된 후 최종 해제되었습니다.\n\n---\n\n> **데이터 출처**: `alert.flood_bulletin`, `alert.flood_bulletin_station`, `alert.flood_station` (낙동강홍수통제소 홍수특보 발령 현황)",
+   "answer_format": "MARKDOWN",
+   "entities": [],
+   "result_groups": [],
+   "evidence_refs": [],
+   "follow_up_questions": [],
+   "refs": [],
+   "conversation_title": null,
+   "limitations": [
+    "유사사례는 예측·위험판단이 아닌 참고 정보"
+   ],
+   "context_used": {
+    "used_conditions": [],
+    "unused_conditions": [],
+    "reference_used": false
+   }
+  },
+  "data_gaps": [],
+  "warnings": [],
+  "meta": {
+   "source": "T3Q",
+   "base_time": "2026-10-28T21:13:45+09:00",
+   "quality_status": "VERIFIED",
+   "disclosure_level": "공개",
+   "elapsed_ms": 135672
+  }
+ }
+}

@@ -5,6 +5,7 @@ import { isActive, receivedAt, type JobFull, type JobState, type JobSummary } fr
 import { libById } from "@/lib/library";
 import { statusKo } from "@/lib/labels";
 import { fmtAgo, fmtElapsed, fmtRunning } from "@/lib/format";
+import { SCN_SENT_LABEL, sentWithScenario } from "@/lib/scenario";
 import "./brief.css";
 
 /**
@@ -233,7 +234,10 @@ export default function BriefBoard({ turns, regionName, renderBody }: { turns: T
     <div className="brief-card">
       <div className="brief-card-h">
         <h2>현재 상황 브리핑</h2>
-        <div className="xs muted">기준지역 <b>{groupOf(turns[0])?.region ?? regionName}</b></div>
+        <div className="xs muted">
+          기준지역 <b>{groupOf(turns[0])?.region ?? regionName}</b>
+          {turns.some((t) => t.jobId && sentWithScenario(s.full[t.jobId]?.request)) && ` · ${SCN_SENT_LABEL}`}
+        </div>
       </div>
       <div className="bb" ref={boardRef}>
         <ul className="bb-cells" role="list" aria-label="브리핑 현황">

@@ -3,12 +3,12 @@ import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "rea
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession, uid, type Conversation, type SubmitArgs, type Turn } from "@/lib/session";
 import { useSop } from "@/lib/sopState";
-import { useBriefItems } from "@/lib/briefing";
-import { fillText, libById, type LibraryQuestion } from "@/lib/library";
+import { useBriefState } from "@/lib/briefing";
+import { briefRequest, demoAsk, fillText, libById, presetLines, presetManual, type DemoItem, type LibraryQuestion } from "@/lib/library";
 import { REGIONS } from "@/lib/config";
 import { api } from "@/lib/api";
 import type { Citation } from "@/lib/contract/agent";
-import { activeAdvisories, warningsPayload } from "@/lib/wxref";
+import { activeAdvisories, advName, warningsPayload } from "@/lib/wxref";
 import { baseName, baseTarget, type BaseRegion } from "@/lib/baseRegion";
 import { SOURCE_LABEL, type JobSummary, type T3qRef } from "@/lib/jobTypes";
 import { ExploreContext, type ExploreApi, type PanelTab } from "@/components/explore/ExploreCtx";
@@ -42,7 +42,7 @@ function Explore() {
   const sop = useSop();
   const sp = useSearchParams();
   const router = useRouter();
-  const briefItems = useBriefItems();
+  const { items: briefItems, loaded: briefLoaded } = useBriefState();
   const [conv, setConv] = useState<Conversation | null>(null);
   const [queueOpen, setQueueOpen] = useState(true);
   const [libOpen, setLibOpen] = useState(false);
@@ -195,7 +195,7 @@ function Explore() {
   );
   const toastErr = (e: unknown) => s.toast((e as Error).message);
 
-  /** 지금 기준지역에서 발효 중인 특보(AI 모드 질의·브리핑에 원문 그대로) */
+  /** 지금 기준지역에서 발효 중인 특보(AI 모드 질의·브리핑에 원문 그대로) — 시연 시나리오 특보 포함(R43, 서버가 붙인 그대로). 「시연 세트 예열」 lib/server/warmPlan briefWarningsOf 와 같은 계산 */
   const liveWarnings = () => warningsPayload(s.weather, activeAdvisories(s.weather, wxTarget));
 
   const askText = async (q: string) => {
@@ -213,7 +213,7 @@ function Explore() {
     }
     await ask(
       { question: q, source: still ? "QUICK" : "USER", warnings: still ? warningsPayload(s.weather, [still]) : null },
-      still ? { refAdv: { type: still.type, level: still.level, area: still.area, issuedAt: still.issuedAt } } : undefined,
+      still ? { refAdv: { type: still.type, level: still.level, area: still.area, issuedAt: still.issuedAt, ...(still.scenario ? { scenario: true } : {}) } } : undefined,
     );
   };
   const askLib = (q: LibraryQuestion, source: "LIBRARY" | "BRIEFING" = "LIBRARY") =>
@@ -224,6 +224,8 @@ function Explore() {
     if (lib && lib.text === q) return askLib(lib, "BRIEFING");
     return ask({ question: q.replaceAll("{지역}", regionName), source: "BRIEFING", warnings: s.aimOn ? liveWarnings() : null }, undefined, true).catch(toastErr);
   };
+  /** 질문 모음 「재난담당자의 하루」 — 질문 모음 질문과 같은 경로(자동 조회 먼저), 항목의 조건 프리셋은 이 질문에만 싣는다(세션 조건 그대로) */
+  const askDemo = (d: DemoItem) => ask(demoAsk(d)).catch(toastErr);
 
   /** 브리핑 세트 — 항목마다 자리 턴을 먼저 만들고(실패해도 자리 유지) 동시에 보낸다(R2) */
   const startBriefing = async () => {
@@ -233,12 +235,8 @@ function Explore() {
     const now = new Date().toISOString();
     const warnings = s.aimOn ? liveWarnings() : null;
     const plan = items.map((it, i) => {
-      const lib = it.preset ? libById(it.preset) : undefined;
-      const useLib = lib && it.q === lib.text;
-      const a: AskArgs = {
-        question: it.q.replaceAll("{지역}", regionName), source: "BRIEFING", libraryId: useLib ? lib.id : null, quickQueryId: useLib ? lib.quickQueryId ?? null : null,
-        briefing: { preset_id: "MY-BRIEFING", briefing_item_id: it.key, item_no: i + 1, item_total: items.length }, warnings,
-      };
+      // 질문 글·문항·briefing 칸 — 「시연 세트 예열」과 같은 함수(lib/library briefRequest)
+      const a: AskArgs = { ...briefRequest(it, i, items.length, regionName), source: "BRIEFING", warnings };
       // 현황판(D1)용 — 브리핑 설정의 항목 이름·보낸 기준지역 이름을 턴에 함께 둔다(요청에는 넣지 않음)
       const group: BriefGroup = { id: gid, no: i + 1, total: items.length, title: "현재 상황 브리핑", label: it.label?.trim() || undefined, region: regionName };
       const t: Turn = { id: uid("t"), jobId: "", pending: true, q: a.question, source: "BRIEFING", libraryId: a.libraryId ?? null, at: now, args: a, group };
@@ -293,13 +291,15 @@ function Explore() {
     const q = sp.get("q"), brief = sp.get("brief"), bq = sp.get("bq");
     const key = `${q}|${brief}|${bq}`;
     if ((!q && !brief && !bq) || handledQ.current === key) return;
+    // 브리핑 세트는 이 계정의 「내 브리핑 항목」을 서버에서 다 읽은 뒤에 — 읽기 전 기본 4문항이 나가지 않게
+    if (brief && !q && !briefLoaded) return;
     handledQ.current = key;
     if (q) askRef.current({ question: q, source: "USER" }, undefined, true).catch(toastErr);
     else if (brief) briefRef.current().catch(toastErr);
     else if (bq) askBriefRef.current(bq, sp.get("bp") ?? undefined);
     router.replace("/explore");
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sp, s.account]);
+  }, [sp, s.account, briefLoaded]);
 
   const askMany = async (qs: LibraryQuestion[]) => {
     setLibOpen(false);
@@ -411,8 +411,14 @@ function Explore() {
                   b.turns.map((t) => (
                     <section key={t.id} className="turn" id={t.jobId ? `job-${t.jobId}` : undefined}>
                       <div className="qbubble">
-                        <div className="qb-meta xs">{SOURCE_LABEL[t.source]}{t.refAdv ? ` · 참조 특보 ${t.refAdv.area} ${t.refAdv.type}${t.refAdv.level}` : ""}</div>
+                        <div className="qb-meta xs">{SOURCE_LABEL[t.source]}{t.refAdv ? ` · 참조 특보 ${t.refAdv.area} ${advName(t.refAdv)}` : ""}</div>
                         {t.q}
+                        {t.args?.cond && (
+                          <div className="qb-cond xs">
+                            이 질문에 붙인 조건 · {presetLines(t.args.cond).join(" · ") || "없음"}
+                            {presetManual(t.args.cond) && <> <span className="badge neutral xs" title="사용자가 직접 입력한 조건입니다(실시간 관측·특보 아님)">사용자 입력 조건</span></>}
+                          </div>
+                        )}
                         {t.jobId && <SentQuestion jobId={t.jobId} shown={t.q} />}
                       </div>
                       <TurnBody t={t} onRetry={() => retryTurn(conv.id, t)} />
@@ -457,6 +463,7 @@ function Explore() {
             onClose={() => setLibOpen(false)}
             onAsk={(q) => { setLibOpen(false); askLib(q); }}
             onAskMany={askMany}
+            onAskDemo={(d) => { setLibOpen(false); askDemo(d); }}
             onAskT3q={(text) => { setLibOpen(false); ask({ question: text, source: "SUGGEST" }).catch(toastErr); }}
           />
         )}

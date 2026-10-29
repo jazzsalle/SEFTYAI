@@ -1,0 +1,322 @@
+{
+ "id": "BRF-BS-4",
+ "group": "나",
+ "what": "부산 브리핑 4/4 · c-BS-01",
+ "question": "부산 지하차도 가운데 하천 500m 안에 있는 곳을 재해위험등급·인접 하천·통제 기준 수심과 함께 보여줘.",
+ "request": {
+  "question": "부산 지하차도 가운데 하천 500m 안에 있는 곳을 재해위험등급·인접 하천·통제 기준 수심과 함께 보여줘.",
+  "response_mode": "ASYNC",
+  "caller": {
+   "user_id": "U-harness-v3",
+   "role": "LOCAL_GOV_OFFICER",
+   "org_admin_code": "2600000000"
+  },
+  "conversation_id": null,
+  "turn_no": 4,
+  "question_source": "BRIEFING",
+  "query_context": {
+   "region": {
+    "admin_code": "2600000000",
+    "level": "SIDO",
+    "name": "부산광역시"
+   }
+  },
+  "reference": null,
+  "briefing": {
+   "preset_id": "MY-BRIEFING",
+   "briefing_item_id": "c-BS-01",
+   "item_no": 4,
+   "item_total": 4
+  },
+  "weather_warnings": {
+   "collect_status": "COLLECTED",
+   "collected_at": "2026-10-29T10:51:04.507Z",
+   "source": "시연 시나리오(가상 특보)",
+   "items": [
+    {
+     "warning_key": "SCN-BS-1",
+     "kind": "호우",
+     "level": "경보",
+     "area": "부산",
+     "announced_at": "2026-10-29T10:51:04.507Z",
+     "effective_at": "2026-10-29T10:51:04.507Z",
+     "change": "발효"
+    }
+   ]
+  }
+ },
+ "status": "SUCCESS",
+ "http": 200,
+ "elapsedMs": 40514,
+ "waitedMs": 43431,
+ "at": "2026-10-29T10:51:04.507Z",
+ "raw": {
+  "schema_version": "2.0",
+  "request_id": "94c10d3c140ec0d8ad4c2a06f047d5b5",
+  "correlation_id": "corr-94c10d3c140ec0d8ad4c2a06f047d5b5",
+  "status": "SUCCESS",
+  "conversation_id": "CONV-20261029-819a39",
+  "turn_no": 4,
+  "result": {
+   "response_id": "RES-20261029-682fe1",
+   "question": "부산 지하차도 가운데 하천 500m 안에 있는 곳을 재해위험등급·인접 하천·통제 기준 수심과 함께 보여줘.",
+   "question_source": "BRIEFING",
+   "answer": "### 1. 결론 및 현황 요약\n\n부산광역시 관내 지하차도 중 **하천 500m 이내에 위치한 지하차도는 총 22개소**입니다.\n\n- **재해위험도(방재등급) 분포**: **4등급 20개소**, **3등급 1개소**([센텀시티지하차도](#ref:r21)), **2등급 1개소**([장전지하차도(1)](#ref:r10))\n- **통제 기준 수심**: **5.0cm**(12개소) 및 **15.0cm**(10개소)\n- **주요 인접 하천**: 낙동강·서낙동강(5개소), 수영강(5개소), 온천천(4개소), 동천(3개소), 초량천·남천·가야천·죽성천·일광천 등\n\n---\n\n### 2. 하천 500m 이내 지하차도 상세 목록\n\n| 연번 | 지하차도명 | 자치구·동 | 인접 하천 | 방재등급 | 통제 기준 수심 | 행안부 인명피해 우려지역 여부 |\n|:---:|---|---|:---:|:---:|:---:|:---:|\n| 1 | [대남지하차도](#ref:r1) | 남구 대연동 | 남천 | 4 | 5.0 cm | 대상 |\n| 2 | [문현지하차도](#ref:r2) | 남구 문현동 | 동천 | 4 | 5.0 cm | 대상 |\n| 3 | [초량제1지하차도](#ref:r3) | 동구 초량동 | 초량천 | 4 | 5.0 cm | 대상 |\n| 4 | [화명2지하차도](#ref:r4) | 북구 금곡동 | 낙동강 | 4 | 15.0 cm | 대상 |\n| 5 | [화명5지하차도(화명대림쌍용아파트지하차도)](#ref:r5) | 북구 화명동 | 낙동강 | 4 | 15.0 cm | 대상 |\n| 6 | [금호지하차도](#ref:r6) | 강서구 대저2동 | 낙동강 | 4 | 15.0 cm | 대상 |\n| 7 | [봉림지하차도](#ref:r7) | 강서구 봉림동 | 서낙동강 | 4 | 15.0 cm | 대상 |\n| 8 | [구서지하차도](#ref:r8) | 금정구 구서동 | 온천천 | 4 | 5.0 cm | 대상 |\n| 9 | [영락공원지하차도](#ref:r9) | 금정구 선동 | 수영강 | 4 | 5.0 cm | 미지정 |\n| 10 | [장전지하차도(1)](#ref:r10) | 금정구 장전동 | 온천천 | 2 | 5.0 cm | 미지정 |\n| 11 | [장전지하차도(2)](#ref:r11) | 금정구 장전동 | 온천천 | 4 | 5.0 cm | 대상 |\n| 12 | [무곡지하차도](#ref:r12) | 기장군 기장읍 | 죽성천 | 4 | 5.0 cm | 대상 |\n| 13 | [삼성1지하차도](#ref:r13) | 기장군 일광면 | 일광천 | 4 | 15.0 cm | 미지정 |\n| 14 | [내성지하차도](#ref:r14) | 동래구 온천동 | 온천천 | 4 | 5.0 cm | 대상 |\n| 15 | [삼락생태공원(3)](#ref:r15) | 사상구 감전동 | 낙동강 | 4 | 15.0 cm | 대상 |\n| 16 | [범일지하도](#ref:r16) | 부산진구 범천동 | 동천 | 4 | 15.0 cm | 미지정 |\n| 17 | [개금지하차도](#ref:r17) | 부산진구 개금동 | 동천 | 4 | 5.0 cm | 대상 |\n| 18 | [당감지하차도](#ref:r18) | 부산진구 당감동 | 가야천 | 4 | 5.0 cm | 대상 |\n| 19 | [센텀지하차도](#ref:r19) | 해운대구 재송동 | 수영강 | 4 | 15.0 cm | 대상 |\n| 20 | [용천지하차도](#ref:r20) | 해운대구 재송동 | 수영강 | 4 | 15.0 cm | 대상 |\n| 21 | [센텀시티지하차도](#ref:r21) | 해운대구 우동 | 수영강 | 3 | 5.0 cm | 미지정 |\n| 22 | [수영강변지하차도](#ref:r22) | 해운대구 재송동 | 수영강 | 4 | 15.0 cm | 대상 |\n\n---\n\n### 3. 방재 대응 및 관리 점검사항\n\n1. **엄격 통제 기준(5.0cm) 대상지 12개소 우선 감시**\n   - [초량제1지하차도](#ref:r3), [대남지하차도](#ref:r1), [문현지하차도](#ref:r2), [내성지하차도](#ref:r14), [구서지하차도](#ref:r8) 등 12개소는 **침수심 5.0cm 도달 시 즉각 통제** 기준이 적용되므로, 강우 집중 시 자동진입차단시설 작동 여부와 현장 수위계측기를 최우선 모니터링해야 합니다.\n2. **행안부 인명피해 우려지역 중복 지정(17개소)**\n   - 22개소 중 17개소는 하천 인접 위험뿐만 아니라 행정안전부 인명피해 우려지역으로 집중 관리 중이므로, 호우경보 발효 시 사전 예찰 및 현장 통제 요원 배치가 필수적입니다.\n3. **인접 하천 수위 상승 연동 통제**\n   - 온천천·동천·초량천 등 도심 하천 인근 지하차도는 하천 수위 급상승 및 배수 역류 위험이 크므로, 하천 수위경보와 연계한 선제적 진입 통제가 권고됩니다.",
+   "answer_format": "MARKDOWN",
+   "entities": [],
+   "result_groups": [],
+   "evidence_refs": [],
+   "follow_up_questions": [],
+   "refs": [
+    {
+     "ref": "r21",
+     "entity_type": "RISK_FACTOR",
+     "display_name": "센텀시티지하차도",
+     "map": {
+      "key": "underpass_id",
+      "value": "665",
+      "draw": "pin"
+     }
+    },
+    {
+     "ref": "r10",
+     "entity_type": "RISK_FACTOR",
+     "display_name": "장전지하차도(1)",
+     "map": {
+      "key": "underpass_id",
+      "value": "630",
+      "draw": "pin"
+     }
+    },
+    {
+     "ref": "r1",
+     "entity_type": "RISK_FACTOR",
+     "display_name": "대남지하차도",
+     "map": {
+      "key": "underpass_id",
+      "value": "609",
+      "draw": "pin"
+     }
+    },
+    {
+     "ref": "r2",
+     "entity_type": "RISK_FACTOR",
+     "display_name": "문현지하차도",
+     "map": {
+      "key": "underpass_id",
+      "value": "610",
+      "draw": "pin"
+     }
+    },
+    {
+     "ref": "r3",
+     "entity_type": "RISK_FACTOR",
+     "display_name": "초량제1지하차도",
+     "map": {
+      "key": "underpass_id",
+      "value": "614",
+      "draw": "pin"
+     }
+    },
+    {
+     "ref": "r4",
+     "entity_type": "RISK_FACTOR",
+     "display_name": "화명2지하차도",
+     "map": {
+      "key": "underpass_id",
+      "value": "620",
+      "draw": "pin"
+     }
+    },
+    {
+     "ref": "r5",
+     "entity_type": "RISK_FACTOR",
+     "display_name": "화명5지하차도(화명대림쌍용아파트지하차도)",
+     "map": {
+      "key": "underpass_id",
+      "value": "622",
+      "draw": "pin"
+     }
+    },
+    {
+     "ref": "r6",
+     "entity_type": "RISK_FACTOR",
+     "display_name": "금호지하차도",
+     "map": {
+      "key": "underpass_id",
+      "value": "623",
+      "draw": "pin"
+     }
+    },
+    {
+     "ref": "r7",
+     "entity_type": "RISK_FACTOR",
+     "display_name": "봉림지하차도",
+     "map": {
+      "key": "underpass_id",
+      "value": "626",
+      "draw": "pin"
+     }
+    },
+    {
+     "ref": "r8",
+     "entity_type": "RISK_FACTOR",
+     "display_name": "구서지하차도",
+     "map": {
+      "key": "underpass_id",
+      "value": "628",
+      "draw": "pin"
+     }
+    },
+    {
+     "ref": "r9",
+     "entity_type": "RISK_FACTOR",
+     "display_name": "영락공원지하차도",
+     "map": {
+      "key": "underpass_id",
+      "value": "629",
+      "draw": "pin"
+     }
+    },
+    {
+     "ref": "r11",
+     "entity_type": "RISK_FACTOR",
+     "display_name": "장전지하차도(2)",
+     "map": {
+      "key": "underpass_id",
+      "value": "631",
+      "draw": "pin"
+     }
+    },
+    {
+     "ref": "r12",
+     "entity_type": "RISK_FACTOR",
+     "display_name": "무곡지하차도",
+     "map": {
+      "key": "underpass_id",
+      "value": "633",
+      "draw": "pin"
+     }
+    },
+    {
+     "ref": "r13",
+     "entity_type": "RISK_FACTOR",
+     "display_name": "삼성1지하차도",
+     "map": {
+      "key": "underpass_id",
+      "value": "634",
+      "draw": "pin"
+     }
+    },
+    {
+     "ref": "r14",
+     "entity_type": "RISK_FACTOR",
+     "display_name": "내성지하차도",
+     "map": {
+      "key": "underpass_id",
+      "value": "636",
+      "draw": "pin"
+     }
+    },
+    {
+     "ref": "r15",
+     "entity_type": "RISK_FACTOR",
+     "display_name": "삼락생태공원(3)",
+     "map": {
+      "key": "underpass_id",
+      "value": "649",
+      "draw": "pin"
+     }
+    },
+    {
+     "ref": "r16",
+     "entity_type": "RISK_FACTOR",
+     "display_name": "범일지하도",
+     "map": {
+      "key": "underpass_id",
+      "value": "654",
+      "draw": "pin"
+     }
+    },
+    {
+     "ref": "r17",
+     "entity_type": "RISK_FACTOR",
+     "display_name": "개금지하차도",
+     "map": {
+      "key": "underpass_id",
+      "value": "655",
+      "draw": "pin"
+     }
+    },
+    {
+     "ref": "r18",
+     "entity_type": "RISK_FACTOR",
+     "display_name": "당감지하차도",
+     "map": {
+      "key": "underpass_id",
+      "value": "656",
+      "draw": "pin"
+     }
+    },
+    {
+     "ref": "r19",
+     "entity_type": "RISK_FACTOR",
+     "display_name": "센텀지하차도",
+     "map": {
+      "key": "underpass_id",
+      "value": "660",
+      "draw": "pin"
+     }
+    },
+    {
+     "ref": "r20",
+     "entity_type": "RISK_FACTOR",
+     "display_name": "용천지하차도",
+     "map": {
+      "key": "underpass_id",
+      "value": "661",
+      "draw": "pin"
+     }
+    },
+    {
+     "ref": "r22",
+     "entity_type": "RISK_FACTOR",
+     "display_name": "수영강변지하차도",
+     "map": {
+      "key": "underpass_id",
+      "value": "666",
+      "draw": "pin"
+     }
+    }
+   ],
+   "conversation_title": null,
+   "limitations": [
+    "유사사례는 예측·위험판단이 아닌 참고 정보"
+   ],
+   "context_used": {
+    "used_conditions": [],
+    "unused_conditions": [],
+    "reference_used": false
+   },
+   "briefing_item": {
+    "briefing_item_id": "c-BS-01",
+    "item_name": null,
+    "item_status": "SUCCESS",
+    "summary": null,
+    "count": null,
+    "unit": null,
+    "objects": [],
+    "evidence_refs": []
+   }
+  },
+  "data_gaps": [],
+  "warnings": [],
+  "meta": {
+   "source": "T3Q",
+   "base_time": "2026-10-29T19:51:45+09:00",
+   "quality_status": "VERIFIED",
+   "disclosure_level": "공개",
+   "elapsed_ms": 40514
+  }
+ }
+}

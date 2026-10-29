@@ -1,0 +1,123 @@
+{
+ "id": "BS-07-v3",
+ "group": "다",
+ "what": "부산 마무리 후보 — BS-07 기준지역 동구 다시 재기",
+ "question": "부산 동구 초량동에서 지하층이 있는 주택 가운데 침수흔적 범위 안에 있는 집은 몇 동이고, 어느 침수흔적 지구에 속해?",
+ "request": {
+  "question": "부산 동구 초량동에서 지하층이 있는 주택 가운데 침수흔적 범위 안에 있는 집은 몇 동이고, 어느 침수흔적 지구에 속해?",
+  "response_mode": "ASYNC",
+  "caller": {
+   "user_id": "U-harness-v3",
+   "role": "LOCAL_GOV_OFFICER",
+   "org_admin_code": "2617000000"
+  },
+  "conversation_id": null,
+  "turn_no": 1,
+  "question_source": "USER",
+  "query_context": {
+   "region": {
+    "admin_code": "2617000000",
+    "level": "SIGUNGU",
+    "name": "부산광역시 동구"
+   },
+   "disaster_types": [
+    "호우"
+   ]
+  },
+  "reference": null
+ },
+ "status": "SUCCESS",
+ "http": 200,
+ "elapsedMs": 125481,
+ "waitedMs": 126982,
+ "at": "2026-10-29T10:51:44.561Z",
+ "raw": {
+  "schema_version": "2.0",
+  "request_id": "f991ce089e4dbcda1288a50893dcd8c0",
+  "correlation_id": "corr-f991ce089e4dbcda1288a50893dcd8c0",
+  "status": "SUCCESS",
+  "conversation_id": "CONV-20261029-889691",
+  "turn_no": 1,
+  "result": {
+   "response_id": "RES-20261029-009f88",
+   "question": "부산 동구 초량동에서 지하층이 있는 주택 가운데 침수흔적 범위 안에 있는 집은 몇 동이고, 어느 침수흔적 지구에 속해?",
+   "question_source": "USER",
+   "answer": "### 결론\n\n부산광역시 동구 초량동에서 지하층을 보유한 주택 중 침수흔적 공간 범위에 포함되는 건축물은 **총 20동**이며, 속한 침수흔적 지구는 아래 2곳입니다.\n\n1. **[초량2지구](#ref:r11)**: **19동**\n2. **[동구 초량동 827-327](#ref:r14)**: **1동**\n\n---\n\n### 세부 내역 및 근거\n\n부산 동구 초량동(법정동코드 `2617010100`) 내 지하층을 보유한 주택(`underground_floor_cnt > 0`, 주용도 단독·공동주택) 총 326동과 침수흔적 공간데이터(`gis.flood_trace` 및 `flood.trace`)를 공간 중첩 분석한 결과입니다.\n\n#### 1. 침수흔적 지구별 현황\n\n| 침수흔적 지구명 | 흔적 코드 | 침수연도 | 침수원인 | 초량동 내 지하층 주택 수 | 주택 유형 구성 |\n|---|---|:---:|---|:---:|---|\n| **[초량2지구](#ref:r11)** | `I_15858` | 2020 | 집중호우, 배수불량 | **19동** | 단독주택(근생겸용 등 포함) 15동, 공동주택 4동([온누리아파트](#ref:r17), [문경빌라](#ref:r33), [동성아파트](#ref:r35) 등) |\n| **[동구 초량동 827-327](#ref:r14)** | `I_123695`, `I_23787` | 2024 | 내수_방재시설 용량부족 | **1동** | 단독주택 1동 (지상 3층 / 지하 1층, 6가구) |\n| **합계** | - | - | - | **20동** | 단독주택 16동, 공동주택 4동 |\n\n*※ 초량1지구(`I_187`) 및 초량로68번길지구(`I_71607`, `I_60164`) 침수흔적 범위에는 지하층 보유 주택이 포함되지 않습니다.*  \n*※ [초량2지구](#ref:r11) 침수흔적 사각형 전체에는 인접 법정동(중구 영주동) 소재 1동이 추가로 걸쳐 있으나, 행정구역상 **동구 초량동** 소재 주택만 한정하면 19동입니다.*\n\n---\n\n### 분석 한계 및 참고사항\n\n- **공간 정밀도 특성**: `gis.flood_trace` 레이어는 원천 침수흔적 폴리곤의 **외곽 사각형(Bounding Box, bbox)**으로 구축되어 있어, 실제 침수 경계선보다 다소 넓게 판정될 수 있습니다.\n- **방재 관리 제언**: 호우특보 발효 시 침수 이력이 있는 [초량2지구](#ref:r11) 및 [동구 초량동 827-327](#ref:r14) 일대 지하층 주택 20동에 대해 물막이판(차수판) 설치 상태 점검, 배수 펌프 가동 여부 확인 및 거주민 선제 대피 안내가 요구됩니다.",
+   "answer_format": "MARKDOWN",
+   "entities": [],
+   "result_groups": [],
+   "evidence_refs": [],
+   "follow_up_questions": [],
+   "refs": [
+    {
+     "ref": "r11",
+     "entity_type": "FLOOD_TRACE",
+     "display_name": "초량2지구",
+     "map": {
+      "key": "trace_code",
+      "value": "I_15858",
+      "draw": "layer"
+     }
+    },
+    {
+     "ref": "r14",
+     "entity_type": "FLOOD_TRACE",
+     "display_name": "동구 초량동 827-327",
+     "map": {
+      "key": "trace_code",
+      "value": "I_123695",
+      "draw": "layer"
+     }
+    },
+    {
+     "ref": "r17",
+     "entity_type": "FACILITY",
+     "display_name": "온누리아파트",
+     "map": {
+      "key": "bdst_ldgr_unq_no",
+      "value": "10301100176477",
+      "draw": "pin"
+     }
+    },
+    {
+     "ref": "r33",
+     "entity_type": "FACILITY",
+     "display_name": "문경빌라",
+     "map": {
+      "key": "bdst_ldgr_unq_no",
+      "value": "103016594",
+      "draw": "pin"
+     }
+    },
+    {
+     "ref": "r35",
+     "entity_type": "FACILITY",
+     "display_name": "동성아파트",
+     "map": {
+      "key": "bdst_ldgr_unq_no",
+      "value": "103016597",
+      "draw": "pin"
+     }
+    }
+   ],
+   "conversation_title": null,
+   "limitations": [
+    "유사사례는 예측·위험판단이 아닌 참고 정보"
+   ],
+   "context_used": {
+    "used_conditions": [],
+    "unused_conditions": [],
+    "reference_used": false
+   }
+  },
+  "data_gaps": [],
+  "warnings": [],
+  "meta": {
+   "source": "T3Q",
+   "base_time": "2026-10-29T19:53:50+09:00",
+   "quality_status": "VERIFIED",
+   "disclosure_level": "공개",
+   "elapsed_ms": 125481
+  }
+ }
+}

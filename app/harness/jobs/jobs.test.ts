@@ -227,6 +227,33 @@ describe("재사용 기준(D5) — 원래 받은 시각 기준 24시간, 접수 
     expect(wx.calls).toBeGreaterThan(0);
   });
 
+  it("시연 시나리오 특보가 켜져 있어도 D5 는 기상청 실시간만 본다 — 인제(기상청 특보 없음)는 시나리오 특보를 실은 2시간 전 답도 다시 쓴다(R43)", async () => {
+    const { ACCOUNTS } = await import("@/lib/config");
+    const { scenarioSet } = await import("@/lib/server/scenario");
+    const { scenarioAdvisories, scenarioLive } = await import("@/lib/scenario");
+    const { warningsPayload } = await import("@/lib/wxref");
+    const admin = ACCOUNTS.find((a) => a.id === "admin01")!;
+    const st = await scenarioSet(admin, { on: true, until: new Date(Date.now() + 4 * 3_600_000).toISOString() });
+    try {
+      expect(scenarioLive(st)).toBe(true);
+      const scn = scenarioAdvisories(st, inje.id);
+      expect(scn.map((a) => a.id)).toEqual(["SCN-IJ-1"]);
+      // 브리핑처럼 시나리오 특보를 weather_warnings 로 싣는다(재사용 열쇠에 SCN-IJ-1 이 든다)
+      const ww = warningsPayload({ mode: "live", status: { ok: true, fetchedAt: new Date().toISOString(), message: "" }, advisories: scn, preliminary: [] }, scn);
+      const first = await J.submitJob(inje, { question: "재사용 시험 시나리오", source: "BRIEFING", queryContext: QC.inje, weatherWarnings: ww, noCache: true });
+      await sql.query("update sa_agent_jobs set state = 'DONE', t3q_status = 'SUCCESS', http_status = 200, raw = $2, finished_at = now() - interval '2 hours' where id = $1", [first.id, JSON.stringify(RAW)]);
+      const j = await J.submitJob(inje, { question: "재사용 시험 시나리오", source: "BRIEFING", queryContext: QC.inje, weatherWarnings: ww });
+      expect(j.cached_from).toBe(first.id);
+      expect(j.state).toBe("DONE");
+    } finally {
+      await scenarioSet(admin, { on: false });
+    }
+    // 작업 엔진은 시나리오(lib/scenario · server/scenario · server/weather)를 읽지 않는다 — D5·답을 받은 때 특보(wx_seen)는 kma.ts 만
+    const src = (await import("node:fs")).readFileSync(new URL("../../src/lib/server/jobs.ts", import.meta.url), "utf8");
+    expect(src).not.toMatch(/from "[^"]*(scenario|server\/weather|\.\/weather)"/);
+    expect(src).toMatch(/import \{ fetchLiveAdvisories \} from "\.\/kma";/);
+  });
+
   // 마지막에 둔다 — 새 모듈(빈 특보 캐시)로 조회 실패를 흉내 낸다. DB 는 같은 PGlite
   it("특보 조회가 안 되면 24시간 기준 그대로(부산이어도 2시간 전 답을 다시 쓴다)", async () => {
     const saved = wx.result;

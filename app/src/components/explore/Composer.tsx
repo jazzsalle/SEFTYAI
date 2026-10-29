@@ -6,6 +6,7 @@ import { useSession, type Cond } from "@/lib/session";
 import { DISASTER_TYPES } from "@/lib/config";
 import { baseName } from "@/lib/baseRegion";
 import { useBriefItems, type BriefItem } from "@/lib/briefing";
+import { COND_ITEMS } from "@/lib/library";
 import { IcChevR } from "@/components/Icons";
 import type { DisasterType } from "@/lib/contract/agent";
 
@@ -149,13 +150,8 @@ function BriefSetMenu({ onBriefing }: { onBriefing: () => void }) {
   );
 }
 
-const ITEMS = [
-  { item: "RAIN_1H", label: "1시간 강우", unit: "mm" },
-  { item: "RAIN_3H", label: "3시간 누적 강우", unit: "mm" },
-  { item: "RAIN_24H", label: "24시간 누적 강우", unit: "mm" },
-  { item: "WATER_LEVEL", label: "하천 수위", unit: "m" },
-  { item: "WIND_SPEED", label: "풍속", unit: "m/s" },
-];
+/** 수치 칸 — 질문별 조건 프리셋(lib/library)과 같은 항목·이름·단위 */
+const ITEMS = COND_ITEMS;
 
 /** 재난상황 조건 편집 (Figma 201003) — 입력한 값만 query_context 로 보낸다 */
 function CondModal({ onClose }: { onClose: () => void }) {

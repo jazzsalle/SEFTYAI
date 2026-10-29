@@ -1,0 +1,232 @@
+{
+ "step": "IJ-01",
+ "region": "inje",
+ "question": "인제군 급경사지 가운데 위험등급 D·E인 곳과 최근 안전점검 결과를 보여줘.",
+ "request": {
+  "question_source": "USER",
+  "query_context": {
+   "region": {
+    "admin_code": "5181000000",
+    "level": "SIGUNGU",
+    "name": "강원특별자치도 인제군"
+   },
+   "disaster_types": [
+    "산사태"
+   ]
+  }
+ },
+ "status": "SUCCESS",
+ "http": 200,
+ "elapsedMs": 85375,
+ "waitedMs": 86982,
+ "at": "2026-10-28T11:59:38.398Z",
+ "raw": {
+  "schema_version": "2.0",
+  "request_id": "b57ac8f54236ff4fac973c1c25e3b74d",
+  "correlation_id": "corr-b57ac8f54236ff4fac973c1c25e3b74d",
+  "status": "SUCCESS",
+  "conversation_id": "CONV-20261028-e7439d",
+  "turn_no": 1,
+  "result": {
+   "response_id": "RES-20261028-d8ded6",
+   "question": "인제군 급경사지 가운데 위험등급 D·E인 곳과 최근 안전점검 결과를 보여줘.",
+   "question_source": "USER",
+   "answer": "### 결론\n\n강원특별자치도 인제군 관내 급경사지 가운데 **재해위험도평가 D·E등급에 해당하는 대상지는 총 17곳**(D등급 17곳, E등급 0곳)입니다. \n\n이 중 최근 안전점검(2026년 2~3월 실시) 결과 **6곳이 '불안전' 판정**을 받아 단층 파쇄, 표층 붕괴, 암반 이완 및 낙석 발생 등에 따른 보호·보강 대책과 집중 관리가 시급한 상태입니다.\n\n---\n\n### 1. 중점 관리 대상: D등급 & 최근 점검 '불안전' 판정 (6곳)\n\n단층면 풍화, 도로 낙석 발생, 농업용수 유입으로 인한 세굴 등으로 보수·보강 및 지속적인 예찰이 필요한 급경사지입니다.\n\n| 급경사지명 | 소재지 | 위험등급 (점수) | 최근 평가일 | 최근 점검일 | 최근 점검 소견 및 조치 내용 |\n|---|---|:---:|:---:|:---:|---|\n| [인제43](#ref:r3) | 신월리 | **D** (65.0) | 2024-04-30 | 2026-02-23 | 단층면 심한 풍화 상태로 표층붕괴 발생, 토사유출 및 낙석 가능성 높아 비탈면 보호·보강 대책 수립 및 정기점검 필요 |\n| [인제44](#ref:r4) | 신월리 | **D** (65.0) | 2024-04-30 | 2026-02-23 | 단층면 심한 풍화 및 표층붕괴 발생, 낙석·토사유출 위험에 따른 비탈면 보호·보강 대책 수립 필요 |\n| [진동108지구](#ref:r5) | 진동리 | **D** (63.0) | 2023-02-01 | 2026-03-05 | 이완암 분포 등 불안전 요인 확인 |\n| [방동81지구](#ref:r8) | 방동리 | **D** (62.0) | 2023-02-01 | 2026-03-05 | 도로 낙석 발생 확인 (낙석 제거 조치 등 이행) |\n| [인제45지구](#ref:r12) | 원통리 | **D** (61.0) | 2024-07-11 | 2026-02-24 | 토사·암석 혼합 비탈면으로 상부 농업용수 유입에 따른 세굴·붕괴 발생, 비탈면 보수·보강 대책 필요 |\n| [인제40](#ref:r14) | 수산리 | **D** (61.0) | 2022-10-20 | 2026-02-23 | 단층 및 습곡 영향으로 암반 파쇄 심함, 암반 이완 심화로 도로 낙석 발생하여 도로이용자 안전 확보 대책 수립 필요 |\n\n---\n\n### 2. 기타 D등급 대상: 최근 점검 '안전' 판정 (11곳)\n\n재해위험도 평가는 D등급(주의/위험)이나 최근 정기 안전점검에서 특이 결함이 없거나 정비사업이 완료된 지구입니다.\n\n| 급경사지명 | 소재지 | 위험등급 (점수) | 최근 평가일 | 최근 점검일 | 최근 점검 소견 |\n|---|---|:---:|:---:|:---:|---|\n| [인제42지구](#ref:r6) | 합강리 | **D** (62.0) | 2023-09-26 | 2026-02-24 | 급경사지정비사업 완료로 양호한 상태 유지 중 (이상유무 정기점검 지속 필요) |\n| [진동109지구](#ref:r7) | 진동리 | **D** (62.0) | 2023-02-01 | 2026-03-05 | 이상 없음 |\n| [방동지구](#ref:r13) | 방동리 | **D** (61.0) | 2018-03-27 | 2026-03-05 | 이상 없음 |\n| [진동94지구](#ref:r9) | 진동리 | **D** (61.0) | 2018-03-27 | 2026-03-05 | 이상 없음 |\n| [진동96지구](#ref:r19) | 진동리 | **D** (61.0) | 2018-03-27 | 2026-03-05 | 이상 없음 |\n| [진동101지구](#ref:r18) | 진동리 | **D** (61.0) | 2018-03-27 | 2026-03-05 | 이상 없음 |\n| [진동93지구](#ref:r10) | 진동리 | **D** (61.0) | 2018-03-27 | 2026-03-06 | 이상 없음 |\n| [미산3지구](#ref:r17) | 미산리 | **D** (61.0) | 2018-03-26 | 2026-03-10 | 이상 없음 |\n| [미산5지구](#ref:r16) | 미산리 | **D** (61.0) | 2018-03-26 | 2026-03-10 | 이상 없음 |\n| [미산30지구](#ref:r11) | 미산리 | **D** (61.0) | 2018-03-26 | 2026-03-10 | 이상 없음 |\n| [상남2지구](#ref:r15) | 상남리 | **D** (61.0) | 2018-03-27 | 2026-03-10 | 이상 없음 |\n\n---\n\n### 담당자 권장 조치사항\n\n1. **불안전 판정 6개소 우선 현장점검**:\n   - 특히 [인제43](#ref:r3), [인제44](#ref:r4), [인제40](#ref:r14), [방동81지구](#ref:r8) 등 도로 인접 낙석 위험 지점은 낙석방지망·낙석방지울타리 파손 여부 및 추가 암반 이완 상태를 현장 확인하십시오.\n   - [인제45지구](#ref:r12)는 강우 시 비탈면 상부 용수 유입 차단 및 배수 유로 정비 여부를 점검하십시오.\n2. **평가 이력 장기 경과 지구(2018년 평가) 재평가 검토**:\n   - 상남리, 미산리, 진동리 일대 9개 지구는 위험도평가가 2018년에 실시되어 5년 이상 경과하였으므로 재해위험도 정기 재평가 실시를 검토하십시오.",
+   "answer_format": "MARKDOWN",
+   "entities": [],
+   "result_groups": [],
+   "evidence_refs": [],
+   "follow_up_questions": [],
+   "refs": [
+    {
+     "ref": "r3",
+     "entity_type": "RISK_AREA",
+     "display_name": "인제43",
+     "map": {
+      "key": "slope_no",
+      "value": "5181000044",
+      "draw": "line"
+     }
+    },
+    {
+     "ref": "r4",
+     "entity_type": "RISK_AREA",
+     "display_name": "인제44",
+     "map": {
+      "key": "slope_no",
+      "value": "5181000045",
+      "draw": "line"
+     }
+    },
+    {
+     "ref": "r5",
+     "entity_type": "RISK_AREA",
+     "display_name": "진동108지구",
+     "map": {
+      "key": "slope_no",
+      "value": "4281000124",
+      "draw": "line"
+     }
+    },
+    {
+     "ref": "r8",
+     "entity_type": "RISK_AREA",
+     "display_name": "방동81지구",
+     "map": {
+      "key": "slope_no",
+      "value": "4281000097",
+      "draw": "line"
+     }
+    },
+    {
+     "ref": "r12",
+     "entity_type": "RISK_AREA",
+     "display_name": "인제45지구",
+     "map": {
+      "key": "slope_no",
+      "value": "5181000057",
+      "draw": "line"
+     }
+    },
+    {
+     "ref": "r14",
+     "entity_type": "RISK_AREA",
+     "display_name": "인제40",
+     "map": {
+      "key": "slope_no",
+      "value": "5181000043",
+      "draw": "line"
+     }
+    },
+    {
+     "ref": "r6",
+     "entity_type": "RISK_AREA",
+     "display_name": "인제42지구",
+     "map": {
+      "key": "slope_no",
+      "value": "5181000001",
+      "draw": "line"
+     }
+    },
+    {
+     "ref": "r7",
+     "entity_type": "RISK_AREA",
+     "display_name": "진동109지구",
+     "map": {
+      "key": "slope_no",
+      "value": "4281000125",
+      "draw": "line"
+     }
+    },
+    {
+     "ref": "r13",
+     "entity_type": "RISK_AREA",
+     "display_name": "방동지구",
+     "map": {
+      "key": "slope_no",
+      "value": "4281000098",
+      "draw": "line"
+     }
+    },
+    {
+     "ref": "r9",
+     "entity_type": "RISK_AREA",
+     "display_name": "진동94지구",
+     "map": {
+      "key": "slope_no",
+      "value": "4281000110",
+      "draw": "line"
+     }
+    },
+    {
+     "ref": "r19",
+     "entity_type": "RISK_AREA",
+     "display_name": "진동96지구",
+     "map": {
+      "key": "slope_no",
+      "value": "4281000112",
+      "draw": "line"
+     }
+    },
+    {
+     "ref": "r18",
+     "entity_type": "RISK_AREA",
+     "display_name": "진동101지구",
+     "map": {
+      "key": "slope_no",
+      "value": "4281000117",
+      "draw": "line"
+     }
+    },
+    {
+     "ref": "r10",
+     "entity_type": "RISK_AREA",
+     "display_name": "진동93지구",
+     "map": {
+      "key": "slope_no",
+      "value": "4281000109",
+      "draw": "line"
+     }
+    },
+    {
+     "ref": "r17",
+     "entity_type": "RISK_AREA",
+     "display_name": "미산3지구",
+     "map": {
+      "key": "slope_no",
+      "value": "4281000017",
+      "draw": "line"
+     }
+    },
+    {
+     "ref": "r16",
+     "entity_type": "RISK_AREA",
+     "display_name": "미산5지구",
+     "map": {
+      "key": "slope_no",
+      "value": "4281000024",
+      "draw": "line"
+     }
+    },
+    {
+     "ref": "r11",
+     "entity_type": "RISK_AREA",
+     "display_name": "미산30지구",
+     "map": {
+      "key": "slope_no",
+      "value": "4281000013",
+      "draw": "line"
+     }
+    },
+    {
+     "ref": "r15",
+     "entity_type": "RISK_AREA",
+     "display_name": "상남2지구",
+     "map": {
+      "key": "slope_no",
+      "value": "4281000039",
+      "draw": "line"
+     }
+    }
+   ],
+   "conversation_title": null,
+   "limitations": [
+    "유사사례는 예측·위험판단이 아닌 참고 정보"
+   ],
+   "context_used": {
+    "used_conditions": [],
+    "unused_conditions": [],
+    "reference_used": false
+   }
+  },
+  "data_gaps": [],
+  "warnings": [],
+  "meta": {
+   "source": "T3Q",
+   "base_time": "2026-10-28T21:01:03+09:00",
+   "quality_status": "VERIFIED",
+   "disclosure_level": "공개",
+   "elapsed_ms": 85375
+  }
+ }
+}

@@ -7,7 +7,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useSession } from "@/lib/session";
 import { useSop } from "@/lib/sopState";
 import { codeLabel, myGroupIds, stepLabel, stepProgress } from "@/lib/sop";
-import { advLabel } from "@/lib/wxref";
+import { advName } from "@/lib/wxref";
 import { IcChevR, IcPushpin } from "../Icons";
 
 export default function SopBar() {
@@ -28,7 +28,7 @@ export default function SopBar() {
   const basis = rec
     ? rec.level === "해제"
       ? "특보 해제 → 수습·복구 추천"
-      : `${rec.advisory ? advLabel(rec.advisory) : rec.level} 발효 → ${stepLabel(m, rec.step)} 추천`
+      : `${rec.advisory ? advName(rec.advisory) : rec.level} 발효 → ${stepLabel(m, rec.step)} 추천`
     : "발효 특보 없음 · 평시";
   const pct = pg.total ? Math.round((pg.done / pg.total) * 100) : 0;
   return (

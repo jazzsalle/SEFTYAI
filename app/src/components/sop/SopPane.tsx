@@ -9,6 +9,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { Citation } from "@/lib/contract/agent";
 import { useSession } from "@/lib/session";
 import { useSop } from "@/lib/sopState";
+import { advName } from "@/lib/wxref";
 import {
   codeLabel, editCount, myGroupIds, sopCheckKey, stepLabel, stepProgress, stepView,
   type SopAction, type SopCard, type SopGroup, type SopManual, type SopMission,
@@ -145,7 +146,7 @@ export default function SopPane({ focus }: { focus?: { id: string; n: number } }
       <div className={`notice ${rec?.level === "경보" ? "danger" : rec ? "warn" : ""} sp-rec`}>
         {rec ? (
           <>
-            <b>{rec.level === "해제" ? "특보 해제" : `${rec.advisory ? rec.advisory.area + " " + rec.advisory.type + rec.advisory.level : rec.level} 발효`}</b> → 매뉴얼 기준 추천 단계 <b>{stepLabel(m, rec.step)}</b>
+            <b>{rec.level === "해제" ? "특보 해제" : `${rec.advisory ? rec.advisory.area + " " + advName(rec.advisory) : rec.level} 발효`}</b> → 매뉴얼 기준 추천 단계 <b>{stepLabel(m, rec.step)}</b>
             <button className="pg" onClick={() => x.openCitation(cite(rec.pdfPage, rec.basis))} title={rec.basis}>p.{rec.pdfPage}</button>
             {sop.picked && <> · 지금 보는 단계 <b>{stepLabel(m, sop.step)}</b>(직접 선택) <button className="btn xs" onClick={() => sop.setStep(null)}>추천 단계로</button></>}
           </>

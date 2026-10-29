@@ -1,0 +1,105 @@
+{
+ "step": "BS-02",
+ "region": "busan",
+ "question": "부산에 호우경보가 발효되면 동천·초량천 옆 문현지하차도·개금지하차도·초량제1지하차도의 진입차단시설 종류, 대응계획 수립 여부, 수위계측기·CCTV 같은 설비를 알려줘.",
+ "request": {
+  "question_source": "USER",
+  "query_context": {
+   "region": {
+    "admin_code": "2600000000",
+    "level": "SIDO",
+    "name": "부산광역시"
+   },
+   "disaster_types": [
+    "호우"
+   ],
+   "detail": {
+    "warning_kind": "호우",
+    "warning_level": "경보",
+    "conditions": [
+     {
+      "item": "RAIN_1H",
+      "label": "1시간 강우",
+      "value": 50,
+      "unit": "mm",
+      "source_type": "MANUAL"
+     }
+    ]
+   }
+  }
+ },
+ "status": "SUCCESS",
+ "http": 200,
+ "elapsedMs": 55162,
+ "waitedMs": 56004,
+ "at": "2026-10-28T12:00:02.272Z",
+ "raw": {
+  "schema_version": "2.0",
+  "request_id": "b54825d609296f4e59effad927af709a",
+  "correlation_id": "corr-b54825d609296f4e59effad927af709a",
+  "status": "SUCCESS",
+  "conversation_id": "CONV-20261028-64c79e",
+  "turn_no": 1,
+  "result": {
+   "response_id": "RES-20261028-ab9da2",
+   "question": "부산에 호우경보가 발효되면 동천·초량천 옆 문현지하차도·개금지하차도·초량제1지하차도의 진입차단시설 종류, 대응계획 수립 여부, 수위계측기·CCTV 같은 설비를 알려줘.",
+   "question_source": "USER",
+   "answer": "### 결론\n\n부산 동천 및 초량천 인근의 **[문현지하차도](#ref:r2)**, **[개금지하차도](#ref:r1)**, **[초량제1지하차도](#ref:r3)** 3곳 모두 **차단봉 형태의 진입차단시설**이 설치되어 있고, **침수 시 대응계획이 수립**되어 있으며, **CCTV와 수위계측기를 포함한 주요 방재 설비를 완비**하고 있습니다.\n\n---\n\n### 지하차도별 방재시설 및 대응 현황\n\n| 대상 시설 | 인접 하천 | 진입차단시설 종류 (설치) | 대응계획 수립 | 수위계측기 / CCTV | 기타 방재 설비 | 통제기준 침수심 |\n|---|---|---|:---:|:---:|---|:---:|\n| **[문현지하차도](#ref:r2)**<br>(남구 문현동) | 동천<br>(500m 이내) | **차단봉**<br>(’24년 완료) | **수립 완료**<br>(true) | **보유**<br>(수위계측기, CCTV) | · 전광판, 비상스피커<br>· 대피시설 (’24년 완료)<br>· 배수시설 (**배전반 지하**) | 5.0 cm |\n| **[개금지하차도](#ref:r1)**<br>(부산진구 개금동) | 동천<br>(500m 이내) | **차단봉**<br>(’24년 완료) | **수립 완료**<br>(true) | **보유**<br>(수위계측기, CCTV) | · 전광판, 비상스피커<br>· 대피시설 (’24년 완료)<br>· 배수시설 (**배전반 지상**) | 5.0 cm |\n| **[초량제1지하차도](#ref:r3)**<br>(동구 초량동) | 초량천<br>(500m 이내) | **차단봉**<br>(’24년 완료) | **수립 완료**<br>(true) | **보유**<br>(수위계측기, CCTV) | · 전광판, 비상스피커<br>· 대피시설 (’24년 완료)<br>· 배수시설 (**배전반 지하**) | 5.0 cm |\n\n---\n\n### 주요 세부 특징 및 담당자 유의사항\n\n1. **차량 통제 기준 수심**\n   - 3개 지하차도 모두 차량 통제 기준 침수심이 **5.0 cm**(권고 기준 15 cm 이하)로 설정되어 있어 호우경보 및 급격한 수위 상승 시 신속한 사전 진입 차단이 필요합니다.\n   - 3곳 모두 **행정안전부 인명피해 우려지역**(disaster_grade 4등급)으로 지정되어 집중 관리 대상입니다.\n\n2. **배수설비 배전반 위치 차이점 점검**\n   - **[개금지하차도](#ref:r1)**는 배수시설 배전반이 **지상**에 위치하여 침수 시 전원 상실 위험이 비교적 낮습니다.\n   - 반면 **[문현지하차도](#ref:r2)**와 **[초량제1지하차도](#ref:r3)**는 배수시설 배전반이 **지하**에 설치되어 있어, 하천 월류나 급격한 노면수 유입으로 침수 시 배수펌프 가동 중단 위험이 있으므로 현장 점검 및 조기 차단 조치가 중요합니다.\n\n3. **연계 경보 체계**\n   - 3개소 모두 **수위계측기, CCTV, 도로전광판, 비상방송(스피커), 진입차단시설**이 상호 연계 구축되어 원격 모니터링 및 실시간 경보 발령이 가능합니다.\n\n---\n\n### 다음 실행 액션\n- **하천 수위 및 CCTV 집중 모니터링**: 동천·초량천 수위 상승 및 관측 지점 수위계측기 모니터링\n- **원격 진입차단기 작동 점검**: 침수심 5cm 도달 전 사전 경고 방송 송출 및 원격 차단기 작동 대기\n- **현장 순찰 요원 배치**: 배전반이 지하에 위치한 [문현지하차도](#ref:r2) 및 [초량제1지하차도](#ref:r3) 중심 현장 배치 점검",
+   "answer_format": "MARKDOWN",
+   "entities": [],
+   "result_groups": [],
+   "evidence_refs": [],
+   "follow_up_questions": [],
+   "refs": [
+    {
+     "ref": "r2",
+     "entity_type": "RISK_FACTOR",
+     "display_name": "문현지하차도",
+     "map": {
+      "key": "underpass_id",
+      "value": "610",
+      "draw": "pin"
+     }
+    },
+    {
+     "ref": "r1",
+     "entity_type": "RISK_FACTOR",
+     "display_name": "개금지하차도",
+     "map": {
+      "key": "underpass_id",
+      "value": "655",
+      "draw": "pin"
+     }
+    },
+    {
+     "ref": "r3",
+     "entity_type": "RISK_FACTOR",
+     "display_name": "초량제1지하차도",
+     "map": {
+      "key": "underpass_id",
+      "value": "614",
+      "draw": "pin"
+     }
+    }
+   ],
+   "conversation_title": null,
+   "limitations": [
+    "유사사례는 예측·위험판단이 아닌 참고 정보"
+   ],
+   "context_used": {
+    "used_conditions": [],
+    "unused_conditions": [],
+    "reference_used": false
+   }
+  },
+  "data_gaps": [],
+  "warnings": [],
+  "meta": {
+   "source": "T3Q",
+   "base_time": "2026-10-28T21:00:57+09:00",
+   "quality_status": "VERIFIED",
+   "disclosure_level": "공개",
+   "elapsed_ms": 55162
+  }
+ }
+}

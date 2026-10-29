@@ -189,6 +189,15 @@
 .lib-st { font-weight: 800; color: var(--c-navy); font-size: var(--fs-xs); margin-bottom: 4px; }
 .lib-q { display: flex; align-items: flex-start; gap: 8px; padding: 7px 0; border-bottom: 1px solid var(--c-line); font-size: var(--fs-xs); }
 .lib-q .lnk { text-align: left; flex: 1; }
+/* 재난담당자의 하루 — 항목 이름 · 질문 글 · 붙는 조건(회색) */
+.day-q .day-b { flex: 1; display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.day-q .day-btn { display: flex; flex-direction: column; gap: 2px; text-align: left; }
+.day-q .day-btn span { color: var(--c-text); }
+/* 밑줄은 항목 이름(파란 링크)에만 — 검정 질문 글까지 밑줄이 번지지 않게(밑줄은 자식으로 번져 자식에서 끌 수 없으므로 단추에서 끄고 이름에 준다) */
+.day-q .day-btn:hover { text-decoration: none; }
+.day-q .day-btn:hover b { text-decoration: underline; }
+/* 질문 말풍선 — 이 질문에 붙인 조건(보낸 값 그대로) */
+.qb-cond { color: var(--c-sub); margin-top: 4px; }
 .flow { padding: 10px 0; border-bottom: 1px solid var(--c-line); font-size: var(--fs-xs); display: flex; flex-direction: column; gap: 6px; }
 
 /* 우측 패널 지도 */
@@ -218,3 +227,10 @@ body:has(.gh.one) .help-btn { display: none; }
 /* 사건 상세 구역 (V2~V4) */
 .ev-sec { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--c-line); }
 .ev-sec h3 { font-size: 16px; margin: 0 0 6px; }
+
+/* 시연 시나리오 특보 표지(R43) — 특보 줄·[모두 보기]·[특보로 질문]·AI 모드 창. 보라(빨강 아님), 좁은 화면에서도 숨기지 않음 */
+.scn-tag { display: inline-flex; align-items: center; flex: none; height: 22px; padding: 0 8px; border: 1px solid #c9b8f0; border-radius: var(--r-s); background: #f4eefc; color: #4b2a8f; font-size: var(--fs-2xs); font-weight: 800; white-space: nowrap; vertical-align: middle; }
+.wxbar .tit .scn-tag { margin-left: 4px; }
+/* 운영관리 — 시연 시나리오 특보 */
+.adm-scn { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin-top: 12px; }
+.adm-scn input[type="datetime-local"] { height: 36px; padding: 0 8px; border: 1px solid var(--c-input-bd); border-radius: var(--r-m); font: inherit; font-size: var(--fs-xs); }

@@ -8,6 +8,7 @@ import { fmtAgo, fmtElapsed, fmtRunning } from "@/lib/format";
 import { activeAdvisories, advLabel, advTime } from "@/lib/wxref";
 import { legacyAdvIds, seenArea, wxCovers, wxTargetOfT3q, type WxTarget } from "@/lib/wxMatch";
 import type { Advisory, WeatherResponse } from "@/lib/contract/agent";
+import { SCN_SENT_LABEL, sentWithScenario } from "@/lib/scenario";
 import { useExplore } from "../explore/ExploreCtx";
 import { IcChevD } from "../Icons";
 import { AnswerMarkdown, entityLabel, mdPlainText } from "./Markdown";
@@ -62,7 +63,9 @@ export function advisoriesAfter(weather: WeatherResponse | null | undefined, tar
       return area !== null ? wxCovers(area, target) : !!w.regionId && w.regionId === a.regionId;
     });
   };
+  // 시연 시나리오 특보(R43)는 보지 않는다 — 재사용 기준 D5·답을 받은 때 특보(wx_seen)처럼 기상청 실시간만
   return activeAdvisories(weather, target).filter((a) => {
+    if (a.scenario) return false;
     const i = Date.parse(a.issuedAt);
     return Number.isFinite(i) && i > t && !known(a);
   });
@@ -187,6 +190,7 @@ function Card({ job, full, compact }: CardProps) {
             raw.meta?.base_time ? `${raw.meta.base_time} 기준` : null,
             raw.status && raw.status !== "SUCCESS" ? statusKo(raw.status) : null,
             typeof elapsed === "number" ? `처리 ${fmtElapsed(elapsed)}` : null,
+            sentWithScenario(full?.request) ? SCN_SENT_LABEL : null,
           ]
             .filter(Boolean)
             .join(" · ")}

@@ -1,11 +1,11 @@
-import { buildQueryContext, type ClientCondition } from "@/lib/server/queryContext";
+import type { ClientCondition } from "@/lib/server/queryContext";
+import { jobInputOf } from "@/lib/server/jobInput";
 import { parseBaseWire } from "@/lib/baseRegion";
 import { runPreview } from "@/lib/server/preview";
 import { jobSummary, listJobs, medianMs, setPreview, submitJob, sweepAny, type JobSource } from "@/lib/server/jobs";
 import { hasDb } from "@/lib/server/db";
 import { fail, json, whoami } from "@/lib/server/who";
 import { t3qConfigured } from "@/lib/t3q/client";
-import { libById } from "@/lib/library";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 30;
@@ -55,19 +55,11 @@ export async function POST(req: Request) {
     recent.set(dupKey, Date.now());
   }
 
-  const lib = b?.libraryId ? libById(b.libraryId) : undefined;
-  // 질문 글은 R33(임시) 판단에만 넘긴다 — 보내는 질문은 그대로.
-  // R39 — AI 모드 점검은 기준지역만 싣는다(입력창 「조건 변경」의 가정 조건은 화면이 무엇을 보내든 넣지 않음). 특보는 weather_warnings 로 따로
-  const c = b?.condition;
-  const cond: ClientCondition | undefined = source === "AI_MODE" ? (c ? { base: c.base, region: c.region, sub: c.sub } : undefined) : c;
-  const queryContext = buildQueryContext(who, cond, source === "AI_MODE" ? undefined : lib?.disasterTypes, question);
+  // 문항 재난유형 · R33(임시) · R39(AI 모드 점검은 기준지역만 — 특보는 weather_warnings 로 따로) — lib/server/jobInput
+  const input = jobInputOf(who, b, question, source);
   // R3 — 정의된 질문(라이브러리·브리핑·특보)만 Data API 자동 조회. 자유 질문은 하지 않는다
-  const previewP = b?.libraryId ? runPreview(b.libraryId, queryContext).catch(() => undefined) : Promise.resolve(undefined);
-  let job = await submitJob(who, {
-    question, source, libraryId: b?.libraryId ?? null, convId: b?.convId ?? null, turnNo: b?.turnNo ?? null,
-    queryContext, weatherWarnings: b?.warnings ?? null, briefing: b?.briefing ?? null, quickQueryId: b?.quickQueryId ?? null,
-    aiMode: b?.aiMode ?? null, followUp: b?.followUp ?? null, noCache: !!b?.noCache,
-  });
+  const previewP = b?.libraryId ? runPreview(b.libraryId, input.queryContext ?? {}).catch(() => undefined) : Promise.resolve(undefined);
+  let job = await submitJob(who, input);
   const preview = await previewP;
   if (preview) job = (await setPreview(job.id, preview)) ?? job;
   return json({ job }, 201);

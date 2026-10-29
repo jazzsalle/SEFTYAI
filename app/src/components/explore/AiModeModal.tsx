@@ -2,7 +2,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSession, uid } from "@/lib/session";
 import { baseKey, baseName, baseTarget } from "@/lib/baseRegion";
-import { activeAdvisories, advLabel, warningsPayload } from "@/lib/wxref";
+import { activeAdvisories, advLabel, advName, warningsPayload } from "@/lib/wxref";
+import { SCN_LABEL } from "@/lib/scenario";
 import { usePathname, useRouter } from "next/navigation";
 import { RawFoot } from "../answer/AnswerCard";
 import { statusKo } from "@/lib/labels";
@@ -15,6 +16,7 @@ import { BRIEF_AIM_COUNT, useBriefItems } from "@/lib/briefing";
  * 특보는 기상청 실시간 원문을 weather_warnings 로 그대로 보낸다(없으면 빈 목록 — 꾸미지 않음). 점검 답은 무가공으로 보인다.
  * 특보가 바뀌면 바로 다시 점검한다. 모달은 접어서 띠로 둘 수 있다.
  * 특보·점검 지역 = 지금 기준지역(R32, lib/wxMatch). 기준지역이 바뀌면 점검 상태를 비우고 새 지역으로 바로 다시 점검한다. 전국이면 점검하지 않는다.
+ * 시연 시나리오 특보(R43)는 창·띠의 특보 이름 옆에 「시연 시나리오」, 점검 질의에는 source 「시연 시나리오(가상 특보)」로 함께 간다(질의 글은 그대로 — R36)
  */
 const INTERVAL_MIN = 10;
 /**
@@ -125,7 +127,8 @@ export default function AiModeModal() {
 
   // 접힌 띠 — 내용 맨 위. 점 색은 머리줄 AI 모드 단추와 같은 기준(경보·주의보·없음·조회 실패), 특보는 받은 이름 그대로 모두
   if (collapsed) {
-    const wxFail = !!s.weather && !s.weather.status.ok;
+    // 기상청 조회가 실패해도 시나리오 특보가 있으면 그 이름을 보인다(특보 줄과 같게)
+    const wxFail = !!s.weather && !s.weather.status.ok && !advs.length;
     const tone = national || wxFail ? "gray" : advs.some((x) => x.level === "경보") ? "red" : advs.length ? "yellow" : "green";
     const when = [
       !national && !job ? "점검 준비 중" : job && isActive(job.state) ? "점검 중" : null,
@@ -136,7 +139,7 @@ export default function AiModeModal() {
       <div className="aim-bar-wrap">
         <div className="aim-bar" role="status" aria-label="AI 모드 실행 중">
           <i className={`aim-dot st-${tone}`} aria-hidden />
-          <b className="aim-w">{national ? "기준지역을 고르면 점검합니다" : wxFail ? "기상특보 조회 실패" : advs.length ? advs.map(advLabel).join(" · ") : `${regionName} 발효 특보 없음`}</b>
+          <b className="aim-w">{national ? "기준지역을 고르면 점검합니다" : wxFail ? "기상특보 조회 실패" : advs.length ? advs.map(advName).join(" · ") : `${regionName} 발효 특보 없음`}</b>
           {when && <span className="aim-t">{when}</span>}
           <span className="sp" />
           <button type="button" className="aim-open" onClick={() => setCollapsed(false)}>AI 모드 펼치기</button>
@@ -164,6 +167,7 @@ export default function AiModeModal() {
               {a ? (
                 <>
                   <b style={{ fontSize: 24 }}>{advLabel(a)}</b>
+                  {a.scenario && <span className="scn-tag">{SCN_LABEL}</span>}
                   {a.isNew && <span className="badge danger">새 특보</span>}
                   <span className="sp" />
                   {advs.length > 1 && (
@@ -178,7 +182,11 @@ export default function AiModeModal() {
                 <b style={{ fontSize: 20 }}>{s.weather && !s.weather.status.ok ? "기상특보 조회 실패" : `${regionName} 발효 특보 없음`}</b>
               )}
             </div>
-            {a && <div className="xs muted">{a.area} · {new Date(a.issuedAt).toLocaleString("ko-KR")} 발표 · 기상청</div>}
+            {a && (a.scenario ? (
+              <div className="xs muted">{a.area} · {new Date(a.issuedAt).toLocaleString("ko-KR")} 켬 · {SCN_LABEL}</div>
+            ) : (
+              <div className="xs muted">{a.area} · {new Date(a.issuedAt).toLocaleString("ko-KR")} 발표 · 기상청</div>
+            ))}
             <div className="aim-ai">
               <div className="xs b" style={{ color: "var(--c-navy)" }}>AI 안내</div>
               {answer ? (

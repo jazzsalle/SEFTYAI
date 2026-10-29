@@ -83,6 +83,18 @@ describe("답변 카드 — 받은 값만, 센 값·설명 없음", () => {
     expect(head.textContent).toContain("2026-10-28T02:48:13+09:00 기준");
     expect(head.textContent).toContain("처리 1분 46초");
     expect(head.textContent).not.toContain("110초");
+    expect(head.textContent).not.toContain("시연 시나리오");
+  });
+
+  it("머리: 시연 시나리오 특보(SCN-)와 함께 보낸 질문이면 회색 한 줄 — 기상청 특보만이면 없음(R43)", () => {
+    const job = makeJob({ source: "BRIEFING" });
+    const scn = { ...BUSAN, weather_warnings: { source: "시연 시나리오(가상 특보)", items: [{ warning_key: "SCN-BS-1", kind: "호우", level: "경보", area: "부산" }] } };
+    const kma = { ...BUSAN, weather_warnings: { source: "기상청 기상특보 조회서비스", items: [{ warning_key: "KMA-호우경보-부산", kind: "호우", level: "경보", area: "부산" }] } };
+    const a = wrap(<AnswerCard job={job} full={makeFull(job, makeRaw(), scn)} />).container.querySelector(".acard-h .muted")!;
+    expect(a.textContent).toContain("시연 시나리오 특보와 함께 보낸 질문");
+    cleanup();
+    const b = wrap(<AnswerCard job={job} full={makeFull(job, makeRaw(), kma)} />).container.querySelector(".acard-h")!;
+    expect(b.textContent).not.toContain("시연 시나리오");
   });
 
   it("답변 대상: 개수·설명 없이 「답변 대상」 — 받은 순서 그대로", () => {
