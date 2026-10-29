@@ -1,6 +1,6 @@
 // 시연 대본(docs/renewal/design/11_demo_day_story.md)의 «» 인용을 녹화 answer 원문과 기계로 대조한다.
 // 쓰기: node harness/demo/check_story_quotes.mjs [대본 경로] [--list]   (옵션 순서 무관 · T3Q 를 부르지 않는다 — 녹화 파일만 읽음)
-// 녹화 폴더: recordings/demo_chain_{busan,inje,yeongcheon} + recordings/demo_v3(v3 새 장면 — 파일 이름 = 단계 번호) + aimode_*.json(지난 실시간 AI 모드)
+// 녹화 폴더: recordings/demo_chain_{busan,inje,yeongcheon} + recordings/demo_v3(v3 새 장면 — 파일 이름 = 단계 번호, YC-01-v3 = YC-01 새 질문 글) + aimode_*.json(지난 실시간 AI 모드)
 // 규칙(대본 머리의 표지 규칙과 같다)
 //  · «» 안 = 녹화 result.answer 원문. 빈칸·줄바꿈은 무시, 표 줄의 「\|」는 원문 「|」, 「…」는 생략(앞뒤 조각이 원문에 차례로 있어야 함).
 //  · 어느 녹화와 견줄지: 그 줄에 나온 단계 번호(BS-01·IJ-05-R·YC-07b 등)와 그 줄이 든 단계 제목(##~####)의 단계 번호 → 둘 다 없으면 모든 녹화.
@@ -9,6 +9,8 @@
 //  · 인용 바로 앞(같은 표 칸 안, 인용보다 앞)에 단계 번호가 있으면 그 단계 답을 먼저 견준다. 거기 없고 같은 줄·제목의 다른 단계 답에만 있으면
 //    「확인」으로 따로 적는다(불일치로 세지 않지만, 사람이 그 인용이 맞는 단계에 붙었는지 본다).
 //  · 맞는 녹화가 견줄 대상에 없으면 불일치. 대상 밖 다른 녹화에만 있으면 「다른 단계 답」으로 따로 적는다(불일치로 셈).
+//  · 견줄 대상에 v3 녹화(BS-07-v3 · YC-01-v3)가 있으면 같은 단계의 지난 녹화(BS-07 · YC-01)는 뺀다 — 단계 제목이 「BS-07(…)」·「YC-01(…)」이어도
+//    지난 답에서 옮긴 인용이 일치로 지나가지 않게(지난 YC-01 은 정비 질문 — 결정 ①로 제외된 녹화).
 import { readFileSync, readdirSync } from "node:fs";
 import { join, dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -20,7 +22,7 @@ const ARGS = process.argv.slice(2);
 const STORY = resolve(ARGS.find((a) => !a.startsWith("--")) ?? join(APP, "..", "docs", "renewal", "design", "11_demo_day_story.md"));
 const AIMODE = join(REC, "aimode_2026-10-28T11-46-50-947Z.json");
 
-/** 단계 번호 → answer 원문. 사슬 녹화(demo_chain_*) + v3 새 장면 녹화(demo_v3 — AIM-BS·AIM-IJ·AIM-YC·BRF-BS-1~4·BS-07-v3·YC-09, 파일 이름이 단계 번호) */
+/** 단계 번호 → answer 원문. 사슬 녹화(demo_chain_*) + v3 새 장면 녹화(demo_v3 — AIM-BS·AIM-IJ·AIM-YC·BRF-BS-1~4·BS-07-v3·YC-01-v3·YC-09, 파일 이름이 단계 번호) */
 const answers = new Map();
 for (const d of ["demo_chain_busan", "demo_chain_inje", "demo_chain_yeongcheon", "demo_v3"]) {
   for (const f of readdirSync(join(REC, d)).filter((x) => x.endsWith(".json"))) {
@@ -46,8 +48,8 @@ function inOrder(hay, parts) {
   }
   return true;
 }
-// 긴 이름(BS-07-v3 · BRF-BS-n · AIM-xx)을 앞에 둔다 — 「BS-07-v3」가 「BS-07」로 잘려 잡히지 않게
-const ID_RE = /\b(BS-07-v3|BRF-BS-[1-4]|AIM-(?:BS|IJ|YC)|BS-0[1-8]R?|IJ-0[1-7](?:-R)?|YC-0[1-9]b?)\b/g;
+// 긴 이름(BS-07-v3 · YC-01-v3 · BRF-BS-n · AIM-xx)을 앞에 둔다 — 「BS-07-v3」가 「BS-07」로, 「YC-01-v3」가 「YC-01」로 잘려 잡히지 않게
+const ID_RE = /\b(BS-07-v3|YC-01-v3|BRF-BS-[1-4]|AIM-(?:BS|IJ|YC)|BS-0[1-8]R?|IJ-0[1-7](?:-R)?|YC-0[1-9]b?)\b/g;
 const idsIn = (s) => [...new Set((s.match(ID_RE) ?? []).filter((x) => answers.has(x)))];
 
 /** 인용 바로 앞(같은 표 칸 — 이스케이프 안 된 「|」 뒤부터 인용 앞까지, 앞선 인용 안은 빼고)에서 가장 가까운 단계 번호 */
@@ -75,12 +77,16 @@ lines.forEach((line, i) => {
   const aimHere = /AI 모드/.test(line) || headAim;
   let cand = [...new Set([...lineIds, ...headIds])];
   if (aimHere) cand = [...cand, ...[...answers.keys()].filter(isAim)];
+  // v3 녹화가 대상에 있으면 같은 단계의 지난 녹화는 뺀다(BS-07 → BS-07-v3 · YC-01 → YC-01-v3)
+  const v3 = (k) => (cand.includes(`${k}-v3`) ? `${k}-v3` : k);
+  cand = [...new Set(cand.map(v3))];
   const all = [...answers.keys()];
   for (const { q, at } of qs) {
     const parts = q.split("…").map(norm).filter(Boolean);
     if (!parts.length) continue;
     const pool = cand.length ? cand : all;
-    const local = nearestId(line, at);
+    const near = nearestId(line, at);
+    const local = near && near !== "AI 모드" ? v3(near) : near;
     const hit = pool.filter((k) => inOrder(NORM.get(k), parts));
     if (local && hit.length && !(local === "AI 모드" ? hit.some(isAim) : hit.includes(local))) { rows.push({ line: i + 1, q, ok: true, hit, warn: `바로 앞 단계 ${local} 답에는 없고 ${hit.join("·")} 답에서 찾음` }); continue; }
     if (hit.length) { rows.push({ line: i + 1, q, ok: true, hit }); continue; }
