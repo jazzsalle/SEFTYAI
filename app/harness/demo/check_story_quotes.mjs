@@ -1,0 +1,100 @@
+// 시연 대본(docs/renewal/design/11_demo_day_story.md)의 «» 인용을 녹화 answer 원문과 기계로 대조한다.
+// 쓰기: node harness/demo/check_story_quotes.mjs [대본 경로] [--list]   (옵션 순서 무관 · T3Q 를 부르지 않는다 — 녹화 파일만 읽음)
+// 녹화 폴더: recordings/demo_chain_{busan,inje,yeongcheon} + recordings/demo_v3(v3 새 장면 — 파일 이름 = 단계 번호) + aimode_*.json(지난 실시간 AI 모드)
+// 규칙(대본 머리의 표지 규칙과 같다)
+//  · «» 안 = 녹화 result.answer 원문. 빈칸·줄바꿈은 무시, 표 줄의 「\|」는 원문 「|」, 「…」는 생략(앞뒤 조각이 원문에 차례로 있어야 함).
+//  · 어느 녹화와 견줄지: 그 줄에 나온 단계 번호(BS-01·IJ-05-R·YC-07b 등)와 그 줄이 든 단계 제목(##~####)의 단계 번호 → 둘 다 없으면 모든 녹화.
+//  · 빈 «»(표지 규칙을 설명하는 글)는 인용으로 세지 않는다.
+//    「AI 모드」가 든 줄·제목이면 AI 모드 녹화 답도 견준다.
+//  · 인용 바로 앞(같은 표 칸 안, 인용보다 앞)에 단계 번호가 있으면 그 단계 답을 먼저 견준다. 거기 없고 같은 줄·제목의 다른 단계 답에만 있으면
+//    「확인」으로 따로 적는다(불일치로 세지 않지만, 사람이 그 인용이 맞는 단계에 붙었는지 본다).
+//  · 맞는 녹화가 견줄 대상에 없으면 불일치. 대상 밖 다른 녹화에만 있으면 「다른 단계 답」으로 따로 적는다(불일치로 셈).
+import { readFileSync, readdirSync } from "node:fs";
+import { join, dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const HERE = dirname(fileURLToPath(import.meta.url));
+const APP = resolve(HERE, "..", "..");
+const REC = join(APP, "harness", "recordings");
+const ARGS = process.argv.slice(2);
+const STORY = resolve(ARGS.find((a) => !a.startsWith("--")) ?? join(APP, "..", "docs", "renewal", "design", "11_demo_day_story.md"));
+const AIMODE = join(REC, "aimode_2026-10-28T11-46-50-947Z.json");
+
+/** 단계 번호 → answer 원문. 사슬 녹화(demo_chain_*) + v3 새 장면 녹화(demo_v3 — AIM-BS·AIM-IJ·AIM-YC·BRF-BS-1~4·BS-07-v3·YC-09, 파일 이름이 단계 번호) */
+const answers = new Map();
+for (const d of ["demo_chain_busan", "demo_chain_inje", "demo_chain_yeongcheon", "demo_v3"]) {
+  for (const f of readdirSync(join(REC, d)).filter((x) => x.endsWith(".json"))) {
+    const j = JSON.parse(readFileSync(join(REC, d, f), "utf8"));
+    answers.set(f.replace(/\.json$/, ""), j.raw?.result?.answer ?? "");
+  }
+}
+const aim = JSON.parse(readFileSync(AIMODE, "utf8"));
+for (const r of aim) answers.set(`AIM:${r.id}`, r.answer ?? r.raw?.result?.answer ?? "");
+/** AI 모드 답으로 치는 열쇠 — 지난 실시간 녹화(AIM:none·AIM:rain-warning)와 v3 시나리오 특보 녹화(AIM-BS·AIM-IJ·AIM-YC) */
+const isAim = (k) => k.startsWith("AIM:") || k.startsWith("AIM-");
+
+const norm = (s) => s.replace(/\\\|/g, "|").replace(/\s+/g, "");
+const NORM = new Map([...answers].map(([k, v]) => [k, norm(v)]));
+
+/** 조각들이 원문에 차례로 있는가 */
+function inOrder(hay, parts) {
+  let at = 0;
+  for (const p of parts) {
+    const i = hay.indexOf(p, at);
+    if (i < 0) return false;
+    at = i + p.length;
+  }
+  return true;
+}
+// 긴 이름(BS-07-v3 · BRF-BS-n · AIM-xx)을 앞에 둔다 — 「BS-07-v3」가 「BS-07」로 잘려 잡히지 않게
+const ID_RE = /\b(BS-07-v3|BRF-BS-[1-4]|AIM-(?:BS|IJ|YC)|BS-0[1-8]R?|IJ-0[1-7](?:-R)?|YC-0[1-9]b?)\b/g;
+const idsIn = (s) => [...new Set((s.match(ID_RE) ?? []).filter((x) => answers.has(x)))];
+
+/** 인용 바로 앞(같은 표 칸 — 이스케이프 안 된 「|」 뒤부터 인용 앞까지, 앞선 인용 안은 빼고)에서 가장 가까운 단계 번호 */
+function nearestId(line, at) {
+  let start = 0;
+  for (let k = at - 1; k >= 0; k--) if (line[k] === "|" && line[k - 1] !== "\\") { start = k + 1; break; }
+  const before = line.slice(start, at).replace(/«[^«»]*»/g, " ");
+  // 「AI 모드」가 마지막 단계 번호보다 뒤에 있으면 AI 모드 답(AIM:*)을 바로 앞 대상으로 본다
+  const ms = [...before.matchAll(new RegExp(ID_RE.source + "|AI 모드", "g"))].filter((m) => m[0] === "AI 모드" || answers.has(m[0]));
+  return ms.length ? ms[ms.length - 1][0] : null;
+}
+
+const lines = readFileSync(STORY, "utf8").split(/\r?\n/);
+let headIds = [];
+let headAim = false;
+const rows = [];
+lines.forEach((line, i) => {
+  if (/^#{2,4} /.test(line)) {
+    headIds = idsIn(line);
+    headAim = /AI 모드/.test(line);
+  }
+  const qs = [...line.matchAll(/«([^«»]*)»/g)].map((m) => ({ q: m[1], at: m.index }));
+  if (!qs.length) return;
+  const lineIds = idsIn(line);
+  const aimHere = /AI 모드/.test(line) || headAim;
+  let cand = [...new Set([...lineIds, ...headIds])];
+  if (aimHere) cand = [...cand, ...[...answers.keys()].filter(isAim)];
+  const all = [...answers.keys()];
+  for (const { q, at } of qs) {
+    const parts = q.split("…").map(norm).filter(Boolean);
+    if (!parts.length) continue;
+    const pool = cand.length ? cand : all;
+    const local = nearestId(line, at);
+    const hit = pool.filter((k) => inOrder(NORM.get(k), parts));
+    if (local && hit.length && !(local === "AI 모드" ? hit.some(isAim) : hit.includes(local))) { rows.push({ line: i + 1, q, ok: true, hit, warn: `바로 앞 단계 ${local} 답에는 없고 ${hit.join("·")} 답에서 찾음` }); continue; }
+    if (hit.length) { rows.push({ line: i + 1, q, ok: true, hit }); continue; }
+    const elsewhere = all.filter((k) => inOrder(NORM.get(k), parts));
+    rows.push({ line: i + 1, q, ok: false, why: elsewhere.length ? `다른 단계 답(${elsewhere.join("·")})에만 있음 — 견준 대상 ${pool.length === all.length ? "전체" : pool.join("·")}` : "어느 녹화 answer 에도 없음", cand: pool.length === all.length ? "전체" : pool.join("·") });
+  }
+});
+
+const bad = rows.filter((r) => !r.ok);
+const warn = rows.filter((r) => r.warn);
+console.log(`대본: ${STORY}`);
+console.log(`녹화: 사슬·v3 ${[...answers.keys()].filter((k) => !isAim(k)).length}개 · AI 모드 ${[...answers.keys()].filter(isAim).length}개(지난 실시간 ${aim.length} · v3 시나리오 ${[...answers.keys()].filter((k) => k.startsWith("AIM-")).length})`);
+console.log(`«» 인용 ${rows.length}개 · 일치 ${rows.length - bad.length}(그중 확인 ${warn.length}) · 불일치 ${bad.length}`);
+for (const r of warn) console.log(`  L${r.line} 확인 — ${r.warn}\n    «${r.q.slice(0, 120)}${r.q.length > 120 ? "…" : ""}»`);
+for (const r of bad) console.log(`  L${r.line} 불일치 — ${r.why}\n    «${r.q.slice(0, 160)}${r.q.length > 160 ? "…" : ""}»`);
+if (ARGS.includes("--list")) for (const r of rows.filter((x) => x.ok)) console.log(`  L${r.line} 일치(${r.hit.join("·")}) «${r.q.slice(0, 60)}»`);
+process.exit(bad.length ? 1 : 0);
