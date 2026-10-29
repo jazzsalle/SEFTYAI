@@ -58,7 +58,8 @@ export default function AiModeModal() {
           warnings: warningsPayload(cur.weather, activeAdvisories(cur.weather, baseTarget(cur.cond.base))),
         });
         setJobId(job.id);
-        setLastAt(new Date().toISOString());
+        // 마지막 점검 = 그 점검 작업을 접수한 시각 — 같은 10분 구간에 다시 열면 서버가 원래 점검 작업을 그대로 돌려준다(R39)
+        setLastAt(job.created_at);
       } catch (e) {
         cur.toast((e as Error).message);
       }
@@ -87,11 +88,29 @@ export default function AiModeModal() {
     sentKey.current = key;
     check(first ? "START" : "WARNING_CHANGE");
   }, [s.weather, bk, warnKey, check]);
+  // 다음 점검 = 받은 점검 작업 접수 시각(마지막 점검) + 10분 — 새로 고침으로 되돌려 받은 원래 점검(R39)이면 그 시각 기준이라
+  // 「마지막 점검」과 「다음 점검」이 10분 간격으로 맞고, 그때는 다음 10분 구간이라 새로 묻는다. 그 뒤로는 10분마다
+  const [nextAt, setNextAt] = useState<number | null>(null);
   useEffect(() => {
-    const t = setInterval(() => check("INTERVAL"), INTERVAL_MIN * 60_000);
-    return () => clearInterval(t);
-    // 기준지역이 바뀌면 10분 주기도 그 시각부터 다시 센다
-  }, [check, bk]);
+    const ms = INTERVAL_MIN * 60_000;
+    const at = lastAt ? Date.parse(lastAt) : NaN;
+    const due = Number.isFinite(at) ? Math.max(Date.now(), at + ms) : Date.now() + ms;
+    setNextAt(due);
+    let t: ReturnType<typeof setInterval> | undefined;
+    const first = setTimeout(() => {
+      setNextAt(Date.now() + ms);
+      check("INTERVAL");
+      t = setInterval(() => {
+        setNextAt(Date.now() + ms);
+        check("INTERVAL");
+      }, ms);
+    }, due - Date.now());
+    return () => {
+      clearTimeout(first);
+      clearInterval(t);
+    };
+    // 기준지역이 바뀌거나 새 점검 작업을 받으면 그 시각부터 다시 센다
+  }, [check, bk, lastAt]);
 
   const job = jobId ? s.jobs[jobId] : null;
   const full = jobId ? s.full[jobId] : undefined;
@@ -100,7 +119,7 @@ export default function AiModeModal() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [jobId, job?.state]);
   const answer = full?.raw?.result?.answer ?? null;
-  const next = lastAt ? new Date(new Date(lastAt).getTime() + INTERVAL_MIN * 60_000) : null;
+  const next = lastAt && nextAt ? new Date(nextAt) : null;
   const hm = (d: Date | string) => new Date(d).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", hour12: false });
   const a = advs[pg % Math.max(1, advs.length)];
 
@@ -161,7 +180,7 @@ export default function AiModeModal() {
             </div>
             {a && <div className="xs muted">{a.area} · {new Date(a.issuedAt).toLocaleString("ko-KR")} 발표 · 기상청</div>}
             <div className="aim-ai">
-              <div className="xs b" style={{ color: "#bd2c0f" }}>AI 안내</div>
+              <div className="xs b" style={{ color: "var(--c-navy)" }}>AI 안내</div>
               {answer ? (
                 <AnswerMarkdown text={answer} refs={(full?.raw?.result?.refs ?? []) as T3qRef[]} />
               ) : job && isActive(job.state) ? (

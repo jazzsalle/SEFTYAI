@@ -46,14 +46,21 @@ export async function POST(req: Request) {
   // 기준지역(R32) — 숫자 코드 2·5·8자리·단계 일치·이름 80자까지. 틀린 값은 보내지 않고 거절한다(null = 전국)
   const base = b?.condition?.base;
   if (base !== undefined && base !== null && !parseBaseWire(base)) return fail(400, "기준지역 값이 올바르지 않습니다.");
-  const dupKey = `${who.id}:${question}:${b?.convId ?? ""}`;
-  const last = recent.get(dupKey);
-  if (last && Date.now() - last < 3000 && !b?.noCache) return fail(429, "같은 질문을 방금 보냈습니다.");
-  recent.set(dupKey, Date.now());
+  // 3초 중복 차단 — AI 모드 점검은 빼다: 같은 계정의 재요청은 submitJob 이 같은 작업으로 모은다(진행 중이면 합류, 끝났으면 R39 원래 작업).
+  // 막으면 켜자마자 새로 고침·새 탭·껐다 켬에서 창이 답 없이 머문다
+  if (source !== "AI_MODE") {
+    const dupKey = `${who.id}:${question}:${b?.convId ?? ""}`;
+    const last = recent.get(dupKey);
+    if (last && Date.now() - last < 3000 && !b?.noCache) return fail(429, "같은 질문을 방금 보냈습니다.");
+    recent.set(dupKey, Date.now());
+  }
 
   const lib = b?.libraryId ? libById(b.libraryId) : undefined;
-  // 질문 글은 R33(임시) 판단에만 넘긴다 — 보내는 질문은 그대로
-  const queryContext = buildQueryContext(who, b?.condition, lib?.disasterTypes, question);
+  // 질문 글은 R33(임시) 판단에만 넘긴다 — 보내는 질문은 그대로.
+  // R39 — AI 모드 점검은 기준지역만 싣는다(입력창 「조건 변경」의 가정 조건은 화면이 무엇을 보내든 넣지 않음). 특보는 weather_warnings 로 따로
+  const c = b?.condition;
+  const cond: ClientCondition | undefined = source === "AI_MODE" ? (c ? { base: c.base, region: c.region, sub: c.sub } : undefined) : c;
+  const queryContext = buildQueryContext(who, cond, source === "AI_MODE" ? undefined : lib?.disasterTypes, question);
   // R3 — 정의된 질문(라이브러리·브리핑·특보)만 Data API 자동 조회. 자유 질문은 하지 않는다
   const previewP = b?.libraryId ? runPreview(b.libraryId, queryContext).catch(() => undefined) : Promise.resolve(undefined);
   let job = await submitJob(who, {

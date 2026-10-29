@@ -6,12 +6,13 @@ import { isActive, SOURCE_LABEL, STATE_LABEL, type JobSummary } from "@/lib/jobT
 /**
  * 질문 목록 패널 (R2, 사용자 아이디어 17) — 좌측 슬라이드, 숨김 가능.
  * 보낸 질문이 쌓이고, 진행 중은 로딩 표시·경과초, 끝난 것은 완료 순서대로 위에서부터.
+ * AI 모드 점검(source AI_MODE)은 넣지 않는다(R39) — 진행 중·완료·배지 수 모두. 점검 답은 AI 모드 창에서만 보인다.
  */
 export default function QueuePanel({ open, setOpen, onPick, currentJobIds }: { open: boolean; setOpen: (v: boolean) => void; onPick: (j: JobSummary) => void; currentJobIds: Set<string> }) {
   const s = useSession();
   const [now, setNow] = useState(Date.now());
   const [seen, setSeen] = useState<Set<string>>(new Set());
-  const list = useMemo(() => s.jobOrder.map((id) => s.jobs[id]).filter(Boolean), [s.jobOrder, s.jobs]);
+  const list = useMemo(() => s.jobOrder.map((id) => s.jobs[id]).filter((j) => j && j.source !== "AI_MODE"), [s.jobOrder, s.jobs]);
   const active = list.filter((j) => isActive(j.state));
   // 완료 순서(finished_at 최신 위)
   const done = list.filter((j) => !isActive(j.state)).sort((a, b) => (b.finished_at ?? b.created_at).localeCompare(a.finished_at ?? a.created_at)).slice(0, 30);

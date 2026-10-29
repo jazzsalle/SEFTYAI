@@ -1,11 +1,11 @@
 // @vitest-environment jsdom
 // 사건 상세 패널(EventDetail) — 녹화한 T3Q 응답으로 그려 본다.
-// 순서 요약 → 피해·복구 → 사건 타임라인 → 유사도 근거(접힘) → 사건 개요, 보고 단계 = 받은 값 표,
+// 순서 요약 → 근거(T3Q-19 재해연보 쪽, R41) → 피해·복구 → 사건 타임라인 → 유사도 근거(접힘) → 사건 개요, 보고 단계 = 받은 값 표,
 // 받은 값 그대로(같은 값도 합치지 않음, 건수·명·기준 시각도 받은 글자 그대로), 섹션마다 원본 항목 전체 보기,
 // 부연 설명·유엔이가 센 수 없음(R25). npx vitest run harness/explore
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import EventDetail from "@/components/explore/EventDetail";
 import { fieldKo } from "@/lib/labels";
@@ -28,7 +28,8 @@ vi.mock("@/lib/api", () => {
     api: async (_path: string, init: { json?: Req } = {}) => {
       const req = init.json ?? { api: "" };
       h.calls.push(req);
-      const hit = h.env.get(`${req.api}:${req.id ?? ""}`);
+      // 근거 조회(T3Q-19)는 ID 칸 없이 body.object_id 로 보낸다
+      const hit = h.env.get(`${req.api}:${req.id ?? (req.body as { object_id?: string } | undefined)?.object_id ?? ""}`);
       if (!hit) throw new ApiError(502, "정보를 불러오지 못했습니다.", null);
       return { api: req.api, http: hit.http, ms: 1, envelope: hit.envelope };
     },
@@ -52,6 +53,7 @@ h.env.set(`T3Q-10:${EV}`, { http: 200, envelope: rec("T3Q-10").response });
 h.env.set(`T3Q-11:${EV}`, { http: 200, envelope: rec("T3Q-11").response });
 h.env.set(`T3Q-12:${EV}`, { http: 200, envelope: rec("T3Q-12").response });
 h.env.set(`T3Q-13:${EV}`, { http: 200, envelope: rec("T3Q-13").response });
+h.env.set(`T3Q-19:${EV}`, { http: 200, envelope: rec("T3Q-19").response });
 const same = Object.values(a10).find((x) => x.path === `/events/${SAME}`);
 if (!same) throw new Error("A10 녹화에 시작=종료 사건이 없음");
 h.env.set(`T3Q-10:${SAME}`, { http: 200, envelope: same.response });
@@ -70,19 +72,20 @@ const btn = (c: Element, name: string) => {
 
 afterEach(() => cleanup());
 
-/** 네 조회가 모두 그려질 때까지 */
+/** 다섯 조회가 모두 그려질 때까지 */
 async function full() {
   const v = render(<EventDetail id={EV} label="목록에서 받은 이름" ctx={ctx} />);
   await screen.findByText("보고 단계별 피해액·복구비");
+  await screen.findByText("근거 원본 항목 전체 보기");
   await screen.findByText("특보·재난문자 기록");
   await screen.findByText("요인군 기여");
   return v.container;
 }
 
 describe("사건 상세 패널 — 배치(R25)", () => {
-  it("섹션 순서 요약 → 피해·복구 → 사건 타임라인 → 유사도 근거 → 사건 개요, 유사도 근거는 처음에 접힘", async () => {
+  it("섹션 순서 요약 → 근거 → 피해·복구 → 사건 타임라인 → 유사도 근거 → 사건 개요, 유사도 근거는 처음에 접힘", async () => {
     const c = await full();
-    expect([...c.querySelectorAll("h3")].map((x) => x.textContent)).toEqual(["요약", "피해·복구", "사건 타임라인", "유사도 근거", "사건 개요"]);
+    expect([...c.querySelectorAll("h3")].map((x) => x.textContent)).toEqual(["요약", "근거", "피해·복구", "사건 타임라인", "유사도 근거", "사건 개요"]);
     const fold = c.querySelector("details.ev-fold");
     expect(fold?.querySelector("summary h3")?.textContent).toBe("유사도 근거");
     expect(fold?.hasAttribute("open")).toBe(false);
@@ -197,6 +200,75 @@ describe("사건 상세 패널 — 받은 값 그대로", () => {
     expect(text).toContain("도로 통제"); // T3Q-13 response
     expect(text).toContain("ABSOLUTE"); // T3Q-12 time_origin.type
     expect(btn(c, "유사도 근거 원본 항목 닫기").getAttribute("aria-expanded")).toBe("true");
+  });
+});
+
+describe("사건 상세 패널 — 근거(T3Q-19, R41)", () => {
+  type EvdEnv = { result: { items: { title: string | null; page: string | null; section_path: string | null; evidence_ref: string }[] }; meta: { base_time: string } };
+  const evd = rec("T3Q-19").response as unknown as EvdEnv;
+  const sec = (c: Element) => [...c.querySelectorAll("section.ev-sec")].find((s) => s.querySelector("h3")?.textContent === "근거")!;
+
+  // SAME 사건은 근거 조회를 녹화하지 않았다(받지 못함 — 실패는 다시 쓰지 않으므로 열 때마다 요청이 남는다)
+  const openSame = async () => {
+    const v = render(<EventDetail id={SAME} label="" ctx={null} />);
+    return waitFor(() => {
+      const x = sec(v.container)?.querySelector("p.xs.muted");
+      if (!x || x.textContent === "불러오는 중…") throw new Error("기다림");
+      return sec(v.container);
+    });
+  };
+
+  it("사건 ID 로 조회한다(실측과 같은 요청 모양 — 호출자 칸은 서버 쪽) — 브라우저는 우리 서버(/api/t3q/data) 경유", async () => {
+    h.calls.length = 0;
+    await openSame();
+    const call = h.calls.find((x) => x.api === "T3Q-19");
+    expect(call?.id).toBeUndefined();
+    const shape = { ...(rec("T3Q-19").body as Record<string, unknown>) };
+    delete shape.caller;
+    expect(call?.body).toEqual({ ...shape, object_id: SAME });
+  });
+
+  it("받은 항목마다 한 줄 — 문서 제목·쪽·장 경로를 받은 글자 그대로, 쪽이 없으면 받은 칸만", async () => {
+    const c = sec(await full());
+    const lines = [...c.querySelectorAll("ul.ev-evd > li")].map((li) => li.textContent);
+    expect(lines).toEqual([
+      "2020 재해연보 p.153 · 사건ID 목록 › 2020년 7.28.~8.11. 호우",
+      "피해대장 집계 — 2020 7.28~8.11 호우 · 2020 7.28~8.11 호우(12차 전환)",
+    ]);
+    // 받은 값과 그대로 같다(고르거나 합치지 않음 — 받은 항목 수 그대로)
+    expect(lines).toHaveLength(evd.result.items.length);
+    expect(c.querySelector("li b")?.textContent).toBe(`${evd.result.items[0].title} ${evd.result.items[0].page}`);
+  });
+
+  it("데이터 기준 시각은 받은 글자 그대로, 제공처 알림(정보 부족)도 그대로, 원본 항목 전체 보기", async () => {
+    const root = await full();
+    const c = sec(root);
+    expect(c.textContent).toContain(`데이터 기준 ${evd.meta.base_time}`);
+    expect(c.querySelector(".gaps")?.textContent).toBeTruthy();
+    expect(c.textContent).not.toContain("EV-EVT-T10107-20200728-0001");
+    fireEvent.click(btn(c, "근거 원본 항목 전체 보기"));
+    expect(c.textContent).toContain("EV-EVT-T10107-20200728-0001");
+    expect(c.textContent).toContain("사건ID_목록");
+  });
+
+  it("받은 항목이 제공처 전체 건수보다 적을 때만 부분 목록 주의(제공처 전체 건수로) — 녹화는 다 받아 주의 없음", async () => {
+    const PART = "T10107-20200728-9999";
+    h.env.set(`T3Q-10:${PART}`, { http: 200, envelope: rec("T3Q-10").response });
+    const env = rec("T3Q-19").response as { result: Record<string, unknown> };
+    h.env.set(`T3Q-19:${PART}`, { http: 200, envelope: { ...env, result: { ...env.result, total_count: 57 } } });
+    const v = render(<EventDetail id={PART} label="" ctx={null} />);
+    await screen.findByText("근거 원본 항목 전체 보기");
+    expect(sec(v.container).querySelector(".ev-caution")?.textContent).toBe("⚠ 전체 57건 중 일부만 받았습니다.");
+    cleanup();
+    expect((env.result as { total_count?: number }).total_count).toBe(evd.result.items.length);
+    const c = sec(await full());
+    expect(c.querySelector(".ev-caution")).toBeNull();
+  });
+
+  it("받지 못하면 회색 한 줄", async () => {
+    const c = await openSame();
+    expect([...c.querySelectorAll("p")].map((x) => [x.className, x.textContent])).toEqual([["xs muted", "정보를 불러오지 못했습니다."]]);
+    expect(c.querySelector(".ev-caution")).toBeNull();
   });
 });
 

@@ -76,6 +76,10 @@
 .ev-fold > summary h3 { display: inline; margin: 0; }
 .ev-fold[open] > summary { margin-bottom: 6px; }
 .ev-caution { font-size: var(--fs-2xs); color: var(--c-warn-dk); margin: 4px 0; }
+/* 데이터 기준 시각은 한 덩어리로(값 중간에서 줄바꿈하지 않음 — 글자는 받은 그대로) */
+.dpane .nowrap { white-space: nowrap; }
 .ev-raw { margin: 6px 0 2px; }
 /* 받은 글 그대로(줄바꿈·공백 포함) — 유사사례 카드의 사건 요약(.sim-sum)과 같은 규칙 */
 .ev-text { margin: 0; line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; }
+/* 사건 근거(T3Q-19, R41) — 받은 항목마다 한 줄 */
+.ev-evd { margin: 0 0 4px; padding-left: 18px; line-height: 1.6; overflow-wrap: anywhere; }

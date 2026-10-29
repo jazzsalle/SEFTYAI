@@ -229,7 +229,17 @@ label.chk input { width: 18px; height: 18px; accent-color: var(--c-primary); }
 .wxbar .tag.fail { background: var(--c-sec-sub); color: var(--c-sub); }
 .wxbar .tit { font-weight: 800; }
 .wxbar .meta { color: var(--c-sub); font-size: var(--fs-xs); }
-.wxbar .more { color: var(--c-dang-dk); font-weight: 700; font-size: var(--fs-xs); }
+/* 나머지 특보 이름(R40) — 빨강 쓰지 않음, 길면 한 줄 말줄임 */
+.wxbar .more { flex: 0 100 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--c-text); font-weight: 700; font-size: var(--fs-xs); }
+@media (min-width: 901px) {
+  /* 첫 특보 제목은 줄지 않고(상한에서만 말줄임), 넘치는 폭은 나머지 줄이 받는다 */
+  .wxbar:has(.more) .tit { flex: 0 0 auto; max-width: 45%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .wxbar:has(.more) .meta, .wxbar:has(.more) .tag { flex: none; white-space: nowrap; }
+}
+.wxbar .wxall { position: relative; flex: none; }
+.wxall .lnk { font-size: var(--fs-xs); white-space: nowrap; }
+.wxall .wxpick { width: min(480px, 92vw); max-height: 60vh; overflow: auto; }
+.wxpick .row { display: flex; align-items: center; gap: 8px; padding: 8px; font-size: var(--fs-xs); }
 .wxbar.danger { background: linear-gradient(90deg, #fff5f3, #fff 50%); }
 .modeSw { display: inline-flex; border: 1px solid var(--c-bd); border-radius: var(--r-m); overflow: hidden; }
 .modeSw button { height: 30px; padding: 0 10px; border: 0; background: #fff; font-size: var(--fs-2xs); color: var(--c-sub); }
@@ -569,6 +579,10 @@ label.chk input { width: 18px; height: 18px; accent-color: var(--c-primary); }
   .wxbar .tag { height: 28px; font-size: 13px; }
   .wxbar .tit { flex: 1 1 55%; min-width: 0; font-size: 14px; }
   .wxbar .meta, .wxbar .scenTag, .wxbar .btn.ghost, .wxbar .iconbtn { display: none; }
+  /* [모두 보기] 목록은 줄바꿈된 특보 줄 기준으로 좌우 12px 안에(단추 기준이면 왼쪽 밖으로 나감) */
+  .wxbar { position: relative; }
+  .wxbar .wxall { position: static; }
+  .wxall .wxpick { left: 12px; right: 12px; width: auto; min-width: 0; }
   .chathd { padding: 10px 12px; }
   .thread { padding: 12px; }
   .start .hero h1 { font-size: 21px; }

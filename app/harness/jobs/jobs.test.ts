@@ -1,7 +1,7 @@
 // 하네스 — 질의 작업 엔진의 실제 SQL 을 메모리 Postgres(PGlite)에서, T3Q 는 녹화본 재생(replay)으로 돌린다.
 // 2026-10-28 독립 검토: sweepAny 의 SQL 따옴표 누락이 아무 시험에도 걸리지 않았던 것을 막기 위함.
 // npx vitest run harness/jobs
-import { beforeAll, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 // D5 — 기상청 특보 조회(kma.ts)를 흉내 낸다: 부산에만 호우경보 발효 중, 인제는 특보 없음. calls = 기상청을 부른 횟수
 const wx = vi.hoisted(() => ({
@@ -253,5 +253,71 @@ describe("재사용 기준(D5) — 원래 받은 시각 기준 24시간, 접수 
     } finally {
       wx.result = saved;
     }
+  });
+});
+
+describe("AI 모드 점검(R39) — 같은 계정 같은 10분 구간이면 새 행 없이 원래 점검 작업", () => {
+  const QC = { region: { admin_code: "5181000000", level: "SIGUNGU", name: "강원특별자치도 인제군" } };
+  const RAW = { status: "SUCCESS", result: { answer: "점검 시험 답" }, meta: { base_time: "2026-10-28T06:00:00+09:00" } };
+  const aim = (acc: Account, question: string) =>
+    J.submitJob(acc, { question, source: "AI_MODE", queryContext: QC, weatherWarnings: { items: [] }, aiMode: { trigger: "START", interval_min: 10 } });
+  const done = (id: string) =>
+    sql.query("update sa_agent_jobs set state = 'DONE', t3q_status = 'SUCCESS', http_status = 200, raw = $2, finished_at = now() where id = $1", [id, JSON.stringify(RAW)]);
+  const count = async (key: unknown) => (await sql.query("select count(*)::int as n from sa_agent_jobs where cache_key = $1", [key]))[0].n as number;
+  // 10분 구간 경계에 걸리지 않게 — 날짜만 지금 구간의 가운데로(DB 시각·타이머는 그대로)
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(Math.floor(Date.now() / 600_000) * 600_000 + 300_000);
+  });
+  afterEach(() => vi.useRealTimers());
+
+  it("같은 계정이 다시 보내면(새로 고침·새 탭) 사본 행 없이 원래 점검 작업을 그대로 돌려준다", async () => {
+    const first = await aim(inje, "AI 모드 점검 시험 1");
+    await done(first.id);
+    const key = (await row(first.id)).cache_key;
+    const n = await count(key);
+    for (let i = 0; i < 3; i++) {
+      const again = await aim(inje, "AI 모드 점검 시험 1");
+      expect(again.id).toBe(first.id);
+      expect(again.cached_from).toBeNull();
+      expect(again.source_finished_at).toBeNull();
+      expect(again.state).toBe("DONE");
+    }
+    expect(await count(key)).toBe(n);
+  });
+
+  it("진행 중인 점검도 같은 작업에 합류한다", async () => {
+    const first = await aim(inje, "AI 모드 점검 시험 진행");
+    await sql.query("update sa_agent_jobs set state = 'RUNNING' where id = $1", [first.id]);
+    const again = await aim(inje, "AI 모드 점검 시험 진행");
+    expect(again.id).toBe(first.id);
+  });
+
+  it("다른 계정의 원래 답이면 지금처럼 재사용 사본", async () => {
+    const first = await aim(inje, "AI 모드 점검 시험 2");
+    await done(first.id);
+    const key = (await row(first.id)).cache_key;
+    const n = await count(key);
+    const other = await aim(central, "AI 모드 점검 시험 2");
+    expect(other.id).not.toBe(first.id);
+    expect(other.cached_from).toBe(first.id);
+    expect(other.account_id).toBe(central.id);
+    expect(await count(key)).toBe(n + 1);
+  });
+
+  it("같은 구간에 다른 계정의 더 새 원래 답이 있어도 자기 원래 점검 작업을 돌려준다", async () => {
+    const mine = await aim(inje, "AI 모드 점검 시험 3");
+    await done(mine.id);
+    const theirs = await J.submitJob(central, { question: "AI 모드 점검 시험 3", source: "AI_MODE", queryContext: QC, weatherWarnings: { items: [] }, noCache: true });
+    await sql.query("update sa_agent_jobs set state = 'DONE', t3q_status = 'SUCCESS', http_status = 200, raw = $2, finished_at = now() + interval '1 minute' where id = $1", [theirs.id, JSON.stringify(RAW)]);
+    expect((await aim(inje, "AI 모드 점검 시험 3")).id).toBe(mine.id);
+  });
+
+  it("AI 모드가 아닌 질문은 같은 계정이어도 지금처럼 사본", async () => {
+    const first = await J.submitJob(inje, { question: "AI 모드 아닌 시험", source: "USER", queryContext: QC, noCache: true });
+    await done(first.id);
+    const again = await J.submitJob(inje, { question: "AI 모드 아닌 시험", source: "USER", queryContext: QC });
+    expect(again.id).not.toBe(first.id);
+    expect(again.cached_from).toBe(first.id);
   });
 });

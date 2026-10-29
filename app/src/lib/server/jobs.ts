@@ -11,7 +11,8 @@ import { traceAdd } from "./kvStore";
  * 질의 작업 (R1·R2·R8·R22) — T3Q Agent ASYNC 를 Neon 작업 표로 감싼다.
  * - 접수: 캐시(24h) 적중 → 즉시 완료 작업 / 같은 키 진행 중 → 합류 / 슬롯(계정 4·전체 8) 있으면 T3Q 제출, 없으면 QUEUED
  * - 재사용 기간(D5)은 원래 답을 받은 시각 기준 24h — 접수 때 그 지역에 기상특보가 발효 중이면 1h(특보 조회 실패면 24h 그대로).
- *   재사용 작업은 원래 답을 받은 시각(source_finished_at)·그때 발효 중이던 특보(source_wx_seen)를 함께 준다
+ *   재사용 작업은 원래 답을 받은 시각(source_finished_at)·그때 발효 중이던 특보(source_wx_seen)를 함께 준다.
+ *   AI 모드 점검(10분 구간)은 원래 답이 같은 계정 것이면 사본을 만들지 않고 그 작업을 그대로 돌려준다(R39)
  * - 답을 받으면(DONE) 그때 발효 중인 기상청 특보 목록을 wx_seen 에 남긴다(C9·D5 「답변을 받은 뒤 특보」를 특보 발표 시각이 아니라 목록으로 가리려고)
  * - 슬롯 입장은 한 트랜잭션(advisory lock) 안에서 세고 차지한다 — 병렬 브리핑도 한도를 넘지 않는다
  * - 상태 조회(lazy 폴링): 진행 중 호출이 있으면 기다리고(배타적 폴링 권리), 없으면 T3Q 결과 조회 1회
@@ -163,15 +164,21 @@ export async function submitJob(acc: Account, input: SubmitInput): Promise<Job> 
   const base = [id, acc.id, input.convId ?? null, input.turnNo ?? null, input.source, input.libraryId ?? null, input.question.trim(), questionSent, JSON.stringify(request), cacheKey];
 
   if (!input.noCache) {
-    // 원래 받은 답(재사용 사본이 아닌 행)만 찾는다 — 사본의 시각으로 재사용 기간이 이어서 늘어나지 않게
+    // 원래 받은 답(재사용 사본이 아닌 행)만 찾는다 — 사본의 시각으로 재사용 기간이 이어서 늘어나지 않게.
+    // AI 모드 점검은 같은 계정의 원래 답을 먼저 고른다(R39)
+    const aim = input.source === "AI_MODE";
     let hit: Job | undefined = (
       await q(
-        `select * from sa_agent_jobs where cache_key = $1 and cached_from is null and state = 'DONE' and t3q_status in ('SUCCESS','PARTIAL_SUCCESS') and finished_at > $2 order by finished_at desc limit 1`,
-        [cacheKey, new Date(Date.now() - CACHE_TTL_MS)],
+        `select * from sa_agent_jobs where cache_key = $1 and cached_from is null and state = 'DONE' and t3q_status in ('SUCCESS','PARTIAL_SUCCESS') and finished_at > $2
+         order by ${aim ? "(account_id = $3) desc, " : ""}finished_at desc limit 1`,
+        aim ? [cacheKey, new Date(Date.now() - CACHE_TTL_MS), acc.id] : [cacheKey, new Date(Date.now() - CACHE_TTL_MS)],
       )
     )[0];
     // D5 — 1시간보다 오래된 답이면 그 기준지역 특보 발효 여부를 본다(발효 중이면 다시 쓰지 않음)
     if (hit && Date.now() - new Date(hit.finished_at ?? 0).getTime() > WARN_CACHE_TTL_MS && (await warningInEffect(wxTargetOfT3q(input.queryContext?.region)))) hit = undefined;
+    // R39 — 같은 계정이 같은 10분 구간에 다시 보낸 AI 모드 점검(새로 고침·새 탭·껐다 켬)은 사본 행 없이 원래 점검 작업 그대로.
+    // 다른 계정의 원래 답이면 아래처럼 사본
+    if (hit && aim && hit.account_id === acc.id) return { ...hit, ...NO_SOURCE };
     if (hit) {
       const [row] = await q(
         `insert into sa_agent_jobs (id, account_id, conv_id, turn_no, source, library_id, question_user, question_sent, request, cache_key,

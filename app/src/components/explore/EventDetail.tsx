@@ -8,8 +8,8 @@ import { Gaps, Tree } from "./DetailPane";
 
 /**
  * 재난사건 상세 (Figma 204002) — T3Q-10 사건을 받고, available_sections 가 true 인 것만 이어서 조회
- * (T3Q-13 피해·대응 · T3Q-12 타임라인 · T3Q-11 유사도 근거). 받기는 공용 조회(@/lib/t3qData) — 유사사례 카드가 받은 사건 상세를 다시 쓴다.
- * 순서(시각 설계 A.3 배치, R25): 요약 → 피해·복구 → 사건 타임라인 → 유사도 근거(처음엔 접힘) → 사건 개요.
+ * (T3Q-19 근거 · T3Q-13 피해·대응 · T3Q-12 타임라인 · T3Q-11 유사도 근거). 받기는 공용 조회(@/lib/t3qData) — 유사사례 카드가 받은 사건 상세를 다시 쓴다.
+ * 순서(시각 설계 A.3 배치, R25·R41): 요약 → 근거(재해연보 쪽) → 피해·복구 → 사건 타임라인 → 유사도 근거(처음엔 접힘) → 사건 개요.
  * 값은 받은 그대로 — 같은 값도 합치지 않고, 유엔이가 센 수·읽는 법·부연 설명은 두지 않는다. 주의(⚠)는 부분 목록일 때만.
  * 숫자는 받은 그대로(건수·명·연도·번호에 쉼표를 넣지 않음), 금액(원)만 예전처럼 천 단위 쉼표. 데이터 기준 시각도 받은 글자 그대로.
  * 섹션마다 「… 원본 항목 전체 보기」 — 받은 결과 전부(화면에 고른 항목 밖의 것 포함, 키는 한국어·값은 받은 그대로).
@@ -60,6 +60,10 @@ type Damage = {
 type Dmg = { damage?: Damage | null };
 type TlItem = Record<string, unknown> & { occurred_at: string; category: string; description: string; agency?: string | null; source_ref?: string | null };
 type Tl = { total_count?: number | null; time_origin?: { note?: string | null } | null; items?: TlItem[] };
+type EvdItem = Record<string, unknown> & { title?: string | null; page?: string | null; section_path?: string | null };
+type Evd = { total_count?: number | null; items?: EvdItem[] };
+/** T3Q-19 근거 조회 요청 — 사건 ID 로(실측 harness/demo/probe_inventory.mjs 와 같은 모양) */
+const evidenceBody = (id: string) => ({ object_id: id, include_passage: true, context_paragraphs: 0, page: { page: 1, size: 20 } });
 
 /** 요인군 색은 이름에 고정(순위·건수와 무관 — 색은 대상을 따른다) */
 const GROUP_ORDER = ["재난유형", "기상·수문", "공간·취약", "피해", "대응"];
@@ -119,6 +123,7 @@ export default function EventDetail({ id, label, ctx }: { id: string; label: str
   const simQ = useT3qData<Env<Sim>>(av.similarity && ctx ? { api: "T3Q-11", id, body: { query_context: ctx } } : null);
   const dmgQ = useT3qData<Env<Dmg>>(av.damage_response ? { api: "T3Q-13", id } : null);
   const tlQ = useT3qData<Env<Tl>>(av.timeline ? { api: "T3Q-12", id } : null);
+  const evdQ = useT3qData<Env<Evd>>(av.evidence ? { api: "T3Q-19", body: evidenceBody(id) } : null);
   const tp = r?.time_profile;
 
   return (
@@ -131,12 +136,17 @@ export default function EventDetail({ id, label, ctx }: { id: string; label: str
       {ev && r && (
         <>
           <div className="xs muted" style={{ margin: "6px 0 10px" }}>
-            {txt(tp?.started_at)} ~ {txt(tp?.ended_at)} · 주관 {txt(r.lead_agency)} · 데이터 기준 {ev.meta?.base_time ?? "—"}
+            {txt(tp?.started_at)} ~ {txt(tp?.ended_at)} · 주관 {txt(r.lead_agency)} · 데이터 기준 <span className="nowrap">{ev.meta?.base_time ?? "—"}</span>
           </div>
 
           <section className="ev-sec">
             <h3>요약</h3>
             <p className="s ev-text">{txt(r.event_summary)}</p>
+          </section>
+
+          <section className="ev-sec">
+            <h3>근거</h3>
+            {!av.evidence ? EMPTY : <EvidenceView q={evdQ} />}
           </section>
 
           <section className="ev-sec">
@@ -176,6 +186,41 @@ export default function EventDetail({ id, label, ctx }: { id: string; label: str
         </>
       )}
     </div>
+  );
+}
+
+/**
+ * 근거(T3Q-19, R41) — 받은 항목마다 한 줄: 문서 제목 · 쪽 · 장 경로(받은 칸만, 받은 글자 그대로 — 고르거나 합치지 않음).
+ * 데이터 기준 시각은 받은 글자 그대로. 받지 못함·결과 없음은 회색 한 줄. 받은 항목이 제공처 전체 건수보다 적을 때만 주의(타임라인과 같게)
+ */
+function EvidenceView({ q }: { q: T3qDataState<Env<Evd>> }) {
+  if (q.state === "loading") return <p className="xs muted">불러오는 중…</p>;
+  if (q.state === "error") return <p className="xs muted">{q.error}</p>;
+  const env = q.data;
+  const items = env.result?.items ?? [];
+  if (!items.length) return <NoResult env={env} />;
+  const has = (v: unknown): v is string => typeof v === "string" && v !== "";
+  const total = env.result?.total_count;
+  return (
+    <>
+      {typeof total === "number" && total > items.length && <p className="ev-caution">⚠ 전체 {total}건 중 일부만 받았습니다.</p>}
+      <ul className="s ev-evd">
+        {items.map((it, i) => {
+          const head = [it.title, it.page].filter(has).join(" ");
+          return (
+            <li key={i}>
+              {head && <b>{head}</b>}
+              {head && has(it.section_path) ? " · " : null}
+              {has(it.section_path) ? it.section_path : null}
+              {!head && !has(it.section_path) ? "—" : null}
+            </li>
+          );
+        })}
+      </ul>
+      {env.meta?.base_time && <div className="xs muted">데이터 기준 <span className="nowrap">{env.meta.base_time}</span></div>}
+      <RawView name="근거" v={env.result} />
+      <Gaps env={env} />
+    </>
   );
 }
 

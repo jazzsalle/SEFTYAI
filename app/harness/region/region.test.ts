@@ -5,6 +5,8 @@
 //  · 기상특보 구역 ↔ 기준지역(lib/wxMatch) — 기상청 실응답 발효 현황 원문(kma_t6_samples.json)으로
 //  · 재사용 기준(D5)이 같은 함수로 작업의 기준지역을 본다
 // npx vitest run harness/region
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 import KMA from "./kma_t6_samples.json";
 import type { Account } from "@/lib/config";
@@ -12,7 +14,7 @@ import type { Advisory } from "@/lib/contract/agent";
 import { ACCOUNTS } from "@/lib/config";
 import { baseKey, baseName, basePilot, baseTarget, baseToT3q, baseWire, defaultBase, parseBaseWire, type BaseRegion } from "@/lib/baseRegion";
 import { kmaAdvId, kmaSidoNames, parseArea, seenArea, sggShort, splitTop, wxCovers, wxTargetOfT3q, type WxTarget } from "@/lib/wxMatch";
-import { buildQueryContext, R33_SEOUL } from "@/lib/server/queryContext";
+import { buildQueryContext, R33_OUR_REGION, R33_SEOUL } from "@/lib/server/queryContext";
 import { parseStatusText } from "@/lib/server/kma";
 
 // 재사용 기준(D5)의 기상청 조회 — 실응답 원문(gale)을 파싱한 특보를 돌려준다
@@ -376,6 +378,64 @@ describe("질의 접수 라우트 — 기준지역·R33 이 실제로 보내는 
       expect(((await res.json()) as { error: string }).error).toBe("기준지역 값이 올바르지 않습니다.");
     }
     expect((await sql.query("select count(*)::int as n from sa_agent_jobs"))[0].n).toBe(before);
+  });
+});
+
+describe("질의 접수 라우트 — AI 모드 점검은 기준지역만(R39)", () => {
+  // 입력창 「조건 변경」에 가정 조건을 모두 넣어 둔 화면이 보내는 condition
+  const FULL = {
+    base: { code: "47230", name: "경상북도 영천시", level: "SIGUNGU" },
+    disasterTypes: ["호우"],
+    referenceTime: "2020-07-23T10:00:00+09:00",
+    period: { from: "2020-07-20", to: "2020-07-26" },
+    warningKind: "호우",
+    warningLevel: "경보",
+    keywords: ["지하차도"],
+    conditions: [{ item: "rain_1h", label: "시간 강우", value: 80, unit: "mm" }],
+  };
+  const sent = async (id: string, body: Record<string, unknown>) => {
+    const res = await post(id, body);
+    expect(res.status).toBe(201);
+    const r = await row(((await res.json()) as { job: { id: string } }).job.id);
+    return r.request as { query_context: Record<string, unknown>; weather_warnings?: unknown };
+  };
+  const AIM_Q = (readFileSync(join(__dirname, "..", "..", "src", "components", "explore", "AiModeModal.tsx"), "utf8").match(/const AIM_Q =\s*"([^"]+)"/) ?? [])[1];
+
+  it("AI_MODE 면 query_context = 기준지역만 — 재난유형·기준시각·발생기간·특보 종류·단계·키워드·강우 조건 없음, 특보는 weather_warnings 로 그대로", async () => {
+    const warnings = { items: [{ warning_key: "KMA-호우경보-경상북도", kind: "호우", level: "경보", area: "경상북도" }] };
+    const req = await sent("yc_safety02", { question: AIM_Q, source: "AI_MODE", aiMode: { check_id: "CHK-1", trigger: "START", interval_min: 10 }, warnings, condition: FULL });
+    expect(req.query_context).toEqual({ region: { admin_code: "4723000000", level: "SIGUNGU", name: "경상북도 영천시" } });
+    for (const k of ["detail", "period", "reference_time", "disaster_types"]) expect(req.query_context).not.toHaveProperty(k);
+    expect(req.weather_warnings).toEqual(warnings);
+  });
+
+  it("AI_MODE 가 아니면 가정 조건을 지금처럼 싣는다", async () => {
+    const req = await sent("yc_safety02", { question: "R39 대조 — 영천 지하차도 통제 기준은?", source: "USER", condition: FULL });
+    for (const k of ["region", "detail", "period", "reference_time", "disaster_types"]) expect(req.query_context).toHaveProperty(k);
+  });
+
+  it("R33 영향 없음 — 점검 질문은 「우리 지역」으로 시작하지 않아 전국 기본 계정이 전국으로 보내도 서울로 바뀌지 않는다", async () => {
+    expect(AIM_Q).toBeTruthy();
+    expect(R33_OUR_REGION.test(AIM_Q!)).toBe(false);
+    const req = await sent("mois_dsd01", { question: AIM_Q, source: "AI_MODE", condition: { ...FULL, base: null } });
+    expect(req.query_context).toEqual({});
+  });
+
+  it("AI_MODE 를 잇달아 두 번 보내면(켜자마자 새로 고침·새 탭) 3초 중복 차단 없이 둘 다 201 · 같은 작업 id", async () => {
+    const body = { question: AIM_Q, source: "AI_MODE", aiMode: { check_id: "CHK-2", trigger: "START", interval_min: 10 }, warnings: { items: [] }, condition: { base: { code: "26350", name: "부산광역시 해운대구", level: "SIGUNGU" } } };
+    const a = await post("yc_safety02", body);
+    const b = await post("yc_safety02", { ...body, aiMode: { ...body.aiMode, check_id: "CHK-3" } });
+    expect(a.status).toBe(201);
+    expect(b.status).toBe(201);
+    const ja = ((await a.json()) as { job: { id: string } }).job.id;
+    const jb = ((await b.json()) as { job: { id: string } }).job.id;
+    expect(jb).toBe(ja);
+  });
+
+  it("AI_MODE 가 아니면 3초 중복 차단은 그대로(429)", async () => {
+    const body = { question: "R39 대조 — 3초 안에 같은 질문", source: "USER", condition: { base: null } };
+    expect((await post("yc_safety02", body)).status).toBe(201);
+    expect((await post("yc_safety02", body)).status).toBe(429);
   });
 });
 
