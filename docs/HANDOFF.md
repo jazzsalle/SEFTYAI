@@ -11,6 +11,7 @@
 | 계정 | 5개 사전 발급(비밀번호 로그인). 로컬은 `.env.development.local` 의 `SA_INIT_PASSWORDS` 로 발급됨 |
 | 화면 원칙 | 한국어 표기(R18) · 그래프 빨강 미사용(R19) · 브리핑 기본 4문항 = 요구사항 원문(R17) |
 | 로컬 DB | **PGlite(`app/.localdb`)** — `.env.local` 의 Neon 은 운영과 같은 DB 라 개발 중 쓰지 않는다 |
+| 작업 이력·다른 PC | 클로드 코드 대화 기록·클로드 메모리·이어받기 안내 = **비공개 저장소 `jazzsalle/SEFTYAI-history`**(2026-10-30 오후 기준 · 비밀값 가림). 다른 PC 에서는 그 README 순서대로: 이 저장소를 같은 경로(`D:ibecodingsafetyaiSEFTYAI`)에 받기 → 저장소에 없는 `app/.env.local`·`app/.env.development.local`·`_secrets`·`T3Q_API`·원자료는 직접 옮기기 → `gh`·`vercel` 로그인·`npm install` → 메모리 복원 → 이 문서부터 읽기. **이 공개 저장소에는 대화 원본을 올리지 않는다**(사용자 결정 2026-10-30) |
 
 ## 2. 절대 원칙 (사용자 지시 — 바꾸지 말 것)
 1. **T3Q 응답 무가공** — 답 글·지도 대상(refs)·경고 문구를 요약·수정·재배치하지 않는다. 표현(마크다운 렌더·칩·접기·지도 그리기)만 한다. 경계 목록은 `01_system_design.md` §6.
