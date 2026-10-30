@@ -3,11 +3,11 @@
 //  · 판정 함수(lib/jobTypes locksBase · sourceLocksBase)
 //  · 실제 SessionProvider(lib/session — fetch 만 흉내): 진행 중 AI_MODE 작업만 있으면 asking false · setBase 허용 · 머리줄 고르기(BasePicker) 열림,
 //    USER 작업이 있으면 막힘, AI_MODE 접수 중에는 보내는 중으로 세지 않음
-//  · AI 모드 창: 접수를 기다리는 사이 기준지역이 바뀌면 돌아온 이전 지역 점검을 이 창의 점검으로 삼지 않고(진행 중이면 취소), 새 지역 START 점검이 나간다.
-//    기준지역을 잇달아 바꾸면 마지막 지역 점검 하나만 나가고, 진행 중이던 이전 지역 점검은 취소된다(계정 동시 한도를 채우지 않게)
+//  · 기준지역을 바꾸면 AI 모드가 꺼진다(R47): 진행 중인 점검은 취소, 새 지역 점검은 나가지 않음, 접수를 기다리던 점검이 늦게 돌아와도 취소.
+//    AI 모드 켜짐은 계정별로 저장. 머리줄 고르기는 바꿀 때마다 「기준지역 변경」 확인 창 — AI 모드를 켜 두었으면 두 줄(종료 안내 + 새 대화), 아니면 한 줄
 //  · 참조 특보 떼기 안내(R45) — 끊긴 계정의 기상청 특보 참조 · 시나리오 끔·만료 · 화면 쪽 조회 실패면 그대로
 // npx vitest run harness/explore/baseLock
-import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ACCOUNTS } from "@/lib/config";
 import { ACTIVE_STATES, locksBase, sourceLocksBase, type JobSource, type JobState, type JobSummary } from "@/lib/jobTypes";
@@ -71,7 +71,13 @@ beforeEach(() => {
 });
 afterEach(() => vi.unstubAllGlobals());
 
-vi.mock("next/navigation", () => ({ useRouter: () => ({ push: () => {}, replace: () => {} }), usePathname: () => "/explore" }));
+const nav = vi.hoisted(() => ({ path: "/explore", pushed: [] as string[] }));
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push: (p: string) => nav.pushed.push(p), replace: () => {} }), usePathname: () => nav.path }));
+beforeEach(() => {
+  nav.path = "/explore";
+  nav.pushed = [];
+  localStorage.clear();
+});
 vi.mock("@/lib/briefing", async (orig) => ({ ...(await orig<typeof import("@/lib/briefing")>()), useBriefItems: () => [] }));
 
 import { SessionProvider, useSession } from "@/lib/session";
@@ -174,96 +180,124 @@ describe("SessionProvider — 기준지역 잠금(실제 session 코드)", () =>
   });
 });
 
-// ── AI 모드 창 — 접수 중 기준지역이 바뀌면 이전 지역 점검은 버린다(진행 중이면 취소) ──
+// ── 기준지역을 바꾸면 AI 모드가 꺼진다(R47) — 진행 중 점검 취소 · 새 지역 점검 없음 · 늦게 돌아온 점검도 취소 · 계정별 켜짐 ──
 type Sent = { source: string; aiMode?: { trigger: string }; condition?: { base?: { name?: string } | null } };
+/** 머리줄(AppShell)처럼 AI 모드가 켜져 있을 때만 창을 그린다 */
 const renderAim = async () => {
   const AiModeModal = (await import("@/components/explore/AiModeModal")).default;
+  function AimHost() {
+    return useSession().aimOn ? <AiModeModal /> : null;
+  }
   render(
     <SessionProvider>
       <Probe />
       <BasePicker />
-      <AiModeModal />
+      <AimHost />
     </SessionProvider>,
   );
+  await waitFor(() => expect(S?.account?.id).toBe(ACC.id));
+  await waitFor(() => expect(S.weather).not.toBeNull());
 };
-/** 기준지역이 바뀐 뒤 새 지역 점검이 나가기까지(AiModeModal BASE_SETTLE_MS 1.5초) 넉넉히 */
-const SETTLE = { timeout: 4000 };
 
-describe("AI 모드 창 — 점검 접수 중 기준지역 변경", () => {
-  it("돌아온 이전 지역 점검을 이 창의 점검으로 삼지 않고(진행 중이면 취소), 새 지역 START 점검의 답을 보인다 — 「점검 중」이 이전 작업에 묶이지 않음", async () => {
-    const old = deferred<unknown>();
-    const neu = deferred<unknown>();
-    const sent: Sent[] = [];
-    srv.post = (b) => {
-      sent.push(b as never);
-      return sent.length === 1 ? old.promise : neu.promise;
-    };
-    await renderAim();
-    // 시험에서는 창이 계정을 받기 전에 그려져 기준지역이 전국 → 계정 기준지역으로 바뀐 것으로 센다(BASE_SETTLE_MS 뒤 START)
-    await waitFor(() => expect(sent).toHaveLength(1), SETTLE);
-    expect(sent[0].source).toBe("AI_MODE");
-    expect(sent[0].aiMode?.trigger).toBe("START");
-    expect(sent[0].condition?.base?.name).toBe("부산광역시");
-    // 부산 점검 접수를 기다리는 사이 — 기준지역 고르기는 막히지 않고, 서울로 바꾸면 새 지역 START 점검이 나간다
-    expect(S.asking).toBe(false);
-    expect(sido().disabled).toBe(false);
-    act(() => {
-      expect(S.setBase(SEOUL)).toBe(true);
-    });
-    await waitFor(() => expect(sent).toHaveLength(2), SETTLE);
-    expect(sent[1].aiMode?.trigger).toBe("START");
-    expect(sent[1].condition?.base?.name).toBe("서울특별시");
-    // 새 지역 점검이 먼저, 이전 지역 점검이 늦게 돌아와도
-    const done = { ...job("new", "AI_MODE", "DONE"), finished_at: new Date().toISOString() };
-    srv.jobs = [
-      { ...done, request: {}, raw: { status: "SUCCESS", result: { answer: "서울특별시 점검 답" } }, preview: null, geo: null },
-      job("old", "AI_MODE", "RUNNING"),
-    ];
-    await act(async () => {
-      neu.resolve({ job: done });
-      await neu.promise;
-    });
-    await act(async () => {
-      old.resolve({ job: job("old", "AI_MODE", "RUNNING") });
-      await old.promise;
-    });
-    await waitFor(() => expect(document.querySelector(".aim-card")!.textContent).toContain("서울특별시 점검 답"));
-    const modal = document.querySelector(".modal.aim")!.textContent!;
-    expect(modal).not.toContain("점검 중");
-    expect(modal).not.toContain("점검 질의에 답을 기다리는 중");
-    // 아무도 보지 않을 이전 지역 점검(진행 중)은 취소 — 새 지역 점검은 그대로
-    await waitFor(() => expect(srv.cancels).toEqual(["old"]));
-    await waitFor(() => expect(S.jobs.old?.state).toBe("CANCELLED"));
-    expect(S.asking).toBe(false);
-  });
-
-  it("기준지역을 잇달아 바꾸면(시·도 → 시·군·구 → 다른 시·군·구) 마지막 지역 점검 하나만 나가고, 진행 중이던 이전 지역 점검은 취소된다", async () => {
+describe("기준지역을 바꾸면 AI 모드가 꺼진다(R47)", () => {
+  it("진행 중인 점검은 취소되고 새 지역 점검은 나가지 않는다 — 창이 닫히고 켜짐 저장도 꺼짐", async () => {
     const sent: Sent[] = [];
     srv.post = async (b) => {
       sent.push(b as never);
-      const j = job(`a${sent.length}`, "AI_MODE", sent.length === 1 ? "RUNNING" : "DONE");
+      const j = job(`a${sent.length}`, "AI_MODE", "RUNNING");
       srv.jobs = [...(srv.jobs as JobSummary[]), j];
       return { job: j };
     };
     await renderAim();
-    // 시험에서는 창이 계정을 받기 전에 그려져 기준지역이 전국 → 계정 기준지역으로 바뀐 것으로 센다(BASE_SETTLE_MS 뒤 START)
-    await waitFor(() => expect(sent).toHaveLength(1), SETTLE);
-    // 부산 점검(a1)이 도는 중
+    act(() => S.setAimOn(true));
+    await waitFor(() => expect(sent).toHaveLength(1));
+    expect(sent[0].aiMode?.trigger).toBe("START");
+    expect(sent[0].condition?.base?.name).toBe("부산광역시");
     await waitFor(() => expect(document.querySelector(".modal.aim")!.textContent).toContain("점검 중"));
-    const gu = (code: string, name: string): BaseRegion => ({ sido: SEOUL.sido, sigungu: { code, name } });
-    for (const b of [SEOUL, gu("11110", "종로구"), gu("11140", "중구")])
-      act(() => {
-        expect(S.setBase(b)).toBe(true);
-      });
-    // 진행 중이던 부산 점검은 기준지역이 바뀐 때 바로 취소
+    expect(localStorage.getItem(`sa.aim.${ACC.id}`)).toBe("true");
+    // 점검이 도는 동안에도 바꿀 수 있고(R44), 바꾸면 AI 모드가 꺼진다
+    expect(S.asking).toBe(false);
+    act(() => {
+      expect(S.setBase(SEOUL)).toBe(true);
+    });
+    expect(S.aimOn).toBe(false);
+    expect(localStorage.getItem(`sa.aim.${ACC.id}`)).toBe("false");
     await waitFor(() => expect(srv.cancels).toEqual(["a1"]));
-    await waitFor(() => expect(sent).toHaveLength(2), SETTLE);
-    expect(sent[1].aiMode?.trigger).toBe("START");
-    expect(JSON.stringify(sent[1].condition)).toContain("중구");
-    // 중간 지역(서울특별시 · 종로구) 점검은 나가지 않는다
+    await waitFor(() => expect(document.querySelector(".modal.aim")).toBeNull());
+    // 새 지역(서울특별시)으로 다시 점검하지 않는다
     await new Promise((r) => setTimeout(r, 1800));
-    expect(sent).toHaveLength(2);
-    expect(sent.some((x) => JSON.stringify(x.condition).includes("종로구"))).toBe(false);
+    expect(sent).toHaveLength(1);
+  });
+
+  it("점검 접수를 기다리는 사이 바꾸면 — 늦게 돌아온 점검(진행 중)도 취소", async () => {
+    const pend = deferred<unknown>();
+    srv.post = () => pend.promise;
+    await renderAim();
+    act(() => S.setAimOn(true));
+    await act(async () => {});
+    act(() => {
+      expect(S.setBase(SEOUL)).toBe(true);
+    });
+    expect(S.aimOn).toBe(false);
+    await act(async () => {
+      pend.resolve({ job: job("late", "AI_MODE", "RUNNING") });
+      await pend.promise;
+    });
+    await waitFor(() => expect(srv.cancels).toEqual(["late"]));
+  });
+
+  it("AI 모드 켜짐은 계정별로 저장 — 같은 브라우저의 다른 계정 값은 이어지지 않는다", async () => {
+    localStorage.setItem("sa.aim.ij_safety01", "true");
+    localStorage.setItem("sa.aim", "true"); // 예전 판(브라우저 하나에 저장)의 값도 읽지 않는다
+    await mount();
+    expect(S.aimOn).toBe(false);
+    cleanup();
+    localStorage.setItem(`sa.aim.${ACC.id}`, "true");
+    await mount();
+    expect(S.aimOn).toBe(true);
+  });
+});
+
+describe("머리줄 기준지역 고르기 — 바꿀 때마다 「기준지역 변경」 확인 창(R47)", () => {
+  const dialog = () => screen.getByRole("alertdialog", { name: "기준지역 변경" });
+  const pickSeoul = async () => {
+    await waitFor(() => expect([...sido().options].some((o) => o.textContent === "서울특별시")).toBe(true));
+    fireEvent.change(sido(), { target: { value: "11" } });
+  };
+
+  it("AI 모드가 꺼져 있으면 한 줄 — 대화가 비어도 띄우고, [취소]면 그대로", async () => {
+    await mount();
+    await pickSeoul();
+    expect(dialog().textContent).toContain("기준지역을 바꾸면 새 대화로 시작합니다. 지금 대화는 대화 이력에 남습니다.");
+    expect(dialog().textContent).not.toContain("AI 모드");
+    fireEvent.click(screen.getByRole("button", { name: "취소" }));
+    expect(screen.queryByRole("alertdialog")).toBeNull();
+    expect(S.cond.base?.sido.name).toBe("부산광역시");
+  });
+
+  it("AI 모드가 켜져 있으면 두 줄 — [새 대화로 시작]이면 바꾸고 AI 모드를 끄고 새 대화로", async () => {
+    await mount();
+    act(() => S.setAimOn(true));
+    await pickSeoul();
+    const lines = [...dialog().querySelectorAll(".acm-desc > div")].map((d) => d.textContent);
+    expect(lines).toEqual(["1. 기준지역을 바꾸면 AI 모드가 종료됩니다. 다시 실행하여 주십시오.", "2. 새 대화로 시작합니다. 지금 대화는 대화 이력에 남습니다."]);
+    const newConv = vi.fn();
+    window.addEventListener("sa:new-conv", newConv);
+    fireEvent.click(screen.getByRole("button", { name: "새 대화로 시작" }));
+    window.removeEventListener("sa:new-conv", newConv);
+    expect(S.cond.base).toEqual(SEOUL);
+    expect(S.aimOn).toBe(false);
+    expect(newConv).toHaveBeenCalledTimes(1);
+    expect(nav.pushed).toEqual([]);
+  });
+
+  it("통합 탐색 밖(대화 이력 등)에서 바꾸면 확인 뒤 통합 탐색 새 대화로 간다", async () => {
+    nav.path = "/history";
+    await mount();
+    await pickSeoul();
+    fireEvent.click(screen.getByRole("button", { name: "새 대화로 시작" }));
+    expect(S.cond.base).toEqual(SEOUL);
+    expect(nav.pushed).toEqual(["/explore"]);
   });
 });
 

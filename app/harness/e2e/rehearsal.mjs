@@ -6,7 +6,7 @@
 // node harness/e2e/rehearsal.mjs [baseUrl=http://localhost:3100]
 //  → 답 원문 harness/recordings/rehearsal_<시각>/<단계>.json + _result.json(시각·재사용·처리 시간) · 화면 harness/reports/shots/rh_*.png
 //  → 대본 인용 대조: node harness/demo/check_story_quotes.mjs --rec harness/recordings/rehearsal_<시각>
-// 실제 T3Q 질의: 예열 최대 18(24시간 안 원본이 있으면 재사용) · 실시간 3 · AI 모드 점검 4(부산·동구·인제·영천)
+// 실제 T3Q 질의: 예열 최대 18(24시간 안 원본이 있으면 재사용) · 실시간 3 · AI 모드 점검 3(부산·인제·영천 — 동구로 바꾸면 AI 모드가 꺼진다, R47)
 // 로컬(localhost·127.0.0.1)에서만 돈다 — 실시간 세 질문을 보내므로, 운영 서버에서 시연 24시간 안에 돌리면 무대 장면이 「이전 답변」이 된다(대본 §7.1 ⑥).
 // 로그인하면 그 계정의 다른 세션은 끊긴다. 비밀번호: env SMOKE_PASSWORD 또는 app/.env.development.local 의 SA_INIT_PASSWORDS(출력하지 않음)
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -203,14 +203,17 @@ async function sopCheck(s, step, { next = [], find = [] }, name) {
   scene({ step, key: "SOP", kind: "SOP", account: s.acc, bar: bar.slice(0, 200), next: nexts, found });
 }
 
-/** 「기준지역 변경」 확인 창이 뜨면 새 대화로 */
+/** 「기준지역 변경」 확인 창(R47 — 바꿀 때마다)에서 새 대화로 — 창의 글을 돌려준다(없으면 null) */
 async function confirmBase(page) {
   const dlg = page.getByRole("alertdialog", { name: "기준지역 변경" });
-  if (await dlg.waitFor({ timeout: 4000 }).then(() => true, () => false)) await dlg.getByRole("button", { name: "새 대화로 시작" }).click();
+  if (!(await dlg.waitFor({ timeout: 4000 }).then(() => true, () => false))) return null;
+  const t = ((await dlg.textContent()) ?? "").replace(/\s+/g, " ").trim();
+  await dlg.getByRole("button", { name: "새 대화로 시작" }).click();
+  return t;
 }
 async function setSigungu(page, label) {
   await page.getByRole("combobox", { name: "기준지역 시·군·구" }).selectOption(label === "" ? { value: "" } : { label });
-  await confirmBase(page);
+  return confirmBase(page);
 }
 const pickedLabel = (page, name) => page.getByRole("combobox", { name }).evaluate((e) => e.selectedOptions[0]?.textContent?.trim() ?? "").catch(() => "");
 /** 기준지역 = 계정 기본(시·도 · 시·군·구 — null 이면 시·군·구 전체) */
@@ -363,20 +366,18 @@ try {
   await clickDemo(bs, "BS-05", "8", "2020년 7월 집중호우 — 재해연보 쪽·특보·문자");
   await clickDemo(bs, "BS-06", "9", "2023년 9월 16일 호우경보 — 대피·통제 문자");
   await shot(bs.page, "08_bs_BS-06");
-  // 단계 10 — 기준지역 동구(새 대화 · AI 모드가 1.5초 뒤 동구로 다시 점검) → BS-07(예열 — 기준지역 동구)
+  // 단계 10 — 기준지역 동구: 「기준지역 변경」 확인 창(R47 — AI 모드를 켜 두었으므로 종료 안내 + 새 대화 두 줄) → AI 모드 꺼짐 · 새 대화(새 지역 점검 없음) → BS-07(예열 — 기준지역 동구)
   const nd = bs.posts.length;
   const td = Date.now();
-  await setSigungu(bs.page, "동구");
-  await until(() => bs.posts.slice(nd).some((p) => p.source === "AI_MODE"), 30_000);
-  const pd = bs.posts.slice(nd).find((p) => p.source === "AI_MODE");
-  await bs.page.waitForTimeout(1500);
+  const dlg = await setSigungu(bs.page, "동구");
+  ok(!!dlg && dlg.includes("1. 기준지역을 바꾸면 AI 모드가 종료됩니다. 다시 실행하여 주십시오.") && dlg.includes("2. 새 대화로 시작합니다. 지금 대화는 대화 이력에 남습니다."), `10 확인 창 「${dlg}」`);
+  await bs.page.waitForTimeout(2500);
+  const aimLeft = await bs.page.locator(".ai-pill.on").count();
+  ok(aimLeft === 0 && !(await bs.page.locator(".aim-bar").count()) && !bs.posts.slice(nd).some((p) => p.source === "AI_MODE"), "10 동구로 바꾼 뒤 AI 모드 꺼짐 · 띠 없음 · 새 지역 점검 없음(R47)");
   const dongBar = await text(bs.page, ".wxbar");
   ok(dongBar.includes("부산 호우경보 발효 중") && dongBar.includes(SCN), `10 동구 특보 줄 「${dongBar.slice(0, 90)}」`);
   const bs07 = await clickDemo(bs, "BS-07-v3", "10", "초량동 침수흔적 안 지하층 주택");
-  const jd = pd?.job?.id ? await waitJob(bs.page, pd.job.id, 600_000) : null;
-  if (pd?.job?.id) await dump(bs, "AIM-BS-DG", pd.job.id);
-  scene({ step: "10", key: "AIM-BS-DG", kind: "AI_MODE", account: bs.acc, jobId: pd?.job?.id ?? null, reused: !!pd?.job?.cached_from, state: jd?.state ?? null, postedSec: sec(pd ? pd.at - td : null), elapsedSec: sec(jd?.elapsed_ms ?? null), base: pd?.base ?? null, warnings: pd?.warnings?.items?.map((i) => i.warning_key) ?? null });
-  ok(jd?.state === "DONE", `10 동구 AI 모드 재점검 — 접수 ${sec(pd ? pd.at - td : null)}초 · 처리 ${sec(jd?.elapsed_ms ?? null)}초 · 특보 ${pd?.warnings?.items?.map((i) => i.warning_key).join(",") ?? "—"} · BS-07 화면 ${bs07.shownSec}초`);
+  scene({ step: "10", key: "BASE-DONGGU", kind: "BASE", account: bs.acc, dialog: dlg, aimOff: aimLeft === 0, baseChangeSec: sec(Date.now() - td - (bs07.shownSec ?? 0) * 1000) });
   await shot(bs.page, "09_bs_BS-07_donggu");
 
   // ── 인제 ──

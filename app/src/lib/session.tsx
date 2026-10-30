@@ -94,16 +94,13 @@ interface SessionState {
   cond: Cond;
   /** 기준지역 밖의 조건(재난유형·기준시각·상황 상세정보) */
   setCond: (c: Partial<Omit<Cond, "base" | "region">>) => void;
-  /** 기준지역 바꾸기 — 질의·응답이 진행 중이면(asking 과 같은 기준 — AI 모드 점검은 빼고, R44) 바꾸지 않고 false. 바꾸면 특보 참조를 뗀다 */
+  /** 기준지역 바꾸기 — 질의·응답이 진행 중이면(asking 과 같은 기준 — AI 모드 점검은 빼고, R44) 바꾸지 않고 false. 바꾸면 특보 참조를 떼고, AI 모드를 켜 두었으면 끄고 진행 중인 점검을 취소한다(R47) */
   setBase: (b: BaseRegion | null) => boolean;
   /**
    * 이 계정의 질의·응답이 진행 중(보내는 중이거나 작업이 대기·제출·답변 생성 중) — 기준지역을 바꿀 수 없다.
    * AI 모드 점검(AI_MODE)은 세지 않는다(R44 — jobTypes locksBase · sourceLocksBase)
    */
   asking: boolean;
-  /** 통합 탐색 화면에 질문이 하나라도 있는 대화가 열려 있는가(그 화면이 알려 준다) — 기준지역을 바꾸면 새 대화로 시작할지 묻는다 */
-  convOpen: boolean;
-  setConvOpen: (v: boolean) => void;
   weather: WeatherResponse | null;
   reloadWeather: () => void;
   convs: Conversation[];
@@ -115,6 +112,7 @@ interface SessionState {
   resetChecks: (prefix?: string, meta?: CheckArchiveMeta) => Promise<number>;
   toast: (m: string) => void;
   toastMsg: string | null;
+  /** AI 모드 켜짐 — 계정별로 저장(R47). 기준지역을 바꾸면 꺼진다 */
   aimOn: boolean;
   setAimOn: (v: boolean) => void;
   wxRef: Advisory | null;
@@ -140,6 +138,8 @@ const condFor = (acc: Account): Cond => {
   const base = defaultBase(acc);
   return { base, region: basePilot(base) };
 };
+/** AI 모드 켜짐 저장 열쇠 — 계정별(R47) */
+export const aimKey = (accountId?: string | null) => `sa.aim.${accountId ?? "-"}`;
 const LS = {
   get<T>(k: string, d: T): T {
     try {
@@ -179,18 +179,25 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   /** 접수 응답을 기다리는 질문 수(보내는 중인 턴 — AI 모드 점검 접수는 세지 않음, R44) — 화면용 값과 바로 읽는 값 */
   const [sending, setSending] = useState(0);
   const sendingRef = useRef(0);
-  const [convOpen, setConvOpen] = useState(false);
   const jobsRef = useRef(jobs);
   jobsRef.current = jobs;
   const asking = sending > 0 || Object.values(jobs).some(locksBase);
+  const accountRef = useRef(account);
+  accountRef.current = account;
+  const aimOnRef = useRef(aimOn);
+  aimOnRef.current = aimOn;
+  /** 진행 중인 AI 모드 점검 취소(아래 cancel — 선언 순서 때문에 ref 로) */
+  const cancelRef = useRef<(jobId: string) => Promise<void>>(async () => {});
 
   const toast = useCallback((m: string) => {
     setToast(m);
     window.setTimeout(() => setToast(null), 2600);
   }, []);
 
+  /** AI 모드 켜짐은 계정별로 저장한다(R47 — 사용자별 독립: 같은 브라우저에서 다른 계정으로 로그인해도 이어지지 않음) */
   const setAimOn = useCallback((v: boolean) => {
-    LS.set("sa.aim", v);
+    LS.set(aimKey(accountRef.current?.id), v);
+    aimOnRef.current = v;
     setAimOnS(v);
     if (v) setWxRef(null);
   }, []);
@@ -201,7 +208,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       .then((r) => {
         setAccount(r.account);
         setCondS(condFor(r.account));
-        setAimOnS(LS.get<boolean>("sa.aim", false));
+        setAimOnS(LS.get<boolean>(aimKey(r.account.id), false));
       })
       .catch(() => setAccount(null))
       .finally(() => setReady(true));
@@ -215,11 +222,13 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     setAccount(r.account);
     setExpired(false);
     setCondS(condFor(r.account));
+    setAimOnS(LS.get<boolean>(aimKey(r.account.id), false));
   }, []);
 
   const logout = useCallback(async () => {
     await api("/api/auth/logout", { method: "POST" }).catch(() => {});
     setAccount(null);
+    setAimOnS(false);
     setWeather(null);
     setWxRef(null);
     setJobs({});
@@ -298,6 +307,13 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     if (sendingRef.current > 0 || Object.values(jobsRef.current).some(locksBase)) return false;
     setCondS((p) => ({ ...p, base: b, region: basePilot(b) }));
     setWxRef(null);
+    // R47 — 기준지역을 바꾸면 AI 모드를 끝낸다(새 지역으로 따라가지 않음 — 다시 켜서 쓴다). 진행 중인 점검도 함께 취소(아무도 보지 않을 점검이 계정 동시 한도를 차지하지 않게)
+    if (aimOnRef.current) {
+      LS.set(aimKey(accountRef.current?.id), false);
+      aimOnRef.current = false;
+      setAimOnS(false);
+      for (const j of Object.values(jobsRef.current)) if (j.source === "AI_MODE" && isActive(j.state)) cancelRef.current(j.id).catch(() => {});
+    }
     return true;
   }, []);
 
@@ -408,6 +424,8 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       try {
         const r = await api<{ job: JobSummary }>("/api/agent/jobs", { method: "POST", json: submitBody(c, a) });
         putJob(r.job);
+        // 접수를 기다리는 사이 AI 모드가 꺼졌으면(기준지역 변경 · AI 모드 종료) 그 점검은 아무도 보지 않는다 — 진행 중이면 취소(R47)
+        if (a.source === "AI_MODE" && !aimOnRef.current && isActive(r.job.state)) cancelRef.current(r.job.id).catch(() => {});
         return r.job;
       } finally {
         if (lock) {
@@ -426,6 +444,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     },
     [putJob],
   );
+  cancelRef.current = cancel;
 
   const fullRef = useRef(full);
   fullRef.current = full;
@@ -453,12 +472,12 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
 
   const value = useMemo<SessionState>(
     () => ({
-      ready, account, login, logout, sessionExpired, cond, setCond, setBase, asking, convOpen, setConvOpen, weather,
+      ready, account, login, logout, sessionExpired, cond, setCond, setBase, asking, weather,
       reloadWeather: () => setWxTick((t) => t + 1),
       convs, saveConv, deleteConvs, checks, checkInfo, toggleCheck, resetChecks, toast, toastMsg, aimOn, setAimOn, wxRef, setWxRef,
       jobs, jobOrder, medianMs, submit, cancel, full, loadFull, watch, t3qOk,
     }),
-    [ready, account, login, logout, sessionExpired, cond, setCond, setBase, asking, convOpen, weather, convs, saveConv, deleteConvs, checks, checkInfo, toggleCheck, resetChecks, toast, toastMsg, aimOn, setAimOn, wxRef, setWxRef, jobs, jobOrder, medianMs, submit, cancel, full, loadFull, watch, t3qOk],
+    [ready, account, login, logout, sessionExpired, cond, setCond, setBase, asking, weather, convs, saveConv, deleteConvs, checks, checkInfo, toggleCheck, resetChecks, toast, toastMsg, aimOn, setAimOn, wxRef, setWxRef, jobs, jobOrder, medianMs, submit, cancel, full, loadFull, watch, t3qOk],
   );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

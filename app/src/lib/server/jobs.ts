@@ -181,12 +181,12 @@ export async function submitJob(acc: Account, input: SubmitInput): Promise<Job> 
 
   if (!input.noCache) {
     // 원래 받은 답(재사용 사본이 아닌 행)만 찾는다 — 사본의 시각으로 재사용 기간이 이어서 늘어나지 않게.
-    // AI 모드 점검은 같은 계정의 원래 답을 먼저 고른다(R39)
+    // AI 모드 점검은 같은 계정의 원래 점검만(R47 — 사용자별 독립: 다른 계정의 점검을 가져오지 않는다. 같은 계정 같은 10분 구간은 R39 ②)
     const aim = input.source === "AI_MODE";
     let hit: Job | undefined = (
       await q(
         `select * from sa_agent_jobs where cache_key = $1 and cached_from is null and state = 'DONE' and t3q_status in ('SUCCESS','PARTIAL_SUCCESS') and finished_at > $2
-         order by ${aim ? "(account_id = $3) desc, " : ""}finished_at desc limit 1`,
+         ${aim ? "and account_id = $3 " : ""}order by finished_at desc limit 1`,
         aim ? [cacheKey, new Date(Date.now() - CACHE_TTL_MS), acc.id] : [cacheKey, new Date(Date.now() - CACHE_TTL_MS)],
       )
     )[0];
@@ -200,8 +200,8 @@ export async function submitJob(acc: Account, input: SubmitInput): Promise<Job> 
     )
       hit = undefined;
     // R39 — 같은 계정이 같은 10분 구간에 다시 보낸 AI 모드 점검(새로 고침·새 탭·껐다 켬)은 사본 행 없이 원래 점검 작업 그대로.
-    // 다른 계정의 원래 답이면 아래처럼 사본
-    if (hit && aim && hit.account_id === acc.id) return { ...hit, ...NO_SOURCE };
+    // (AI 모드 점검은 위에서 같은 계정 것만 찾으므로 사본은 생기지 않는다 — R47)
+    if (hit && aim) return { ...hit, ...NO_SOURCE };
     if (hit) {
       const [row] = await q(
         `insert into sa_agent_jobs (id, account_id, conv_id, turn_no, source, library_id, question_user, question_sent, request, cache_key,

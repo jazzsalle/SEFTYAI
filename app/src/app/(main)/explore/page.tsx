@@ -77,11 +77,6 @@ function Explore() {
     return () => window.removeEventListener("sa:new-conv", newConv);
   }, [newConv]);
 
-  // 질문이 있는 대화가 열려 있는지 머리줄에 알린다(기준지역을 바꾸면 새 대화로 시작할지 묻도록) — 화면을 떠나면 닫힌 것으로
-  const { setConvOpen } = s;
-  const hasTurns = !!conv?.turns.length;
-  useEffect(() => setConvOpen(hasTurns), [hasTurns, setConvOpen]);
-  useEffect(() => () => setConvOpen(false), [setConvOpen]);
 
   // 이력에서 연 대화 (?c=) — 그 id 로 한 번만 연다(이후 새 대화를 시작해도 되돌아가지 않게)
   const openedC = useRef<string | null>(null);

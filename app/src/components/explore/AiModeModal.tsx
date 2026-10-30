@@ -15,14 +15,13 @@ import { BRIEF_AIM_COUNT, useBriefItems } from "@/lib/briefing";
  * AI 모드 · 상황 감지 (Figma 202001, R6) — 켜면 즉시 1회, 이후 이 화면이 열려 있는 동안 10분마다 T3Q 에 점검 질의(AI_MODE).
  * 특보는 기상청 실시간 원문을 weather_warnings 로 그대로 보낸다(없으면 빈 목록 — 꾸미지 않음). 점검 답은 무가공으로 보인다.
  * 특보가 바뀌면 바로 다시 점검한다. 모달은 접어서 띠로 둘 수 있다.
- * 특보·점검 지역 = 지금 기준지역(R32, lib/wxMatch). 기준지역이 바뀌면 점검 상태를 비우고 새 지역으로 바로 다시 점검한다. 전국이면 점검하지 않는다.
+ * 특보·점검 지역 = 켤 때의 기준지역(R32, lib/wxMatch). 전국이면 점검하지 않는다.
  * 시연 시나리오 특보(R43)는 창·띠의 특보 이름 옆에 「시연 시나리오」, 점검 질의에는 source 「시연 시나리오(가상 특보)」로 함께 간다(질의 글은 그대로 — R36).
  * 켠 동안 시연 계정은 기상청 실시간 특보를 받지 않아(R45) 창·띠에 「기상청 실시간 특보 끊음」(회색), 덮는 특보가 없으면 「… 시연 시나리오 특보 없음」·회색 점.
- * 점검이 도는 동안에도 기준지역을 바꿀 수 있다(R44) — 이전 지역 점검은 버리고(아직 진행 중이면 취소) 새 지역으로 다시 점검한다.
- * 시·도 → 시·군·구 → 읍·면·동을 잇달아 고를 때 단계마다 점검이 나가지 않게, 기준지역이 바뀐 뒤 BASE_SETTLE_MS 동안 그대로일 때 보낸다
+ * 점검이 도는 동안에도 기준지역을 바꿀 수 있고(R44), 바꾸면 AI 모드가 꺼진다(R47 — 새 지역으로 따라가지 않음, 진행 중인 점검은 세션이 취소 · lib/session setBase).
+ * 점검은 사용자마다 따로 — 같은 계정이 같은 10분 구간에 다시 켜면 원래 점검 그대로(R39 ②), 다른 계정의 점검은 가져오지 않는다(R47 — lib/server/jobs)
  */
 const INTERVAL_MIN = 10;
-const BASE_SETTLE_MS = 1500;
 /**
  * 점검 질의(R36) — 상세 요구사항 정의서 v1.72 UFR-001-001-05 「Agent 질의 내용」을 사용자 지시(2026-10-28)로 줄인 것:
  * 특보마다 「먼저 확인할 내용」 2문장(80자 내외)만, 제목·과거 사례·근거 목록 없이. 특보가 없으면 점검 결과 1문장. 지역은 query_context.region, 특보는 weather_warnings 로 따로 보낸다
@@ -50,13 +49,19 @@ export default function AiModeModal() {
   const advs = useMemo(() => activeAdvisories(s.weather, target), [s.weather, target]);
   const warnKey = advs.map((a) => `${a.id}:${a.level}:${a.status}`).join("|");
 
+  // 이 창이 닫힌 뒤(AI 모드 끔 · 기준지역 변경 — R47) 돌아온 점검 접수는 이 창의 점검으로 삼지 않는다(진행 중이면 세션이 취소 — lib/session submit)
+  const alive = useRef(true);
+  useEffect(() => {
+    alive.current = true;
+    return () => {
+      alive.current = false;
+    };
+  }, []);
+
   const check = useCallback(
     async (trigger: "START" | "INTERVAL" | "WARNING_CHANGE" | "MANUAL") => {
       const cur = sRef.current;
       if (!cur.cond.base) return;
-      // 점검이 도는 동안에도 기준지역을 바꿀 수 있다(R44) — 접수를 기다리는 사이 바뀌었으면 돌아온 이전 지역 점검을 이 창의 점검으로 삼지 않는다
-      // (새 지역 점검은 기준지역이 바뀐 때 아래 효과가 START 로 따로 보낸다)
-      const sentBk = baseKey(cur.cond.base);
       try {
         const job = await cur.submit({
           question: AIM_Q,
@@ -66,55 +71,23 @@ export default function AiModeModal() {
           noCache: trigger === "MANUAL",
           warnings: warningsPayload(cur.weather, activeAdvisories(cur.weather, baseTarget(cur.cond.base))),
         });
-        if (baseKey(sRef.current.cond.base) !== sentBk) {
-          // 아무도 보지 않을 이전 지역 점검 — 진행 중이면 취소해 계정 동시 한도를 비운다(대화 질문이 대기로 밀리지 않게)
-          if (isActive(job.state)) sRef.current.cancel(job.id).catch(() => {});
-          return;
-        }
+        if (!alive.current) return;
         setJobId(job.id);
         // 마지막 점검 = 그 점검 작업을 접수한 시각 — 같은 10분 구간에 다시 열면 서버가 원래 점검 작업을 그대로 돌려준다(R39)
         setLastAt(job.created_at);
       } catch (e) {
-        // 버린 이전 지역 점검의 접수 오류는 알리지 않는다(지금 지역의 점검이 아님)
-        if (baseKey(sRef.current.cond.base) !== sentBk) return;
-        cur.toast((e as Error).message);
+        if (alive.current) cur.toast((e as Error).message);
       }
     },
     [],
   );
 
-  // 기준지역이 바뀌면 처음부터 — 이전 지역의 점검 답·시각·특보 쪽수를 비우고(진행 중인 이전 지역 점검은 취소), 아래 효과가 새 지역으로 점검(START)한다.
-  // 처음 열 때(개발 모드의 효과 두 번 실행 포함)는 비우지 않는다 — 같은 점검을 두 번 보내지 않게
-  const lastBk = useRef(bk);
-  const moved = useRef(false);
-  const jobIdRef = useRef(jobId);
-  jobIdRef.current = jobId;
-  useEffect(() => {
-    if (lastBk.current === bk) return;
-    lastBk.current = bk;
-    moved.current = true;
-    const prev = jobIdRef.current ? sRef.current.jobs[jobIdRef.current] : null;
-    if (prev && isActive(prev.state)) sRef.current.cancel(prev.id).catch(() => {});
-    setJobId(null);
-    setLastAt(null);
-    setPg(0);
-    sentKey.current = "";
-  }, [bk]);
-
-  // 처음 · 기준지역 변경(BASE_SETTLE_MS 뒤 마지막 지역만) · 특보 변화 · 10분 주기
+  // 처음 · 특보 변화 · 10분 주기(기준지역을 바꾸면 AI 모드가 꺼지므로 이 창에서 기준지역은 바뀌지 않는다 — R47)
   useEffect(() => {
     if (!s.weather) return;
     const key = `${bk}|${warnKey}`;
     if (sentKey.current === key) return;
     const first = sentKey.current === "";
-    if (first && moved.current) {
-      const t = setTimeout(() => {
-        moved.current = false;
-        sentKey.current = key;
-        check("START");
-      }, BASE_SETTLE_MS);
-      return () => clearTimeout(t);
-    }
     sentKey.current = key;
     check(first ? "START" : "WARNING_CHANGE");
   }, [s.weather, bk, warnKey, check]);

@@ -315,7 +315,7 @@ describe("재사용 기준(D5) — 원래 받은 시각 기준 24시간, 접수 
   });
 });
 
-describe("AI 모드 점검(R39) — 같은 계정 같은 10분 구간이면 새 행 없이 원래 점검 작업", () => {
+describe("AI 모드 점검(R39 · R47) — 같은 계정 같은 10분 구간이면 새 행 없이 원래 점검 작업, 다른 계정 것은 쓰지 않음", () => {
   const QC = { region: { admin_code: "5181000000", level: "SIGUNGU", name: "강원특별자치도 인제군" } };
   const RAW = { status: "SUCCESS", result: { answer: "점검 시험 답" }, meta: { base_time: "2026-10-28T06:00:00+09:00" } };
   const aim = (acc: Account, question: string) =>
@@ -352,15 +352,16 @@ describe("AI 모드 점검(R39) — 같은 계정 같은 10분 구간이면 새 
     expect(again.id).toBe(first.id);
   });
 
-  it("다른 계정의 원래 답이면 지금처럼 재사용 사본", async () => {
+  it("다른 계정의 원래 점검은 가져오지 않는다 — 사본이 아니라 그 계정의 새 점검(R47 사용자별 독립)", async () => {
     const first = await aim(inje, "AI 모드 점검 시험 2");
     await done(first.id);
     const key = (await row(first.id)).cache_key;
     const n = await count(key);
     const other = await aim(central, "AI 모드 점검 시험 2");
     expect(other.id).not.toBe(first.id);
-    expect(other.cached_from).toBe(first.id);
+    expect(other.cached_from).toBeNull();
     expect(other.account_id).toBe(central.id);
+    expect(other.state).not.toBe("DONE"); // 새로 접수한 점검(대기·제출)
     expect(await count(key)).toBe(n + 1);
   });
 

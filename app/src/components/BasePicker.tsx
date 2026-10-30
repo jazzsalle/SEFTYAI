@@ -3,10 +3,12 @@
  * 머리줄 기준지역 고르기(R32) — 전국 → 시·도 → 시·군·구 → 읍·면·동. 지자체·중앙 모두 바꿀 수 있다.
  *  · 선택지는 /api/regions(브이월드 행정구역 이름·코드)에서만 — 부모 코드별로 한 번 받아 이 탭 메모리에 둔다. 받는 중·받지 못하면
  *    「전국」(지금 고른 값이 있으면 그 값)만 두고, 받지 못하면 짧은 안내와 다시 불러오기를 보인다(지어낸 보기 없음)
- *  · 질의·응답이 진행 중이면(보내는 중·대기·답변 생성 중) 바꿀 수 없다 — AI 모드 점검은 빼고(R44 — 바꾸면 AI 모드 창이 새 지역으로 다시 점검)
- *  · 통합 탐색에 질문이 있는 대화가 열려 있으면 「기준지역 변경」 확인 뒤 새 대화로 시작(sa:new-conv), 아니면 바로 바꾼다
+ *  · 질의·응답이 진행 중이면(보내는 중·대기·답변 생성 중) 바꿀 수 없다 — AI 모드 점검은 빼고(R44). 바꾸면 AI 모드는 꺼지고 진행 중인 점검은 취소된다(R47 — 세션 setBase)
+ *  · 바꿀 때마다 「기준지역 변경」 확인 창(R47 — 대화가 비어도 · 다른 화면에서도): AI 모드를 켜 두었으면 「1. … AI 모드가 종료됩니다 … 2. 새 대화로 시작합니다 …」, 아니면 새 대화 한 줄.
+ *    [새 대화로 시작] = 기준지역 바꿈 → 통합 탐색 새 대화(sa:new-conv · 다른 화면이면 /explore)
  */
 import { useEffect, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import { useSession } from "@/lib/session";
 import type { AreaPick, BaseRegion } from "@/lib/baseRegion";
@@ -67,7 +69,9 @@ export default function BasePicker() {
   const sido = useAreas("sido", "");
   const sgg = useAreas("sigungu", base ? base.sido.code : null);
   const emd = useAreas("emd", base?.sigungu ? base.sigungu.code : null);
-  const [pending, setPending] = useState<{ base: BaseRegion | null } | null>(null);
+  const [pending, setPending] = useState<{ base: BaseRegion | null; aim: boolean } | null>(null);
+  const path = usePathname();
+  const router = useRouter();
   const busy = s.asking;
   const title = busy ? BASE_BUSY : undefined;
 
@@ -76,18 +80,19 @@ export default function BasePicker() {
   const emdOpts = withCurrent(emd.items, base?.emd);
   const failed = sido.failed || sgg.failed || emd.failed;
 
+  // R47 — 바꿀 때마다 확인 창(대화가 비어도 · 다른 화면에서도). 확인하면 새 대화로 시작하고, AI 모드를 켜 두었으면 끈다(세션 setBase)
   const request = (next: BaseRegion | null) => {
     if (s.asking) return s.toast(BASE_BUSY);
-    if (s.convOpen) return setPending({ base: next });
-    s.setBase(next);
+    setPending({ base: next, aim: s.aimOn });
   };
   const confirm = () => {
     const p = pending;
     setPending(null);
     if (!p) return;
     if (!s.setBase(p.base)) return s.toast(BASE_BUSY);
-    // 통합 탐색 화면의 「새 대화」와 같게 — 빈 대화(시작 화면)로
-    window.dispatchEvent(new CustomEvent("sa:new-conv"));
+    // 통합 탐색 화면의 「새 대화」와 같게 — 빈 대화(시작 화면)로. 다른 화면이면 통합 탐색으로(처음 열면 빈 대화)
+    if (path?.startsWith("/explore")) window.dispatchEvent(new CustomEvent("sa:new-conv"));
+    else router.push("/explore");
   };
   const retry = () => {
     if (sido.failed) sido.retry();
@@ -155,7 +160,17 @@ export default function BasePicker() {
           role="alertdialog"
           size="sm"
           title="기준지역 변경"
-          desc="기준지역을 바꾸면 새 대화로 시작합니다. 지금 대화는 대화 이력에 남습니다."
+          // R47 — 대화 중 기준지역 변경 안내와 AI 모드 종료 안내를 한 창으로. AI 모드 줄은 켜 두었을 때만
+          desc={
+            pending.aim ? (
+              <>
+                <div>1. 기준지역을 바꾸면 AI 모드가 종료됩니다. 다시 실행하여 주십시오.</div>
+                <div>2. 새 대화로 시작합니다. 지금 대화는 대화 이력에 남습니다.</div>
+              </>
+            ) : (
+              "기준지역을 바꾸면 새 대화로 시작합니다. 지금 대화는 대화 이력에 남습니다."
+            )
+          }
           onClose={() => setPending(null)}
           footer={
             <>

@@ -1,7 +1,8 @@
 // 하네스 — R44(기준지역 잠금에서 AI 모드 점검 빼기) · R45(시연 시나리오를 켠 동안 시연 계정은 기상청 실시간 특보 끊음) 화면 확인
 //  (가) 시나리오 켬 → 부산 bs_safety01 특보 줄: 「부산 호우경보 발효 중 · 시연 시나리오」 · 「HH:MM 켬 · 기상청 실시간 특보 끊음」(기상청 시각 없음) · /api/weather realtimeCut
 //  (나) AI 모드 창(실제 T3Q 점검 1건 — 같은 10분 구간이면 원래 점검 작업을 돌려받음) — 「켬 · 시연 시나리오 · 기상청 실시간 특보 끊음」
-//  (다) R44 — 점검이 도는 동안 기준지역 고르기가 막히지 않고, 서울특별시로 바꾸면 진행 중이던 부산 점검은 취소되고 새 지역 START 점검(실제 T3Q 점검 1건)이 나간다
+//  (다) R44·R47 — 점검이 도는 동안 기준지역 고르기가 막히지 않고, 서울특별시로 바꾸면 확인 창(두 줄) → AI 모드 꺼짐 · 진행 중이던 부산 점검 취소 · 새 지역 점검 없음.
+//       서울특별시에서 AI 모드를 다시 켜면 시나리오 특보 없는 점검(실제 T3Q 점검 1건)
 //       → 특보 줄 「실시간 끊음」(회색) · 「서울특별시에는 시연 시나리오 특보가 없습니다」 · 갱신 칸 「기상청 실시간 특보 끊음」 · 「특보 없음」·「발효 중인 기상특보가 없습니다」 없음
 //       · 머리줄 AI 모드 단추 회색 · AI 모드 창
 //  (라) mois_dsd01 — 기상청 실시간 그대로(끊음 없음 · 기상청 시각)
@@ -125,7 +126,7 @@ try {
     `점검 1 — ${p0?.trigger} · ${p0?.base} · ${p0?.warnings?.source} · ${p0?.warnings?.items?.map((i) => i.warning_key).join()} · 수집 ${p0at} · 작업 ${p0?.job?.state}`);
   await shot(bs.page.locator(".modal.aim"), "02_busan_aimode_cut");
 
-  // ── (다) R44 — 점검이 도는 동안 기준지역 바꾸기 ──
+  // ── (다) R44·R47 — 점검이 도는 동안에도 기준지역을 바꿀 수 있고, 바꾸면 확인 창(두 줄) → AI 모드 꺼짐 · 부산 점검 취소 · 새 지역으로 따라가지 않음 ──
   await bs.page.getByRole("button", { name: "접기", exact: true }).click();
   const sido = bs.page.getByRole("combobox", { name: "기준지역 시·도" });
   const running = (await text(bs.page, ".aim-bar")).includes("점검 중");
@@ -133,15 +134,30 @@ try {
   ok(running && !(await sido.isDisabled()), `AI 모드 점검이 ${running ? "도는 동안" : "끝난 뒤(R44 확인 아님)"} 기준지역 고르기 열림 · 띠 「${(await text(bs.page, ".aim-bar")).slice(0, 90)}」`);
   await shot(bs.page, "03_r44_aim_running_picker_open");
   await sido.selectOption({ label: "서울특별시" });
-  await until(() => posts.length > 1, 20000);
-  await bs.page.waitForTimeout(1200);
-  const p1 = posts[1];
+  const dlg = bs.page.getByRole("alertdialog", { name: "기준지역 변경" });
+  await dlg.waitFor({ timeout: 10000 });
+  const dlgText = ((await dlg.textContent()) ?? "").replace(/\s+/g, " ").trim();
+  ok(dlgText.includes("1. 기준지역을 바꾸면 AI 모드가 종료됩니다. 다시 실행하여 주십시오.") && dlgText.includes("2. 새 대화로 시작합니다. 지금 대화는 대화 이력에 남습니다."), `확인 창(R47) 「${dlgText.slice(0, 120)}」`);
+  await shot(bs.page, "04_r47_base_dialog");
+  await dlg.getByRole("button", { name: "새 대화로 시작" }).click();
+  await bs.page.waitForTimeout(2500);
   // 아무도 보지 않을 부산 점검(진행 중이던 것)은 취소된다 — 계정 동시 한도를 비움
-  const j0 = p0?.job?.id ? await bs.page.evaluate(async (id) => (await (await fetch(`/api/agent/jobs/${id}`)).json()).job, p0.job.id) : null;
-  ok(j0?.state === "CANCELLED", `이전 지역(부산) 점검 작업 ${j0?.id?.slice(0, 8)} — ${j0?.state}`);
-  ok(posts.length === 2, `AI 모드 점검 접수 ${posts.length}건(부산 1 · 서울 1)`);
+  // 취소 요청은 확인 즉시 나가지만(세션 setBase) 개발 서버는 처음 부를 때 경로를 컴파일하느라 늦을 수 있다 — 최대 30초 기다린다
+  let j0 = null;
+  for (let t = Date.now(); p0?.job?.id && Date.now() - t < 30_000; await bs.page.waitForTimeout(1000)) {
+    j0 = await bs.page.evaluate(async (id) => (await (await fetch(`/api/agent/jobs/${id}`)).json()).job, p0.job.id);
+    if (!running || j0?.state !== "RUNNING") break;
+  }
+  ok(!running || j0?.state === "CANCELLED", `이전 지역(부산) 점검 작업 ${j0?.id?.slice(0, 8)} — ${j0?.state}`);
+  ok(posts.length === 1 && !(await bs.page.locator(".ai-pill.on").count()) && !(await bs.page.locator(".aim-bar").count()), `AI 모드 꺼짐 · 띠 없음 · 점검 접수 ${posts.length}건(부산 1 — 서울로 따라가지 않음)`);
+  // 구역 밖(서울특별시)에서 AI 모드를 다시 켜면 — 시나리오 특보 없음 점검(빈 목록 · source 시연 시나리오)
+  await bs.page.getByRole("button", { name: "AI 모드", exact: true }).click();
+  await bs.page.locator(".modal.aim").waitFor({ timeout: 20000 });
+  await until(() => posts.length > 1, 20000);
+  const p1 = posts[1];
   ok(p1?.trigger === "START" && p1?.base === "서울특별시" && p1?.warnings?.source === "시연 시나리오(가상 특보)" && p1?.warnings?.items?.length === 0,
-    `기준지역 변경 → 새 지역 점검 — ${p1?.trigger} · ${p1?.base} · ${p1?.warnings?.source} · 특보 ${p1?.warnings?.items?.length}건 · 작업 ${p1?.job?.state}`);
+    `서울특별시에서 다시 켬 → 점검 — ${p1?.trigger} · ${p1?.base} · ${p1?.warnings?.source} · 특보 ${p1?.warnings?.items?.length}건 · 작업 ${p1?.job?.state}`);
+  await bs.page.getByRole("button", { name: "접기", exact: true }).click();
   const bar2 = await text(bs.page, ".wxbar");
   const tag2 = await bs.page.$eval(".wxbar .tag", (e) => ({ t: e.textContent, c: e.className, bg: getComputedStyle(e).backgroundColor }));
   ok(tag2.t === "실시간 끊음" && tag2.c === "tag fail", `구역 밖 꼬리표 「${tag2.t}」 ${tag2.c} ${tag2.bg}`);
@@ -150,13 +166,13 @@ try {
   ok(pill.includes("st-gray"), `머리줄 AI 모드 단추 ${pill}`);
   const band = await text(bs.page, ".aim-bar");
   ok(band.includes("서울특별시 시연 시나리오 특보 없음") && band.includes(CUT) && !band.includes("발효 특보 없음"), `띠 「${band.slice(0, 110)}」`);
-  await shot(bs.page, "04_r44_base_changed_wxbar");
+  await shot(bs.page, "04b_r47_base_changed_wxbar");
   await bs.page.getByRole("button", { name: "AI 모드 펼치기" }).click();
   await bs.page.locator(".modal.aim").waitFor({ timeout: 20000 });
   await waitAnswer(bs.page).catch(() => console.log("  (점검 답 기다림 시간 넘음)"));
   const card2 = await text(bs.page, ".aim-card");
   ok(card2.includes("서울특별시 시연 시나리오 특보 없음") && card2.includes(CUT), `구역 밖 AI 모드 창 「${card2.slice(0, 160)}」`);
-  await shot(bs.page.locator(".modal.aim"), "05_r44_aimode_new_region");
+  await shot(bs.page.locator(".modal.aim"), "05_r47_aimode_reenabled_out_of_zone");
   // 다음 단계에서 다시 점검하지 않게 AI 모드를 끈다
   await bs.page.getByRole("button", { name: "AI 모드 종료" }).click();
 
