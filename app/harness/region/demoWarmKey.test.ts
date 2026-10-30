@@ -38,9 +38,9 @@ function screenInput(acc: Account, cond: Cond, a: SubmitArgs): SubmitInput {
 /** 화면 요청의 재사용 열쇠(jobs.ts 와 같은 함수) */
 const screenKey = (acc: Account, cond: Cond, a: SubmitArgs) => cacheKeyOf(screenInput(acc, cond, a));
 
-/** 묶음 항목 ↔ 녹화(대본 질문 글·조건의 원본). YC-01 은 새 질문 글 실측(demo_v3/YC-01-v3 — 재난유형 없이 보냄)과 조건까지 같게 */
+/** 묶음 항목 ↔ 녹화(대본 질문 글·조건의 원본). YC-01 은 새 질문 글 실측(demo_v3/YC-01-v3 — 재난유형 없이 보냄)과 조건까지 같게, BS-02 는 「·CCTV」 뺀 글 실측(demo_v3/BS-02-v4 — 사용자 지시 2026-10-30) */
 const RECORDING: Record<string, string> = {
-  "DD-BS-02": "demo_chain_busan/BS-02", "DD-BS-04": "demo_chain_busan/BS-04", "DD-BS-05": "demo_chain_busan/BS-05", "DD-BS-06": "demo_chain_busan/BS-06", "DD-BS-07": "demo_v3/BS-07-v3",
+  "DD-BS-02": "demo_v3/BS-02-v4", "DD-BS-04": "demo_chain_busan/BS-04", "DD-BS-05": "demo_chain_busan/BS-05", "DD-BS-06": "demo_chain_busan/BS-06", "DD-BS-07": "demo_v3/BS-07-v3",
   "DD-IJ-01": "demo_chain_inje/IJ-01", "DD-IJ-02": "demo_chain_inje/IJ-02", "DD-IJ-04": "demo_chain_inje/IJ-04", "DD-IJ-05": "demo_chain_inje/IJ-05", "DD-IJ-05-R": "demo_chain_inje/IJ-05-R", "DD-IJ-07-R": "demo_chain_inje/IJ-07-R",
   "DD-YC-01": "demo_v3/YC-01-v3", "DD-YC-02": "demo_chain_yeongcheon/YC-02", "DD-YC-04": "demo_chain_yeongcheon/YC-04", "DD-YC-05": "demo_chain_yeongcheon/YC-05", "DD-YC-06": "demo_chain_yeongcheon/YC-06", "DD-YC-09": "demo_v3/YC-09",
 };
@@ -68,6 +68,10 @@ describe("묶음 「재난담당자의 하루」 정의", () => {
     for (const r of DEMO_DAY_BRIEFING) expect(Object.keys(PREFIX)).toContain(r);
     // 브리핑 4번 「하천 옆 지하차도」는 질문 모음 문항으로 등록하지 않는다(대본 §8 #6 — 설정 화면 「+ 항목 추가」로 넣음, 자동 조회 없음)
     expect(LIBRARY.some((q) => q.text === rec("demo_v3/BRF-BS-4").question)).toBe(false);
+  });
+
+  it("질문 글에 CCTV 없음(사용자 지시 2026-10-30 — 실시간 영상은 시연·질문에서 뺀다)", () => {
+    for (const q of [...LIBRARY, ...DEMO_DAY]) expect(q.text, q.id).not.toMatch(/CCTV|씨씨티비/i);
   });
 
   it("실시간 항목 = 부산 BS-02 · 인제 IJ-05-R · 영천 YC-02 (사용자 결정 2026-10-30 — YC-01 새 질문 136초), 정비계획·공사 질문 없음", () => {

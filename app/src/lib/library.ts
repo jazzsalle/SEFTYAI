@@ -170,7 +170,7 @@ export interface DemoItem extends LibraryQuestion {
 export const DEMO_DAY: DemoItem[] = [
   // ── 부산 — 도심 침수 ──
   { id: "DD-BS-02", regions: ["busan"], scene: "5", title: "호우경보 때 지하차도 차단시설·설비", category: "통제·대피 대상", stage: "특보", live: true, preview: ["RISK_FACILITY"],
-    text: "부산에 호우경보가 발효되면 동천·초량천 옆 문현지하차도·개금지하차도·초량제1지하차도의 진입차단시설 종류, 대응계획 수립 여부, 수위계측기·CCTV 같은 설비를 알려줘.",
+    text: "부산에 호우경보가 발효되면 동천·초량천 옆 문현지하차도·개금지하차도·초량제1지하차도의 진입차단시설 종류, 대응계획 수립 여부, 수위계측기 같은 설비를 알려줘.",
     cond: { disasterType: "호우", warningKind: "호우", warningLevel: "경보", conditions: [{ item: "RAIN_1H", value: 50 }] } },
   { id: "DD-BS-04", regions: ["busan"], scene: "7", title: "초량동·문현동 침수흔적", category: "침수 이력", stage: "평시", preview: ["FLOOD_TRACE"],
     text: "부산 동구 초량동과 남구 문현동에 남은 침수흔적을 연도별로 지구 이름·침수 원인과 함께 보여줘.", cond: { disasterType: "호우" } },

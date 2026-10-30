@@ -12,7 +12,7 @@ import KMA from "./kma_t6_samples.json";
 import type { Account } from "@/lib/config";
 import type { Advisory } from "@/lib/contract/agent";
 import { ACCOUNTS } from "@/lib/config";
-import { baseKey, baseName, basePilot, baseTarget, baseToT3q, baseWire, defaultBase, parseBaseWire, type BaseRegion } from "@/lib/baseRegion";
+import { baseKey, baseName, basePilot, baseQuestionPilot, baseTarget, baseToT3q, baseWire, defaultBase, parseBaseWire, type BaseRegion } from "@/lib/baseRegion";
 import { kmaAdvId, kmaSidoNames, parseArea, seenArea, sggShort, splitTop, wxCovers, wxTargetOfT3q, type WxTarget } from "@/lib/wxMatch";
 import { buildQueryContext, R33_OUR_REGION, R33_SEOUL } from "@/lib/server/queryContext";
 import { parseStatusText } from "@/lib/server/kma";
@@ -151,6 +151,22 @@ describe("기준지역 기본값·이름·시범 지역 id (lib/baseRegion)", ()
     expect(basePilot(pick(["47", "경상북도"], ["47290", "경산시"]))).toBe("national");
     expect(basePilot(pick(["51", "강원특별자치도"], ["51810", "인제군"], ["51810250", "인제읍"]))).toBe("inje");
     expect(basePilot(pick(["11", "서울특별시"]))).toBe("national");
+  });
+  it("질문 모음·시작 화면 시범 지역(R48) — 시·군·구를 고르지 않은 경상북도 = yeongcheon, 강원특별자치도 = inje(지도 첫 화면 basePilot 은 그대로)", () => {
+    const pick = (sido: [string, string], sgg?: [string, string]): BaseRegion => ({ sido: { code: sido[0], name: sido[1] }, sigungu: sgg ? { code: sgg[0], name: sgg[1] } : null });
+    expect(baseQuestionPilot(null)).toBe("national");
+    expect(baseQuestionPilot(pick(["26", "부산광역시"]))).toBe("busan");
+    expect(baseQuestionPilot(pick(["47", "경상북도"]))).toBe("yeongcheon");
+    expect(baseQuestionPilot({ sido: { code: "47", name: "경상북도" } })).toBe("yeongcheon"); // sigungu 칸 없음
+    expect(baseQuestionPilot(pick(["47", "경상북도"], ["47230", "영천시"]))).toBe("yeongcheon");
+    expect(baseQuestionPilot(pick(["47", "경상북도"], ["47290", "경산시"]))).toBe("national");
+    expect(baseQuestionPilot(pick(["51", "강원특별자치도"]))).toBe("inje");
+    expect(baseQuestionPilot(pick(["51", "강원특별자치도"], ["51810", "인제군"]))).toBe("inje");
+    expect(baseQuestionPilot(pick(["51", "강원특별자치도"], ["51110", "춘천시"]))).toBe("national");
+    expect(baseQuestionPilot(pick(["11", "서울특별시"]))).toBe("national");
+    // 지도 첫 화면·대화 이력의 시범 지역은 바뀌지 않는다
+    expect(basePilot(pick(["47", "경상북도"]))).toBe("national");
+    expect(basePilot(pick(["51", "강원특별자치도"]))).toBe("national");
   });
   it("보낼 값·이름·특보 맞출 지역 — 가장 아래 단계 하나, 이름은 시·도부터, 읍·면·동이면 그 시·군·구로 특보를 맞춘다", () => {
     const b: BaseRegion = { sido: { code: "51", name: "강원특별자치도" }, sigungu: { code: "51810", name: "인제군" }, emd: { code: "51810250", name: "인제읍" } };

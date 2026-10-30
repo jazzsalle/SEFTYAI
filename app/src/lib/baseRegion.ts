@@ -50,7 +50,7 @@ export const baseName = (b: BaseRegion | null | undefined) => (b ? joinName(b.si
 export const baseKey = (b: BaseRegion | null | undefined) => (b ? leaf(b).code : "");
 
 /**
- * 시범 지역 id — 기준지역에서 끌어낸 값(질문 모음·시작 화면·지도 첫 화면·대화 이력이 쓴다).
+ * 시범 지역 id — 기준지역에서 끌어낸 값(지도 첫 화면·대화 이력이 쓴다 — 질문 모음·시작 화면은 baseQuestionPilot).
  * 26(부산광역시) 아래면 busan, 47230(영천시) 아래면 yeongcheon, 51810(인제군) 아래면 inje, 그 밖은 national
  */
 export function basePilot(b: BaseRegion | null | undefined): RegionId {
@@ -59,6 +59,18 @@ export function basePilot(b: BaseRegion | null | undefined): RegionId {
   if (c.startsWith("47230")) return "yeongcheon";
   if (c.startsWith("51810")) return "inje";
   return "national";
+}
+
+/**
+ * 질문 모음·시작 화면 질문 타일의 시범 지역(R48) — basePilot 에 더해, 시·군·구를 고르지 않은 47(경상북도)은 yeongcheon, 51(강원특별자치도)은 inje
+ * (인제·영천 질문이 시·도까지만 골라도 보인다). 그 도의 다른 시·군을 고르면 그대로 national. 지도 첫 화면·대화 이력은 basePilot 그대로
+ */
+export function baseQuestionPilot(b: BaseRegion | null | undefined): RegionId {
+  if (b && !b.sigungu) {
+    if (b.sido.code === "47") return "yeongcheon";
+    if (b.sido.code === "51") return "inje";
+  }
+  return basePilot(b);
 }
 
 /** 기상특보를 맞출 기준지역(lib/wxMatch) — 읍·면·동이면 그 시·군·구로 */

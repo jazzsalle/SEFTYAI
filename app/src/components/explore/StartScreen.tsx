@@ -2,6 +2,7 @@
 import { useMemo } from "react";
 import { useRandomBrief } from "@/lib/briefing";
 import { libraryFor, fillText, type LibraryQuestion } from "@/lib/library";
+import { baseQuestionPilot } from "@/lib/baseRegion";
 import { useSession } from "@/lib/session";
 import { IcChevR } from "../Icons";
 
@@ -15,10 +16,11 @@ export default function StartScreen({ regionName, onBriefing, onAskBrief, onAskL
 }) {
   const s = useSession();
   const brief = useRandomBrief(4);
+  const qr = baseQuestionPilot(s.cond.base); // 시·도까지만 골라도 인제·영천 질문(R48)
   const lib = useMemo(() => {
-    const l = libraryFor(s.cond.region === "national" ? "" : s.cond.region).filter((q) => !q.after);
+    const l = libraryFor(qr === "national" ? "" : qr).filter((q) => !q.after);
     return [...l.filter((q) => q.regions), ...l.filter((q) => !q.regions)].slice(0, 4);
-  }, [s.cond.region]);
+  }, [qr]);
   return (
     <div className="start">
       <div className="start-eyebrow">재난안전 AI 에이전트</div>

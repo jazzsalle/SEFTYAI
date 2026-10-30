@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { api } from "@/lib/api";
 import { demoFor, fillText, LIBRARY, libraryFor, presetLines, presetManual, type DemoItem, type LibraryQuestion, type Stage } from "@/lib/library";
-import { baseName, defaultBase } from "@/lib/baseRegion";
+import { baseName, baseQuestionPilot, defaultBase } from "@/lib/baseRegion";
 import { useSession } from "@/lib/session";
 
 /**
@@ -32,11 +32,13 @@ export default function LibraryDrawer({ regionName, onClose, onAsk, onAskMany, o
     lastTab = t;
     setTabS(t);
   };
-  const day = useMemo(() => demoFor(s.cond.region), [s.cond.region]);
+  // 시·도까지만 골라도 인제·영천 질문(R48 — lib/baseRegion baseQuestionPilot)
+  const qr = baseQuestionPilot(s.cond.base);
+  const day = useMemo(() => demoFor(qr), [qr]);
   const [sel, setSel] = useState<string[]>([]);
   const [sug, setSug] = useState<Sug[] | null>(null);
   const [sugErr, setSugErr] = useState<string | null>(null);
-  const list = useMemo(() => libraryFor(s.cond.region === "national" ? "" : s.cond.region), [s.cond.region]);
+  const list = useMemo(() => libraryFor(qr === "national" ? "" : qr), [qr]);
   const flows = list.filter((q) => q.after).map((q) => ({ first: LIBRARY.find((x) => x.id === q.after)!, next: q }));
   useEffect(() => {
     if (tab !== "t3q" || sug) return;

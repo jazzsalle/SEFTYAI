@@ -2,6 +2,7 @@
 //  (가) AI 모드 점검 3건 — AIM_Q(AiModeModal.tsx R36 원문) · 시연 시나리오 특보(부산 호우경보 · 인제 호우주의보 · 영천 호우경보)
 //  (나) 부산 브리핑 4항목 — AI 모드를 켠 채 [브리핑 시작] 과 같은 요청(BR-01·02·03 원문 + 4번 「하천 옆 지하차도」 = BS-01 질문 글)
 //  (다) 마무리 대체 후보 — 영천 YC-09(정비계획 없이 우선 점검 구역) · 부산 BS-07 기준지역 동구 다시 재기
+//  (라) 질문 글 고침 — 부산 BS-02 「·CCTV」 뺀 글(사용자 지시 2026-10-30 · BS-02-v4)
 // node harness/demo/probe_v3.mjs [--only AIM-BS,BRF-BS-4]   → harness/recordings/demo_v3/<id>.json (request·raw·elapsedMs·waitedMs)
 // 요청 모양 = 앱 jobs.ts submitJob 이 T3Q 로 보내는 본문(caller·conversation_id·turn_no·question·question_source·query_context·reference
 //   ·briefing·ai_mode·weather_warnings, response_mode 는 askAsync 가 붙임). caller.user_id 는 하네스용 가명.
@@ -97,6 +98,20 @@ CASES.push({
   build: () => ({
     caller: caller(BUSAN_DONGGU), conversation_id: null, turn_no: 1, question_source: "USER",
     query_context: { region: BUSAN_DONGGU, disaster_types: ["호우"] }, reference: null,
+  }),
+});
+
+// (라) 질문 글 고침 — BS-02 에서 「·CCTV」 뺌(사용자 지시 2026-10-30). 화면 묶음 항목(DD-BS-02)과 같은 글·조건(프리셋 = 가정 조건 MANUAL), 출처 질문 모음(SUGGEST)
+CASES.push({
+  id: "BS-02-v4", group: "라", what: "부산 단계 5 — 호우경보 때 지하차도 차단시설·설비(CCTV 뺀 글)",
+  question: libById("DD-BS-02").text,
+  build: () => ({
+    caller: caller(REGION.BS), conversation_id: null, turn_no: 1, question_source: "SUGGEST",
+    query_context: {
+      region: REGION.BS, disaster_types: ["호우"],
+      detail: { warning_kind: "호우", warning_level: "경보", conditions: [{ item: "RAIN_1H", label: "1시간 강우", value: 50, unit: "mm", source_type: "MANUAL" }] },
+    },
+    reference: null,
   }),
 });
 
