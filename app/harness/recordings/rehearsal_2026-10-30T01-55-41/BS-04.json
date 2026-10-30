@@ -1,0 +1,203 @@
+{
+  "id": "BS-04",
+  "account": "bs_safety01",
+  "question": "부산 동구 초량동과 남구 문현동에 남은 침수흔적을 연도별로 지구 이름·침수 원인과 함께 보여줘.",
+  "jobId": "89148ed4-2c0e-4547-b4de-5b028d31ac3e",
+  "cachedFrom": "d8b87b2b-80cc-4cfa-9c42-b2bd31102cc9",
+  "sourceFinishedAt": "2026-10-30T01:59:15.964Z",
+  "state": "DONE",
+  "t3qStatus": "SUCCESS",
+  "elapsedMs": 88020,
+  "request": {
+    "caller": {
+      "role": "LOCAL_GOV_OFFICER",
+      "user_id": "U-dbcccf4b1aac",
+      "org_admin_code": "2600000000"
+    },
+    "turn_no": 6,
+    "question": "부산 동구 초량동과 남구 문현동에 남은 침수흔적을 연도별로 지구 이름·침수 원인과 함께 보여줘.",
+    "reference": null,
+    "query_context": {
+      "region": {
+        "name": "부산광역시",
+        "level": "SIDO",
+        "admin_code": "2600000000"
+      },
+      "disaster_types": [
+        "호우"
+      ]
+    },
+    "response_mode": "ASYNC",
+    "conversation_id": null,
+    "question_source": "SUGGEST"
+  },
+  "raw": {
+    "meta": {
+      "source": "T3Q",
+      "base_time": "2026-10-30T10:59:13+09:00",
+      "elapsed_ms": 88020,
+      "quality_status": "VERIFIED",
+      "disclosure_level": "공개"
+    },
+    "result": {
+      "refs": [
+        {
+          "map": {
+            "key": "trace_code",
+            "draw": "layer",
+            "value": "I_187"
+          },
+          "ref": "r9",
+          "entity_type": "FLOOD_TRACE",
+          "display_name": "부산광역시 동구 초량동"
+        },
+        {
+          "map": {
+            "key": "trace_code",
+            "draw": "layer",
+            "value": "I_15858"
+          },
+          "ref": "r8",
+          "entity_type": "FLOOD_TRACE",
+          "display_name": "부산광역시 동구 초량동"
+        },
+        {
+          "map": {
+            "key": "trace_code",
+            "draw": "layer",
+            "value": "I_123695"
+          },
+          "ref": "r10",
+          "entity_type": "FLOOD_TRACE",
+          "display_name": "부산광역시 동구 초량동"
+        },
+        {
+          "map": {
+            "key": "trace_code",
+            "draw": "layer",
+            "value": "I_60164"
+          },
+          "ref": "r12",
+          "entity_type": "FLOOD_TRACE",
+          "display_name": "부산광역시 동구 초량동"
+        },
+        {
+          "map": {
+            "key": "trace_code",
+            "draw": "layer",
+            "value": "I_15870"
+          },
+          "ref": "r3",
+          "entity_type": "FLOOD_TRACE",
+          "display_name": "부산광역시 남구 문현동"
+        },
+        {
+          "map": {
+            "key": "trace_code",
+            "draw": "layer",
+            "value": "I_201"
+          },
+          "ref": "r5",
+          "entity_type": "FLOOD_TRACE",
+          "display_name": "부산광역시 남구 문현동"
+        },
+        {
+          "map": {
+            "key": "legal_dong_code",
+            "draw": "pin",
+            "value": "2617010100"
+          },
+          "ref": "r1",
+          "entity_type": "REGION",
+          "display_name": "부산광역시 동구 초량동"
+        },
+        {
+          "map": {
+            "key": "trace_code",
+            "draw": "layer",
+            "value": "I_23787"
+          },
+          "ref": "r11",
+          "entity_type": "FLOOD_TRACE",
+          "display_name": "부산광역시 동구 초량동"
+        },
+        {
+          "map": {
+            "key": "trace_code",
+            "draw": "layer",
+            "value": "I_71607"
+          },
+          "ref": "r13",
+          "entity_type": "FLOOD_TRACE",
+          "display_name": "부산광역시 동구 초량동"
+        },
+        {
+          "map": {
+            "key": "legal_dong_code",
+            "draw": "pin",
+            "value": "2629010900"
+          },
+          "ref": "r2",
+          "entity_type": "REGION",
+          "display_name": "부산광역시 남구 문현동"
+        },
+        {
+          "map": {
+            "key": "trace_code",
+            "draw": "layer",
+            "value": "I_15871"
+          },
+          "ref": "r4",
+          "entity_type": "FLOOD_TRACE",
+          "display_name": "부산광역시 남구 문현동"
+        },
+        {
+          "map": {
+            "key": "trace_code",
+            "draw": "layer",
+            "value": "I_63726"
+          },
+          "ref": "r7",
+          "entity_type": "FLOOD_TRACE",
+          "display_name": "부산광역시 남구 문현동"
+        },
+        {
+          "map": {
+            "key": "trace_code",
+            "draw": "layer",
+            "value": "I_202"
+          },
+          "ref": "r6",
+          "entity_type": "FLOOD_TRACE",
+          "display_name": "부산광역시 남구 문현동"
+        }
+      ],
+      "answer": "### 결론\n\n부산광역시 **동구 초량동**과 **남구 문현동**의 침수흔적 조사 내역을 조회한 결과, 총 **11건**(초량동 6건, 문현동 5건)의 침수흔적이 등록되어 있습니다.\n\n- **동구 초량동**:\n  - **2020년**: [초량1지구](#ref:r9)(원인: 집중호우, 저지대지하도로, 배수불량), [초량2지구](#ref:r8)(원인: 집중호우, 배수불량)\n  - **2024년**: [동구 초량동 827-327](#ref:r10)(원인: 내수_방재시설 용량부족), [초량로68번길지구](#ref:r12)(원인: 내수_방재시설 용량부족)\n- **남구 문현동**:\n  - **2020년**: [문현1지구](#ref:r3)(7월 10일 호우 - 원인: 하천범람 및 배수불량), [문현1지구](#ref:r5)(7월 23일 호우 - 원인: 배수불량에 따른 침수)\n\n---\n\n### 상세 침수흔적 내역\n\n#### 1. 부산 동구 초량동 ([2617010100](#ref:r1))\n\n| 침수연도 | 재해명 (발생일자) | 지구 이름 | 침수 원인 (상세) | 침수면적(㎡) | 평균침수심 | 흔적 코드 |\n| :---: | :--- | :--- | :--- | :---: | :---: | :---: |\n| **2020** | 20년07월 장마철 집중호우 (2020-07-23) | [초량2지구](#ref:r8) | 집중호우, 배수불량 | 70,777.7 | 4.212 | I_15858 |\n| **2020** | 우20년07월 장마철 집중호 (2020-07-23) | [초량1지구](#ref:r9) | 집중호우, 저지대지하도로, 배수불량 | 9,608.5 | 2.675 | I_187 |\n| **2024** | 24.9.19~21 집중호우 (2024-09-21) | [동구 초량동 827-327](#ref:r10) | 내수_방재시설 용량부족 | 86.0 | 49.7 | I_123695 |\n| **2024** | 24.9.19~21 집중호우 (2024-09-21) | [동구 초량동 827-327](#ref:r11) | 내수_방재시설 용량부족 | 86.0 | 49.7 | I_23787 |\n| **2024** | 24.9.19~21 집중호우 (2024-09-21) | [초량로68번길지구](#ref:r12) | 내수_방재시설 용량부족 | 420.0 | 30.0 | I_60164 |\n| **2024** | 24.9.19~21 집중호우 (2024-09-21) | [초량로68번길지구](#ref:r13) | 내수_방재시설 용량부족 | 420.0 | 30.0 | I_71607 |\n\n> **주요 특징**: 2020년 7월 집중호우 당시 저지대 지하차도 및 배수불량으로 대규모 침수가 발생했으며, 2024년 9월 집중호우 시에는 배수시설 용량 부족에 따른 국지적 내수침수가 기록되었습니다.\n\n---\n\n#### 2. 부산 남구 문현동 ([2629010900](#ref:r2))\n\n| 침수연도 | 재해명 (발생일자) | 지구 이름 | 침수 원인 (상세) | 침수면적(㎡) | 평균침수심 | 흔적 코드 |\n| :---: | :--- | :--- | :--- | :---: | :---: | :---: |\n| **2020** | 7월10일 집중호우 (2020-07-10) | [문현1지구](#ref:r3) | 하천범람 및 배수불량 | 23,207.6 | 2.5 | I_15870 |\n| **2020** | 7월10일 집중호우 (2020-07-10) | [문현1지구](#ref:r4) | 하천범람 및 배수불량 | 24,295.8 | 2.2 | I_15871 |\n| **2020** | 7월10일 집중호우 (2020-07-10) | [문현1지구](#ref:r7) | 하천범람 및 배수불량 | 36,044.5 | 2.4 | I_63726 |\n| **2020** | 7월 23일 집중호우 (2020-07-23) | [문현1지구](#ref:r5) | 배수불량에 따른 침수 | 47,832.2 | 2.4 | I_201 |\n| **2020** | 7월 23일 집중호우 (2020-07-23) | [문현1지구](#ref:r6) | 배수불량에 따른 침수 | 24,295.7 | 2.4 | I_202 |\n\n> **주요 특징**: 문현동은 2020년 7월 10일(동천 등 인접 하천범람 및 배수불량)과 7월 23일(배수불량) 집중호우로 인해 문현1지구 일대에 광범위한 침수가 반복 발생하였습니다.\n\n---\n\n### 한계 및 확인사항\n\n1. **데이터 출처**: 행정안전부 재난안전 데이터베이스(`flood.trace`, `flood.flood_event`, `ref.v_legal_dong`)의 침수흔적도 GIS 속성 데이터를 기반으로 조회되었습니다.\n2. **평균침수심 단위**: 원천 조사자료의 수치 그대로 표기되었으며, 2020년 자료는 m 단위(추정), 2024년 자료는 cm 단위(추정)로 기록되어 있으므로 상호 직접 비교 시 단위 확인이 필요합니다.\n3. **폴리곤 분할**: 동일 호우 및 지구에 대해 필지별·구역별로 침수흔적 폴리곤이 나뉘어 있어 복수의 흔적 레코드가 존재할 수 있습니다.",
+      "entities": [],
+      "question": "부산 동구 초량동과 남구 문현동에 남은 침수흔적을 연도별로 지구 이름·침수 원인과 함께 보여줘.",
+      "limitations": [
+        "유사사례는 예측·위험판단이 아닌 참고 정보"
+      ],
+      "response_id": "RES-20261030-cd93d6",
+      "context_used": {
+        "reference_used": false,
+        "used_conditions": [],
+        "unused_conditions": []
+      },
+      "answer_format": "MARKDOWN",
+      "evidence_refs": [],
+      "result_groups": [],
+      "question_source": "SUGGEST",
+      "conversation_title": null,
+      "follow_up_questions": []
+    },
+    "status": "SUCCESS",
+    "turn_no": 1,
+    "warnings": [],
+    "data_gaps": [],
+    "request_id": "39a007f9c90efb97b1eb7ad7c963d399",
+    "correlation_id": "corr-39a007f9c90efb97b1eb7ad7c963d399",
+    "schema_version": "2.0",
+    "conversation_id": "CONV-20261030-816f67"
+  }
+}

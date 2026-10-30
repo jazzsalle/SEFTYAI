@@ -1,0 +1,881 @@
+{
+  "base": "http://localhost:3100",
+  "startedAt": "2026-10-30T01:55:42.413Z",
+  "ops": {
+    "brief": [
+      {
+        "on": true,
+        "label": "위험·취약지역",
+        "q": "우리 지역에서 먼저 점검해야 할 위험·취약지역은 어디인가요?"
+      },
+      {
+        "on": true,
+        "label": "과거 피해 이력",
+        "q": "위험·취약지역 중 과거 재난 때 실제로 피해가 났던 곳과 피해 내용은?"
+      },
+      {
+        "on": true,
+        "label": "통제·대피 대상",
+        "q": "통제하거나 주민 대피가 필요할 수 있는 도로·지하차도·인명피해 우려지역은?"
+      },
+      {
+        "on": false,
+        "label": "행동매뉴얼",
+        "q": "현장조치 행동매뉴얼상 지금 단계에서 해야 할 일은?"
+      },
+      {
+        "on": true,
+        "label": "하천 옆 지하차도",
+        "q": "부산 지하차도 가운데 하천 500m 안에 있는 곳을 재해위험등급·인접 하천·통제 기준 수심과 함께 보여줘."
+      }
+    ],
+    "scenario": "켜짐부산광역시 · 강원특별자치도 인제군 · 경상북도 영천시 · 10.30. 10:56 켬 · 10.30. 16:56에 저절로 꺼짐 · 시스템 운영자"
+  },
+  "warm": {
+    "summary": "10:56 실행 · 완료 18 · 진행 중 0",
+    "wallSec": 330.6,
+    "items": [
+      {
+        "region": "busan",
+        "kind": "BRIEFING",
+        "itemId": "BR-01",
+        "scene": "2",
+        "title": "브리핑 1/4 · 위험·취약지역",
+        "outcome": "NEW",
+        "warnings": [
+          "SCN-BS-1"
+        ],
+        "jobId": "be718a71-2123-4ac7-83d4-8502ea242ed1",
+        "state": "DONE",
+        "t3qStatus": "SUCCESS",
+        "elapsedSec": 145.8,
+        "sourceFinishedAt": null,
+        "error": null
+      },
+      {
+        "region": "busan",
+        "kind": "BRIEFING",
+        "itemId": "BR-02",
+        "scene": "2",
+        "title": "브리핑 2/4 · 과거 피해 이력",
+        "outcome": "NEW",
+        "warnings": [
+          "SCN-BS-1"
+        ],
+        "jobId": "06dcd202-1b09-47fd-8ad7-0f66dd0dc110",
+        "state": "DONE",
+        "t3qStatus": "SUCCESS",
+        "elapsedSec": 115.5,
+        "sourceFinishedAt": null,
+        "error": null
+      },
+      {
+        "region": "busan",
+        "kind": "BRIEFING",
+        "itemId": "BR-03",
+        "scene": "2",
+        "title": "브리핑 3/4 · 통제·대피 대상",
+        "outcome": "NEW",
+        "warnings": [
+          "SCN-BS-1"
+        ],
+        "jobId": "8bb7d1fa-4ee8-4d9e-b36a-c57152b8c011",
+        "state": "DONE",
+        "t3qStatus": "SUCCESS",
+        "elapsedSec": 105.6,
+        "sourceFinishedAt": null,
+        "error": null
+      },
+      {
+        "region": "busan",
+        "kind": "BRIEFING",
+        "itemId": "c1793325377996",
+        "scene": "2",
+        "title": "브리핑 4/4 · 하천 옆 지하차도",
+        "outcome": "NEW",
+        "warnings": [
+          "SCN-BS-1"
+        ],
+        "jobId": "0370bc23-59ea-4037-8a26-c73d52b3caad",
+        "state": "DONE",
+        "t3qStatus": "SUCCESS",
+        "elapsedSec": 55.2,
+        "sourceFinishedAt": null,
+        "error": null
+      },
+      {
+        "region": "busan",
+        "kind": "CHAIN",
+        "itemId": "DD-BS-04",
+        "scene": "7",
+        "title": "초량동·문현동 침수흔적",
+        "outcome": "NEW",
+        "warnings": null,
+        "jobId": "d8b87b2b-80cc-4cfa-9c42-b2bd31102cc9",
+        "state": "DONE",
+        "t3qStatus": "SUCCESS",
+        "elapsedSec": 88,
+        "sourceFinishedAt": null,
+        "error": null
+      },
+      {
+        "region": "busan",
+        "kind": "CHAIN",
+        "itemId": "DD-BS-05",
+        "scene": "8",
+        "title": "2020년 7월 집중호우 — 재해연보 쪽·특보·문자",
+        "outcome": "NEW",
+        "warnings": null,
+        "jobId": "65393be8-aace-4687-8fef-321d1dab4737",
+        "state": "DONE",
+        "t3qStatus": "SUCCESS",
+        "elapsedSec": 135.6,
+        "sourceFinishedAt": null,
+        "error": null
+      },
+      {
+        "region": "busan",
+        "kind": "CHAIN",
+        "itemId": "DD-BS-06",
+        "scene": "9",
+        "title": "2023년 9월 16일 호우경보 — 대피·통제 문자",
+        "outcome": "NEW",
+        "warnings": null,
+        "jobId": "223ca36b-b66a-4812-b795-ce212826e0c4",
+        "state": "DONE",
+        "t3qStatus": "SUCCESS",
+        "elapsedSec": 96.1,
+        "sourceFinishedAt": null,
+        "error": null
+      },
+      {
+        "region": "busan",
+        "kind": "CHAIN",
+        "itemId": "DD-BS-07",
+        "scene": "10",
+        "title": "초량동 침수흔적 안 지하층 주택",
+        "outcome": "NEW",
+        "warnings": null,
+        "jobId": "d6c03402-a334-4e62-afc1-9b32433d19cd",
+        "state": "DONE",
+        "t3qStatus": "SUCCESS",
+        "elapsedSec": 85.4,
+        "sourceFinishedAt": null,
+        "error": null
+      },
+      {
+        "region": "inje",
+        "kind": "CHAIN",
+        "itemId": "DD-IJ-01",
+        "scene": "11",
+        "title": "급경사지 D·E등급과 안전점검",
+        "outcome": "CACHED",
+        "warnings": null,
+        "jobId": "9839b20a-fabb-4eb0-b872-e662e61cfd1c",
+        "state": "DONE",
+        "t3qStatus": "SUCCESS",
+        "elapsedSec": 0,
+        "sourceFinishedAt": "2026-10-29T12:35:41.831Z",
+        "error": null
+      },
+      {
+        "region": "inje",
+        "kind": "CHAIN",
+        "itemId": "DD-IJ-02",
+        "scene": "12",
+        "title": "호우주의보 때 진동리 숙박·야영장",
+        "outcome": "NEW",
+        "warnings": null,
+        "jobId": "d3a191f0-93ce-4fa1-93f8-204ccec45068",
+        "state": "DONE",
+        "t3qStatus": "SUCCESS",
+        "elapsedSec": 95.5,
+        "sourceFinishedAt": null,
+        "error": null
+      },
+      {
+        "region": "inje",
+        "kind": "CHAIN",
+        "itemId": "DD-IJ-04",
+        "scene": "13-1",
+        "title": "진동리 과거 호우·태풍 피해",
+        "outcome": "NEW",
+        "warnings": null,
+        "jobId": "9017a530-e607-4545-afe8-b4ed4ff749c8",
+        "state": "DONE",
+        "t3qStatus": "SUCCESS",
+        "elapsedSec": 115.6,
+        "sourceFinishedAt": null,
+        "error": null
+      },
+      {
+        "region": "inje",
+        "kind": "CHAIN",
+        "itemId": "DD-IJ-05",
+        "scene": "14",
+        "title": "2020년 9월 태풍 때 특보·문자",
+        "outcome": "NEW",
+        "warnings": null,
+        "jobId": "0b234f5e-7b34-4bab-a075-4d0ecea46b26",
+        "state": "DONE",
+        "t3qStatus": "SUCCESS",
+        "elapsedSec": 115.5,
+        "sourceFinishedAt": null,
+        "error": null
+      },
+      {
+        "region": "inje",
+        "kind": "CHAIN",
+        "itemId": "DD-IJ-07-R",
+        "scene": "15",
+        "title": "2020년 9월 태풍 피해액·복구비 합계와 근거 쪽",
+        "outcome": "NEW",
+        "warnings": null,
+        "jobId": "6f6c7565-cb11-4885-88cf-321da7ea89e6",
+        "state": "DONE",
+        "t3qStatus": "SUCCESS",
+        "elapsedSec": 75.2,
+        "sourceFinishedAt": null,
+        "error": null
+      },
+      {
+        "region": "yeongcheon",
+        "kind": "CHAIN",
+        "itemId": "DD-YC-01",
+        "scene": "16",
+        "title": "소하천이 있는 미해제 위험지구",
+        "outcome": "NEW",
+        "warnings": null,
+        "jobId": "b597ef61-c87e-4cbe-bd9c-22d42f1d8330",
+        "state": "DONE",
+        "t3qStatus": "SUCCESS",
+        "elapsedSec": 65.2,
+        "sourceFinishedAt": null,
+        "error": null
+      },
+      {
+        "region": "yeongcheon",
+        "kind": "CHAIN",
+        "itemId": "DD-YC-04",
+        "scene": "18",
+        "title": "힌남노 때 북안면 피해·복구",
+        "outcome": "NEW",
+        "warnings": null,
+        "jobId": "5911ae01-746b-4159-b192-e23a73c1375a",
+        "state": "DONE",
+        "t3qStatus": "SUCCESS",
+        "elapsedSec": 105.5,
+        "sourceFinishedAt": null,
+        "error": null
+      },
+      {
+        "region": "yeongcheon",
+        "kind": "CHAIN",
+        "itemId": "DD-YC-05",
+        "scene": "18-1",
+        "title": "힌남노 때 홍수특보·문자",
+        "outcome": "NEW",
+        "warnings": null,
+        "jobId": "549a034f-e262-4e51-92d8-4c8697ecf0cc",
+        "state": "DONE",
+        "t3qStatus": "SUCCESS",
+        "elapsedSec": 135.7,
+        "sourceFinishedAt": null,
+        "error": null
+      },
+      {
+        "region": "yeongcheon",
+        "kind": "CHAIN",
+        "itemId": "DD-YC-06",
+        "scene": "18-1",
+        "title": "2024년 7월 10일 홍수특보 시간표",
+        "outcome": "NEW",
+        "warnings": null,
+        "jobId": "eea76954-5ff9-4a88-a84f-72373f242f64",
+        "state": "DONE",
+        "t3qStatus": "SUCCESS",
+        "elapsedSec": 175.9,
+        "sourceFinishedAt": null,
+        "error": null
+      },
+      {
+        "region": "yeongcheon",
+        "kind": "CHAIN",
+        "itemId": "DD-YC-09",
+        "scene": "19",
+        "title": "북안명주·대평지·용계리 소하천 비교 표",
+        "outcome": "NEW",
+        "warnings": null,
+        "jobId": "dd703522-c8fd-4075-bd06-2081d1c5ec03",
+        "state": "DONE",
+        "t3qStatus": "SUCCESS",
+        "elapsedSec": 158.6,
+        "sourceFinishedAt": null,
+        "error": null
+      }
+    ]
+  },
+  "scenes": [
+    {
+      "step": "1",
+      "key": "AIM-BS",
+      "kind": "AI_MODE",
+      "account": "bs_safety01",
+      "jobId": "a62b59e8-7f26-41e7-a3cc-fda1f924c7f5",
+      "reused": false,
+      "state": "DONE",
+      "shownSec": 13,
+      "elapsedSec": 11.6,
+      "warnings": [
+        "SCN-BS-1"
+      ],
+      "card": "호우경보시연 시나리오부산 · 2026. 10. 30. 오전 10:56:34 켬 · 시연 시나리오 · 기상청 실시간 특보 끊음AI 안내호우경보 발효에 따라 지하차도와 상습 침수 구역의 진입 통제 여부를 점검하십시오. 도심 하천변 출입을 차단하고 배수펌프장 가동 상태를 즉시 확인하십시오.데",
+      "answer": "AI 안내호우경보 발효에 따라 지하차도와 상습 침수 구역의 진입 통제 여부를 점검하십시오. 도심 하천변 출입을 차단하고 배수펌프장 가동 상태를 즉시 확인하십시오.데이터 기준 2026-10-30T11:02:38+09:00"
+    },
+    {
+      "step": "2",
+      "key": "BRF-BS",
+      "kind": "WARM",
+      "account": "bs_safety01",
+      "shownSec": 1.4,
+      "reused": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "warnings": [
+        "SCN-BS-1",
+        "SCN-BS-1",
+        "SCN-BS-1",
+        "SCN-BS-1"
+      ],
+      "cells": [
+        "1번 위험·취약지역 완료 재사용 · 3분 전",
+        "2번 과거 피해 이력 완료 · 1분 55초 재사용 · 3분 전",
+        "3번 통제·대피 대상 새로 도착 완료 재사용 · 4분 전",
+        "4번 하천 옆 지하차도 새로 도착 완료 · 55초 재사용 · 4분 전"
+      ]
+    },
+    {
+      "step": "3·6",
+      "key": "SOP",
+      "kind": "SOP",
+      "account": "bs_safety01",
+      "bar": "대응절차1징후감지2초기대응3비상대응추천4수습·복구호우경보 (시연 시나리오) 발효 → 비상대응 추천내 부서 0/13다음7-1 기상특보 접수8-1 기상특보 상황보고(시장, 부시장)대응절차 전체",
+      "next": [
+        "7-1 기상특보 접수",
+        "8-1 기상특보 상황보고(시장, 부시장)"
+      ],
+      "found": {
+        "16-1": true
+      }
+    },
+    {
+      "step": "5",
+      "key": "BS-02",
+      "kind": "LIVE",
+      "account": "bs_safety01",
+      "title": "호우경보 때 지하차도 차단시설·설비",
+      "jobId": "2fe72599-5be0-4a94-b0a1-211a043f8e87",
+      "reused": false,
+      "renewed": null,
+      "state": "DONE",
+      "t3qStatus": "SUCCESS",
+      "postedSec": 6,
+      "shownSec": 42.6,
+      "elapsedSec": 36.1,
+      "preset": "이 질문에 붙인 조건 · 재난유형 호우 · 특보 종류 호우 · 특보 단계 경보 · 1시간 강우 50mm 사용자 입력 조건",
+      "reuseNote": null
+    },
+    {
+      "step": "7",
+      "key": "BS-04",
+      "kind": "WARM",
+      "account": "bs_safety01",
+      "title": "초량동·문현동 침수흔적",
+      "jobId": "89148ed4-2c0e-4547-b4de-5b028d31ac3e",
+      "reused": true,
+      "renewed": null,
+      "state": "DONE",
+      "t3qStatus": "SUCCESS",
+      "postedSec": 0.8,
+      "shownSec": 1,
+      "elapsedSec": 0,
+      "preset": "이 질문에 붙인 조건 · 재난유형 호우",
+      "reuseNote": "이전 답변 재사용 · 2026-10-30 10:59 받은 답(4분 전)새로 받기"
+    },
+    {
+      "step": "8",
+      "key": "BS-05",
+      "kind": "WARM",
+      "account": "bs_safety01",
+      "title": "2020년 7월 집중호우 — 재해연보 쪽·특보·문자",
+      "jobId": "07679a88-59f0-4d8d-ad1e-86586d6a810f",
+      "reused": true,
+      "renewed": null,
+      "state": "DONE",
+      "t3qStatus": "SUCCESS",
+      "postedSec": 0.6,
+      "shownSec": 0.8,
+      "elapsedSec": 0,
+      "preset": "이 질문에 붙인 조건 · 재난유형 호우 · 발생기간 2020-07-23 ~ 2020-07-25",
+      "reuseNote": "이전 답변 재사용 · 2026-10-30 11:01 받은 답(2분 전)새로 받기"
+    },
+    {
+      "step": "9",
+      "key": "BS-06",
+      "kind": "WARM",
+      "account": "bs_safety01",
+      "title": "2023년 9월 16일 호우경보 — 대피·통제 문자",
+      "jobId": "fed146bd-b2b0-42fd-8c05-39655ee01aeb",
+      "reused": true,
+      "renewed": null,
+      "state": "DONE",
+      "t3qStatus": "SUCCESS",
+      "postedSec": 0.5,
+      "shownSec": 0.6,
+      "elapsedSec": 0,
+      "preset": "이 질문에 붙인 조건 · 재난유형 호우 · 발생기간 2023-09-16 ~ 2023-09-16",
+      "reuseNote": "이전 답변 재사용 · 2026-10-30 11:00 받은 답(3분 전)새로 받기"
+    },
+    {
+      "step": "10",
+      "key": "BS-07-v3",
+      "kind": "WARM",
+      "account": "bs_safety01",
+      "title": "초량동 침수흔적 안 지하층 주택",
+      "jobId": "bd449b27-7308-489f-9c14-7ee8b2c0812c",
+      "reused": true,
+      "renewed": null,
+      "state": "DONE",
+      "t3qStatus": "SUCCESS",
+      "postedSec": 0.5,
+      "shownSec": 0.6,
+      "elapsedSec": 0,
+      "preset": "이 질문에 붙인 조건 · 재난유형 호우",
+      "reuseNote": "이전 답변 재사용 · 2026-10-30 11:00 받은 답(3분 전)새로 받기"
+    },
+    {
+      "step": "10",
+      "key": "AIM-BS-DG",
+      "kind": "AI_MODE",
+      "account": "bs_safety01",
+      "jobId": "742f2ea2-9d5d-4691-bc83-9e27b0ceaaf1",
+      "reused": false,
+      "state": "DONE",
+      "postedSec": 1.9,
+      "elapsedSec": 15.5,
+      "base": {
+        "code": "26170",
+        "name": "부산광역시 동구",
+        "level": "SIGUNGU"
+      },
+      "warnings": [
+        "SCN-BS-1"
+      ]
+    },
+    {
+      "step": "11-0",
+      "key": "AIM-IJ",
+      "kind": "AI_MODE",
+      "account": "ij_safety01",
+      "jobId": "cd364bc7-d8c6-488b-b186-9f93db007d77",
+      "reused": false,
+      "state": "DONE",
+      "shownSec": 25.3,
+      "elapsedSec": 22.1,
+      "warnings": [
+        "SCN-IJ-1"
+      ],
+      "card": "호우주의보시연 시나리오강원도(인제평지, 인제산지) · 2026. 10. 30. 오전 10:56:34 켬 · 시연 시나리오 · 기상청 실시간 특보 끊음AI 안내호우주의보 발효에 따라 산사태 우려지역과 급경사지 등 취약시설의 예찰을 강화하십시오. 하천변 산책로 및 침수 우려 도로의 출입을 ",
+      "answer": "AI 안내호우주의보 발효에 따라 산사태 우려지역과 급경사지 등 취약시설의 예찰을 강화하십시오. 하천변 산책로 및 침수 우려 도로의 출입을 선제적으로 통제하십시오.데이터 기준 2026-10-30T11:04:29+09:00"
+    },
+    {
+      "step": "11",
+      "key": "IJ-01",
+      "kind": "WARM",
+      "account": "ij_safety01",
+      "title": "급경사지 D·E등급과 안전점검",
+      "jobId": "d8fe1964-c2d7-44f7-8692-212f9fddb9e2",
+      "reused": true,
+      "renewed": null,
+      "state": "DONE",
+      "t3qStatus": "SUCCESS",
+      "postedSec": 0.8,
+      "shownSec": 1.1,
+      "elapsedSec": 0,
+      "preset": "이 질문에 붙인 조건 · 재난유형 산사태",
+      "reuseNote": "이전 답변 재사용 · 2026-10-29 21:35 받은 답(13시간 전)새로 받기"
+    },
+    {
+      "step": "12",
+      "key": "IJ-02",
+      "kind": "WARM",
+      "account": "ij_safety01",
+      "title": "호우주의보 때 진동리 숙박·야영장",
+      "jobId": "d7129f58-4247-41b7-afde-0db85576dbc0",
+      "reused": true,
+      "renewed": null,
+      "state": "DONE",
+      "t3qStatus": "SUCCESS",
+      "postedSec": 0.1,
+      "shownSec": 0.3,
+      "elapsedSec": 0,
+      "preset": "이 질문에 붙인 조건 · 재난유형 호우 · 특보 종류 호우 · 특보 단계 주의보 · 3시간 누적 강우 60mm 사용자 입력 조건",
+      "reuseNote": "이전 답변 재사용 · 2026-10-30 10:58 받은 답(6분 전)새로 받기"
+    },
+    {
+      "step": "13",
+      "key": "SOP",
+      "kind": "SOP",
+      "account": "ij_safety01",
+      "bar": "대응절차1징후감지2초기대응추천3비상대응4수습·복구호우주의보 (시연 시나리오) 발효 → 초기대응 추천내 부서 0/17다음4-1 상황접수4-2 상황파악대응절차 전체",
+      "next": [
+        "4-1 상황접수",
+        "4-2 상황파악"
+      ],
+      "found": {
+        "40-6": true
+      }
+    },
+    {
+      "step": "13-1",
+      "key": "IJ-04",
+      "kind": "WARM",
+      "account": "ij_safety01",
+      "title": "진동리 과거 호우·태풍 피해",
+      "jobId": "4de33801-b9de-4fcd-bb0e-cec6bc90c36a",
+      "reused": true,
+      "renewed": null,
+      "state": "DONE",
+      "t3qStatus": "SUCCESS",
+      "postedSec": 0.5,
+      "shownSec": 0.6,
+      "elapsedSec": 0,
+      "preset": "이 질문에 붙인 조건 · 재난유형 호우",
+      "reuseNote": "이전 답변 재사용 · 2026-10-30 10:58 받은 답(5분 전)새로 받기"
+    },
+    {
+      "step": "14",
+      "key": "IJ-05",
+      "kind": "WARM",
+      "account": "ij_safety01",
+      "title": "2020년 9월 태풍 때 특보·문자",
+      "jobId": "6ed7712d-9c0d-46cb-bcd6-ae36fb01d2d8",
+      "reused": true,
+      "renewed": null,
+      "state": "DONE",
+      "t3qStatus": "SUCCESS",
+      "postedSec": 0.4,
+      "shownSec": 0.7,
+      "elapsedSec": 0,
+      "preset": "이 질문에 붙인 조건 · 재난유형 태풍 · 발생기간 2020-09-01 ~ 2020-09-07",
+      "reuseNote": "이전 답변 재사용 · 2026-10-30 10:58 받은 답(5분 전)새로 받기"
+    },
+    {
+      "step": "14",
+      "key": "IJ-05-R",
+      "kind": "LIVE",
+      "account": "ij_safety01",
+      "title": "2023년 9월 16일 이후 계곡·급경사지 통제 문자",
+      "jobId": "5380488f-a145-484b-b56c-735f03d2e6c8",
+      "reused": false,
+      "renewed": null,
+      "state": "DONE",
+      "t3qStatus": "SUCCESS",
+      "postedSec": 0.2,
+      "shownSec": 89,
+      "elapsedSec": 85.5,
+      "preset": "이 질문에 붙인 조건 · 재난유형 호우",
+      "reuseNote": null
+    },
+    {
+      "step": "15",
+      "key": "IJ-07-R",
+      "kind": "WARM",
+      "account": "ij_safety01",
+      "title": "2020년 9월 태풍 피해액·복구비 합계와 근거 쪽",
+      "jobId": "eebc3182-3d20-4e11-8d1a-d9f9ac673f06",
+      "reused": true,
+      "renewed": null,
+      "state": "DONE",
+      "t3qStatus": "SUCCESS",
+      "postedSec": 0.6,
+      "shownSec": 0.8,
+      "elapsedSec": 0,
+      "preset": "이 질문에 붙인 조건 · 재난유형 태풍",
+      "reuseNote": "이전 답변 재사용 · 2026-10-30 10:58 받은 답(8분 전)새로 받기"
+    },
+    {
+      "step": "16-0",
+      "key": "AIM-YC",
+      "kind": "AI_MODE",
+      "account": "yc_safety02",
+      "jobId": "0ff91996-e4fc-44e3-9d01-662a1a1da2c9",
+      "reused": false,
+      "state": "DONE",
+      "shownSec": 27.6,
+      "elapsedSec": 24.6,
+      "warnings": [
+        "SCN-YC-1"
+      ],
+      "card": "호우경보시연 시나리오경상북도(영천) · 2026. 10. 30. 오전 10:56:34 켬 · 시연 시나리오 · 기상청 실시간 특보 끊음AI 안내호우경보 발효에 따라 산사태·급경사지와 지하차도 등 침수 취약구역을 즉시 점검하십시오. 하천변 출입을 선제 통제하고 위험지역 주민 대피 체계를 ",
+      "answer": "AI 안내호우경보 발효에 따라 산사태·급경사지와 지하차도 등 침수 취약구역을 즉시 점검하십시오. 하천변 출입을 선제 통제하고 위험지역 주민 대피 체계를 확인하십시오.데이터 기준 2026-10-30T11:06:38+09:00"
+    },
+    {
+      "step": "16",
+      "key": "YC-01-v3",
+      "kind": "WARM",
+      "account": "yc_safety02",
+      "title": "소하천이 있는 미해제 위험지구",
+      "jobId": "ecfeece8-68e1-430d-a8e9-068cbcbec726",
+      "reused": true,
+      "renewed": null,
+      "state": "DONE",
+      "t3qStatus": "SUCCESS",
+      "postedSec": 0.9,
+      "shownSec": 1.1,
+      "elapsedSec": 0,
+      "preset": "이 질문에 붙인 조건 · 없음",
+      "reuseNote": "이전 답변 재사용 · 2026-10-30 10:59 받은 답(7분 전)새로 받기"
+    },
+    {
+      "step": "17",
+      "key": "YC-02",
+      "kind": "LIVE",
+      "account": "yc_safety02",
+      "title": "호우경보 때 북안면·신녕면·화북면 재해위험저수지",
+      "jobId": "a6ea7a29-e613-4190-b98c-8eaaa2ca2732",
+      "reused": false,
+      "renewed": null,
+      "state": "DONE",
+      "t3qStatus": "SUCCESS",
+      "postedSec": 0.8,
+      "shownSec": 109.2,
+      "elapsedSec": 106.1,
+      "preset": "이 질문에 붙인 조건 · 재난유형 호우 · 특보 종류 호우 · 특보 단계 경보 · 1시간 강우 50mm 사용자 입력 조건",
+      "reuseNote": null
+    },
+    {
+      "step": "18",
+      "key": "YC-04",
+      "kind": "WARM",
+      "account": "yc_safety02",
+      "title": "힌남노 때 북안면 피해·복구",
+      "jobId": "95d1d2ac-8205-4eb6-824a-fb9ae1768df0",
+      "reused": true,
+      "renewed": null,
+      "state": "DONE",
+      "t3qStatus": "SUCCESS",
+      "postedSec": 0.4,
+      "shownSec": 0.7,
+      "elapsedSec": 0,
+      "preset": "이 질문에 붙인 조건 · 재난유형 태풍",
+      "reuseNote": "이전 답변 재사용 · 2026-10-30 11:00 받은 답(8분 전)새로 받기"
+    },
+    {
+      "step": "18-1",
+      "key": "YC-05",
+      "kind": "WARM",
+      "account": "yc_safety02",
+      "title": "힌남노 때 홍수특보·문자",
+      "jobId": "7a4e011a-62d9-4e44-bd91-c54ba72dac1c",
+      "reused": true,
+      "renewed": null,
+      "state": "DONE",
+      "t3qStatus": "SUCCESS",
+      "postedSec": 0.4,
+      "shownSec": 0.6,
+      "elapsedSec": 0,
+      "preset": "이 질문에 붙인 조건 · 재난유형 태풍",
+      "reuseNote": "이전 답변 재사용 · 2026-10-30 11:00 받은 답(7분 전)새로 받기"
+    },
+    {
+      "step": "18-1",
+      "key": "YC-06",
+      "kind": "WARM",
+      "account": "yc_safety02",
+      "title": "2024년 7월 10일 홍수특보 시간표",
+      "jobId": "eff88989-26db-4b65-bfe3-208e4ea9eead",
+      "reused": true,
+      "renewed": null,
+      "state": "DONE",
+      "t3qStatus": "SUCCESS",
+      "postedSec": 0.5,
+      "shownSec": 0.7,
+      "elapsedSec": 0,
+      "preset": "이 질문에 붙인 조건 · 재난유형 호우",
+      "reuseNote": "이전 답변 재사용 · 2026-10-30 11:01 받은 답(6분 전)새로 받기"
+    },
+    {
+      "step": "19",
+      "key": "YC-09",
+      "kind": "WARM",
+      "account": "yc_safety02",
+      "title": "북안명주·대평지·용계리 소하천 비교 표",
+      "jobId": "a3787280-8055-49f6-ace8-637818ef081d",
+      "reused": true,
+      "renewed": null,
+      "state": "DONE",
+      "t3qStatus": "SUCCESS",
+      "postedSec": 0.9,
+      "shownSec": 1.1,
+      "elapsedSec": 0,
+      "preset": "이 질문에 붙인 조건 · 재난유형 호우",
+      "reuseNote": "이전 답변 재사용 · 2026-10-30 11:02 받은 답(6분 전)새로 받기"
+    }
+  ],
+  "checks": [
+    {
+      "ok": true,
+      "m": "① 브리핑 항목(다시 읽음) — ☑위험·취약지역 · ☑과거 피해 이력 · ☑통제·대피 대상 · ☐행동매뉴얼 · ☑하천 옆 지하차도"
+    },
+    {
+      "ok": true,
+      "m": "② 시나리오 「켜짐부산광역시 · 강원특별자치도 인제군 · 경상북도 영천시 · 10.30. 10:56 켬 · 10.30. 16:56에 저절로 꺼짐 · 시스템 운영자」"
+    },
+    {
+      "ok": true,
+      "m": "③⑤ 시연 세트 예열 18건 · 화면 「10:56 실행 · 완료 18 · 진행 중 0」 · 걸린 시간 330.6초"
+    },
+    {
+      "ok": true,
+      "m": "③ 브리핑 4줄 「특보 SCN-BS-1」"
+    },
+    {
+      "ok": true,
+      "m": "④ bs_safety01 특보 줄 「긴급부산 호우경보 발효 중 시연 시나리오10:56 켬 · 기상청 실시간 특보 끊음특보로 질문」 · 갱신 칸 「10:56 켬 · 기상청 실시간 특보 끊음」"
+    },
+    {
+      "ok": true,
+      "m": "bs_safety01 입력창 조건 비움 「재난유형 전체 · 기준시각 현재 · 상황 상세정보 0개조건 변경 ›」"
+    },
+    {
+      "ok": true,
+      "m": "④ ij_safety01 특보 줄 「주의강원도(인제평지, 인제산지) 호우주의보 발효 중 시연 시나리오10:56 켬 · 기상청 실시간 특보 끊음특보로 질문」 · 갱신 칸 「10:56 켬 · 기상청 실시간 특보 끊음」"
+    },
+    {
+      "ok": true,
+      "m": "ij_safety01 입력창 조건 비움 「재난유형 전체 · 기준시각 현재 · 상황 상세정보 0개조건 변경 ›」"
+    },
+    {
+      "ok": true,
+      "m": "④ yc_safety02 특보 줄 「긴급경상북도(영천) 호우경보 발효 중 시연 시나리오10:56 켬 · 기상청 실시간 특보 끊음특보로 질문」 · 갱신 칸 「10:56 켬 · 기상청 실시간 특보 끊음」"
+    },
+    {
+      "ok": true,
+      "m": "yc_safety02 입력창 조건 비움 「재난유형 전체 · 기준시각 현재 · 상황 상세정보 0개조건 변경 ›」"
+    },
+    {
+      "ok": true,
+      "m": "1 AI 모드 점검 — 화면 13초 · 처리 11.6초 · 특보 SCN-BS-1"
+    },
+    {
+      "ok": true,
+      "m": "2 브리핑 4항목 — 재사용 4/4 · 화면 1.4초 · 1번 위험·취약지역 완료 재사용 · 3분 전 / 2번 과거 피해 이력 완료 · 1분 55초 재사용 · 3분 전 / 3번 통제·대피 대상 새로 도착 완료 재사용 · 4분 전 / 4번 하천 옆 지하차도 새로 도착 완료 · 55초 재사용 · 4분 전"
+    },
+    {
+      "ok": true,
+      "m": "3·6 대응절차 「다음」에 「7-1 기상특보 접수」 — 7-1 기상특보 접수 / 8-1 기상특보 상황보고(시장, 부시장)"
+    },
+    {
+      "ok": true,
+      "m": "3·6 대응절차 「다음」에 「8-1 기상특보 상황보고(시장, 부시장)」 — 7-1 기상특보 접수 / 8-1 기상특보 상황보고(시장, 부시장)"
+    },
+    {
+      "ok": true,
+      "m": "3·6 [전체 부서 보기]에 「16-1」"
+    },
+    {
+      "ok": true,
+      "m": "5 BS-02 실시간 — 화면 42.6초 · 처리 36.1초 · SUCCESS · 이 질문에 붙인 조건 · 재난유형 호우 · 특보 종류 호우 · 특보 단계 경보 · 1시간 강우 50mm 사용자 입력 조건"
+    },
+    {
+      "ok": true,
+      "m": "7 BS-04 예열 — 이전 답변 재사용 · 접수 0.8초 · 화면 1초 · 이 질문에 붙인 조건 · 재난유형 호우"
+    },
+    {
+      "ok": true,
+      "m": "8 BS-05 예열 — 이전 답변 재사용 · 접수 0.6초 · 화면 0.8초 · 이 질문에 붙인 조건 · 재난유형 호우 · 발생기간 2020-07-23 ~ 2020-07-25"
+    },
+    {
+      "ok": true,
+      "m": "9 BS-06 예열 — 이전 답변 재사용 · 접수 0.5초 · 화면 0.6초 · 이 질문에 붙인 조건 · 재난유형 호우 · 발생기간 2023-09-16 ~ 2023-09-16"
+    },
+    {
+      "ok": true,
+      "m": "10 동구 특보 줄 「긴급부산 호우경보 발효 중 시연 시나리오10:56 켬 · 기상청 실시간 특보 끊음AI 모드 · 특보 자동 반영」"
+    },
+    {
+      "ok": true,
+      "m": "10 BS-07-v3 예열 — 이전 답변 재사용 · 접수 0.5초 · 화면 0.6초 · 이 질문에 붙인 조건 · 재난유형 호우"
+    },
+    {
+      "ok": true,
+      "m": "10 동구 AI 모드 재점검 — 접수 1.9초 · 처리 15.5초 · 특보 SCN-BS-1 · BS-07 화면 0.6초"
+    },
+    {
+      "ok": true,
+      "m": "11-0 AI 모드 점검 — 화면 25.3초 · 처리 22.1초 · 특보 SCN-IJ-1"
+    },
+    {
+      "ok": true,
+      "m": "11 IJ-01 예열 — 이전 답변 재사용 · 접수 0.8초 · 화면 1.1초 · 이 질문에 붙인 조건 · 재난유형 산사태"
+    },
+    {
+      "ok": true,
+      "m": "12 IJ-02 예열 — 이전 답변 재사용 · 접수 0.1초 · 화면 0.3초 · 이 질문에 붙인 조건 · 재난유형 호우 · 특보 종류 호우 · 특보 단계 주의보 · 3시간 누적 강우 60mm 사용자 입력 조건"
+    },
+    {
+      "ok": true,
+      "m": "13 [전체 부서 보기]에 「40-6」"
+    },
+    {
+      "ok": true,
+      "m": "13-1 IJ-04 예열 — 이전 답변 재사용 · 접수 0.5초 · 화면 0.6초 · 이 질문에 붙인 조건 · 재난유형 호우"
+    },
+    {
+      "ok": true,
+      "m": "14 IJ-05 예열 — 이전 답변 재사용 · 접수 0.4초 · 화면 0.7초 · 이 질문에 붙인 조건 · 재난유형 태풍 · 발생기간 2020-09-01 ~ 2020-09-07"
+    },
+    {
+      "ok": true,
+      "m": "14 IJ-05-R 실시간 — 화면 89초 · 처리 85.5초 · SUCCESS · 이 질문에 붙인 조건 · 재난유형 호우"
+    },
+    {
+      "ok": true,
+      "m": "15 IJ-07-R 예열 — 이전 답변 재사용 · 접수 0.6초 · 화면 0.8초 · 이 질문에 붙인 조건 · 재난유형 태풍"
+    },
+    {
+      "ok": true,
+      "m": "16-0 AI 모드 점검 — 화면 27.6초 · 처리 24.6초 · 특보 SCN-YC-1"
+    },
+    {
+      "ok": true,
+      "m": "16 YC-01-v3 예열 — 이전 답변 재사용 · 접수 0.9초 · 화면 1.1초 · 이 질문에 붙인 조건 · 없음"
+    },
+    {
+      "ok": true,
+      "m": "17 YC-02 실시간 — 화면 109.2초 · 처리 106.1초 · SUCCESS · 이 질문에 붙인 조건 · 재난유형 호우 · 특보 종류 호우 · 특보 단계 경보 · 1시간 강우 50mm 사용자 입력 조건"
+    },
+    {
+      "ok": true,
+      "m": "18 YC-04 예열 — 이전 답변 재사용 · 접수 0.4초 · 화면 0.7초 · 이 질문에 붙인 조건 · 재난유형 태풍"
+    },
+    {
+      "ok": true,
+      "m": "18-1 YC-05 예열 — 이전 답변 재사용 · 접수 0.4초 · 화면 0.6초 · 이 질문에 붙인 조건 · 재난유형 태풍"
+    },
+    {
+      "ok": true,
+      "m": "18-1 YC-06 예열 — 이전 답변 재사용 · 접수 0.5초 · 화면 0.7초 · 이 질문에 붙인 조건 · 재난유형 호우"
+    },
+    {
+      "ok": true,
+      "m": "19 YC-09 예열 — 이전 답변 재사용 · 접수 0.9초 · 화면 1.1초 · 이 질문에 붙인 조건 · 재난유형 호우"
+    }
+  ],
+  "finishedAt": "2026-10-30T02:09:00.074Z",
+  "errors": []
+}

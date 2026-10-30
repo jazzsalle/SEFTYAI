@@ -1,0 +1,98 @@
+{
+  "id": "AIM-BS-DG",
+  "account": "bs_safety01",
+  "question": "제공된 기상특보 정보를 기준으로, 해당 지역 담당자가 지금 먼저 확인할 내용을 알려 주십시오. 발효 중인 특보가 있으면 특보마다 2문장 이내(공백 포함 80자 내외)로만 쓰고, 제목·과거 사례·근거 목록은 쓰지 마십시오. 발효 중인 특보가 없으면 대응 검토가 필요한 사유를 확인하지 못했다는 점검 결과만 1문장으로 쓰십시오. 제공되지 않은 관측값이나 피해 발생 여부는 추정하지 마십시오.",
+  "jobId": "742f2ea2-9d5d-4691-bc83-9e27b0ceaaf1",
+  "cachedFrom": null,
+  "sourceFinishedAt": null,
+  "state": "DONE",
+  "t3qStatus": "SUCCESS",
+  "elapsedMs": 15453,
+  "request": {
+    "caller": {
+      "role": "LOCAL_GOV_OFFICER",
+      "user_id": "U-dbcccf4b1aac",
+      "org_admin_code": "2617000000"
+    },
+    "ai_mode": {
+      "trigger": "START",
+      "check_id": "CHK-26mtdez0",
+      "interval_min": 10
+    },
+    "turn_no": 1,
+    "question": "제공된 기상특보 정보를 기준으로, 해당 지역 담당자가 지금 먼저 확인할 내용을 알려 주십시오. 발효 중인 특보가 있으면 특보마다 2문장 이내(공백 포함 80자 내외)로만 쓰고, 제목·과거 사례·근거 목록은 쓰지 마십시오. 발효 중인 특보가 없으면 대응 검토가 필요한 사유를 확인하지 못했다는 점검 결과만 1문장으로 쓰십시오. 제공되지 않은 관측값이나 피해 발생 여부는 추정하지 마십시오.",
+    "reference": null,
+    "query_context": {
+      "region": {
+        "name": "부산광역시 동구",
+        "level": "SIGUNGU",
+        "admin_code": "2617000000"
+      }
+    },
+    "response_mode": "ASYNC",
+    "conversation_id": null,
+    "question_source": "AI_MODE",
+    "weather_warnings": {
+      "items": [
+        {
+          "area": "부산",
+          "kind": "호우",
+          "level": "경보",
+          "change": "발효",
+          "warning_key": "SCN-BS-1",
+          "announced_at": "2026-10-30T01:56:34.216Z",
+          "effective_at": "2026-10-30T01:56:34.216Z"
+        }
+      ],
+      "source": "시연 시나리오(가상 특보)",
+      "collected_at": "2026-10-30T02:03:21.340Z",
+      "collect_status": "COLLECTED"
+    }
+  },
+  "raw": {
+    "meta": {
+      "source": "T3Q",
+      "base_time": "2026-10-30T11:04:04+09:00",
+      "elapsed_ms": 15453,
+      "quality_status": "VERIFIED",
+      "disclosure_level": "공개"
+    },
+    "result": {
+      "refs": [],
+      "answer": "호우경보 발효에 따라 지하차도와 저지대 침수 우려 구간의 진입 통제 여부를 확인하십시오. 급경사지 등 인명피해 우려지역의 예찰과 배수펌프 가동 상태를 즉시 점검하십시오.",
+      "region": {
+        "name": "부산광역시 동구",
+        "admin_code": "2617000000"
+      },
+      "check_id": "CHK-26mtdez0",
+      "entities": [],
+      "question": "제공된 기상특보 정보를 기준으로, 해당 지역 담당자가 지금 먼저 확인할 내용을 알려 주십시오. 발효 중인 특보가 있으면 특보마다 2문장 이내(공백 포함 80자 내외)로만 쓰고, 제목·과거 사례·근거 목록은 쓰지 마십시오. 발효 중인 특보가 없으면 대응 검토가 필요한 사유를 확인하지 못했다는 점검 결과만 1문장으로 쓰십시오. 제공되지 않은 관측값이나 피해 발생 여부는 추정하지 마십시오.",
+      "info_gaps": [],
+      "checked_at": "2026-10-30T11:04:04+09:00",
+      "limitations": [
+        "유사사례는 예측·위험판단이 아닌 참고 정보"
+      ],
+      "response_id": "RES-20261030-cae9ec",
+      "context_used": {
+        "reference_used": false,
+        "used_conditions": [],
+        "unused_conditions": []
+      },
+      "answer_format": "MARKDOWN",
+      "evidence_refs": [],
+      "result_groups": [],
+      "warning_guides": [],
+      "priority_review": null,
+      "question_source": "AI_MODE",
+      "conversation_title": null,
+      "no_warning_message": null,
+      "follow_up_questions": []
+    },
+    "status": "SUCCESS",
+    "warnings": [],
+    "data_gaps": [],
+    "request_id": "b4bdfd6e205aa55f593ca3df00c09afc",
+    "correlation_id": "corr-b4bdfd6e205aa55f593ca3df00c09afc",
+    "schema_version": "2.0"
+  }
+}

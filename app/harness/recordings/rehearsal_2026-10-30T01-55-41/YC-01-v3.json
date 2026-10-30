@@ -1,0 +1,69 @@
+{
+  "id": "YC-01-v3",
+  "account": "yc_safety02",
+  "question": "영천시 자연재해위험개선지구·풍수해생활권 종합정비지구 가운데 해제되지 않았고 소하천이 있는 지구를 지구명·읍면·위험등급·재해유형·지정일로 보여줘.",
+  "jobId": "ecfeece8-68e1-430d-a8e9-068cbcbec726",
+  "cachedFrom": "b597ef61-c87e-4cbe-bd9c-22d42f1d8330",
+  "sourceFinishedAt": "2026-10-30T01:59:21.888Z",
+  "state": "DONE",
+  "t3qStatus": "SUCCESS",
+  "elapsedMs": 65200,
+  "request": {
+    "caller": {
+      "role": "LOCAL_GOV_OFFICER",
+      "user_id": "U-d4843caa0b27",
+      "org_admin_code": "4723000000"
+    },
+    "turn_no": 1,
+    "question": "영천시 자연재해위험개선지구·풍수해생활권 종합정비지구 가운데 해제되지 않았고 소하천이 있는 지구를 지구명·읍면·위험등급·재해유형·지정일로 보여줘.",
+    "reference": null,
+    "query_context": {
+      "region": {
+        "name": "경상북도 영천시",
+        "level": "SIGUNGU",
+        "admin_code": "4723000000"
+      }
+    },
+    "response_mode": "ASYNC",
+    "conversation_id": null,
+    "question_source": "SUGGEST"
+  },
+  "raw": {
+    "meta": {
+      "source": "T3Q",
+      "base_time": "2026-10-30T10:59:16+09:00",
+      "elapsed_ms": 65200,
+      "quality_status": "VERIFIED",
+      "disclosure_level": "공개"
+    },
+    "result": {
+      "refs": [],
+      "answer": "### 영천시 소하천 포함 미해제 위험지구 현황\n\n경상북도 영천시 관내 **자연재해위험개선지구** 및 **풍수해생활권 종합정비지구** 중 현재 해제되지 않고(지정 유지) **소하천 정비가 포함된 지구는 총 4곳**입니다.\n\n---\n\n### 현황 목록\n\n| 지구명 | 구분 | 읍면 | 위험등급 | 재해유형 | 지정일 | 소하천 포함 내역 및 사업 내용 |\n|---|---|---|:---:|:---:|:---:|---|\n| **자천** | 풍수해생활권 종합정비지구 | 화북면 | 나 | 침수위험 | 2026-02-04 | 느럴천 등 소하천 L=3.82km (하천정비 L=0.47km, 교량개체 18개소 등) |\n| **북안명주** | 풍수해생활권 종합정비지구 | 북안면 | 가 | 침수위험 | 2024-04-30 | 원곡천 등 소하천 정비 포함 (하천정비 L=9.1km, 교량개체 29개소 등) |\n| **신양** | 풍수해생활권 종합정비지구 | 신녕면 | 가 | 침수위험 | 2021-06-09 | 신양천 및 소하천, 우수관로 정비 등 |\n| **오산** | 자연재해위험개선지구 | 화북면 | 다 | 침수위험 | 2021-06-09 | 오산천 일원 소하천 정비 L=1.51km (지방하천정비 L=4.93km 병행) |\n\n---\n\n### 주요 특징 및 확인사항\n\n1. **지구 유형 분포**:\n   - **풍수해생활권 종합정비지구**: 3개소 (자천, 북안명주, 신양)\n   - **자연재해위험개선지구**: 1개소 (오산)\n2. **재해유형 및 위험등급**:\n   - 4개 지구 모두 **침수위험**으로 지정되어 있습니다.\n   - **가등급(우선 정비 대상)**: 북안명주, 신양 (2개소)\n   - **나등급**: 자천 (1개소)\n   - **다등급**: 오산 (1개소)\n3. **근거 출처**:\n   - 행정안전부 재난안전 데이터베이스(`hazard.zone`, `hazard.improvement_district`, `ref.v_legal_dong`)의 자연재해위험개선지구 및 풍수해생활권 중기정비계획 총괄조서 기준.",
+      "entities": [],
+      "question": "영천시 자연재해위험개선지구·풍수해생활권 종합정비지구 가운데 해제되지 않았고 소하천이 있는 지구를 지구명·읍면·위험등급·재해유형·지정일로 보여줘.",
+      "limitations": [
+        "유사사례는 예측·위험판단이 아닌 참고 정보"
+      ],
+      "response_id": "RES-20261030-645cea",
+      "context_used": {
+        "reference_used": false,
+        "used_conditions": [],
+        "unused_conditions": []
+      },
+      "answer_format": "MARKDOWN",
+      "evidence_refs": [],
+      "result_groups": [],
+      "question_source": "SUGGEST",
+      "conversation_title": null,
+      "follow_up_questions": []
+    },
+    "status": "SUCCESS",
+    "turn_no": 1,
+    "warnings": [],
+    "data_gaps": [],
+    "request_id": "4318a71e642ce38584c0f8acfc23ec05",
+    "correlation_id": "corr-4318a71e642ce38584c0f8acfc23ec05",
+    "schema_version": "2.0",
+    "conversation_id": "CONV-20261030-0c4ba8"
+  }
+}

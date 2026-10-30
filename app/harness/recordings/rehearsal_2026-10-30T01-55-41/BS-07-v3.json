@@ -1,0 +1,163 @@
+{
+  "id": "BS-07-v3",
+  "account": "bs_safety01",
+  "question": "부산 동구 초량동에서 지하층이 있는 주택 가운데 침수흔적 범위 안에 있는 집은 몇 동이고, 어느 침수흔적 지구에 속해?",
+  "jobId": "bd449b27-7308-489f-9c14-7ee8b2c0812c",
+  "cachedFrom": "d6c03402-a334-4e62-afc1-9b32433d19cd",
+  "sourceFinishedAt": "2026-10-30T02:00:43.331Z",
+  "state": "DONE",
+  "t3qStatus": "SUCCESS",
+  "elapsedMs": 85352,
+  "request": {
+    "caller": {
+      "role": "LOCAL_GOV_OFFICER",
+      "user_id": "U-dbcccf4b1aac",
+      "org_admin_code": "2617000000"
+    },
+    "turn_no": 1,
+    "question": "부산 동구 초량동에서 지하층이 있는 주택 가운데 침수흔적 범위 안에 있는 집은 몇 동이고, 어느 침수흔적 지구에 속해?",
+    "reference": null,
+    "query_context": {
+      "region": {
+        "name": "부산광역시 동구",
+        "level": "SIGUNGU",
+        "admin_code": "2617000000"
+      },
+      "disaster_types": [
+        "호우"
+      ]
+    },
+    "response_mode": "ASYNC",
+    "conversation_id": null,
+    "question_source": "SUGGEST"
+  },
+  "raw": {
+    "meta": {
+      "source": "T3Q",
+      "base_time": "2026-10-30T11:00:41+09:00",
+      "elapsed_ms": 85352,
+      "quality_status": "VERIFIED",
+      "disclosure_level": "공개"
+    },
+    "result": {
+      "refs": [
+        {
+          "map": {
+            "key": "trace_code",
+            "draw": "layer",
+            "value": "I_15858"
+          },
+          "ref": "r6",
+          "entity_type": "FLOOD_TRACE",
+          "display_name": "초량동"
+        },
+        {
+          "map": {
+            "key": "trace_code",
+            "draw": "layer",
+            "value": "I_123695"
+          },
+          "ref": "r5",
+          "entity_type": "FLOOD_TRACE",
+          "display_name": "초량동"
+        },
+        {
+          "map": {
+            "key": "bdst_ldgr_unq_no",
+            "draw": "pin",
+            "value": "10301100176477"
+          },
+          "ref": "r36",
+          "entity_type": "FACILITY",
+          "display_name": "초량동"
+        },
+        {
+          "map": {
+            "key": "bdst_ldgr_unq_no",
+            "draw": "pin",
+            "value": "103016597"
+          },
+          "ref": "r32",
+          "entity_type": "FACILITY",
+          "display_name": "초량동"
+        },
+        {
+          "map": {
+            "key": "bdst_ldgr_unq_no",
+            "draw": "pin",
+            "value": "103016594"
+          },
+          "ref": "r27",
+          "entity_type": "FACILITY",
+          "display_name": "초량동"
+        },
+        {
+          "map": {
+            "key": "bdst_ldgr_unq_no",
+            "draw": "pin",
+            "value": "10281100181597"
+          },
+          "ref": "r44",
+          "entity_type": "FACILITY",
+          "display_name": "영주동"
+        },
+        {
+          "map": {
+            "key": "trace_code",
+            "draw": "layer",
+            "value": "I_187"
+          },
+          "ref": "r7",
+          "entity_type": "FLOOD_TRACE",
+          "display_name": "초량동"
+        },
+        {
+          "map": {
+            "key": "trace_code",
+            "draw": "layer",
+            "value": "I_60164"
+          },
+          "ref": "r9",
+          "entity_type": "FLOOD_TRACE",
+          "display_name": "초량동"
+        },
+        {
+          "map": {
+            "key": "bdst_ldgr_unq_no",
+            "draw": "pin",
+            "value": "103014284"
+          },
+          "ref": "r45",
+          "entity_type": "FACILITY",
+          "display_name": "초량동"
+        }
+      ],
+      "answer": "부산 동구 초량동에서 지하층이 있는 주택 가운데 침수흔적 범위 내에 위치한 건물은 **총 20동**이며, **[[초량2지구](#ref:r6)] (19동)**와 **[[동구 초량동 827-327](#ref:r5)] (1동)**의 2개 침수흔적 지구에 속해 있습니다.\n\n---\n\n### 1. 침수흔적 지구별 지하층 주택 현황\n\n| 침수흔적 지구명 | 흔적 코드 | 침수연도 | 침수원인 | 지하층 보유 주택 수 | 주택 유형 상세 |\n|---|---|:---:|---|:---:|---|\n| **[[초량2지구](#ref:r6)]** | I_15858 | 2020년 | 집중호우, 배수불량 | **19동** | 단독주택 15동, 공동주택 4동([온누리아파트](#ref:r36), [동성아파트](#ref:r32), [문경빌라](#ref:r27) 등) |\n| **[[동구 초량동 827-327](#ref:r5)]** | I_123695 / I_23787 | 2024년 | 내수_방재시설 용량부족 | **1동** | 단독주택 1동 |\n| **합계** | - | - | - | **20동** | 단독주택 16동, 공동주택 4동 |\n\n> ※ 초량2지구 침수흔적 경계에 행정구역상 인접한 부산 중구 [영주동 주택 1동](#ref:r44)(공동주택)이 포함되어 있으나, **부산 동구 초량동 관내 주택만 한정하면 20동**입니다.\n\n---\n\n### 2. 초량동 내 기타 침수흔적 지구 점검 결과\n\n초량동 관내에는 총 4개 지구(6개 침수흔적 레코드)가 등록되어 있으나, 나머지 2개 지구에는 지하층 보유 주택이 없습니다.\n\n- **[[초량1지구](#ref:r7)] (2020년, 초량제1지하차도 인근)**: 건축물 7동이 흔적 범위에 포함되나 철도·상업·공공시설 등 비주거용 건물로 주택은 0동입니다.\n- **[[초량로68번길지구](#ref:r9)] (2024년)**: 주택 8동이 포함되어 있으나 모두 지상층 전용 주택이며 지하층이 있는 주택은 없습니다.\n\n---\n\n### 3. 담당자 현장 점검 및 관리 권고사항\n\n1. **차수판 및 역류방지밸브 설치 여부 우선 확인**:\n   - [[초량2지구](#ref:r6)] 내 위치한 단독주택 15동 및 공동주택 4동([온누리아파트](#ref:r36), [동성아파트](#ref:r32) 등)은 과거 집중호우 시 내수 배수불량으로 침수가 발생했던 구역이므로, 지하층 진입로 차수판(물막이판) 및 하수 역류방지시설 작동 상태를 최우선 점검해야 합니다.\n2. **2024년 신규 침수 이력지([초량동 827-327](#ref:r45)) 집중 관리**:\n   - 2024년 내수 방재시설 용량부족으로 평균 침수심 약 49.7cm의 침수가 기록된 단독주택 1동은 지형상 국지 저지대 취약점이 지속될 수 있으므로 배수 펌프 및 이동식 차수 장비 배치가 요구됩니다.",
+      "entities": [],
+      "question": "부산 동구 초량동에서 지하층이 있는 주택 가운데 침수흔적 범위 안에 있는 집은 몇 동이고, 어느 침수흔적 지구에 속해?",
+      "limitations": [
+        "유사사례는 예측·위험판단이 아닌 참고 정보"
+      ],
+      "response_id": "RES-20261030-a4b247",
+      "context_used": {
+        "reference_used": false,
+        "used_conditions": [],
+        "unused_conditions": []
+      },
+      "answer_format": "MARKDOWN",
+      "evidence_refs": [],
+      "result_groups": [],
+      "question_source": "SUGGEST",
+      "conversation_title": null,
+      "follow_up_questions": []
+    },
+    "status": "SUCCESS",
+    "turn_no": 1,
+    "warnings": [],
+    "data_gaps": [],
+    "request_id": "6dc8c2987bbeb575e58f7a4f3b5842f8",
+    "correlation_id": "corr-6dc8c2987bbeb575e58f7a4f3b5842f8",
+    "schema_version": "2.0",
+    "conversation_id": "CONV-20261030-e7c259"
+  }
+}

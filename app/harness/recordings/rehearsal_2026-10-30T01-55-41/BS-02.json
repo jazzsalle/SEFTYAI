@@ -1,0 +1,116 @@
+{
+  "id": "BS-02",
+  "account": "bs_safety01",
+  "question": "부산에 호우경보가 발효되면 동천·초량천 옆 문현지하차도·개금지하차도·초량제1지하차도의 진입차단시설 종류, 대응계획 수립 여부, 수위계측기·CCTV 같은 설비를 알려줘.",
+  "jobId": "2fe72599-5be0-4a94-b0a1-211a043f8e87",
+  "cachedFrom": null,
+  "sourceFinishedAt": null,
+  "state": "DONE",
+  "t3qStatus": "SUCCESS",
+  "elapsedMs": 36091,
+  "request": {
+    "caller": {
+      "role": "LOCAL_GOV_OFFICER",
+      "user_id": "U-dbcccf4b1aac",
+      "org_admin_code": "2600000000"
+    },
+    "turn_no": 5,
+    "question": "부산에 호우경보가 발효되면 동천·초량천 옆 문현지하차도·개금지하차도·초량제1지하차도의 진입차단시설 종류, 대응계획 수립 여부, 수위계측기·CCTV 같은 설비를 알려줘.",
+    "reference": null,
+    "query_context": {
+      "detail": {
+        "conditions": [
+          {
+            "item": "RAIN_1H",
+            "unit": "mm",
+            "label": "1시간 강우",
+            "value": 50,
+            "source_type": "MANUAL"
+          }
+        ],
+        "warning_kind": "호우",
+        "warning_level": "경보"
+      },
+      "region": {
+        "name": "부산광역시",
+        "level": "SIDO",
+        "admin_code": "2600000000"
+      },
+      "disaster_types": [
+        "호우"
+      ]
+    },
+    "response_mode": "ASYNC",
+    "conversation_id": null,
+    "question_source": "SUGGEST"
+  },
+  "raw": {
+    "meta": {
+      "source": "T3Q",
+      "base_time": "2026-10-30T11:03:38+09:00",
+      "elapsed_ms": 36091,
+      "quality_status": "VERIFIED",
+      "disclosure_level": "공개"
+    },
+    "result": {
+      "refs": [
+        {
+          "map": {
+            "key": "underpass_id",
+            "draw": "pin",
+            "value": "610"
+          },
+          "ref": "r2",
+          "entity_type": "RISK_FACTOR",
+          "display_name": "문현지하차도"
+        },
+        {
+          "map": {
+            "key": "underpass_id",
+            "draw": "pin",
+            "value": "655"
+          },
+          "ref": "r1",
+          "entity_type": "RISK_FACTOR",
+          "display_name": "개금지하차도"
+        },
+        {
+          "map": {
+            "key": "underpass_id",
+            "draw": "pin",
+            "value": "614"
+          },
+          "ref": "r3",
+          "entity_type": "RISK_FACTOR",
+          "display_name": "초량제1지하차도"
+        }
+      ],
+      "answer": "### 지하차도별 진입차단시설 및 방재설비 현황 요약\n\n부산 동천 및 초량천 인접 3개 지하차도([문현지하차도](#ref:r2), [개금지하차도](#ref:r1), [초량제1지하차도](#ref:r3))는 모두 **차단봉 형태의 진입차단시설(2024년 설치 완료)**과 **침수 대응계획을 수립**하고 있으며, **수위계측기·CCTV·전광판·스피커·대피시설 등 방재 설비를 전면 구축**하여 운영 중입니다.\n\n---\n\n### 상세 현황 비교\n\n| 구분 | [문현지하차도](#ref:r2) | [개금지하차도](#ref:r1) | [초량제1지하차도](#ref:r3) |\n|---|---|---|---|\n| **소재지** | 부산광역시 남구 문현동 | 부산광역시 부산진구 개금동 | 부산광역시 동구 초량동 |\n| **인접 하천 (500m 이내)** | 동천 (해당) | 동천 (해당) | 초량천 (해당) |\n| **방재 등급 / 우려지역** | 4등급 / 인명피해우려지역 | 4등급 / 인명피해우려지역 | 4등급 / 인명피해우려지역 |\n| **통제기준 침수심** | **5.0 cm** | **5.0 cm** | **5.0 cm** |\n| **진입차단시설 종류** | **차단봉** (24년 설치완료) | **차단봉** (24년 설치완료) | **차단봉** (24년 설치완료) |\n| **침수 대응계획 수립 여부** | **수립 완료 (O)** | **수립 완료 (O)** | **수립 완료 (O)** |\n| **수위계측기** | **보유** | **보유** | **보유** |\n| **CCTV** | **보유** | **보유** | **보유** |\n| **기타 경보·안내 설비** | 전광판, 스피커 | 전광판, 스피커 | 전광판, 스피커 |\n| **대피시설** | 보유 (24년 설치완료) | 보유 (24년 설치완료) | 보유 (24년 설치완료) |\n| **배수시설 (배전반 위치)** | 보유 (**지하**) | 보유 (**지상**) | 보유 (**지하**) |\n\n---\n\n### 주요 확인 사항 및 대응 권고사항\n\n1. **엄격한 통제기준 침수심(5.0cm) 적용**\n   - 3개 지하차도 모두 통제기준 침수심이 **5.0cm**로 설정되어 있으므로, 호우경보 발효 시 수위계측기 모니터링을 통해 미세 침수 감지 즉시 원격·자동 차단 조치가 선제적으로 이루어져야 합니다.\n2. **배전반 지하 설치에 따른 침수 취약성 점검 ([문현지하차도](#ref:r2), [초량제1지하차도](#ref:r3))**\n   - [문현지하차도](#ref:r2)와 [초량제1지하차도](#ref:r3)는 **배수시설의 배전반이 지하**에 위치하여, 유입수 급증 시 배전반 침수로 인한 배수펌프 가동 중단 위험이 있습니다. 호우경보 집중 호우 시 펌프 작동 상태와 배전반 침수 여부를 중점 모니터링해야 합니다.\n3. **CCTV 모니터링 및 진입차단시설 수동/원격 작동 확인**\n   - 통합관제센터에서 수위계측기 계측값과 CCTV 영상을 실시간 교차 검증하고, 진입차단기 미작동 시 경찰 합동 진입 통제 및 전광판·스피커 경고 방송을 즉각 송출해야 합니다.\n\n*(출처: 지하차도 관리대장 `hazard.underpass`, `hazard.underpass_equipment`, `hazard.underpass_install`)*",
+      "entities": [],
+      "question": "부산에 호우경보가 발효되면 동천·초량천 옆 문현지하차도·개금지하차도·초량제1지하차도의 진입차단시설 종류, 대응계획 수립 여부, 수위계측기·CCTV 같은 설비를 알려줘.",
+      "limitations": [
+        "유사사례는 예측·위험판단이 아닌 참고 정보"
+      ],
+      "response_id": "RES-20261030-8e127d",
+      "context_used": {
+        "reference_used": false,
+        "used_conditions": [],
+        "unused_conditions": []
+      },
+      "answer_format": "MARKDOWN",
+      "evidence_refs": [],
+      "result_groups": [],
+      "question_source": "SUGGEST",
+      "conversation_title": null,
+      "follow_up_questions": []
+    },
+    "status": "SUCCESS",
+    "turn_no": 5,
+    "warnings": [],
+    "data_gaps": [],
+    "request_id": "33cd3ae1fb42a2698a2716c198601522",
+    "correlation_id": "corr-33cd3ae1fb42a2698a2716c198601522",
+    "schema_version": "2.0",
+    "conversation_id": "CONV-20261030-6fe6d3"
+  }
+}
