@@ -11,6 +11,7 @@ import type { Advisory, WeatherResponse } from "@/lib/contract/agent";
 import type { BaseRegion } from "@/lib/baseRegion";
 import { SCN_REGIONS, SCN_SOURCE, scenarioWeather, type ScenarioState } from "@/lib/scenario";
 import { aimTone } from "@/lib/wxref";
+import { HELP_TOPICS } from "@/lib/help";
 
 const session = vi.hoisted(() => ({ s: {} as Record<string, unknown> }));
 vi.mock("@/lib/session", () => ({ useSession: () => session.s, uid: (p: string) => `${p}x` }));
@@ -157,5 +158,22 @@ describe("AI 모드 창·띠 — 「시연 시나리오」, 점검 질의에는 
     expect(container.querySelector(".scn-tag")).toBeNull();
     expect(container.querySelector(".aim-card")!.textContent).toContain("발표 · 기상청");
     expect(container.textContent).not.toContain("끊음");
+  });
+});
+
+describe("특보 줄 — AI 모드를 켠 동안 [특보로 질문] 자리(R46 — 표기를 동작에 맞춤)", () => {
+  it("「AI 모드 · 브리핑에 특보 반영」 · 누를 수 없음 · 말풍선 = 브리핑 질문에만 특보(「자동 반영」이라 하지 않음)", () => {
+    session.s = { weather: cutOf("bs_safety01"), account: { id: "bs_safety01" }, cond: { base: BUSAN }, wxRef: null, setWxRef: () => {}, aimOn: true };
+    const { container } = render(<WxBar />);
+    const b = screen.getByRole("button", { name: /AI 모드 · 브리핑에 특보 반영/ }) as HTMLButtonElement;
+    expect(b.disabled).toBe(true);
+    expect(b.title).toBe("AI 모드에서는 브리핑 질문에 현재 특보가 함께 전달됩니다. 직접 쓴 질문에 특보를 걸려면 AI 모드를 끄고 [특보로 질문]을 쓰세요.");
+    expect(container.textContent).not.toContain("자동 반영");
+  });
+
+  it("도움말 — AI 모드·특보로 질문 항목이 「모든 질문에 자동 반영」이라 하지 않는다", () => {
+    const text = HELP_TOPICS.filter((t) => t.id === "aim" || t.id === "wxref").flatMap((t) => t.body).join(" ");
+    expect(text).not.toContain("자동으로 반영");
+    expect(text).toContain("브리핑 질문에 현재 발효 중인 특보가 함께 전달됩니다");
   });
 });

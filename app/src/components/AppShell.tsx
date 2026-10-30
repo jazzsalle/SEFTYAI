@@ -147,11 +147,12 @@ export function WxBar() {
           className={`btn ghost sm ${wxRef ? "on" : ""}`}
           onClick={onAsk}
           disabled={aimOn}
-          title={aimOn ? "AI 모드에서는 현재 특보가 질문에 자동으로 반영됩니다. AI 모드를 끄면 특보를 참조로 걸어 질문할 수 있습니다." : undefined}
+          // R46 — AI 모드에서 특보가 함께 가는 것은 브리핑 질문(과 AI 모드 점검)뿐이다. 직접 쓴 질문·질문 목록·시연 묶음에는 붙지 않는다(explore askText·askLib·askDemo)
+          title={aimOn ? "AI 모드에서는 브리핑 질문에 현재 특보가 함께 전달됩니다. 직접 쓴 질문에 특보를 걸려면 AI 모드를 끄고 [특보로 질문]을 쓰세요." : undefined}
           aria-haspopup={cands.length > 1}
           aria-expanded={pop === "ask"}
         >
-          {aimOn ? "AI 모드 · 특보 자동 반영" : wxRef ? `참조 중 · ${advName(wxRef)}` : "특보로 질문"} {!aimOn && !wxRef && <IcChevR size={14} />}
+          {aimOn ? "AI 모드 · 브리핑에 특보 반영" : wxRef ? `참조 중 · ${advName(wxRef)}` : "특보로 질문"} {!aimOn && !wxRef && <IcChevR size={14} />}
         </button>
         {wxRef && !aimOn && <button className="lnk xs" onClick={() => setWxRef(null)} aria-label="특보 참조 해제" title="특보 참조 해제">해제 ×</button>}
         {pop === "ask" && (
