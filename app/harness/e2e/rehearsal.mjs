@@ -3,9 +3,10 @@
 //  무대(§4) 부산 단계 1~10 → 인제 11-0(선택)~15 → 영천 16-0(선택)~19 를 화면 경로 그대로 누르고, 누른 때부터 답이 보일 때까지 잰다.
 //  예열한 항목은 「이전 답변 재사용」으로 바로 떠야 하고(아니면 ✗), 실시간 항목(BS-02·IJ-05-R·YC-02)·AI 모드 점검은 새 질의다.
 //  끝(⑦): AI 모드 끄기 · 시나리오 끄기 · 부산 브리핑 항목 기본으로 되돌리기
-// node harness/e2e/rehearsal.mjs [baseUrl=http://localhost:3100]
+// node harness/e2e/rehearsal.mjs [baseUrl=http://localhost:3100] [--deck]
 //  → 답 원문 harness/recordings/rehearsal_<시각>/<단계>.json + _result.json(시각·재사용·처리 시간) · 화면 harness/reports/shots/rh_*.png
 //  → 대본 인용 대조: node harness/demo/check_story_quotes.mjs --rec harness/recordings/rehearsal_<시각>
+//  --deck: 따라하기 슬라이드용 화면을 더 찍는다(누를 곳에 주황 테두리 · 기준지역 확인 창 · 브리핑 4번 칸 · AI 모드 띠) → harness/reports/shots/deck_*.png
 // 실제 T3Q 질의: 예열 최대 18(24시간 안 원본이 있으면 재사용) · 실시간 3 · AI 모드 점검 3(부산·인제·영천 — 동구로 바꾸면 AI 모드가 꺼진다, R47)
 // 로컬(localhost·127.0.0.1)에서만 돈다 — 실시간 세 질문을 보내므로, 운영 서버에서 시연 24시간 안에 돌리면 무대 장면이 「이전 답변」이 된다(대본 §7.1 ⑥).
 // 로그인하면 그 계정의 다른 세션은 끊긴다. 비밀번호: env SMOKE_PASSWORD 또는 app/.env.development.local 의 SA_INIT_PASSWORDS(출력하지 않음)
@@ -14,7 +15,9 @@ import { join } from "node:path";
 import { chromium } from "playwright-core";
 import { APP } from "../t3q/client.mjs";
 
-const [base = "http://localhost:3100"] = process.argv.slice(2);
+const ARGS = process.argv.slice(2);
+const DECK = ARGS.includes("--deck");
+const [base = "http://localhost:3100"] = ARGS.filter((a) => !a.startsWith("--"));
 if (!/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?\/?$/.test(base)) {
   console.error(`로컬에서만 돕니다(받은 주소 ${base}) — 실시간 질문을 보내므로 운영 서버에서는 돌리지 않습니다.`);
   process.exit(2);
@@ -45,6 +48,16 @@ const shot = async (page, name) => {
   await page.waitForTimeout(600);
   await page.screenshot({ path: join(shotDir, `rh_${name}.png`) });
   console.log("  shot", `rh_${name}.png`);
+};
+/** --deck 일 때만 — 누를 곳(target)에 주황 테두리를 그려 찍고 지운다 */
+const deckShot = async (page, name, target = null) => {
+  if (!DECK) return;
+  const el = target ? await target.first().elementHandle({ timeout: 5000 }).catch(() => null) : null;
+  if (el) await el.evaluate((e) => { e.scrollIntoView({ block: "center", inline: "nearest" }); e.dataset.deckOutline = e.style.outline; e.style.outline = "4px solid #f59e0b"; e.style.outlineOffset = "2px"; }).catch(() => {});
+  await page.waitForTimeout(500);
+  await page.screenshot({ path: join(shotDir, `deck_${name}.png`) });
+  if (el) await el.evaluate((e) => { e.style.outline = e.dataset.deckOutline ?? ""; e.style.outlineOffset = ""; delete e.dataset.deckOutline; }).catch(() => {});
+  console.log("  deck", `deck_${name}.png`);
 };
 const text = (page, s) => page.$eval(s, (e) => e.textContent?.replace(/\s+/g, " ").trim() ?? "").catch(() => "");
 const sec = (ms) => (ms == null ? null : Math.round(ms / 100) / 10);
@@ -118,6 +131,7 @@ const cardShown = (page, id, ms) =>
 async function aimOn(s, key, step) {
   const n0 = s.posts.length;
   const t0 = Date.now();
+  await deckShot(s.page, `s${step}_aim_btn`, s.page.getByRole("button", { name: "AI 모드", exact: true }));
   await s.page.getByRole("button", { name: "AI 모드", exact: true }).click();
   await s.page.locator(".modal.aim").waitFor({ timeout: 20000 });
   await until(() => s.posts.slice(n0).some((p) => p.source === "AI_MODE"), 30000);
@@ -136,6 +150,7 @@ async function aimOn(s, key, step) {
   const sc = scene({ step, key, kind: "AI_MODE", account: s.acc, jobId: p?.job?.id ?? null, reused: !!p?.job?.cached_from, state: j?.state ?? null, shownSec: sec(shown), elapsedSec: sec(j?.elapsed_ms ?? null), warnings: p?.warnings?.items?.map((i) => i.warning_key) ?? null, card: card.slice(0, 160), answer: ai.slice(0, 300) });
   ok(!!p && j?.state === "DONE", `${step} AI 모드 점검 — 화면 ${sc.shownSec}초 · 처리 ${sc.elapsedSec}초 · 특보 ${sc.warnings?.join(",") ?? "—"}${sc.reused ? " · 재사용" : ""}`);
   console.log(`    「${ai.slice(0, 200)}」`);
+  await deckShot(s.page, `s${step}_aim_modal`, s.page.locator(".modal.aim"));
   return sc;
 }
 
@@ -147,6 +162,7 @@ async function clickDemo(s, key, step, title, { live = false } = {}) {
   await page.getByRole("button", { name: "재난담당자의 하루" }).click();
   const btn = page.locator(".drawer .day-btn", { hasText: title });
   await btn.waitFor({ timeout: 20000 });
+  await deckShot(page, `s${step}_${key}_pick`, btn);
   const t0 = Date.now();
   await btn.click();
   // 묶음 항목은 출처 LIBRARY — 같은 화면의 AI 모드 점검(동구 재점검 등)과 섞지 않는다
@@ -176,6 +192,7 @@ async function clickDemo(s, key, step, title, { live = false } = {}) {
   }
   const final = job?.id ? await waitJob(page, job.id, live ? 900_000 : 120_000) : null;
   if (job?.id) await dump(s, key, job.id);
+  if (job?.id) await deckShot(page, `s${step}_${key}_ans`, qc ? page.locator(`#job-${job.id} .qb-cond`) : null);
   const sc = scene({ step, key, kind: live ? "LIVE" : "WARM", account: s.acc, title, jobId: job?.id ?? null, reused: reusedFirst, renewed, state: final?.state ?? null, t3qStatus: final?.t3q_status ?? null, postedSec: sec(posted), shownSec: sec(shown), elapsedSec: sec(final?.elapsed_ms ?? null), preset: qc || null, reuseNote: reuseNote || null });
   if (live) ok(final?.state === "DONE" && (!reusedFirst || renewed?.jobId), `${step} ${key} 실시간 — 화면 ${sc.shownSec}초 · 처리 ${sc.elapsedSec}초 · ${final?.t3q_status ?? final?.state}${reusedFirst ? " · 처음엔 재사용됨(24시간 안 원본 있음) → 새로 받기로 잼" : ""}${qc ? ` · ${qc}` : ""}`);
   else ok(reusedFirst && final?.state === "DONE" && shown < 15_000, `${step} ${key} 예열 — ${reusedFirst ? "이전 답변 재사용" : "재사용 아님(새 질의!)"} · 접수 ${sc.postedSec}초 · 화면 ${sc.shownSec}초${qc ? ` · ${qc}` : ""}`);
@@ -187,9 +204,11 @@ async function sopCheck(s, step, { next = [], find = [] }, name) {
   const nexts = await s.page.$$eval(".sopbar .sb-next button", (els) => els.map((e) => e.textContent.replace(/\s+/g, " ").trim())).catch(() => []);
   const bar = await text(s.page, ".sopbar");
   for (const n of next) ok(nexts.some((x) => x.includes(n)), `${step} 대응절차 「다음」에 「${n}」 — ${nexts.join(" / ") || "(없음)"}`);
+  await deckShot(s.page, `${name}_bar`, s.page.locator(".sopbar"));
   await s.page.locator(".sopbar").getByRole("button", { name: /대응절차 전체/ }).click();
   const all = s.page.getByRole("button", { name: "전체 부서 보기" });
   await all.waitFor({ timeout: 20000 });
+  await deckShot(s.page, `${name}_panel`, all);
   await all.click();
   await s.page.waitForTimeout(1200);
   const found = {};
@@ -198,22 +217,24 @@ async function sopCheck(s, step, { next = [], find = [] }, name) {
     found[f] = (await loc.count()) > 0;
     ok(found[f], `${step} [전체 부서 보기]에 「${f}」`);
     if (found[f]) await loc.scrollIntoViewIfNeeded().catch(() => {});
+    if (found[f]) await deckShot(s.page, `${name}_${f}`, loc);
   }
   await shot(s.page, name);
   scene({ step, key: "SOP", kind: "SOP", account: s.acc, bar: bar.slice(0, 200), next: nexts, found });
 }
 
 /** 「기준지역 변경」 확인 창(R47 — 바꿀 때마다)에서 새 대화로 — 창의 글을 돌려준다(없으면 null) */
-async function confirmBase(page) {
+async function confirmBase(page, deckName = null) {
   const dlg = page.getByRole("alertdialog", { name: "기준지역 변경" });
   if (!(await dlg.waitFor({ timeout: 4000 }).then(() => true, () => false))) return null;
   const t = ((await dlg.textContent()) ?? "").replace(/\s+/g, " ").trim();
+  if (deckName) await deckShot(page, deckName, dlg.getByRole("button", { name: "새 대화로 시작" }));
   await dlg.getByRole("button", { name: "새 대화로 시작" }).click();
   return t;
 }
-async function setSigungu(page, label) {
+async function setSigungu(page, label, deckName = null) {
   await page.getByRole("combobox", { name: "기준지역 시·군·구" }).selectOption(label === "" ? { value: "" } : { label });
-  return confirmBase(page);
+  return confirmBase(page, deckName);
 }
 const pickedLabel = (page, name) => page.getByRole("combobox", { name }).evaluate((e) => e.selectedOptions[0]?.textContent?.trim() ?? "").catch(() => "");
 /** 기준지역 = 계정 기본(시·도 · 시·군·구 — null 이면 시·군·구 전체) */
@@ -265,6 +286,7 @@ try {
   const on = saved.filter((x) => x.on);
   ok(on.length === 4 && on.at(-1)?.label === BRF4_LABEL && on.at(-1)?.q === BRF4, `① 브리핑 항목(다시 읽음) — ${saved.map((x) => `${x.on ? "☑" : "☐"}${x.label}`).join(" · ")}`);
   await shot(bs.page, "01_brief_settings");
+  await deckShot(bs.page, "op1_brief", bs.page.locator("table.tbl tbody tr").last());
 
   // ── ② 시나리오 켜기(운영관리 화면 — 세 지역, 끝나는 시각 6시간 뒤) ──
   await admin.page.goto(base + "/admin?tab=demo");
@@ -281,12 +303,14 @@ try {
   result.ops.scenario = await text(admin.page, ".adm-scn[role=status]");
   ok(/켬 · .*저절로 꺼짐/.test(result.ops.scenario) && (result.ops.scenario.match(/·/g) ?? []).length >= 3, `② 시나리오 「${result.ops.scenario}」`);
   await shot(admin.page, "02_admin_scenario_on");
+  await deckShot(admin.page, "op2_scenario", scnSec);
 
   // ── ③ 시연 세트 예열 시작 → ⑤ 진행 중 0(작업 상태는 API 로 — 운영관리 화면은 열어 둔 채 대기 문항을 차례로 보낸다) ──
   let warmRes = null;
   admin.page.on("response", async (r) => {
     if (r.request().method() === "POST" && new URL(r.url()).pathname === "/api/admin/warm/demo") warmRes = await r.json().catch(() => null);
   });
+  await deckShot(admin.page, "op3_warm_btn", admin.page.getByRole("button", { name: "시연 세트 예열 시작" }));
   const tw = Date.now();
   await admin.page.getByRole("button", { name: "시연 세트 예열 시작" }).click();
   await until(() => warmRes, 120_000);
@@ -312,6 +336,7 @@ try {
   for (const i of items) console.log(`    ${String(i.scene).padEnd(5)} ${i.kind === "BRIEFING" ? `브리핑 ${i.title}` : i.itemId} — ${i.outcome} · ${i.state}/${i.t3qStatus} · 처리 ${i.elapsedSec}초${i.warnings ? ` · 특보 ${i.warnings.join(",") || "없음"}` : ""}`);
   ok(items.filter((i) => i.kind === "BRIEFING").length === 4 && items.filter((i) => i.kind === "BRIEFING").every((i) => i.warnings?.join() === "SCN-BS-1"), "③ 브리핑 4줄 「특보 SCN-BS-1」");
   await shot(admin.page, "03_admin_warm_done");
+  await deckShot(admin.page, "op3_warm_done", admin.page.locator("section.adm-sec", { has: admin.page.locator("h2", { hasText: "예열 항목" }) }));
 
   // ── ④ 특보 줄(세 시연 계정) · 무대 전 정리(기준지역 = 계정 기본 · AI 모드 끔 · 조건 비움) ──
   const ij = await session("ij_safety01");
@@ -333,11 +358,20 @@ try {
     ok(bar.includes(STAGE[s.acc].wx) && bar.includes(SCN) && /^\d\d:\d\d 켬 · 기상청 실시간 특보 끊음$/.test(meta), `④ ${s.acc} 특보 줄 「${bar.slice(0, 90)}」 · 갱신 칸 「${meta}」`);
     const cond = await text(s.page, ".cmp-cond");
     ok(/재난유형 전체/.test(cond) && /상황 상세정보 0개/.test(cond), `${s.acc} 입력창 조건 비움 「${cond.slice(0, 80)}」`);
+    await deckShot(s.page, `op4_${s.acc}`, s.page.locator(".wxbar"));
   }
 
   // ── 부산 ──
   await aimOn(bs, "AIM-BS", "1");
   await shot(bs.page, "04_bs_aimode");
+  if (DECK) {
+    await bs.page.locator(".modal.aim").getByRole("button", { name: "접기", exact: true }).click();
+    await bs.page.locator(".aim-bar").waitFor({ timeout: 10000 });
+    await deckShot(bs.page, "s01_aim_band", bs.page.getByRole("button", { name: "AI 모드 펼치기" }));
+    await bs.page.getByRole("button", { name: "AI 모드 펼치기" }).click();
+    await bs.page.locator(".modal.aim").waitFor({ timeout: 10000 });
+  }
+  await deckShot(bs.page, "s02_brief_btn", bs.page.locator(".modal.aim").getByRole("button", { name: /브리핑 시작/ }));
   // 단계 2 — AI 모드 창 [브리핑 시작] (예열 4항목)
   const nb = bs.posts.length;
   const tb = Date.now();
@@ -357,6 +391,12 @@ try {
   scene({ step: "2", key: "BRF-BS", kind: "WARM", account: bs.acc, shownSec: sec(briefShown), reused: bps.map((p) => !!p.job?.cached_from), warnings: bps.map((p) => p.warnings?.items?.map((i) => i.warning_key).join() ?? null), cells });
   ok(bps.length === 4 && bps.every((p) => p.job?.cached_from) && briefShown < 20_000, `2 브리핑 4항목 — 재사용 ${bps.filter((p) => p.job?.cached_from).length}/4 · 화면 ${sec(briefShown)}초 · ${cells.join(" / ").slice(0, 200)}`);
   await shot(bs.page, "05_bs_brief_board");
+  await deckShot(bs.page, "s02_board", bs.page.locator(".bb-cells"));
+  if (DECK) {
+    await bs.page.locator(".bb-cells .bb-cell").nth(3).click();
+    await bs.page.waitForTimeout(1500);
+    await deckShot(bs.page, "s04_cell4");
+  }
   // 단계 3·6 — 대응절차
   await sopCheck(bs, "3·6", { next: ["7-1 기상특보 접수", "8-1 기상특보 상황보고(시장, 부시장)"], find: ["16-1"] }, "06_bs_sop");
   // 단계 5 — BS-02 실시간
@@ -369,7 +409,8 @@ try {
   // 단계 10 — 기준지역 동구: 「기준지역 변경」 확인 창(R47 — AI 모드를 켜 두었으므로 종료 안내 + 새 대화 두 줄) → AI 모드 꺼짐 · 새 대화(새 지역 점검 없음) → BS-07(예열 — 기준지역 동구)
   const nd = bs.posts.length;
   const td = Date.now();
-  const dlg = await setSigungu(bs.page, "동구");
+  await deckShot(bs.page, "s10_base_pick", bs.page.getByRole("combobox", { name: "기준지역 시·군·구" }));
+  const dlg = await setSigungu(bs.page, "동구", "s10_dialog");
   ok(!!dlg && dlg.includes("1. 기준지역을 바꾸면 AI 모드가 종료됩니다. 다시 실행하여 주십시오.") && dlg.includes("2. 새 대화로 시작합니다. 지금 대화는 대화 이력에 남습니다."), `10 확인 창 「${dlg}」`);
   await bs.page.waitForTimeout(2500);
   const aimLeft = await bs.page.locator(".ai-pill.on").count();

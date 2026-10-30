@@ -1,0 +1,9 @@
+{
+  "name": "demo-day-slides",
+  "private": true,
+  "description": "시연 따라하기 슬라이드 만들기(앱 의존성과 따로)",
+  "dependencies": {
+    "pptxgenjs": "3.12.0",
+    "sharp": "0.33.5"
+  }
+}

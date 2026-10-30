@@ -1,0 +1,98 @@
+{
+  "id": "AIM-IJ",
+  "account": "ij_safety01",
+  "question": "제공된 기상특보 정보를 기준으로, 해당 지역 담당자가 지금 먼저 확인할 내용을 알려 주십시오. 발효 중인 특보가 있으면 특보마다 2문장 이내(공백 포함 80자 내외)로만 쓰고, 제목·과거 사례·근거 목록은 쓰지 마십시오. 발효 중인 특보가 없으면 대응 검토가 필요한 사유를 확인하지 못했다는 점검 결과만 1문장으로 쓰십시오. 제공되지 않은 관측값이나 피해 발생 여부는 추정하지 마십시오.",
+  "jobId": "64cdcac6-2360-4630-8999-67a9bdb76d93",
+  "cachedFrom": null,
+  "sourceFinishedAt": null,
+  "state": "DONE",
+  "t3qStatus": "SUCCESS",
+  "elapsedMs": 12296,
+  "request": {
+    "caller": {
+      "role": "LOCAL_GOV_OFFICER",
+      "user_id": "U-900f8d5abed9",
+      "org_admin_code": "5181000000"
+    },
+    "ai_mode": {
+      "trigger": "START",
+      "check_id": "CHK-8bvwj3vz",
+      "interval_min": 10
+    },
+    "turn_no": 1,
+    "question": "제공된 기상특보 정보를 기준으로, 해당 지역 담당자가 지금 먼저 확인할 내용을 알려 주십시오. 발효 중인 특보가 있으면 특보마다 2문장 이내(공백 포함 80자 내외)로만 쓰고, 제목·과거 사례·근거 목록은 쓰지 마십시오. 발효 중인 특보가 없으면 대응 검토가 필요한 사유를 확인하지 못했다는 점검 결과만 1문장으로 쓰십시오. 제공되지 않은 관측값이나 피해 발생 여부는 추정하지 마십시오.",
+    "reference": null,
+    "query_context": {
+      "region": {
+        "name": "강원특별자치도 인제군",
+        "level": "SIGUNGU",
+        "admin_code": "5181000000"
+      }
+    },
+    "response_mode": "ASYNC",
+    "conversation_id": null,
+    "question_source": "AI_MODE",
+    "weather_warnings": {
+      "items": [
+        {
+          "area": "강원도(인제평지, 인제산지)",
+          "kind": "호우",
+          "level": "주의보",
+          "change": "발효",
+          "warning_key": "SCN-IJ-1",
+          "announced_at": "2026-10-30T09:58:25.549Z",
+          "effective_at": "2026-10-30T09:58:25.549Z"
+        }
+      ],
+      "source": "시연 시나리오(가상 특보)",
+      "collected_at": "2026-10-30T10:00:57.351Z",
+      "collect_status": "COLLECTED"
+    }
+  },
+  "raw": {
+    "meta": {
+      "source": "T3Q",
+      "base_time": "2026-10-30T19:01:15+09:00",
+      "elapsed_ms": 12296,
+      "quality_status": "VERIFIED",
+      "disclosure_level": "공개"
+    },
+    "result": {
+      "refs": [],
+      "answer": "호우주의보 발효에 따라 인제평지·산지 내 급경사지와 산사태 취약지역 예찰을 우선 실시하십시오. 계곡 및 하천변 취약구간의 통제 여부를 즉시 점검하십시오.",
+      "region": {
+        "name": "강원특별자치도 인제군",
+        "admin_code": "5181000000"
+      },
+      "check_id": "CHK-8bvwj3vz",
+      "entities": [],
+      "question": "제공된 기상특보 정보를 기준으로, 해당 지역 담당자가 지금 먼저 확인할 내용을 알려 주십시오. 발효 중인 특보가 있으면 특보마다 2문장 이내(공백 포함 80자 내외)로만 쓰고, 제목·과거 사례·근거 목록은 쓰지 마십시오. 발효 중인 특보가 없으면 대응 검토가 필요한 사유를 확인하지 못했다는 점검 결과만 1문장으로 쓰십시오. 제공되지 않은 관측값이나 피해 발생 여부는 추정하지 마십시오.",
+      "info_gaps": [],
+      "checked_at": "2026-10-30T19:01:15+09:00",
+      "limitations": [
+        "유사사례는 예측·위험판단이 아닌 참고 정보"
+      ],
+      "response_id": "RES-20261030-224ed6",
+      "context_used": {
+        "reference_used": false,
+        "used_conditions": [],
+        "unused_conditions": []
+      },
+      "answer_format": "MARKDOWN",
+      "evidence_refs": [],
+      "result_groups": [],
+      "warning_guides": [],
+      "priority_review": null,
+      "question_source": "AI_MODE",
+      "conversation_title": null,
+      "no_warning_message": null,
+      "follow_up_questions": []
+    },
+    "status": "SUCCESS",
+    "warnings": [],
+    "data_gaps": [],
+    "request_id": "32e7623366d3ff74b4a47223fbde4e40",
+    "correlation_id": "corr-32e7623366d3ff74b4a47223fbde4e40",
+    "schema_version": "2.0"
+  }
+}

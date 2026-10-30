@@ -1,0 +1,325 @@
+{
+  "id": "BRF-BS-2",
+  "account": "bs_safety01",
+  "question": "위험·취약지역 중 과거 재난 때 실제로 피해가 났던 곳과 피해 내용은?",
+  "jobId": "2b132514-df32-4c9a-9c9f-5d738cba26e2",
+  "cachedFrom": "06dcd202-1b09-47fd-8ad7-0f66dd0dc110",
+  "sourceFinishedAt": "2026-10-30T01:58:44.404Z",
+  "state": "DONE",
+  "t3qStatus": "SUCCESS",
+  "elapsedMs": 115483,
+  "request": {
+    "caller": {
+      "role": "LOCAL_GOV_OFFICER",
+      "user_id": "U-dbcccf4b1aac",
+      "org_admin_code": "2600000000"
+    },
+    "turn_no": 2,
+    "briefing": {
+      "item_no": 2,
+      "preset_id": "MY-BRIEFING",
+      "item_total": 4,
+      "briefing_item_id": "BR-02"
+    },
+    "question": "위험·취약지역 중 과거 재난 때 실제로 피해가 났던 곳과 피해 내용은?",
+    "reference": null,
+    "query_context": {
+      "region": {
+        "name": "부산광역시",
+        "level": "SIDO",
+        "admin_code": "2600000000"
+      },
+      "disaster_types": [
+        "호우"
+      ]
+    },
+    "response_mode": "ASYNC",
+    "conversation_id": null,
+    "question_source": "BRIEFING",
+    "weather_warnings": {
+      "items": [
+        {
+          "area": "부산",
+          "kind": "호우",
+          "level": "경보",
+          "change": "발효",
+          "warning_key": "SCN-BS-1",
+          "announced_at": "2026-10-30T09:58:25.549Z",
+          "effective_at": "2026-10-30T09:58:25.549Z"
+        }
+      ],
+      "source": "시연 시나리오(가상 특보)",
+      "collected_at": "2026-10-30T09:58:55.678Z",
+      "collect_status": "COLLECTED"
+    }
+  },
+  "raw": {
+    "meta": {
+      "source": "T3Q",
+      "base_time": "2026-10-30T10:58:44+09:00",
+      "elapsed_ms": 115483,
+      "quality_status": "VERIFIED",
+      "disclosure_level": "공개"
+    },
+    "result": {
+      "refs": [
+        {
+          "map": {
+            "key": "underpass_id",
+            "draw": "pin",
+            "value": "614"
+          },
+          "ref": "r93",
+          "entity_type": "RISK_FACTOR",
+          "display_name": "초량제1지하차도"
+        },
+        {
+          "map": {
+            "key": "trace_code",
+            "draw": "layer",
+            "value": "I_15858"
+          },
+          "ref": "r48",
+          "entity_type": "FLOOD_TRACE",
+          "display_name": "초량2지구"
+        },
+        {
+          "map": {
+            "key": "legal_dong_code",
+            "draw": "pin",
+            "value": "2629010900"
+          },
+          "ref": "r7",
+          "entity_type": "REGION",
+          "display_name": "동천"
+        },
+        {
+          "map": {
+            "key": "trace_code",
+            "draw": "layer",
+            "value": "I_119284"
+          },
+          "ref": "r41",
+          "entity_type": "FLOOD_TRACE",
+          "display_name": "자성대지구"
+        },
+        {
+          "map": {
+            "key": "trace_code",
+            "draw": "layer",
+            "value": "I_23789"
+          },
+          "ref": "r31",
+          "entity_type": "FLOOD_TRACE",
+          "display_name": "우동지구"
+        },
+        {
+          "map": {
+            "key": "trace_code",
+            "draw": "layer",
+            "value": "I_47809"
+          },
+          "ref": "r45",
+          "entity_type": "FLOOD_TRACE",
+          "display_name": "해운대구 송정동 454"
+        },
+        {
+          "map": {
+            "key": "trace_code",
+            "draw": "layer",
+            "value": "I_8001"
+          },
+          "ref": "r28",
+          "entity_type": "FLOOD_TRACE",
+          "display_name": "연서초지구"
+        },
+        {
+          "map": {
+            "key": "trace_code",
+            "draw": "layer",
+            "value": "I_103505"
+          },
+          "ref": "r30",
+          "entity_type": "FLOOD_TRACE",
+          "display_name": "교대역아랫지구"
+        },
+        {
+          "map": {
+            "key": "trace_code",
+            "draw": "layer",
+            "value": "I_55868"
+          },
+          "ref": "r32",
+          "entity_type": "FLOOD_TRACE",
+          "display_name": "거제역아랫지구"
+        },
+        {
+          "map": {
+            "key": "trace_code",
+            "draw": "layer",
+            "value": "I_25579"
+          },
+          "ref": "r29",
+          "entity_type": "FLOOD_TRACE",
+          "display_name": "사상구청교차로지구"
+        },
+        {
+          "map": {
+            "key": "trace_code",
+            "draw": "layer",
+            "value": "I_25581"
+          },
+          "ref": "r33",
+          "entity_type": "FLOOD_TRACE",
+          "display_name": "감전교차로지구"
+        },
+        {
+          "map": {
+            "key": "trace_code",
+            "draw": "layer",
+            "value": "I_9751"
+          },
+          "ref": "r34",
+          "entity_type": "FLOOD_TRACE",
+          "display_name": "서부시외버스터미널지구"
+        },
+        {
+          "map": {
+            "key": "trace_code",
+            "draw": "layer",
+            "value": "I_847"
+          },
+          "ref": "r43",
+          "entity_type": "FLOOD_TRACE",
+          "display_name": "신천죽성지구3"
+        },
+        {
+          "map": {
+            "key": "trace_code",
+            "draw": "layer",
+            "value": "I_98337"
+          },
+          "ref": "r50",
+          "entity_type": "FLOOD_TRACE",
+          "display_name": "길천 침수 지역"
+        },
+        {
+          "map": {
+            "key": "trace_code",
+            "draw": "layer",
+            "value": "I_10122"
+          },
+          "ref": "r21",
+          "entity_type": "FLOOD_TRACE",
+          "display_name": "식만지구"
+        },
+        {
+          "map": {
+            "key": "trace_code",
+            "draw": "layer",
+            "value": "I_73803"
+          },
+          "ref": "r23",
+          "entity_type": "FLOOD_TRACE",
+          "display_name": "대저지구"
+        },
+        {
+          "map": {
+            "key": "trace_code",
+            "draw": "layer",
+            "value": "I_25939"
+          },
+          "ref": "r18",
+          "entity_type": "FLOOD_TRACE",
+          "display_name": "강동지구"
+        },
+        {
+          "map": {
+            "key": "trace_code",
+            "draw": "layer",
+            "value": "I_201"
+          },
+          "ref": "r51",
+          "entity_type": "FLOOD_TRACE",
+          "display_name": "문현1지구"
+        },
+        {
+          "map": {
+            "key": "trace_code",
+            "draw": "layer",
+            "value": "I_47807"
+          },
+          "ref": "r57",
+          "entity_type": "FLOOD_TRACE",
+          "display_name": "범일동 자성대아파트"
+        },
+        {
+          "map": {
+            "key": "underpass_id",
+            "draw": "pin",
+            "value": "610"
+          },
+          "ref": "r84",
+          "entity_type": "RISK_FACTOR",
+          "display_name": "문현지하차도"
+        },
+        {
+          "map": {
+            "key": "underpass_id",
+            "draw": "pin",
+            "value": "655"
+          },
+          "ref": "r74",
+          "entity_type": "RISK_FACTOR",
+          "display_name": "개금지하차도"
+        },
+        {
+          "map": {
+            "key": "underpass_id",
+            "draw": "pin",
+            "value": "636"
+          },
+          "ref": "r77",
+          "entity_type": "RISK_FACTOR",
+          "display_name": "내성지하차도"
+        }
+      ],
+      "answer": "### 결론\n\n부산광역시 내 **자연재해위험개선지구·인명피해 우려 지하차도·침수위험지구** 중 과거 집중호우 및 태풍 내습 시 실제로 침수·월류·파손 피해가 집중되었던 대표적인 지역과 주요 피해 내역은 다음과 같습니다.\n\n1. **동구 초량 일원 ([초량제1지하차도](#ref:r93) / [초량2지구](#ref:r48))**: 2020년 7월 호우 시 배수불량 및 인근 초량천 영향으로 지하차도 침수 및 인명피해(3명 사망), 주변 저지대 70,777.7㎡ 침수 피해 발생.\n2. **남구 문현·동천 및 동구 범일 일원 ([동천·문현지구](#ref:r7), [자성대지구](#ref:r41))**: 2020년 7월 및 2024년 9월 동천 하천 범람·월류와 배수불량으로 문현1지구 일대 4만여 ㎡ 및 자성대 일원(23,326㎡, 9,565㎡) 반복 침수.\n3. **해운대구 우동·중동·송정 일원 ([우동지구](#ref:r31), [송정](#ref:r45))**: 2020년 7월(우동 130,236㎡, 송정 129,073㎡ 침수) 및 2024년 9월(우동 37,380㎡ 침수) 저지대 배수 용량 부족에 따른 침수와 반여동 저수호안 유실.\n4. **연제구 거제·연산 일원 ([연서초지구](#ref:r28), [교대역아랫지구](#ref:r30), [거제역아랫지구](#ref:r32))**: 2024년 9월 집중호우 시 내수 배제 불량으로 연서초 일대(61,883㎡), 교대역(48,529㎡), 거제역(25,253㎡) 등 대규모 도심 침수.\n5. **사상구 삼락·감전·괘법 일원 ([사상구청교차로](#ref:r29), [감전교차로](#ref:r33), [서부버스터미널](#ref:r34))**: 2024년 9월 집중호우 시 방재시설 용량 부족으로 주요 교차로 및 터미널 일대(총 10만㎡ 이상) 내수침수.\n6. **기장군 좌광천·일광천·죽성천 일원 ([신천죽성지구](#ref:r43), [길천지구](#ref:r50))**: 2020년 7월 집중호우 당시 17.8만㎡ 침수, 죽성로 공장지대 대규모 사유시설 침수(수십억 원대 재산피해), 일광면 일대 하천 범람 및 중계펌프장·배전반 소손.\n7. **강서구 식만·대저·명지 일원 ([식만지구](#ref:r21), [대저지구](#ref:r23), [강동지구](#ref:r18))**: 2020년 명지지구(6.6만㎡ 침수), 2024년 명지동 학교시설 침수 및 조만강 범람에 따른 제방 파손, 2025년 7월 내수침수 피해.\n\n---\n\n### 주요 위험·취약지역별 과거 피해 내역 및 관리 현황\n\n| 권역 / 지구명 | 취약지구 지정 현황 | 과거 재난 사건 | 침수·피해 규모 및 원인 | 주요 피해 내용 |\n|---|---|---|---|---|\n| **동구 초량**<br>([초량2지구](#ref:r48) / [초량제1지하차도](#ref:r93)) | • 자연재해위험개선지구(침수 '가'등급)<br>• 인명피해 우려 지하차도 | 2020.07.23 장마철 집중호우 | • 침수면적: **70,777.7㎡**<br>• 평균침수심: **4.21m**<br>• 원인: 집중호우 및 배수불량 | • 초량제1지하차도 급격한 침수로 차량 침수 및 사망 3명 발생<br>• 지하차도 일원 저지대 건축물·도로 대규모 침수 |\n| **남구 문현 / 동천**<br>([문현1지구](#ref:r51) / [동천지구](#ref:r7)) | • 자연재해위험개선지구(침수 '가'·'나'등급)<br>• 풍수해생활권종합정비지구 | 2020.07.10 / 07.23 집중호우 | • 침수면적: **47,832.2㎡ / 40,000.8㎡**<br>• 평균침수심: **2.4m**<br>• 원인: 동천 범람 및 배수불량 | • 동천 수위 급상승으로 인한 주변 저지대 주택·상가 침수<br>• 문현동 도로 측구 막힘 및 도로 범람 유입 피해 |\n| **동구 범일**<br>([자성대지구](#ref:r41) / [자성대아파트](#ref:r57)) | • 자연재해위험개선지구(범일2, 침수 '나'등급) | 2020.07.10 집중호우<br>2024.09.21 집중호우 | • 2020년: **23,326.1㎡**<br>• 2024년: **9,565.0㎡**<br>• 원인: 동천 하천 월류 | • 자성대아파트 및 자성로 주변 저지대 주거지 침수<br>• 동천 월류에 따른 도로 및 반지하·1층 시설물 침수 |\n| **해운대구 우동·송정·반여**<br>([우동](#ref:r31) / [송정](#ref:r45)) | • 자연재해위험개선지구(운촌 '가', 송정 '가', 반여 '가') | 2020.07.23 호우<br>2024.09.21 호우 | • 우동: **130,236.8㎡**(2020), **37,380.0㎡**(2024)<br>• 송정: **129,073.4㎡**(2020)<br>• 원인: 저지대 및 배수시설 용량부족 | • 해운대 올림픽교차로·센텀 일대 도로 및 건물 침수<br>• 반여동 반여천 저수호안 유실(L=12m) 피해(약 5,964만 원) |\n| **연제구 거제·연산**<br>([연서초](#ref:r28) / [교대역](#ref:r30) / [거제역](#ref:r32)) | • 자연재해위험개선지구(거제 '나', 토곡 '나'등급) | 2024.09.20~21 집중호우 | • 연서초: **61,883.0㎡**<br>• 교대역: **48,529.0㎡**<br>• 거제역: **25,253.0㎡**<br>• 원인: 온천천 수위 상승 및 관거 용량 부족 | • 온천천 하류 수위 상승 시 내수 배제 불가로 도심지 저지대 침수<br>• 지하철역 환승 통로 및 저지대 도로·상가 침수 |\n| **사상구 감전·삼락·괘법**<br>([사상구청](#ref:r29) / [감전교차로](#ref:r33) / [터미널](#ref:r34)) | • 자연재해위험개선지구(감전1 '가', 삼락 '가', 학장2 '나') | 2024.09.21 집중호우 | • 사상구청교차로: **56,642.0㎡**<br>• 감전교차로: **23,960.0㎡**<br>• 시외버스터미널: **22,884.0㎡** | • 감전천 및 삼락천 방재시설 용량 초과로 간선도로 전면 침수<br>• 서부시외버스터미널 일원 상가 및 차량 침수 |\n| **기장군 기장·일광·철마**<br>([신천죽성](#ref:r43) / [길천](#ref:r50)) | • 자연재해위험개선지구(원리 '다', 이천 '다', 방곡 '나') | 2020.07.23~25 집중호우 | • 신천죽성: **178,673.6㎡** (수심 5.3m)<br>• 길천: **50,339.0㎡** (수심 3.8m)<br>• 원인: 좌광천·죽성천 범람 및 배수불량 | • 기장읍 죽성로 공장 밀집지역 침수로 수십억 원대 재산피해(시온합섬 약 59.8억 원 등)<br>• 일광면 원리 좌광천 범람으로 중계펌프장·배전반 침수 |\n| **강서구 명지·식만·강동**<br>([식만](#ref:r21) / [대저](#ref:r23) / [강동](#ref:r18)) | • 자연재해위험개선지구(식만 '나', 대저1·2 '가'·'나', 미음 '가') | 2020.07 / 2024.09 / 2025.07 호우 | • 명지지구: **66,404.2㎡**(2020)<br>• 강동·식만: **1,000~3,000㎡**(2025)<br>• 원인: 서낙동강 수위 상승 및 내수 배제 불량 | • 명지동 학교시설 침수(약 4,455만 원)<br>• 조만강 범람에 따른 제방둑 파손(L=30m)<br>• 저지대 농경지 및 배수로 범람 |\n\n---\n\n### 호우경보 발효 시 현장 점검 및 대응 우선순위\n\n1. **인명피해 우려 지하차도 선제 통제**:\n   - [초량제1지하차도](#ref:r93), [문현지하차도](#ref:r84), [개금지하차도](#ref:r74), [내성지하차도](#ref:r77) 등 인근 하천(초량천, 동천, 온천천) 500m 이내 지하차도는 기준 침수심(5~15cm) 도달 전 진입차단시설 가동 및 현장 통제 요원 배치.\n2. **동천 유역(남구 문현·동구 범일) 수위 모니터링**:\n   - 과거 만조 시간대와 호우가 겹칠 때 동천 범람으로 자성대·문현 일원에 침수가 반복되었으므로, 배수펌프장 즉각 가동 및 차수판 사전 전개.\n3. **온천천·도심 저지대 교차로 내수 배제 점검**:\n   - 연제구(연서초, 교대역), 사상구(사상구청, 감전교차로) 등 관거 용량 초과 이력이 있는 교차로의 빗물받이 덮개 제거 및 이동식 양수기 전진 배치.",
+      "entities": [],
+      "question": "위험·취약지역 중 과거 재난 때 실제로 피해가 났던 곳과 피해 내용은?",
+      "limitations": [
+        "유사사례는 예측·위험판단이 아닌 참고 정보"
+      ],
+      "response_id": "RES-20261030-db06c1",
+      "context_used": {
+        "reference_used": false,
+        "used_conditions": [],
+        "unused_conditions": []
+      },
+      "answer_format": "MARKDOWN",
+      "briefing_item": {
+        "unit": null,
+        "count": null,
+        "objects": [],
+        "summary": null,
+        "item_name": null,
+        "item_status": "SUCCESS",
+        "evidence_refs": [],
+        "briefing_item_id": "BR-02"
+      },
+      "evidence_refs": [],
+      "result_groups": [],
+      "question_source": "BRIEFING",
+      "conversation_title": null,
+      "follow_up_questions": []
+    },
+    "status": "SUCCESS",
+    "turn_no": 2,
+    "warnings": [],
+    "data_gaps": [],
+    "request_id": "5b37f66c6fade0ce0f54ee145097dcce",
+    "correlation_id": "corr-5b37f66c6fade0ce0f54ee145097dcce",
+    "schema_version": "2.0",
+    "conversation_id": "CONV-20261030-2840f1"
+  }
+}

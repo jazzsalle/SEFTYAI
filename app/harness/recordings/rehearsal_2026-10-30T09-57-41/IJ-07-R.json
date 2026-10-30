@@ -1,0 +1,72 @@
+{
+  "id": "IJ-07-R",
+  "account": "ij_safety01",
+  "question": "2020년 9월 1일~7일 태풍 마이삭·하이선(T10105-20200901-0001) 때 인제군 공공시설 피해액·복구비 합계와 근거 문서 이름·쪽을 알려줘.",
+  "jobId": "29c5a988-d623-4d97-885e-7f4a02c6dff3",
+  "cachedFrom": "6f6c7565-cb11-4885-88cf-321da7ea89e6",
+  "sourceFinishedAt": "2026-10-30T01:58:05.919Z",
+  "state": "DONE",
+  "t3qStatus": "SUCCESS",
+  "elapsedMs": 75240,
+  "request": {
+    "caller": {
+      "role": "LOCAL_GOV_OFFICER",
+      "user_id": "U-900f8d5abed9",
+      "org_admin_code": "5181000000"
+    },
+    "turn_no": 6,
+    "question": "2020년 9월 1일~7일 태풍 마이삭·하이선(T10105-20200901-0001) 때 인제군 공공시설 피해액·복구비 합계와 근거 문서 이름·쪽을 알려줘.",
+    "reference": null,
+    "query_context": {
+      "region": {
+        "name": "강원특별자치도 인제군",
+        "level": "SIGUNGU",
+        "admin_code": "5181000000"
+      },
+      "disaster_types": [
+        "태풍"
+      ]
+    },
+    "response_mode": "ASYNC",
+    "conversation_id": null,
+    "question_source": "SUGGEST"
+  },
+  "raw": {
+    "meta": {
+      "source": "T3Q",
+      "base_time": "2026-10-30T10:58:04+09:00",
+      "elapsed_ms": 75240,
+      "quality_status": "VERIFIED",
+      "disclosure_level": "공개"
+    },
+    "result": {
+      "refs": [],
+      "answer": "### 1. 결론\n\n2020년 9월 1일~7일 발생한 **태풍 마이삭·하이선(사건ID: `T10105-20200901-0001`)** 당시 **강원도 인제군**의 공공시설 피해액 및 복구비 합계와 출처는 다음과 같습니다.\n\n- **공공시설 피해액 합계**: **7,984,709,000원** (약 79억 8,471만 원)\n- **공공시설 복구비 합계**: **18,974,798,000원** (약 189억 7,480만 원)\n- **근거 문서 및 쪽수**: **`2020_재해연보.md`**, **153쪽**\n\n---\n\n### 2. 세부 현황 및 산출 근거\n\n#### 1) 사건 및 재난 개요\n- **사건 식별자**: `T10105-20200901-0001`\n- **재해연보 사건명**: 2020년 9.1.~9.7. 태풍\n- **재해대장 재난명**: 제9호 태풍 마이삭 및 제10호 태풍 하이선 (disaster_id: 237)\n- **출처 문서**: `disaster.event` 테이블 내 `source_document = '2020_재해연보.md'`, `source_page = 153`\n\n#### 2) 인제군 공공시설 피해·복구비 집계 (`disaster.recovery_item` & `recovery_amount`)\n인제군 관할 공공시설 피해 건수는 총 **70건**이며, 지자체 보고 및 중앙 확정 기준 금액은 동일합니다.\n\n| 시설 구분 | 피해 건수 | 피해액 합계 (원) | 복구비 합계 (원) |\n|---|---:|---:|---:|\n| **하천 기본시설** | 11건 | 1,911,427,000 | 5,512,695,000 |\n| **공원시설** | 6건 | 1,890,244,000 | 3,888,062,000 |\n| **도로** | 7건 | 1,123,937,000 | 2,101,927,000 |\n| **상수도** | 4건 | 809,355,000 | 1,329,999,000 |\n| **수리시설** | 5건 | 553,025,000 | 1,031,021,000 |\n| **도로-국토부** | 5건 | 469,716,000 | 1,178,259,000 |\n| **군사시설** | 12건 | 344,010,000 | 836,280,000 |\n| **소하천** | 8건 | 256,624,000 | 694,531,000 |\n| **농어촌도로** | 2건 | 232,380,000 | 586,633,000 |\n| **소규모시설** | 6건 | 166,402,000 | 1,205,857,000 |\n| **기타 (행안부기타·교량·임도·쓰레기 등)** | 4건 | 227,589,000 | 609,534,000 |\n| **합계** | **70건** | **7,984,709,000** | **18,974,798,000** |\n\n---\n\n### 3. 출처 및 참고사항\n- **사건 메타 출처**: DB `disaster.event` (`2020_재해연보.md`, p.153)\n- **세부 피해/복구 출처**: DB `disaster.recovery_item` 및 `disaster.recovery_amount` (원천 서식: `재난_피해_및_복구내역`)",
+      "entities": [],
+      "question": "2020년 9월 1일~7일 태풍 마이삭·하이선(T10105-20200901-0001) 때 인제군 공공시설 피해액·복구비 합계와 근거 문서 이름·쪽을 알려줘.",
+      "limitations": [
+        "유사사례는 예측·위험판단이 아닌 참고 정보"
+      ],
+      "response_id": "RES-20261030-680bd3",
+      "context_used": {
+        "reference_used": false,
+        "used_conditions": [],
+        "unused_conditions": []
+      },
+      "answer_format": "MARKDOWN",
+      "evidence_refs": [],
+      "result_groups": [],
+      "question_source": "SUGGEST",
+      "conversation_title": null,
+      "follow_up_questions": []
+    },
+    "status": "SUCCESS",
+    "turn_no": 1,
+    "warnings": [],
+    "data_gaps": [],
+    "request_id": "2a24c652319407c50089dcb0f37cb6db",
+    "correlation_id": "corr-2a24c652319407c50089dcb0f37cb6db",
+    "schema_version": "2.0",
+    "conversation_id": "CONV-20261030-58f8c6"
+  }
+}
