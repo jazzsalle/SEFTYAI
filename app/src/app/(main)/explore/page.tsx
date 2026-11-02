@@ -47,6 +47,44 @@ function Explore() {
   const [queueOpen, setQueueOpen] = useState(true);
   const [libOpen, setLibOpen] = useState(false);
   const [panelOpen, setPanelOpen] = useState(false);
+  // 대화 ↔ 지도 패널 너비 — 대화 칸 비율(%). 가운데 막대를 끌거나 버튼으로 바꾼다(사용자 지시 2026-11-02). 이 브라우저에 기억
+  const [chatW, setChatWS] = useState(52);
+  useEffect(() => {
+    try {
+      const v = Number(localStorage.getItem("sa_chat_w"));
+      if (v >= 22 && v <= 78) setChatWS(v);
+    } catch {
+      /* 저장소를 못 쓰면 기본값 */
+    }
+  }, []);
+  const setChatW = useCallback((v: number) => {
+    const w = Math.round(Math.min(78, Math.max(22, v)));
+    setChatWS(w);
+    try {
+      localStorage.setItem("sa_chat_w", String(w));
+    } catch {
+      /* 무시 */
+    }
+  }, []);
+  const mainRef = useRef<HTMLElement>(null);
+  const [dragging, setDragging] = useState(false);
+  const startDrag = (e: React.PointerEvent) => {
+    const main = mainRef.current;
+    const box = main?.parentElement;
+    if (!main || !box) return;
+    e.preventDefault();
+    const left = main.getBoundingClientRect().left;
+    const total = box.getBoundingClientRect().right - left;
+    setDragging(true);
+    const move = (ev: PointerEvent) => setChatW(((ev.clientX - left) / total) * 100);
+    const up = () => {
+      setDragging(false);
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+  };
   const [tabs, setTabs] = useState<PanelTab[]>([MAP_TAB]);
   const [active, setActive] = useState("map");
   const [sopFocus, setSopFocus] = useState<{ id: string; n: number } | undefined>(undefined);
@@ -375,9 +413,9 @@ function Explore() {
 
   return (
     <ExploreContext.Provider value={x}>
-      <div className={`explore ${panelOpen ? "with-panel" : ""} ${queueOpen ? "with-queue" : ""}`}>
+      <div className={`explore ${panelOpen ? "with-panel" : ""} ${queueOpen ? "with-queue" : ""} ${dragging ? "dragging" : ""}`} style={{ "--chat-w": `${chatW}%` } as React.CSSProperties}>
         <QueuePanel open={queueOpen} setOpen={setQueueOpen} onPick={pickFromQueue} currentJobIds={turnJobIds} />
-        <main className="ex-main">
+        <main className="ex-main" ref={mainRef}>
           {!panelOpen && (
             <button className="btn panel-open" onClick={() => setPanelOpen(true)}><IcChevL size={14} /> 패널 펼치기</button>
           )}
@@ -444,6 +482,17 @@ function Explore() {
             clearFollowUp={() => setFollow(null)}
           />
         </main>
+        {panelOpen && (
+          <div className="ex-split" role="separator" aria-orientation="vertical" aria-label="대화와 지도 너비 조절" aria-valuenow={chatW} aria-valuemin={22} aria-valuemax={78} tabIndex={0}
+            onPointerDown={startDrag}
+            onKeyDown={(e) => { if (e.key === "ArrowLeft") setChatW(chatW - 4); if (e.key === "ArrowRight") setChatW(chatW + 4); }}>
+            <button className="ex-split-btn" title="지도 넓게" aria-label="지도 넓게" onPointerDown={(e) => e.stopPropagation()} onClick={() => setChatW(chatW > 40 ? 35 : 25)}>◀</button>
+            <span className="grip" />
+            <button className="ex-split-btn" title="기본 너비" aria-label="기본 너비" onPointerDown={(e) => e.stopPropagation()} onClick={() => setChatW(52)}>↔</button>
+            <span className="grip" />
+            <button className="ex-split-btn" title="대화 넓게" aria-label="대화 넓게" onPointerDown={(e) => e.stopPropagation()} onClick={() => setChatW(chatW < 60 ? 65 : 75)}>▶</button>
+          </div>
+        )}
         {panelOpen && (
           <RightPanel
             tabs={panelTabs}
