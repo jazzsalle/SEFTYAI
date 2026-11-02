@@ -6,6 +6,7 @@ let cache: { at: number; ok: boolean; version: string | null } | null = null;
 
 /** GET /api/t3q/health — T3Q 연결 상태(30초 캐시). 실패 시 화면 상단 배너 */
 export const maxDuration = 30;
+let lastOk: { at: number; version: string | null } | null = null;
 
 export async function GET() {
   if (!cache || Date.now() - cache.at > 30_000) {
@@ -21,6 +22,12 @@ export async function GET() {
       } catch {
         ok = false;
       }
+    }
+    // T3Q 가 느려 점검이 가끔 늦는 동안(2026-11-02) 띠가 깜빡이지 않게 — 최근 2분 안에 정상이었으면 정상으로 본다
+    if (ok) lastOk = { at: Date.now(), version };
+    else if (lastOk && Date.now() - lastOk.at < 120_000) {
+      ok = true;
+      version = lastOk.version;
     }
     cache = { at: Date.now(), ok, version };
   }
