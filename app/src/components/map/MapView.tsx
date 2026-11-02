@@ -166,7 +166,7 @@ function pinStyles(e: LegendEntry, st: St, approx: 0 | 1 | 2, onAnchor: boolean)
       image: new CircleStyle({
         radius: approx === 2 ? 26 : 18,
         fill: new Fill({ color: st === "dim" ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.4)" }),
-        stroke: new Stroke({ color: st === "dim" ? rgba(MAP_COLOR.sub, 0.4) : MAP_COLOR.sub, width: 1.5, lineDash: [4, 3] }),
+        stroke: new Stroke({ color: st === "dim" ? rgba(MAP_COLOR.ring, 0.45) : MAP_COLOR.ring, width: 2.5, lineDash: [5, 3] }),
       }),
     }));
   }

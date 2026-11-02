@@ -18,6 +18,11 @@ export const MAP_COLOR = {
   gray40: "#8A949E",
   ochre: "#9E6A00",
   ochreDk: "#8A5C00",
+  // 위험·취약지역·잠재 위험요소 핀 — 지도 위에서 잘 보이게 초록(사용자 지시 2026-11-02)
+  hazard: "#12A150",
+  hazardDk: "#0B7A3B",
+  // 근사 위치 점선 원 — 하늘색(사용자 지시 2026-11-02)
+  ring: "#00B7F1",
   info: "#0B78CB",
   danger: "#DE3412",
   purple: "#6F4BD8",
@@ -50,8 +55,8 @@ const C = MAP_COLOR;
 /** 범례 — 순서가 곧 범례 표시 순서. 마지막 `other` 는 정의에 없는 유형을 받는다. */
 export const LEGEND: readonly LegendEntry[] = [
   { id: "event", label: "유사재난 사례", types: ["EVENT"], pin: C.navy, stroke: C.navy, fill: "rgba(6,58,116,0.16)", glyph: "doc" },
-  { id: "riskArea", label: "위험·취약지역", types: ["RISK_AREA"], pin: C.ochre, stroke: C.ochreDk, fill: "rgba(158,106,0,0.12)", glyph: "warn", hatch: true }, // 빨강 미사용(사용자 지시) — 황토 + 빗금
-  { id: "facility", label: "잠재 위험요소·취약시설", types: ["FACILITY", "RISK_FACTOR"], pin: C.ochre, stroke: C.ochreDk, fill: "rgba(158,106,0,0.16)", glyph: "warn" },
+  { id: "riskArea", label: "위험·취약지역", types: ["RISK_AREA"], pin: C.hazard, stroke: C.hazardDk, fill: "rgba(18,161,80,0.14)", glyph: "warn", hatch: true }, // 빨강 미사용(사용자 지시) — 황토 + 빗금
+  { id: "facility", label: "잠재 위험요소·취약시설", types: ["FACILITY", "RISK_FACTOR"], pin: C.hazard, stroke: C.hazardDk, fill: "rgba(18,161,80,0.16)", glyph: "warn" },
   { id: "floodTrace", label: "침수흔적", types: ["FLOOD_TRACE"], pin: C.info, stroke: C.info, fill: "rgba(11,120,203,0.28)", glyph: "drop" },
   { id: "floodMap", label: "침수지도 구역", types: ["FLOOD_MAP"], pin: C.purple, stroke: C.purple, fill: "rgba(111,75,216,0.18)", glyph: "wave" },
   { id: "river", label: "하천", types: ["RIVER"], pin: C.river, stroke: C.river, fill: "rgba(10,127,163,0.22)", glyph: "wave" },
