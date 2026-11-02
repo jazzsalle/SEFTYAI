@@ -79,7 +79,7 @@ export function fmtYmdHm(iso: string): string {
   return `${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())} ${p2(d.getHours())}:${p2(d.getMinutes())}`;
 }
 const advText = (a: Advisory) => `${a.area} ${advLabel(a)} ${advTime(a.issuedAt)}`;
-/** 「이전 답변 재사용」 띠 — 끔(사용자 지시 2026-11-02) */
+/** 「이전 답변 재사용」 띠·머리의 처리 시간 — 끔(사용자 지시 2026-11-02 — 시연) */
 const SHOW_REUSE = false;
 
 type CardProps = { job: JobSummary; full: JobFull | undefined; compact?: boolean };
@@ -199,7 +199,7 @@ function Card({ job, full, compact }: CardProps) {
           {[
             raw.meta?.base_time ? `${raw.meta.base_time} 기준` : null,
             raw.status && raw.status !== "SUCCESS" ? statusKo(raw.status) : null,
-            typeof elapsed === "number" ? `처리 ${fmtElapsed(elapsed)}` : null,
+            SHOW_REUSE && typeof elapsed === "number" ? `처리 ${fmtElapsed(elapsed)}` : null,
             sentWithScenario(full?.request) ? SCN_SENT_LABEL : null,
           ]
             .filter(Boolean)

@@ -23,16 +23,16 @@ const NOW = Date.parse("2026-10-28T03:00:40+09:00");
 describe("브리핑 현황판 — 재사용 칸", () => {
   it("원래 답을 받은 시각 기준 — 1분 안이면 「n초 전」(답 카드와 같은 표기)", () => {
     const j = job();
-    expect(briefCell(turn, 0, j, full(j), NOW).reuse).toBe("재사용 · 40초 전");
+    expect(briefCell(turn, 0, j, full(j), NOW).reuse).toBeNull(); // 재사용 표시 끔(사용자 지시 2026-11-02 — 시연)
   });
   it("요약에 없고 상세에만 원래 받은 시각이 있어도 같은 값", () => {
     const j = job({ source_finished_at: undefined });
     const f = { ...full(j), source_finished_at: "2026-10-28T01:00:40+09:00" };
-    expect(briefCell(turn, 0, j, f, NOW).reuse).toBe("재사용 · 2시간 전");
+    expect(briefCell(turn, 0, j, f, NOW).reuse).toBeNull();
   });
   it("원래 받은 시각을 모르면 「재사용」만 — 답의 기준 시각(base_time)으로 메우지 않는다", () => {
     const j = job({ source_finished_at: null });
-    expect(briefCell(turn, 0, j, full(j), NOW).reuse).toBe("재사용");
+    expect(briefCell(turn, 0, j, full(j), NOW).reuse).toBeNull();
   });
   it("재사용이 아니면 재사용 표시 없음", () => {
     const j = job({ cached_from: null, source_finished_at: null });

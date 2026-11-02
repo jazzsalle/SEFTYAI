@@ -42,6 +42,8 @@ export interface BriefCell {
 
 const RUN_TEXT: Partial<Record<JobState, string>> = { QUEUED: "대기 중", SUBMITTED: "보내는 중", RUNNING: "생성 중" };
 const END_TEXT: Partial<Record<JobState, string>> = { FAILED: "오류", TIMEOUT: "시간 초과", LOST: "유실", CANCELLED: "취소됨" };
+/** 끝난 답의 처리 시간·「재사용」 — 끔(사용자 지시 2026-11-02 — 시연) */
+const SHOW_DONE_META = false;
 
 /** 한 항목의 칸 — 턴(접수 전·접수 실패)·작업 요약·원응답에서 받은 값만 */
 export function briefCell(t: Turn, i: number, job: JobSummary | undefined, full: JobFull | undefined, now: number): BriefCell {
@@ -57,11 +59,12 @@ export function briefCell(t: Turn, i: number, job: JobSummary | undefined, full:
   // 재사용 답을 받은 시각 — 답 카드의 재사용 주의 줄(D5)과 같은 값·같은 표기(모르면 「재사용」만)
   const at = job.cached_from ? receivedAt(job, full) : null;
   const ago = at ? fmtAgo(now - Date.parse(at)) : null;
+  // 끝난 답의 처리 시간·「재사용」 표시는 보이지 않는다(사용자 지시 2026-11-02 — 시연). 진행 중 시계는 그대로
   const got = {
-    time: typeof ms === "number" ? fmtElapsed(ms) : null,
+    time: SHOW_DONE_META && typeof ms === "number" ? fmtElapsed(ms) : null,
     gaps: (raw?.data_gaps?.length ?? 0) > 0,
     warns: (raw?.warnings?.length ?? 0) > 0,
-    reuse: job.cached_from ? (ago ? `재사용 · ${ago}` : "재사용") : null,
+    reuse: SHOW_DONE_META && job.cached_from ? (ago ? `재사용 · ${ago}` : "재사용") : null,
   };
   if (job.state === "DONE") {
     const st = job.t3q_status ?? raw?.status ?? null;

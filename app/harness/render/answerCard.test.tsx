@@ -81,7 +81,7 @@ describe("답변 카드 — 받은 값만, 센 값·설명 없음", () => {
     const { container } = wrap(<AnswerCard job={job} full={makeFull(job)} />);
     const head = container.querySelector(".acard-h")!;
     expect(head.textContent).toContain("2026-10-28T02:48:13+09:00 기준");
-    expect(head.textContent).toContain("처리 1분 46초");
+    expect(head.textContent).not.toContain("처리"); // 처리 시간 끔(사용자 지시 2026-11-02 — 시연)
     expect(head.textContent).not.toContain("110초");
     expect(head.textContent).not.toContain("시연 시나리오");
   });
