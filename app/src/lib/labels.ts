@@ -35,7 +35,7 @@ export const FIELD_KO: Record<string, string> = {
   // 유사도 근거
   contributions: "요인군 기여", factor_group: "요인군", factor_key: "요인 키", factor: "요인", unit: "단위", current_value: "현재 조건", past_value: "과거 사례",
   match: "일치도", weight_used: "가중치", contribution: "기여도", contribution_points: "기여 점수", contribution_pct: "기여 비율", weights: "가중치",
-  by_group: "요인군별", weight: "가중치", weight_stage: "가중치 기준", similarity_reasons: "유사 이유", factor_groups_not_provided: "제공되지 않은 요인군",
+  by_group: "요인군별", weight: "가중치", weight_stage: "가중치 기준", similarity_reasons: "유사 이유", factors: "요인별", factor_groups_not_provided: "제공되지 않은 요인군",
   disclaimer: "유의 사항", disaster_type: "재난유형",
   // 타임라인
   seq: "순번", occurred_at: "시각", elapsed_hours: "경과(시간)", description: "내용", agency: "기관", record_type: "기록 종류", source_ref: "원천 번호",

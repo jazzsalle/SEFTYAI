@@ -89,7 +89,7 @@ function AnswerMap({ job, refs, shapes, order }: { job: JobSummary; refs: T3qRef
     <Fig title="답변 대상 지도" src="답변 대상 · 공간정보 그대로 · 번호는 답 글에 나온 순서" label={`답변 대상 ${order.length}곳을 번호로 표시한 지도`}
       foot={approx ? "「근사」 표시는 공간정보가 동 중심 좌표를 준 대상 — 같은 동은 표지가 겹친다. 번호를 누르면 지도에서 본다." : "번호를 누르면 지도에서 본다."}>
       <div className="im-wrap">
-        <InfoMapSvg shapes={shapes} labels={labels} onPick={(r) => x.showOnMap(job.id, r)} />
+        <InfoMapSvg shapes={shapes} labels={labels} width={order.length > 8 ? 380 : 320} onPick={(r) => x.showOnMap(job.id, r)} />
         <ol className="im-legend">
           {order.map((r, i) => {
             const ref = byRef.get(r);
@@ -161,6 +161,7 @@ function FacilityCards({ items, p }: { items: Item[]; p: PreviewItem }) {
           const name = cellText(it.name);
           return (
             <li key={i}>
+              <span className="di-ic" aria-hidden="true"><IcFacility size={16} /></span>
               {id != null ? <button type="button" className="lnk" onClick={() => x.openDetail("T3Q-15", String(id), name)}>{name}</button> : <b>{name}</b>}
               <span>{[cellText(it.category), cellText(it.type)].filter((s) => s !== "—").join(" · ")}</span>
               <span className="xs muted">{[pick("grade.value")(it) != null ? `등급 ${cellText(pick("grade.value")(it), false, "grade")}` : null, it.admin_name != null ? cellText(it.admin_name) : null].filter(Boolean).join(" · ")}</span>

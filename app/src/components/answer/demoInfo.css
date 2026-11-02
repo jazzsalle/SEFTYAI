@@ -1,127 +1,201 @@
-/* 시연 자료(인포그래픽) 패널 — 답 본문 위, 접이식. 기사·행안부 그래픽 문법(띠 제목·큰 숫자·날짜 칩·아이콘 타일). 색은 viz.css 계열색(빨강 없음) */
+/* 시연 자료(인포그래픽) 패널 — 답 본문 위, 접이식. 기사·행안부 그래픽 문법(띠 제목·큰 숫자·날짜 칩·아이콘 타일). 빨강 없음 */
 /* 그림 색 토큰 — viz.css 의 .viz 안에서만 정의돼 있어 .viz 밖(유사사례 카드·사건 상세)에서도 같은 값을 쓰게 루트에 둔다(값 동일) */
 :root {
   --viz-ink: #1e2124; --viz-ink-2: #464c53; --viz-muted: #6d7882; --viz-grid: #e6e8ea; --viz-axis: #cdd1d5;
   --series-1: #2a78d6; --series-2: #1baf7a; --series-3: #6250d6; --series-4: #eda100; --series-5: #008300;
+  /* 보도 그래픽 색(11/2 디자인 개편) — 남색 기둥 + 파랑(하천·외수) · 청록(시설) · 보라(내수) · 호박색(특보·가정). 빨강 계열 없음 */
+  --ig-navy: #12294a; --ig-navy-2: #1d3d6b;
+  --ig-blue: #1f66c9; --ig-blue-sub: #e8f1fc; --ig-blue-line: #b9d3f2;
+  --ig-teal: #0d8a74; --ig-teal-sub: #e3f5f0; --ig-teal-line: #a9dccd;
+  --ig-violet: #5646c2; --ig-violet-sub: #eeebfb; --ig-violet-line: #cbc3f0;
+  --ig-amber: #e8a000; --ig-amber-dk: #7a5200; --ig-amber-sub: #fff4d8; --ig-amber-line: #f2d68c;
+  --ig-ink: #141c27; --ig-ink-2: #46505d; --ig-muted: #6f7b89; --ig-line: #e1e5ea; --ig-soft: #f4f6f9;
+  --ig-land: #f5f3ec; --ig-water: #d3e6f8; --ig-water-dk: #4b8fd0;
 }
-.demo-info { margin: 8px 0 10px; border: 1px solid var(--c-line); border-radius: var(--r-m); background: #fff; }
-.demo-info > summary { cursor: pointer; padding: 8px 12px; font-size: var(--fs-xs); list-style: none; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+
+/* ── 패널 겉 ── */
+.demo-info { margin: 8px 0 12px; border: 1px solid var(--ig-line); border-radius: 12px; background: #fff; overflow: hidden; }
+.demo-info > summary { cursor: pointer; padding: 10px 14px; font-size: var(--fs-xs); list-style: none; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; background: var(--ig-navy); color: #fff; }
+.demo-info > summary b { font-weight: 800; letter-spacing: -0.02em; }
+.demo-info > summary .muted { color: #b9c6d8; }
 .demo-info > summary::-webkit-details-marker { display: none; }
-.demo-info > summary::before { content: "▸"; color: var(--viz-muted, #6d7882); }
+.demo-info > summary::before { content: "▸"; color: #8fa5c4; font-size: 11px; }
 .demo-info[open] > summary::before { content: "▾"; }
-.demo-info-body { margin: 0; padding: 0 12px 10px; display: flex; flex-direction: column; gap: 16px; }
+.demo-info-body { margin: 0; padding: 16px 14px 14px; display: flex; flex-direction: column; gap: 22px; background: #fff; }
 
-.di-fig { margin: 0; }
-.di-cap { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 8px; }
-/* 띠 제목(알약) — 참고 그림의 섹션 라벨 */
-.di-pill { display: inline-block; padding: 4px 14px; border-radius: 999px; background: var(--series-1); color: #fff; font-size: var(--fs-xs); font-weight: 700; letter-spacing: -0.01em; }
-.di-pill.t-b { background: var(--series-2); }
-.di-pill.t-c { background: var(--series-3); }
-.di-foot { margin-top: 6px; line-height: 1.5; }
+/* ── 그림 틀 — 위 색 줄 · 알약 + 큰 제목 · 본문 · 각주·출처 줄 ── */
+.di-fig { margin: 0; padding-top: 12px; border-top: 3px solid var(--ig-navy); min-width: 0; }
+.di-cap { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
+.di-fig .di-cap { margin-bottom: 14px; }
+/* 띠 제목(알약) — 참고 그림의 섹션 라벨. 다른 화면(유사사례 카드·사건 상세)도 이 이름을 쓴다 */
+.di-pill { display: inline-block; padding: 4px 14px; border-radius: 999px; background: var(--ig-blue); color: #fff; font-size: var(--fs-xs); font-weight: 800; letter-spacing: -0.02em; }
+.di-pill.t-b { background: var(--ig-teal); }
+.di-pill.t-c { background: var(--ig-violet); }
+.di-fig .di-pill { margin: 0; line-height: 1.35; background: var(--ig-navy); padding: 5px 15px; }
+.di-fig.t-a { border-top-color: var(--ig-blue); }
+.di-fig.t-b { border-top-color: var(--ig-teal); }
+.di-fig.t-c { border-top-color: var(--ig-violet); }
+.di-fig.t-a .di-pill { background: var(--ig-blue); }
+.di-fig.t-b .di-pill { background: var(--ig-teal); }
+.di-fig.t-c .di-pill { background: var(--ig-violet); }
+.di-title { font-size: var(--fs-hs); font-weight: 800; color: var(--ig-ink); letter-spacing: -0.035em; line-height: 1.3; min-width: 0; }
+.di-fig-body { min-width: 0; }
+.di-foot { margin-top: 12px; padding-top: 8px; border-top: 1px solid var(--ig-line); display: flex; flex-direction: column; gap: 3px; font-size: 11.5px; line-height: 1.55; color: var(--ig-muted); }
+.di-src { display: flex; align-items: center; gap: 6px; color: var(--ig-ink-2); font-weight: 600; }
+.di-src::before { content: ""; flex: none; width: 10px; height: 2px; background: var(--ig-muted); }
 
-/* 큰 숫자 헤드라인 */
-.di-head { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
-.di-head-item { display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto; column-gap: 8px; align-items: center; min-width: 150px; padding: 8px 12px; border: 1px solid var(--viz-grid); border-radius: 8px; background: #f7f9fb; }
-.di-head-ic { grid-row: 1 / span 2; color: var(--series-1); display: inline-flex; }
-.di-head-v { font-variant-numeric: tabular-nums; color: var(--viz-ink); line-height: 1.1; }
-.di-head-v b { font-size: 22px; font-weight: 800; }
-.di-head-v small { font-size: var(--fs-2xs); margin-left: 2px; color: var(--viz-ink-2); }
-.di-head-lb { font-size: var(--fs-2xs); color: var(--viz-muted); }
-.di-head-item.warn { background: var(--c-warn-sub); border-color: #f5dea0; }
-.di-head-item.warn .di-head-ic, .di-head-item.warn .di-head-v { color: var(--c-warn-dk); }
+/* 둥근 아이콘 칸(옅은 색 바탕) */
+.di-ic { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 50%; background: var(--ig-blue-sub); color: var(--ig-blue); }
+.di-ic.sm { width: 22px; height: 22px; }
 
-/* 날짜 칩 · 분류 꼬리표 */
-.di-chip { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 4px; background: var(--series-1); color: #fff; font-size: var(--fs-2xs); font-weight: 700; white-space: nowrap; font-variant-numeric: tabular-nums; }
-.di-chip.t-b { background: var(--series-3); }
-.di-tag { display: inline-block; padding: 1px 7px; border-radius: 999px; font-size: 10px; font-weight: 700; color: var(--series-1); background: #eef5fc; border: 1px solid #bcd6f3; }
-.di-tag.t-b { color: var(--series-3); background: #efecfb; border-color: #cdc5f0; }
-.di-legend { display: flex; gap: 8px; margin-top: 6px; color: var(--viz-muted); }
+/* ── 큰 숫자 헤드라인 — 숫자 띠 ── */
+.di-head { display: flex; flex-wrap: wrap; gap: 14px 0; margin-bottom: 16px; padding: 14px 4px 12px; background: var(--ig-soft); border-radius: 10px; }
+.di-head-item { flex: 1 1 140px; min-width: 0; display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto; column-gap: 10px; align-items: center; padding: 0 14px; border-left: 1px solid var(--ig-line); }
+.di-head-item:first-child { border-left: 0; }
+.di-head-ic { grid-row: 1 / span 2; display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 50%; background: #fff; color: var(--ig-blue); box-shadow: inset 0 0 0 1.5px var(--ig-blue-line); }
+.di-head-ic svg { width: 22px; height: 22px; }
+.di-head-v { font-variant-numeric: tabular-nums; color: var(--ig-navy); line-height: 1.05; white-space: nowrap; }
+.di-head-v b { font-size: 30px; font-weight: 800; letter-spacing: -0.04em; }
+.di-head-v small { font-size: var(--fs-2xs); margin-left: 3px; color: var(--ig-ink-2); font-weight: 700; letter-spacing: -0.01em; }
+.di-head-lb { font-size: 11.5px; color: var(--ig-muted); line-height: 1.35; margin-top: 3px; }
+.di-head-item.warn .di-head-ic { color: var(--ig-amber-dk); background: var(--ig-amber-sub); box-shadow: inset 0 0 0 1.5px var(--ig-amber-line); }
+.di-head-item.warn .di-head-v { color: var(--ig-amber-dk); }
 
-/* ① 연대기 — 날짜 칩 세로 목록 */
-.di-chron { list-style: none; margin: 0; padding: 0; }
-.di-chron li { display: grid; grid-template-columns: 118px 1fr; gap: 0 10px; padding: 6px 0; border-bottom: 1px dashed var(--viz-grid); align-items: start; }
-.di-chron-body { font-size: var(--fs-2xs); color: var(--viz-ink-2); line-height: 1.5; min-width: 0; }
-.di-chron-top { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-.di-chron-rain { color: var(--viz-ink); }
-.di-chron-area { font-weight: 700; color: var(--viz-ink); }
+/* ── 날짜 칩 · 분류 꼬리표 ── */
+.di-chip { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 5px; background: var(--ig-blue); color: #fff; font-size: var(--fs-2xs); font-weight: 800; white-space: nowrap; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+.di-chip.t-b { background: var(--ig-violet); }
+.di-tag { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 10.5px; font-weight: 700; color: var(--ig-blue); background: var(--ig-blue-sub); border: 1px solid var(--ig-blue-line); }
+.di-tag.t-b { color: var(--ig-violet); background: var(--ig-violet-sub); border-color: var(--ig-violet-line); }
+.di-legend { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; color: var(--ig-muted); }
 
-/* ② 지도 — 위 띠(아이콘 타일) + 범례 */
-.di-maphead { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
-.di-mh { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 6px; border: 1px solid var(--viz-grid); background: #f7f9fb; font-size: var(--fs-2xs); color: var(--viz-ink); }
-.di-mh.warn { background: var(--c-warn-sub); border-color: #f5dea0; color: var(--c-warn-dk); font-weight: 700; }
-.di-mh.cond { background: #eef5fc; border-color: #bcd6f3; color: var(--series-1); font-weight: 700; }
-.di-map-legend { margin: 0; padding: 0; list-style: none; flex: 1; min-width: 0; font-size: var(--fs-2xs); color: var(--viz-ink-2); line-height: 1.55; }
-.di-map-legend li { margin-bottom: 6px; display: flex; gap: 6px; align-items: flex-start; }
-.di-map-legend li svg { flex: none; margin-top: 2px; color: var(--viz-ink-2); }
-.di-map-legend b { color: var(--series-3); font-size: var(--fs-xs); flex: none; }
-.di-map-legend b.t-b { color: var(--series-2); }
-.im-mk text.im-sub { font-size: 9px; font-weight: 700; fill: var(--viz-ink); paint-order: stroke; stroke: #f7f9fb; stroke-width: 3px; }
+/* ── ① 연대기 — 세로 줄기 + 점 ── */
+.di-chron { position: relative; list-style: none; margin: 0; padding: 0; }
+.di-chron::before { content: ""; position: absolute; left: 131px; top: 10px; bottom: 10px; width: 2px; background: var(--ig-line); }
+.di-chron li { position: relative; display: grid; grid-template-columns: 118px 1fr; gap: 0 30px; padding: 8px 0 12px; align-items: start; }
+.di-chron li::before { content: ""; position: absolute; left: 126px; top: 13px; width: 8px; height: 8px; border-radius: 50%; background: #fff; border: 2px solid var(--ig-blue); }
+.di-chron li.t-b::before { border-color: var(--ig-violet); }
+.di-chron li.t-a::before { background: var(--ig-blue); }
+.di-chron li > .di-chip { justify-self: end; margin-top: 3px; }
+.di-chron-body { font-size: var(--fs-2xs); color: var(--ig-ink-2); line-height: 1.55; min-width: 0; padding-bottom: 10px; border-bottom: 1px solid var(--ig-line); }
+.di-chron li:last-child .di-chron-body { border-bottom: 0; padding-bottom: 0; }
+.di-chron-top { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 3px; }
+.di-chron-area { font-size: var(--fs-s); font-weight: 800; color: var(--ig-navy); letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+.di-chron-rain { color: var(--ig-ink); font-weight: 600; }
 
-/* ③ 흐름도 — 번호·아이콘 칸, 좁으면 줄바꿈 */
-.di-flow { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
-.di-flow li { position: relative; flex: 1 1 150px; padding: 8px 10px 8px 34px; border: 1px solid var(--viz-grid); border-radius: 6px; background: #f7f9fb; font-size: var(--fs-2xs); color: var(--viz-ink); line-height: 1.45; display: flex; flex-direction: column; gap: 4px; }
-.di-flow li:not(:last-child)::after { content: "→"; position: absolute; right: -9px; top: 50%; transform: translateY(-50%); color: var(--viz-muted); background: #fff; font-size: 11px; line-height: 1; }
-.di-flow-n { position: absolute; left: 9px; top: 8px; width: 18px; height: 18px; border-radius: 50%; background: var(--series-1); color: #fff; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; }
-.di-flow-ic { color: var(--series-1); display: inline-flex; }
-.di-flow li:last-child { border-color: var(--series-3); }
-.di-flow li:last-child .di-flow-n { background: var(--series-3); }
-.di-flow li:last-child .di-flow-ic { color: var(--series-3); }
+/* ── ② 지도 — 위 띠(아이콘 타일) + 범례 ── */
+.di-maphead { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.di-mh { display: inline-flex; align-items: center; gap: 6px; padding: 5px 11px 5px 8px; border-radius: 999px; border: 1px solid var(--ig-line); background: #fff; font-size: var(--fs-2xs); color: var(--ig-ink); font-weight: 600; }
+.di-mh svg { color: var(--ig-ink-2); }
+.di-mh.warn { background: var(--ig-amber-sub); border-color: var(--ig-amber-line); color: var(--ig-amber-dk); font-weight: 800; }
+.di-mh.warn svg { color: var(--ig-amber-dk); }
+.di-mh.cond { background: var(--ig-blue-sub); border-color: var(--ig-blue-line); color: var(--ig-blue); font-weight: 800; }
+.di-mh.cond svg { color: var(--ig-blue); }
+.di-map-legend { margin: 0; padding: 0; list-style: none; flex: 1; min-width: 0; font-size: var(--fs-2xs); color: var(--ig-ink-2); line-height: 1.6; }
+.di-map-legend li { padding: 8px 0; display: flex; gap: 8px; align-items: flex-start; border-bottom: 1px solid var(--ig-line); }
+.di-map-legend li:first-child { padding-top: 0; }
+.di-map-legend li:last-child { border-bottom: 0; }
+.di-map-legend li svg { flex: none; margin-top: 2px; color: var(--ig-ink-2); }
+.di-map-legend b { color: var(--ig-violet); font-size: 17px; line-height: 1.1; flex: none; font-weight: 800; }
+.di-map-legend b.t-b { color: var(--ig-teal); }
+.di-map-legend li.muted { background: var(--ig-soft); border-radius: 6px; padding: 7px 10px; border: 0; margin-top: 4px; }
 
-/* ④ 사건 카드 — 아이콘 머리 칸 */
-.di-ev { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 8px; }
-.di-ev section { border: 1px solid var(--viz-grid); border-radius: 6px; padding: 8px 10px; background: #fff; }
-.di-ev section.pending { background: #f1f3f5; border-style: dashed; color: var(--viz-muted); }
-.di-ev h4 { margin: 0 0 6px; font-size: var(--fs-xs); color: var(--viz-ink); display: flex; align-items: center; gap: 6px; }
-.di-ev h4 svg { color: var(--series-1); }
-.di-ev section.pending h4, .di-ev section.pending h4 svg { color: var(--viz-muted); }
-.di-ev ul { margin: 0; padding-left: 16px; font-size: var(--fs-2xs); line-height: 1.55; color: var(--viz-ink-2); }
-.di-ev ul b { color: var(--viz-ink); }
-.di-ev-icons { list-style: none; padding: 0 !important; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-.di-ev-icons li { display: flex; align-items: center; gap: 6px; }
-.di-ev section:nth-child(1) { border-top: 3px solid var(--series-1); }
-.di-ev section:nth-child(2) { border-top: 3px solid var(--series-2); }
+/* ── ③ 흐름도 — 둥근 아이콘 + 번호, 사이에 꺾쇠. 좁으면 줄바꿈 ── */
+.di-flow { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px 16px; }
+.di-flow li { position: relative; min-width: 0; padding: 12px 12px 12px; border-radius: 10px; background: var(--ig-soft); font-size: var(--fs-2xs); color: var(--ig-ink); font-weight: 600; line-height: 1.45; display: flex; flex-direction: column; gap: 8px; }
+.di-flow li:not(:nth-child(3n))::after { content: ""; position: absolute; right: -11px; top: 50%; width: 8px; height: 8px; border-top: 2px solid var(--ig-teal); border-right: 2px solid var(--ig-teal); transform: translateY(-50%) rotate(45deg); }
+.di-flow-n { position: absolute; right: 10px; top: 10px; font-size: 20px; font-weight: 800; color: var(--ig-teal-line); line-height: 1; font-variant-numeric: tabular-nums; letter-spacing: -0.04em; }
+.di-flow-ic { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; background: #fff; color: var(--ig-teal); box-shadow: inset 0 0 0 1.5px var(--ig-teal-line); }
+.di-flow li:last-child { background: var(--ig-violet-sub); }
+.di-flow li:last-child .di-flow-n { color: var(--ig-violet-line); }
+.di-flow li:last-child .di-flow-ic { color: var(--ig-violet); box-shadow: inset 0 0 0 1.5px var(--ig-violet-line); }
 
-/* ⑤ 역대 비교 가로막대 · 수위 눈금 */
-.di-gauge-lb { font-size: var(--fs-2xs); color: var(--viz-ink-2); margin: 8px 0 4px; display: flex; align-items: center; gap: 4px; }
-.di-bars { margin-right: 4.5em; }
-.di-bar-row { display: grid; grid-template-columns: 110px 1fr; gap: 8px; align-items: center; padding: 3px 0; }
-.di-bar-lb { font-size: var(--fs-2xs); color: var(--viz-ink-2); white-space: nowrap; }
-.di-bar-row.now .di-bar-lb { color: var(--viz-ink); font-weight: 700; }
-.di-bar-track { position: relative; height: 14px; }
-.di-bar { position: absolute; left: 0; top: 1px; height: 12px; border-radius: 0 4px 4px 0; background: var(--series-1); opacity: 0.55; }
-.di-bar.rng { opacity: 1; border-radius: 0; }
-.di-bar-row.now .di-bar { background: var(--series-4); opacity: 1; }
-.di-bar-v { position: absolute; top: 0; margin-left: 6px; font-size: var(--fs-2xs); color: var(--viz-ink); white-space: nowrap; font-weight: 700; }
-.di-bar-axis { position: relative; height: 14px; margin-left: 118px; font-size: 10px; color: var(--viz-muted); border-top: 1px solid var(--viz-axis); }
+/* ── ④ 사건 카드 — 아이콘 머리 칸 ── */
+.di-ev { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; }
+.di-ev section { border: 1px solid var(--ig-line); border-radius: 10px; padding: 12px 12px 10px; background: #fff; min-width: 0; }
+.di-ev section.pending { background: var(--ig-soft); border-style: dashed; color: var(--ig-muted); }
+.di-ev h4 { margin: 0 0 10px; padding-bottom: 8px; border-bottom: 1px solid var(--ig-line); font-size: var(--fs-xs); font-weight: 800; color: var(--ig-ink); display: flex; align-items: center; gap: 8px; letter-spacing: -0.02em; }
+.di-ev section:nth-child(2) .di-ic { background: var(--ig-teal-sub); color: var(--ig-teal); }
+.di-ev section.pending .di-ic { background: #e6e9ee; color: var(--ig-muted); }
+.di-ev section.pending h4 { color: var(--ig-muted); border-bottom-style: dashed; }
+.di-ev ul { margin: 0; padding-left: 16px; font-size: var(--fs-2xs); line-height: 1.65; color: var(--ig-ink-2); }
+.di-ev ul li::marker { color: var(--ig-muted); }
+.di-ev ul b { color: var(--ig-navy); font-weight: 800; font-variant-numeric: tabular-nums; }
+.di-ev-icons { list-style: none; padding: 0 !important; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.di-ev-icons li { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; line-height: 1.35; }
+.di-ev-icons li svg { color: #9aa4b1; }
+
+/* ── ⑤ 역대 비교 가로막대 · 수위 눈금 ── */
+.di-gauge-lb { font-size: var(--fs-2xs); font-weight: 700; color: var(--ig-ink); margin: 4px 0 8px; display: flex; align-items: center; gap: 6px; }
+.di-gauge-lb ~ .di-gauge-lb { margin-top: 18px; }
+.di-bars { margin-right: 5em; }
+.di-bar-row { display: grid; grid-template-columns: 110px 1fr; gap: 10px; align-items: center; padding: 4px 0; }
+.di-bar-lb { font-size: var(--fs-2xs); color: var(--ig-ink-2); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.di-bar-row.now .di-bar-lb { color: var(--ig-amber-dk); font-weight: 800; }
+.di-bar-track { position: relative; height: 18px; background: var(--ig-soft); border-radius: 0 3px 3px 0; }
+.di-bar { position: absolute; left: 0; top: 0; height: 18px; border-radius: 0 3px 3px 0; background: var(--ig-blue); opacity: 0.45; }
+.di-bar.rng { opacity: 1; border-radius: 0 3px 3px 0; }
+.di-bar-row:first-child .di-bar { background: var(--ig-navy); opacity: 1; }
+.di-bar-row.now .di-bar { background: var(--ig-amber); opacity: 1; }
+.di-bar-v { position: absolute; top: 1px; margin-left: 7px; font-size: var(--fs-xs); color: var(--ig-ink); white-space: nowrap; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+.di-bar-row.now .di-bar-v { color: var(--ig-amber-dk); }
+.di-bar-axis { position: relative; height: 16px; margin-left: 120px; margin-top: 2px; font-size: 10px; color: var(--ig-muted); border-top: 1px solid var(--viz-axis); font-variant-numeric: tabular-nums; }
 .di-bar-axis span { position: absolute; top: 2px; transform: translateX(-50%); }
-.di-gauge { position: relative; margin: 0 8px 22px 0; }
-.di-gauge-track { position: relative; height: 34px; border-bottom: 1px solid var(--viz-axis); }
-.di-gauge-mk { position: absolute; bottom: 0; height: 12px; background: var(--series-1); opacity: 0.85; border-radius: 3px 3px 0 0; }
-.di-gauge-mk span { position: absolute; bottom: 100%; left: 0; transform: translateY(-2px); font-size: 10px; color: var(--viz-ink); white-space: nowrap; }
-.di-gauge-axis { position: relative; height: 14px; font-size: 10px; color: var(--viz-muted); }
-.di-gauge-axis span { position: absolute; top: 2px; transform: translateX(-50%); }
-.di-rules { margin: 4px 0 0; padding-left: 16px; color: var(--viz-ink-2); line-height: 1.55; }
+.di-gauge { position: relative; margin: 0 8px 18px 0; }
+/* 자 모양 눈금(0.5m 간격 꾸밈선) 위에 통제 기준 띠 */
+.di-gauge-track { position: relative; height: 54px; border-bottom: 2px solid var(--ig-navy); background: repeating-linear-gradient(to right, var(--viz-axis) 0 1px, transparent 1px calc(100% / 6)) left bottom / 100% 8px no-repeat; }
+.di-gauge-mk { position: absolute; bottom: 0; height: 14px; background: var(--ig-teal); border-radius: 3px 3px 0 0; }
+.di-gauge-mk:nth-child(2) { background: var(--ig-navy); height: 32px; min-width: 3px; border-radius: 2px 2px 0 0; }
+.di-gauge-mk span { position: absolute; bottom: 100%; left: 0; transform: translateY(-4px); font-size: 11px; font-weight: 700; color: var(--ig-ink); white-space: nowrap; }
+.di-gauge-mk:nth-child(2) span { left: auto; right: 0; }
+.di-gauge-axis { position: relative; height: 16px; font-size: 10px; color: var(--ig-muted); font-variant-numeric: tabular-nums; }
+.di-gauge-axis span { position: absolute; top: 3px; transform: translateX(-50%); }
+.di-rules { margin: 6px 0 0; padding: 10px 12px 10px 28px; background: var(--ig-soft); border-radius: 8px; color: var(--ig-ink-2); line-height: 1.65; }
+.di-rules li::marker { color: var(--ig-blue); }
 
-/* ⑥ 지하차도 카드 */
-.di-under-wrap { display: flex; gap: 12px; align-items: flex-start; }
-.di-under { list-style: none; margin: 0; padding: 0; flex: 1; display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 6px; }
-.di-under li { border: 1px solid var(--viz-grid); border-left: 4px solid var(--series-2); border-radius: 6px; padding: 6px 10px; display: flex; flex-direction: column; gap: 2px; font-size: var(--fs-2xs); color: var(--viz-ink-2); }
-.di-under li b { color: var(--viz-ink); font-size: var(--fs-xs); display: flex; align-items: center; gap: 6px; }
-.di-under li b svg { color: var(--series-2); }
+/* ── ⑥ 지하차도 카드 ── */
+.di-under-wrap { display: flex; gap: 14px; align-items: flex-start; }
+.di-under-wrap > .im-map.small { padding: 4px; border: 1px solid var(--ig-line); border-radius: 8px; background: #fff; }
+.di-under { list-style: none; margin: 0; padding: 0; flex: 1; min-width: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(175px, 1fr)); gap: 8px; }
+.di-under li { border: 1px solid var(--ig-line); border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 3px; font-size: var(--fs-2xs); color: var(--ig-ink-2); background: #fff; min-width: 0; }
+.di-under li b { color: var(--ig-ink); font-size: var(--fs-xs); font-weight: 800; display: flex; align-items: center; gap: 8px; margin-bottom: 4px; letter-spacing: -0.02em; }
+.di-under li .di-ic { background: var(--ig-teal-sub); color: var(--ig-teal); }
 
-/* ⑦ 보유표 */
-.di-matrix { border-collapse: collapse; font-size: var(--fs-2xs); width: 100%; }
-.di-matrix th, .di-matrix td { border: 1px solid var(--viz-grid); padding: 4px 6px; text-align: center; }
-.di-matrix thead th { background: #f7f9fb; color: var(--viz-ink-2); font-weight: 600; }
-.di-th { display: inline-flex; flex-direction: column; align-items: center; gap: 2px; }
-.di-th svg { color: var(--series-1); }
-.di-matrix tbody th { text-align: left; color: var(--viz-ink); font-weight: 600; white-space: nowrap; }
-.di-matrix td.on { color: var(--series-1); font-size: 14px; }
-.di-matrix td.off { color: var(--viz-axis); }
+/* ── ⑦ 보유표 — 줄무늬 행 · 둥근 표시 ── */
+.di-matrix-wrap, .di-fig-body:has(> .di-matrix) { overflow-x: auto; }
+.di-matrix { border-collapse: separate; border-spacing: 0; font-size: var(--fs-2xs); width: 100%; min-width: 520px; }
+.di-matrix th, .di-matrix td { padding: 8px 6px; text-align: center; border-bottom: 1px solid var(--ig-line); }
+.di-matrix thead th { color: var(--ig-ink-2); font-weight: 700; border-bottom: 2px solid var(--ig-navy); vertical-align: bottom; line-height: 1.3; }
+.di-matrix thead th:first-child { text-align: left; color: var(--ig-ink); }
+/* 앞 셋(지금 답에 나오는 자료)과 뒤 넷(연결 예정)을 칸 사이 줄로 나눈다 */
+.di-matrix thead th:nth-child(5), .di-matrix td:nth-child(5) { border-left: 2px dotted var(--viz-axis); }
+.di-th { display: inline-flex; flex-direction: column; align-items: center; gap: 4px; }
+.di-th svg { color: var(--ig-blue); width: 28px; height: 28px; padding: 6px; border-radius: 50%; background: var(--ig-blue-sub); box-sizing: border-box; }
+.di-matrix thead th:nth-child(n + 5) .di-th svg { color: var(--ig-muted); background: var(--ig-soft); }
+.di-matrix tbody tr:nth-child(odd) { background: var(--ig-soft); }
+.di-matrix tbody th { text-align: left; color: var(--ig-ink); font-weight: 700; white-space: nowrap; padding-left: 8px; }
+.di-matrix td.on { color: var(--ig-blue); font-size: 15px; line-height: 1; }
+.di-matrix td.off { color: #c4cad2; font-size: 13px; line-height: 1; }
+
+/* 지도 말풍선 둘째 줄 */
+.im-mk text.im-sub { font-size: 9.5px; font-weight: 700; fill: var(--ig-navy); }
 
 @media (max-width: 720px) {
-  .di-under-wrap { flex-direction: column; }
-  .di-chron li { grid-template-columns: 1fr; }
-  .di-bar-row { grid-template-columns: 1fr; }
+  .demo-info-body { padding: 14px 12px 12px; gap: 20px; }
+  .di-title { font-size: var(--fs-m); }
+  .di-head { padding: 12px 0 10px; }
+  .di-head-item { flex-basis: 45%; padding: 0 10px; }
+  .di-head-item:nth-child(odd) { border-left: 0; }
+  .di-head-v b { font-size: 25px; }
+  .di-under-wrap { flex-direction: column; align-items: stretch; }
+  .di-under-wrap > .im-map.small { align-self: center; }
+  .di-under { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+  .di-chron::before { left: 5px; }
+  .di-chron li { grid-template-columns: 1fr; gap: 6px; padding-left: 22px; }
+  .di-chron li::before { left: 0; top: 14px; }
+  .di-chron li > .di-chip { justify-self: start; }
+  .di-bars { margin-right: 4.5em; }
+  .di-bar-row { grid-template-columns: 1fr; gap: 3px; }
   .di-bar-axis { margin-left: 0; }
+  .di-flow li:not(:nth-child(3n))::after { display: none; }
+  .di-ev-icons { grid-template-columns: 1fr 1fr; }
 }

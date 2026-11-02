@@ -1,25 +1,173 @@
-/* 사건 상세 패널 — 행안부·연합뉴스 재난 그래픽 문법(띠 제목 알약 · 큰 숫자 타일 · 날짜 칩). 공통 조각은 ../answer/demoInfo.css, 색은 viz.css 계열색(빨강 없음) */
+/* 사건 상세 패널 — 행안부·연합뉴스 재난 그래픽 문법(띠 위 알약 제목 · 큰 숫자 타일 · 날짜 칩 · 세로 선 연대기).
+   색은 이 패널 전용(짙은 남색 · 파랑 · 청록 · 보라 · 황색) — 빨강 계열 없음. 공통 조각은 ../answer/demoInfo.css */
+.evd {
+  --g-navy: #0b2a55;
+  --g-blue: #1d5fd1;
+  --g-blue-sub: #e8f0fc;
+  --g-teal: #0b8580;
+  --g-teal-sub: #e2f3f2;
+  --g-violet: #5646c2;
+  --g-violet-sub: #edeafb;
+  --g-amber: #b97f00;
+  --g-amber-sub: #fbf2da;
+  --g-ink: #13181e;
+  --g-ink-2: #48515b;
+  --g-mute: #7a8591;
+  --g-line: #e2e6eb;
+  --g-paper: #f4f6f9;
+  background: #fff;
+}
 
-/* 섹션 띠 제목 — h3 를 알약으로(renewal.css 의 .ev-sec h3 글자 크기를 덮음) */
-.ev-sec h3.di-pill { display: inline-block; font-size: var(--fs-xs); margin: 0 0 8px; line-height: 1.4; }
-.ev-fold > summary h3.di-pill { display: inline-block; margin: 0; }
+/* ── 머리: 아이콘 원 + 큰 제목 ─────────────────────────────── */
+.evd-hero { display: flex; align-items: center; gap: 12px; padding: 4px 0 2px; }
+.evd-hero-ic {
+  flex: none; width: 52px; height: 52px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--g-navy); color: #fff;
+  box-shadow: 0 0 0 4px var(--g-blue-sub);
+}
+.evd-hero-t { min-width: 0; }
+.evd-id { font-size: 11px; color: var(--g-mute); letter-spacing: 0.02em; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.evd .evd-title { margin: 2px 0 0; font-size: 22px; line-height: 1.3; font-weight: 800; letter-spacing: -0.02em; color: var(--g-ink); overflow-wrap: anywhere; }
 
 /* 머리 칩 줄 — 기간 · 재난유형 · 진행 상태 */
-.ev-chips { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 8px 0 2px; }
-.ev-chips .di-tag { font-size: var(--fs-2xs); }
+.ev-chips { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 12px 0 2px; }
+.evd .ev-chips .di-chip { background: var(--g-navy); padding: 4px 10px; border-radius: 5px; font-size: 12px; gap: 5px; }
+.evd .ev-chips .di-tag { font-size: 12px; padding: 3px 10px; }
+.evd .evd-type { display: inline-flex; align-items: center; gap: 4px; color: var(--g-blue); background: var(--g-blue-sub); border-color: #c3d6f5; }
+.evd .ev-chips .di-tag.t-b { color: var(--g-teal); background: var(--g-teal-sub); border-color: #b6e0dd; }
+.evd .evd-sub { margin: 8px 0 12px; line-height: 1.5; }
 
-/* 큰 숫자 타일 — 연한 카드 배경, 좁은 화면에서는 두 칸씩 */
+/* ── 섹션: 가는 띠 위에 알약 제목 ─────────────────────────── */
+.evd .ev-sec { position: relative; margin-top: 22px; padding-top: 0; border-top: 0; }
+.evd .ev-sec::before { content: ""; position: absolute; left: 0; right: 0; top: 12px; height: 2px; background: linear-gradient(90deg, var(--g-navy) 0 56px, var(--g-line) 56px); }
+.ev-sec h3.di-pill { position: relative; display: inline-block; font-size: var(--fs-xs); margin: 0 0 10px; line-height: 1.4; }
+.evd .ev-sec h3.di-pill { background: var(--g-navy); padding: 4px 16px; font-size: 13px; letter-spacing: -0.01em; box-shadow: 0 0 0 4px #fff; }
+.evd .ev-sec h3.di-pill.t-c { background: var(--g-violet); }
+.ev-fold > summary h3.di-pill { display: inline-block; margin: 0; }
+.evd .ev-fold > summary { cursor: pointer; list-style: none; position: relative; }
+.evd .ev-fold > summary::-webkit-details-marker { display: none; }
+.evd .ev-fold > summary::after { content: "▾"; position: relative; margin-left: 8px; padding: 0 4px; background: #fff; color: var(--g-mute); font-size: 12px; }
+.evd .ev-fold[open] > summary::after { content: "▴"; }
+.evd .ev-fold[open] > summary { margin-bottom: 10px; }
+.evd .ev-text { line-height: 1.65; color: var(--g-ink); }
+
+/* 근거 목록 — 문서 아이콘 대신 왼쪽 굵은 선 */
+.evd .ev-evd { list-style: none; margin: 0 0 6px; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.evd .ev-evd li { padding: 8px 12px; border-left: 3px solid var(--g-blue); background: var(--g-paper); border-radius: 0 6px 6px 0; line-height: 1.55; overflow-wrap: anywhere; }
+.evd .ev-evd li b { color: var(--g-navy); }
+
+/* ── 큰 숫자 타일 — 위 색띠 + 연한 원 아이콘, 첫 칸(재산피해)은 한 줄 전체 ── */
 .ev-head .di-head { margin: 4px 0 8px; }
+.evd .ev-head .di-head { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
 .ev-head .di-head-item { flex: 1 1 150px; min-width: 0; }
+.evd .ev-head .di-head-item {
+  position: relative; min-width: 0; padding: 14px 14px 12px; column-gap: 10px;
+  background: #fff; border: 1px solid var(--g-line); border-top: 3px solid var(--g-blue); border-radius: 4px 4px 8px 8px;
+  --tile: var(--g-blue); --tile-sub: var(--g-blue-sub);
+  border-top-color: var(--tile);
+}
+.evd .ev-head .di-head-item:nth-child(2) { --tile: var(--g-teal); --tile-sub: var(--g-teal-sub); }
+.evd .ev-head .di-head-item:nth-child(3) { --tile: var(--g-violet); --tile-sub: var(--g-violet-sub); }
+.evd .ev-head .di-head-item:nth-child(n + 4) { --tile: var(--g-amber); --tile-sub: var(--g-amber-sub); }
+.evd .ev-head .di-head-item:first-child { grid-column: 1 / -1; background: linear-gradient(180deg, var(--g-blue-sub), #fff 70%); }
+.evd .ev-head .di-head-ic {
+  width: 44px; height: 44px; border-radius: 50%; align-items: center; justify-content: center;
+  background: var(--tile-sub); color: var(--tile);
+}
 .ev-head .di-head-v { overflow-wrap: anywhere; }
 .ev-head .di-head-v b { font-size: 20px; }
-.ev-head .di-head-item:nth-child(2) .di-head-ic { color: var(--series-2); }
-.ev-head .di-head-item:nth-child(3) .di-head-ic { color: var(--series-3); }
-.ev-head .di-head-item:nth-child(n + 4) .di-head-ic { color: var(--series-4); }
+.evd .ev-head .di-head-v { color: var(--g-ink); line-height: 1.15; }
+.evd .ev-head .di-head-v b { font-size: 22px; font-weight: 800; letter-spacing: -0.02em; }
+.evd .ev-head .di-head-item:first-child .di-head-v b { font-size: 28px; color: var(--g-navy); }
+.evd .ev-head .di-head-v small { font-size: 12px; font-weight: 700; margin-left: 3px; color: var(--g-ink-2); }
+.evd .ev-head .di-head-lb { margin-top: 3px; font-size: 12px; color: var(--g-ink-2); overflow-wrap: anywhere; }
 
-/* 타임라인 기록 세로 목록 — 날짜 칩 + 분류 꼬리표 + 내용 · 기관 */
+/* 그림 공통 — 연한 종이 바탕 틀 */
+.evd .viz { padding: 12px 14px; border: 1px solid var(--g-line); border-radius: 8px; background: #fff; }
+.evd .viz-title { font-size: 13px; color: var(--g-ink); }
+.evd .viz-bars .viz-bar { height: 14px; border-radius: 0 3px 3px 0; }
+.evd .viz-stack { height: 26px; border-radius: 4px; overflow: hidden; }
+.evd .viz-legend b { margin-left: 4px; color: var(--g-ink); }
+
+/* ── 타임라인 기록 — 세로 선 + 점 + 날짜 칩 ───────────────── */
 .ev-tl-list { list-style: none; margin: 8px 0 6px; padding: 0; max-height: 300px; overflow: auto; border: 1px solid var(--viz-grid); border-radius: 8px; background: #f7f9fb; }
 .ev-tl-list li { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: flex-start; padding: 6px 10px; border-bottom: 1px dashed var(--viz-grid); }
 .ev-tl-list li:last-child { border-bottom: 0; }
 .ev-tl-body { display: flex; flex-wrap: wrap; gap: 2px 6px; align-items: baseline; flex: 1 1 200px; min-width: 0; font-size: var(--fs-2xs); line-height: 1.5; color: var(--viz-ink-2); }
 .ev-tl-desc { color: var(--viz-ink); overflow-wrap: anywhere; }
+.ev-tl-dot { display: none; }
+
+.evd .ev-tl-list { padding: 6px 12px 6px 6px; background: #fff; border-color: var(--g-line); }
+.evd .ev-tl-list li { position: relative; padding: 8px 0 10px 26px; border-bottom: 0; }
+/* 세로 선 — 줄마다 이어 그림(안에서 스크롤해도 끊기지 않게) */
+.evd .ev-tl-list li::before { content: ""; position: absolute; left: 9px; top: 0; bottom: 0; width: 2px; background: #cfd8e3; }
+.evd .ev-tl-list li:first-child::before { top: 14px; }
+.evd .ev-tl-list li:last-child::before { bottom: calc(100% - 14px); }
+.evd .ev-tl-dot { display: block; position: absolute; left: 4px; top: 9px; width: 12px; height: 12px; border-radius: 50%; background: #fff; border: 3px solid var(--g-blue); box-sizing: border-box; }
+.evd .ev-tl-list li:first-child .ev-tl-dot { background: var(--g-blue); }
+.evd .ev-tl-list .di-chip { background: var(--g-navy); font-size: 11px; padding: 2px 8px; }
+.evd .ev-tl-body { flex-basis: 100%; gap: 3px 6px; font-size: 12px; }
+.evd .ev-tl-body .di-tag { color: var(--g-teal); background: var(--g-teal-sub); border-color: #b6e0dd; }
+
+/* ── 요약 — 큰 첫 문단(왼쪽 굵은 선) ─────────────────────── */
+.evd .ev-lead { margin: 0; padding: 10px 14px; border-left: 4px solid var(--g-navy); background: var(--g-paper); border-radius: 0 8px 8px 0; font-size: 15px; font-weight: 600; line-height: 1.6; letter-spacing: -0.01em; }
+/* 제공처가 주지 않은 섹션 — 빈 값 「—」 회색 칸 */
+.evd .ev-sec > p.ev-text:only-of-type:not(.ev-lead), .evd .ev-fold > p.ev-text { display: inline-block; min-width: 64px; margin: 0; padding: 6px 14px; border: 1px dashed #cfd6de; border-radius: 6px; color: var(--g-mute); text-align: center; }
+
+/* ── 이름-값 목록(피해·복구 · 사건 개요) — 점선 줄, 이름은 작은 회색 ── */
+.evd .ev-kv { grid-template-columns: 112px minmax(0, 1fr); border-top: 2px solid var(--g-navy); }
+.evd .ev-kv > dt, .evd .ev-kv > dd { padding: 9px 6px; border-bottom: 1px dashed var(--g-line); font-size: 13px; }
+.evd .ev-kv > dt { color: var(--g-mute); font-weight: 600; font-size: 12px; background: var(--g-paper); }
+.evd .ev-kv > dd { color: var(--g-ink); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+
+/* 접는 단추(표로 보기 · 기록 목록 보기 · 요인 표로 보기) — 작은 알약 */
+.evd details.xs > summary { display: inline-flex; align-items: center; gap: 4px; margin: 6px 0; padding: 3px 12px; border: 1px solid var(--g-line); border-radius: 999px; background: #fff; color: var(--g-ink-2); font-weight: 600; cursor: pointer; }
+.evd details.xs > summary:hover { border-color: var(--g-blue); color: var(--g-blue); }
+.evd details.xs[open] > summary { background: var(--g-blue-sub); border-color: #c3d6f5; color: var(--g-navy); }
+
+/* 주의(⚠) — 황색 띠 */
+.evd .ev-caution { display: inline-block; margin: 0 0 8px; padding: 4px 10px; border-radius: 6px; background: var(--g-amber-sub); color: #7a5600; font-size: 12px; font-weight: 600; }
+
+/* ── 유사도 근거 — 요인 카드 ──────────────────────────────── */
+.ev-factors { list-style: none; margin: 10px 0 6px; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; }
+.ev-factors li { --fc: var(--g-blue); min-width: 0; padding: 10px 12px; border: 1px solid var(--g-line); border-top: 3px solid var(--fc); border-radius: 4px 4px 8px 8px; background: #fff; display: flex; flex-direction: column; gap: 6px; }
+.ev-f-h { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
+.ev-f-group { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 10.5px; font-weight: 700; color: #fff; background: var(--fc); }
+.ev-f-name { font-size: 14px; font-weight: 800; color: var(--g-ink); letter-spacing: -0.01em; }
+.ev-f-name small { font-size: 11px; font-weight: 600; color: var(--g-mute); }
+.ev-f-vs { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.ev-f-vs > div { min-width: 0; padding: 6px 8px; border-radius: 6px; background: var(--g-paper); display: flex; flex-direction: column; gap: 1px; }
+.ev-f-vs > div:first-child { background: var(--g-blue-sub); }
+.ev-f-vs span { font-size: 10.5px; color: var(--g-mute); font-weight: 600; }
+.ev-f-vs b { font-size: 12.5px; color: var(--g-ink); font-weight: 700; line-height: 1.4; overflow-wrap: anywhere; max-height: 5.6em; overflow: auto; }
+.ev-meter { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; gap: 8px; align-items: center; font-size: 11.5px; }
+.ev-meter-lb { color: var(--g-ink-2); font-weight: 600; }
+.ev-meter-track { position: relative; height: 8px; border-radius: 4px; background: #e9edf2; overflow: hidden; }
+.ev-meter-track i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 0 4px 4px 0; }
+.ev-meter-v { font-variant-numeric: tabular-nums; color: var(--g-ink); font-weight: 800; }
+.ev-f-w { font-size: 11px; color: var(--g-mute); }
+.ev-f-w b { color: var(--g-ink-2); font-variant-numeric: tabular-nums; }
+
+/* 유사 이유 — 체크 목록 · 유의 문구 — 회색 상자 */
+.evd .ev-reasons { list-style: none; margin: 8px 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.evd .ev-reasons li { position: relative; padding: 6px 10px 6px 28px; border-radius: 6px; background: var(--g-teal-sub); color: var(--g-ink); line-height: 1.5; }
+.evd .ev-reasons li::before { content: ""; position: absolute; left: 10px; top: 10px; width: 9px; height: 5px; border-left: 2px solid var(--g-teal); border-bottom: 2px solid var(--g-teal); transform: rotate(-45deg); }
+.evd .ev-note { margin: 6px 0; padding: 8px 10px; border-radius: 6px; background: var(--g-paper); line-height: 1.5; }
+
+/* 표 — 머리 줄 남색 띠 */
+.evd .md-table:not(.tree-table) thead th { background: var(--g-paper); color: var(--g-navy); font-weight: 700; }
+
+@media (max-width: 720px) {
+  .evd-hero-ic { width: 44px; height: 44px; }
+  .evd .evd-title { font-size: 19px; }
+  .evd .ev-head .di-head { grid-template-columns: 1fr 1fr; }
+  .evd .ev-head .di-head-item { grid-template-columns: 1fr; row-gap: 6px; padding: 12px 10px 10px; }
+  .evd .ev-head .di-head-ic { grid-row: auto; width: 36px; height: 36px; }
+  .evd .ev-head .di-head-item:first-child { grid-template-columns: auto 1fr; }
+  .evd .ev-head .di-head-item:first-child .di-head-ic { grid-row: 1 / span 2; }
+  .evd .ev-head .di-head-item:first-child .di-head-v b { font-size: 22px; }
+  .evd .ev-head .di-head-v b { font-size: 18px; }
+  .evd .ev-kv { grid-template-columns: 88px minmax(0, 1fr); }
+  .ev-factors { grid-template-columns: 1fr; }
+}

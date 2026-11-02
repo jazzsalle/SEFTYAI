@@ -4,6 +4,7 @@ import { api } from "@/lib/api";
 import { API_KO, fieldKo, gapName, GAP_KO, QUALITY_KO, statusKo } from "@/lib/labels";
 import { fmtValue } from "@/lib/format";
 import EventDetail from "./EventDetail";
+import "./tree.css";
 
 /**
  * T3Q Data API 상세 — 봉투의 result 를 키·값 그대로 펼쳐 보인다(값 가공 없음, R0).
@@ -27,14 +28,16 @@ function GenericDetail({ apiId, id, label }: { apiId: string; id: string; label:
       .catch((e) => setErr((e as Error).message));
   }, [apiId, id]);
   return (
-    <div className="dpane fadein">
-      <div className="xs muted">{API_KO[apiId] ?? "상세"} · {id}</div>
-      <h2 style={{ fontSize: 19, marginTop: 6 }}>{label}</h2>
+    <div className="dpane gdp fadein">
+      <div className="gdp-hero">
+        <div className="xs muted gdp-kind">{API_KO[apiId] ?? "상세"} · {id}</div>
+        <h2 className="gdp-title">{label}</h2>
+      </div>
       {err && <div className="notice danger" style={{ marginTop: 12 }}>{err}</div>}
       {!env && !err && <div className="muted s" style={{ marginTop: 12 }}>불러오는 중…</div>}
       {env && (
         <>
-          <div className="xs muted" style={{ margin: "8px 0 12px" }}>
+          <div className="xs muted gdp-meta">
             {statusKo(env.status)} · 데이터 기준 {env.meta?.base_time ?? "—"}{env.meta?.quality_status ? ` · ${QUALITY_KO[env.meta.quality_status] ?? env.meta.quality_status}` : ""}
           </div>
           {env.result != null && <Tree v={env.result} />}
@@ -62,7 +65,9 @@ export function Tree({ v, k }: { v: unknown; k?: string }) {
     if (!v.length) return <span className="mute2">없음</span>;
     if (v.every((x) => x === null || typeof x !== "object")) return <span>{v.map((x) => (typeof x === "number" ? fmtValue(k, x) : String(x))).join(", ")}</span>;
     // 칸이 모두 단순 값인 객체 목록은 표로(열 = 받은 칸 전부, 받은 순서) — 들여쓴 나열보다 한눈에(사용자 지시 2026-11-02)
-    const flat = (x: unknown) => !!x && typeof x === "object" && !Array.isArray(x) && Object.values(x as object).every((y) => y === null || typeof y !== "object");
+    // 칸 값이 단순 값이거나 단순 값 목록이면 「단순」으로 본다(요인별 근거 목록처럼 빈 배열·글자 배열이 섞인 경우도 표로)
+    const leaf = (y: unknown) => y === null || typeof y !== "object" || (Array.isArray(y) && y.every((z) => z === null || typeof z !== "object"));
+    const flat = (x: unknown) => !!x && typeof x === "object" && !Array.isArray(x) && Object.values(x as object).every(leaf);
     if (v.every(flat)) {
       const cols = [...new Set(v.flatMap((x) => Object.keys(x as object)))];
       return (

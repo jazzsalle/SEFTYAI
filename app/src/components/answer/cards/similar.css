@@ -1,7 +1,22 @@
 /* =====================================================================
-   유사재난 사례 카드 (SimilarEventsCard) — 첫 사건 카드 + 둘째부터 받은 순서 줄
-   빨강 없음 · 파랑 강조 없음(파랑은 누를 수 있는 사건 이름과 누를 때 바탕만)
+   유사재난 사례 카드 (SimilarEventsCard) — 재난 보도 그래픽 문법
+   (알약 띠 제목 · 큰 점수 고리 · 순위 원 · 날짜 칩 · 깔끔한 순위 막대 · 아이콘 원)
+   색은 이 카드 전용(짙은 남색 · 파랑 · 청록 · 보라) — 빨강 계열 없음
    ===================================================================== */
+.sim {
+  --g-navy: #0b2a55;
+  --g-blue: #1d5fd1;
+  --g-blue-2: #6f9be6;
+  --g-blue-sub: #e8f0fc;
+  --g-teal: #0b8580;
+  --g-teal-sub: #e2f3f2;
+  --g-violet: #5646c2;
+  --g-ink: #13181e;
+  --g-ink-2: #48515b;
+  --g-mute: #7a8591;
+  --g-line: #e2e6eb;
+  --g-paper: #f4f6f9;
+}
 
 /* 사건 이름 — 단추(누르면 사건 상세) */
 .sim-name {
@@ -9,75 +24,152 @@
   font: inherit; text-align: left; cursor: pointer;
   overflow-wrap: anywhere;
 }
-.sim-name:hover { text-decoration: underline; }
+.sim-name:hover { text-decoration: underline; text-underline-offset: 3px; }
 
-.sim-meta { font-size: var(--fs-xs); color: var(--c-sub); font-variant-numeric: tabular-nums; }
-.sim-score { margin-left: auto; font-size: var(--fs-xs); color: var(--c-sub); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.sim-meta { font-size: var(--fs-xs); color: var(--g-mute); font-variant-numeric: tabular-nums; }
+.sim-score { margin-left: auto; font-size: var(--fs-xs); color: var(--g-ink-2); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.sim-score b { font-weight: 800; color: var(--g-navy); }
 
-/* 첫 사건 카드 */
+/* 재난유형 아이콘 원 */
+.sim-ic {
+  flex: none; display: inline-flex; align-items: center; justify-content: center;
+  width: 34px; height: 34px; border-radius: 50%;
+  background: var(--g-blue-sub); color: var(--g-blue);
+}
+
+/* ── 유사도 순위 그림 ─────────────────────────────────────── */
+.sim-chart { margin: 10px 0 0; padding: 14px 16px 10px; border: 1px solid var(--g-line); border-radius: 10px; background: #fff; }
+.sim-chart .di-cap { margin-bottom: 10px; }
+.sim .di-pill { background: var(--g-navy); padding: 4px 16px; font-size: 13px; }
+.sim-chart .di-cap .sim-meta { font-size: 11px; }
+
+/* 축 — 받은 척도 양 끝 글자, 막대 칸 위에 맞춤 */
+.sim-axis { display: grid; grid-template-columns: 28px 104px minmax(0, 1fr) minmax(80px, 34%) 44px; gap: 8px; padding: 0 0 2px; }
+.sim-axis-ruler { grid-column: 4; display: flex; justify-content: space-between; font-size: 10px; color: var(--g-mute); font-variant-numeric: tabular-nums; border-bottom: 1px solid #cfd6de; padding-bottom: 2px; }
+
+.sim-chart-list { list-style: none; margin: 0; padding: 0; max-height: 300px; overflow-y: auto; }
+.sim-chart-list li {
+  display: grid; grid-template-columns: 28px 104px minmax(0, 1fr) minmax(80px, 34%) 44px;
+  gap: 8px; align-items: center; padding: 5px 0; cursor: pointer; font-size: 12px;
+  border-bottom: 1px solid #eef1f4;
+}
+.sim-chart-list li:last-child { border-bottom: 0; }
+.sim-chart-list li:hover { background: var(--g-blue-sub); }
+
+/* 순위 원 — 1·2·3위는 채운 원, 그 밖은 테두리만 */
+.sim-chart-rank {
+  justify-self: center; display: inline-flex; align-items: center; justify-content: center;
+  min-width: 22px; height: 22px; padding: 0 4px; box-sizing: border-box; border-radius: 11px;
+  border: 1.5px solid #c9d1db; color: var(--g-ink-2);
+  font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums;
+}
+.sim-chart-rank:empty { border: 0; }
+.sim-chart-top.t1 .sim-chart-rank { background: var(--g-navy); border-color: var(--g-navy); color: #fff; }
+.sim-chart-top.t2 .sim-chart-rank { background: var(--g-blue); border-color: var(--g-blue); color: #fff; }
+.sim-chart-top.t3 .sim-chart-rank { background: var(--g-teal); border-color: var(--g-teal); color: #fff; }
+
+.sim-chart-date .di-chip { background: var(--g-paper); color: var(--g-ink-2); border: 1px solid var(--g-line); font-weight: 600; font-size: 11px; padding: 1px 7px; }
+.sim-chart-date .di-chip svg { color: var(--g-mute); }
+.sim-chart-top.t1 .sim-chart-date .di-chip { background: var(--g-navy); border-color: var(--g-navy); color: #fff; }
+.sim-chart-top.t1 .sim-chart-date .di-chip svg { color: #fff; }
+
+.sim-chart-name { color: var(--g-ink); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sim-chart-top.t1 .sim-chart-name { font-weight: 800; }
+.sim-chart-v { text-align: right; font-weight: 800; color: var(--g-ink); font-variant-numeric: tabular-nums; font-size: 13px; }
+.sim-chart-top.t1 .sim-chart-v { color: var(--g-navy); }
+
+/* 유사도 막대 — 받은 척도 끝값 대비 받은 점수(그림만, 값 글자는 옆에 받은 그대로). 25% 간격 옅은 눈금 */
+.sim-bar {
+  display: block; position: relative; height: 8px; margin-top: 6px; border-radius: 4px; overflow: hidden;
+  background:
+    linear-gradient(90deg, transparent calc(25% - 1px), #fff calc(25% - 1px) 25%, transparent 25% calc(50% - 1px), #fff calc(50% - 1px) 50%, transparent 50% calc(75% - 1px), #fff calc(75% - 1px) 75%, transparent 75%),
+    #e9edf2;
+}
+.sim-bar i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 0 4px 4px 0; background: var(--g-blue-2); }
+.sim-chart-list .sim-bar { margin-top: 0; height: 12px; border-radius: 2px; }
+.sim-chart-list .sim-bar i { border-radius: 0 2px 2px 0; }
+.sim-chart-top.t1 .sim-bar i { background: var(--g-navy); }
+.sim-chart-top.t2 .sim-bar i { background: var(--g-blue); }
+.sim-chart-top.t3 .sim-bar i { background: var(--g-teal); }
+
+/* ── 첫 사건 — 큰 점수 고리 카드 ──────────────────────────── */
 .sim-top {
-  margin-top: 8px; padding: 12px 16px;
-  background: #fff; border: 1px solid var(--c-bd); border-radius: var(--r-l);
+  display: grid; grid-template-columns: 132px minmax(0, 1fr); gap: 18px; align-items: center;
+  margin-top: 10px; padding: 16px 18px;
+  background: linear-gradient(135deg, #f3f7fe 0%, #fff 60%);
+  border: 1px solid #cfdcf3; border-top: 4px solid var(--g-navy); border-radius: 6px 6px 12px 12px;
   cursor: pointer;
 }
-.sim-top:hover { background: var(--c-surface); }
-.sim-top-h { display: flex; align-items: center; gap: 8px; }
-.sim-rank {
-  display: inline-flex; align-items: center; height: 22px; padding: 0 8px;
-  border-radius: var(--r-s); background: var(--c-sec-sub); color: var(--c-navy);
-  font-size: var(--fs-2xs); font-weight: 700;
+.sim-top:hover { border-color: #a9c0e8; border-top-color: var(--g-navy); }
+.sim-top-h { position: relative; width: 132px; height: 132px; display: flex; align-items: center; justify-content: center; }
+.sim-ring { position: absolute; inset: 0; width: 100%; height: 100%; }
+.sim-ring circle { fill: none; stroke-width: 9; }
+.sim-ring-bg { stroke: #dfe6f0; }
+.sim-ring-fg { stroke: var(--g-navy); stroke-linecap: round; }
+.sim-top .sim-score {
+  position: relative; margin: 0; display: flex; flex-direction: column; align-items: center;
+  white-space: normal; text-align: center; line-height: 1.1; color: var(--g-ink-2);
 }
-.sim-top .sim-score b { font-size: 16px; color: var(--c-text); }
-.sim-top .sim-name { display: block; margin-top: 4px; font-size: var(--fs-hs); font-weight: 700; line-height: 1.35; color: var(--c-text); }
-.sim-top .sim-meta { margin-top: 2px; }
+.sim-score-lb { font-size: 11px; font-weight: 700; color: var(--g-mute); letter-spacing: 0.04em; }
+.sim-top .sim-score b { font-size: 32px; font-weight: 900; letter-spacing: -0.03em; color: var(--g-navy); margin: 2px 0; }
+.sim-top .sim-score small { font-size: 10px; color: var(--g-mute); }
+.sim-sep { display: none; }
 
-/* 둘째부터 — 줄 */
-.sim-list {
-  margin-top: 8px; background: #fff;
-  border: 1px solid var(--c-line); border-radius: var(--r-l);
-  max-height: 360px; overflow-y: auto; /* 답이 밀려 내려가지 않게 안에서 스크롤 */
+.sim-top-body { min-width: 0; }
+.sim-top-tags { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.sim-rank {
+  display: inline-flex; align-items: center; height: 24px; padding: 0 10px;
+  border-radius: 999px; background: var(--g-navy); color: #fff;
+  font-size: 12px; font-weight: 800; letter-spacing: 0.02em;
 }
-.sim-row { padding: 8px 12px; border-bottom: 1px solid var(--c-line); cursor: pointer; }
+.sim .sim-type { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; padding: 2px 9px; color: var(--g-blue); background: var(--g-blue-sub); border-color: #c3d6f5; }
+.sim-top .sim-name { display: block; margin-top: 8px; font-size: 19px; font-weight: 800; line-height: 1.3; letter-spacing: -0.02em; color: var(--g-ink); }
+.sim-top .sim-meta { margin-top: 4px; font-size: 12px; }
+.sim-top .sim-sum { margin-top: 10px; padding-top: 10px; border-top: 1px dashed #cfdcf3; }
+
+/* ── 둘째부터 — 아이콘 원 + 본문 줄 ───────────────────────── */
+.sim-list {
+  list-style: none; margin: 10px 0 0; padding: 0; background: #fff;
+  border: 1px solid var(--g-line); border-radius: 10px;
+  max-height: 380px; overflow-y: auto; /* 답이 밀려 내려가지 않게 안에서 스크롤 */
+}
+.sim-row { display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px; border-bottom: 1px solid #eef1f4; cursor: pointer; }
 .sim-row:last-child { border-bottom: 0; }
-.sim-row:hover { background: var(--c-primary-sub); }
-.sim-l1 { display: flex; align-items: baseline; flex-wrap: wrap; gap: 2px 8px; }
-.sim-row .sim-name { font-size: var(--fs-s); font-weight: 700; color: var(--c-primary-dk); }
+.sim-row:hover { background: var(--g-blue-sub); }
+.sim-row-body { flex: 1; min-width: 0; }
+.sim-l1 { display: flex; align-items: baseline; flex-wrap: wrap; gap: 2px 10px; }
+.sim-row .sim-name { font-size: 14px; font-weight: 700; color: var(--g-navy); }
+.sim-row .sim-meta { display: block; margin-top: 2px; font-size: 12px; }
+.sim-row .sim-score b { font-size: 14px; }
 
 /* 사건 요약 — 받은 글 그대로(줄바꿈·공백 포함) */
 .sim-sum {
-  margin-top: 4px; min-height: 20px;
-  font-size: var(--fs-xs); line-height: 1.55; color: var(--c-text);
+  margin-top: 6px; min-height: 20px;
+  font-size: 12.5px; line-height: 1.6; color: var(--g-ink);
   white-space: pre-wrap; overflow-wrap: anywhere;
 }
 .sim-sum.sim-fail { color: var(--c-warn-dk); }
 /* 받는 중 — 회색 줄(글자 없음) */
 .sim-sk {
   display: block; width: 56%; max-width: 420px; height: 10px; margin-top: 5px;
-  border-radius: 5px; background: var(--c-line);
+  border-radius: 5px; background: var(--g-line);
   animation: sim-pulse 1.4s ease-in-out infinite;
 }
 @keyframes sim-pulse { 50% { opacity: 0.45; } }
 @media (prefers-reduced-motion: reduce) { .sim-sk { animation: none; } }
 
-.sim-all { display: inline-block; margin-top: 8px; }
-
-/* 유사도 막대 — 받은 척도 끝값 대비 받은 점수(그림만, 값 글자는 옆에 받은 그대로) */
-.sim-bar { display: block; position: relative; height: 6px; margin-top: 6px; border-radius: 3px; background: var(--viz-grid); overflow: hidden; }
-.sim-bar i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 3px; background: var(--series-1); }
-
-/* 유사도 순위 그림 — 순위 · 시작일 칩 · 사건 · 막대 · 점수 */
-.sim-chart { margin: 8px 0 0; padding: 10px 12px; border: 1px solid var(--viz-grid); border-radius: var(--r-l); background: #f7f9fb; }
-.sim-chart .di-cap { margin-bottom: 6px; }
-.sim-chart-list { list-style: none; margin: 0; padding: 0; max-height: 260px; overflow-y: auto; }
-.sim-chart-list li { display: grid; grid-template-columns: 22px 104px minmax(0, 1fr) minmax(80px, 30%) 40px; gap: 8px; align-items: center; padding: 3px 0; cursor: pointer; font-size: var(--fs-2xs); }
-.sim-chart-list li:hover { background: var(--c-primary-sub); }
-.sim-chart-list .sim-bar { margin-top: 0; height: 10px; }
-.sim-chart-list li:first-child .sim-bar i { background: var(--series-3); }
-.sim-chart-rank { color: var(--viz-muted); text-align: right; font-variant-numeric: tabular-nums; }
-.sim-chart-name { color: var(--viz-ink); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.sim-chart-v { text-align: right; font-weight: 700; color: var(--viz-ink); font-variant-numeric: tabular-nums; }
+.sim-all { display: inline-block; margin-top: 10px; }
 .sim-top .sim-bar { margin: 8px 0 2px; }
+
 @media (max-width: 720px) {
-  .sim-chart-list li { grid-template-columns: 22px minmax(0, 1fr) 40px; }
-  .sim-chart-date, .sim-chart-list .sim-bar { display: none; }
+  .sim-chart { padding: 12px 10px 8px; }
+  .sim-chart-list li, .sim-axis { grid-template-columns: 26px minmax(0, 1fr) minmax(56px, 28%) 40px; gap: 6px; }
+  .sim-axis-ruler { grid-column: 3; }
+  .sim-chart-date { display: none; }
+  .sim-top { grid-template-columns: 1fr; justify-items: start; gap: 12px; padding: 14px; }
+  .sim-top-h { width: 112px; height: 112px; }
+  .sim-top .sim-score b { font-size: 27px; }
+  .sim-top .sim-name { font-size: 17px; }
+  .sim-row { padding: 10px 12px; gap: 10px; }
+  .sim-ic { width: 30px; height: 30px; }
 }

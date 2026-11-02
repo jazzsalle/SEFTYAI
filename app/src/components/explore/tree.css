@@ -1,0 +1,80 @@
+/* 원본 항목 나무(Tree) — 받은 결과 전부를 키·값 그대로. 값은 손대지 않고 모양만: 단계별 색 띠 상자 · 「없음」 흐린 알약 · 빈 줄은 흐리게 · 목록 번호 배지 · 표 줄무늬. 빨강 없음 */
+
+/* 「… 원본 항목 전체 보기」 단추 — 접이 알약 */
+.ev-raw { margin: 10px 0 4px; }
+.ev-raw > button.lnk {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 12px 5px 10px; border: 1px solid #c9d7ea; border-radius: 999px;
+  background: #f4f8fd; color: #1f5fae; font-size: var(--fs-2xs); font-weight: 700; text-decoration: none;
+}
+.ev-raw > button.lnk::before { content: "▸"; font-size: 10px; transition: transform 0.15s; }
+.ev-raw > button.lnk[aria-expanded="true"]::before { transform: rotate(90deg); }
+.ev-raw > button.lnk:hover { background: #e8f1fb; text-decoration: none; }
+
+/* 첫 단계 — 흰 카드 */
+.ev-raw > .kv.tree,
+.dpane > .kv.tree {
+  margin-top: 8px; padding: 6px 14px; border: 1px solid #e3e7ed; border-radius: 12px; background: #fff;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+}
+
+/* 키·값 줄 */
+.kv.tree { grid-template-columns: minmax(96px, max-content) 1fr; column-gap: 14px; }
+.kv.tree > div > dt,
+.kv.tree > div > dd { padding: 7px 0; border-bottom: 1px solid #eef1f5; font-size: var(--fs-2xs); line-height: 1.5; }
+.kv.tree > div > dt { color: #5b6573; font-weight: 600; letter-spacing: -0.01em; }
+.kv.tree > div > dd { color: #1e2124; font-weight: 500; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; margin: 0; }
+.kv.tree > div:last-child > dt,
+.kv.tree > div:last-child > dd { border-bottom: 0; }
+
+/* 값이 「없음」뿐인 줄 — 키까지 흐리게(받은 값이 비었음을 한눈에) */
+.kv.tree > div:has(> dd > .mute2:only-child) > dt { color: #a3abb6; font-weight: 500; }
+.kv.tree .mute2 {
+  display: inline-block; padding: 0 7px; border-radius: 999px;
+  background: #f1f3f6; color: #9aa3ae; font-size: 10px; font-weight: 600; line-height: 18px;
+}
+
+/* 둘째 단계 — 파란 띠 상자 */
+.kv.tree .kv.tree {
+  margin: 2px 0; padding: 2px 12px; border-left: 3px solid #2a78d6; border-radius: 0 10px 10px 0; background: #f5f8fc;
+}
+.kv.tree .kv.tree > div > dt,
+.kv.tree .kv.tree > div > dd { padding: 5px 0; border-bottom: 1px dashed #e1e7ef; }
+/* 셋째 단계 — 보라 띠 */
+.kv.tree .kv.tree .kv.tree { border-left-color: #6250d6; background: #f7f6fd; }
+.kv.tree .kv.tree .kv.tree > div > dd,
+.kv.tree .kv.tree .kv.tree > div > dt { border-bottom-color: #e6e3f6; }
+/* 넷째 단계 이하 — 초록 띠 */
+.kv.tree .kv.tree .kv.tree .kv.tree { border-left-color: #1baf7a; background: #f3faf7; }
+
+/* 목록 — 번호 배지 */
+.kv.tree .tree-list,
+.dpane .tree-list { list-style: none; margin: 0; padding: 0; counter-reset: tri; }
+.tree-list > li { position: relative; counter-increment: tri; padding: 4px 0 4px 28px; }
+.tree-list > li::before {
+  content: counter(tri); position: absolute; left: 0; top: 7px;
+  min-width: 20px; height: 20px; padding: 0 5px; box-sizing: border-box; border-radius: 999px;
+  background: #e8f0fb; color: #1f5fae; font-size: 10px; font-weight: 800; line-height: 20px; text-align: center;
+}
+.tree-list > li + li { border-top: 1px dashed #e1e7ef; }
+
+/* 표(단순 값 목록) — 머리 띠 · 줄무늬 */
+.tree-table { margin: 2px 0; border-radius: 8px; overflow: auto; border: 1px solid #e3e7ed; }
+.tree-table table { width: 100%; border-collapse: collapse; font-size: var(--fs-2xs); }
+.tree-table thead th { background: #eef3fa; color: #3b4a5e; font-weight: 700; padding: 6px 10px; text-align: left; white-space: nowrap; border-bottom: 1px solid #dbe3ee; }
+.tree-table tbody td { padding: 6px 10px; border-bottom: 1px solid #eef1f5; color: #1e2124; font-variant-numeric: tabular-nums; }
+.tree-table tbody tr:nth-child(even) td { background: #fafbfd; }
+.tree-table tbody tr:last-child td { border-bottom: 0; }
+
+/* 좁은 화면 — 안쪽 단계는 키 위·값 아래로 */
+@media (max-width: 560px) {
+  .kv.tree .kv.tree { grid-template-columns: 1fr; }
+  .kv.tree .kv.tree > div > dt { padding-bottom: 0; border-bottom: 0; font-size: 10px; }
+}
+
+/* 일반 상세 패널(시설·사건 외) — 머리 띠 */
+.gdp-hero { margin: -2px 0 0; padding: 14px 16px 12px; border-radius: 14px; background: linear-gradient(135deg, #1f4f8f 0%, #2a78d6 100%); color: #fff; }
+.gdp-hero .gdp-kind { color: rgba(255, 255, 255, 0.82); font-weight: 600; letter-spacing: 0.01em; overflow-wrap: anywhere; }
+.gdp-hero .gdp-title { margin: 4px 0 0; font-size: 20px; font-weight: 800; line-height: 1.3; color: #fff; overflow-wrap: anywhere; }
+.gdp-meta { display: inline-block; margin: 10px 0 4px; padding: 3px 10px; border-radius: 999px; background: #eef3fa; color: #3b4a5e !important; font-weight: 600; }
+.gdp > .gaps { border-left: 3px solid #eda100; background: #fffaf0; }

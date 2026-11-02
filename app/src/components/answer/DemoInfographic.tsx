@@ -81,7 +81,7 @@ function Chronicle() {
       ]} />
       <ol className="di-chron">
         {EVENTS.map((e) => (
-          <li key={e.when}>
+          <li key={e.when} className={`t-${e.tone}`}>
             <div className={`di-chip t-${e.tone}`}><IcCalendar size={14} />{e.when}</div>
             <div className="di-chron-body">
               <div className="di-chron-top"><span className={`di-tag t-${e.tone}`}>{e.tag}</span><span className="di-chron-area">{e.area}</span></div>
@@ -179,15 +179,15 @@ function Event2020() {
       ]} />
       <div className="di-ev">
         <section>
-          <h4><IcHouseFlood size={18} />침수 지구</h4>
+          <h4><span className="di-ic"><IcHouseFlood size={18} /></span>침수 지구</h4>
           <ul><li>연제구 거제동 1471 일원 <b>16,914㎡</b></li><li>연제구 연산동 310·402·1515 일원 <b>10,980㎡</b></li><li>동래구 안락동 425-54 일원 <b>22,887㎡</b></li><li>장전동 농구장 사면 600㎡ 파손</li></ul>
         </section>
         <section>
-          <h4><IcEvacuate size={18} />대응 조치</h4>
+          <h4><span className="di-ic"><IcEvacuate size={18} /></span>대응 조치</h4>
           <ul><li>산책로 선제 전면 통제·대피 방송</li><li>세병교·수연교·연안교 하상도로 차단</li><li>빗물펌프장 조기 가동 · 차수판·모래주머니</li><li>재난문자로 주민 대피 유도</li></ul>
         </section>
         <section className="pending">
-          <h4><IcLandmark size={18} />연계 예정 자료</h4>
+          <h4><span className="di-ic"><IcLandmark size={18} /></span>연계 예정 자료</h4>
           <ul className="di-ev-icons">
             <li><IcRecovery size={22} />피해 복구 자료</li>
             <li><IcSms size={22} />재난문자 발송 이력</li>
@@ -218,7 +218,7 @@ const LEVEL_MARKS = [
 function RainCompare() {
   return (
     <Fig title="지금 가정한 비는 과거 어디쯤인가" src="값 출처: 답 1-3 · 2-4 · 1-1" label="시간당 강우량을 과거 사건과 비교한 가로막대와 세병교 수위 기준">
-      <div className="di-gauge-lb"><IcRain size={16} /> 1시간 강우량(mm) — 과거 사건과 비교</div>
+      <div className="di-gauge-lb"><span className="di-ic sm"><IcRain size={14} /></span>1시간 강우량(mm) — 과거 사건과 비교</div>
       <div className="di-bars">
         {RAIN_ROWS.map((r) => (
           <div key={r.lb} className={`di-bar-row ${r.now ? "now" : ""}`}>
@@ -232,7 +232,7 @@ function RainCompare() {
         ))}
         <div className="di-bar-axis">{[0, 30, 60, 90, 120, 140].map((t) => <span key={t} style={{ left: `${(t / RAIN_MAX) * 100}%` }}>{t}</span>)}</div>
       </div>
-      <div className="di-gauge-lb"><IcGauge size={16} /> 세병교 관측소 수위(m) — 통제 기준</div>
+      <div className="di-gauge-lb"><span className="di-ic sm"><IcGauge size={14} /></span>세병교 관측소 수위(m) — 통제 기준</div>
       <div className="di-gauge">
         <div className="di-gauge-track">
           {LEVEL_MARKS.map((m) => (
@@ -267,7 +267,7 @@ function Underpasses({ withMap }: { withMap?: boolean }) {
         <ul className="di-under">
           {UNDER.map((u) => (
             <li key={u.name}>
-              <b><IcUnderpass size={18} />{u.name}</b>
+              <b><span className="di-ic"><IcUnderpass size={18} /></span>{u.name}</b>
               <span>{u.where} · {u.near}</span>
               <span className="xs muted">{u.shape} · {u.mgmt}</span>
             </li>

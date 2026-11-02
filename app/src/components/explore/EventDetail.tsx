@@ -1,12 +1,12 @@
 "use client";
-import { useState, type ReactNode } from "react";
+import { useState, type CSSProperties, type ReactNode } from "react";
 import { type T3qDataState, type T3qEnvelope, useT3qData } from "@/lib/t3qData";
 import { fieldKo, statusKo, VALUE_KO } from "@/lib/labels";
 import { fmtNum, fmtValue } from "@/lib/format";
 import { BarList, compactKo, GroupBars, SERIES, StackedBar, Timeline } from "../viz/Charts";
 import { Gaps, Tree } from "./DetailPane";
 import { Headline } from "../answer/infoBits";
-import { IcCalendar, IcEvacuate, IcFacility, IcHouseFlood, IcRecovery } from "../answer/infoIcons";
+import { IcCalendar, IcEvacuate, IcFacility, IcHouseFlood, IcRain, IcRecovery, IcRiver, IcSlope, IcWarning, type IconProps } from "../answer/infoIcons";
 import "../answer/demoInfo.css";
 import "./eventInfo.css";
 
@@ -108,6 +108,70 @@ function Loaded<R>({ q, children }: { q: T3qDataState<Env<R>>; children: (r: R, 
   return <>{view ?? <NoResult env={q.data} />}</>;
 }
 
+/** 선 아이콘 틀 — ../answer/infoIcons 와 같은 32칸 격자·선 두께(색은 부모 글자색) */
+function Line({ size = 24, className, children }: IconProps & { children: ReactNode }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden className={className}>
+      {children}
+    </svg>
+  );
+}
+/** 태풍: 소용돌이 */
+function IcTyphoon(p: IconProps) {
+  return (
+    <Line {...p}>
+      <circle cx="16" cy="16" r="3" fill="currentColor" opacity={0.18} stroke="none" />
+      <circle cx="16" cy="16" r="3" />
+      <path d="M16 6c-6 0-10 4-10 10M16 26c6 0 10-4 10-10" />
+      <path d="M8 6.5C11 4 19 3 23 6M24 25.5C21 28 13 29 9 26" />
+    </Line>
+  );
+}
+/** 대설: 눈 결정 */
+function IcSnow(p: IconProps) {
+  return (
+    <Line {...p}>
+      <path d="M16 3v26M4.7 9.5l22.6 13M4.7 22.5l22.6-13" />
+      <path d="M12.5 5.5L16 8l3.5-2.5M12.5 26.5L16 24l3.5 2.5" />
+    </Line>
+  );
+}
+/** 강풍·풍랑: 바람 줄 */
+function IcWind(p: IconProps) {
+  return (
+    <Line {...p}>
+      <path d="M3 12h16a4 4 0 1 0-4-4" />
+      <path d="M3 18h21a4 4 0 1 1-4 4" />
+      <path d="M3 24h9" />
+    </Line>
+  );
+}
+/** 산불·화재: 불꽃 */
+function IcFire(p: IconProps) {
+  return (
+    <Line {...p}>
+      <path d="M16 29c-5.5 0-9-3.6-9-8.4 0-5.6 5-8.2 5.6-14.6 4 2.6 6.4 6.2 6.4 9.6 1.4-.8 2.4-2.4 2.6-4.2 2.4 2.4 3.4 5.6 3.4 9.2 0 4.8-3.5 8.4-9 8.4z" fill="currentColor" opacity={0.18} stroke="none" />
+      <path d="M16 29c-5.5 0-9-3.6-9-8.4 0-5.6 5-8.2 5.6-14.6 4 2.6 6.4 6.2 6.4 9.6 1.4-.8 2.4-2.4 2.6-4.2 2.4 2.4 3.4 5.6 3.4 9.2 0 4.8-3.5 8.4-9 8.4z" />
+      <path d="M16 29c-2.2 0-3.6-1.5-3.6-3.4 0-2.2 2-3.4 3.6-5.6 1.6 2.2 3.6 3.4 3.6 5.6 0 1.9-1.4 3.4-3.6 3.4z" />
+    </Line>
+  );
+}
+/** 재난유형 이름(받은 글자) → 아이콘. 그림만 고르고 글자는 바꾸지 않음 — 모르는 이름은 일반 경고 아이콘 */
+const TYPE_ICON: [RegExp, (p: IconProps) => ReactNode][] = [
+  [/태풍/, IcTyphoon],
+  [/대설|한파|눈/, IcSnow],
+  [/강풍|풍랑/, IcWind],
+  [/홍수|하천|범람/, IcRiver],
+  [/산사태|사면|토사/, IcSlope],
+  [/산불|화재/, IcFire],
+  [/호우|폭우|강우/, IcRain],
+];
+export function DisasterTypeIcon({ type, size = 16, className }: { type: unknown; size?: number; className?: string }) {
+  const t = typeof type === "string" ? type : "";
+  const Ic = TYPE_ICON.find(([re]) => re.test(t))?.[1] ?? IcWarning;
+  return <>{Ic({ size, className })}</>;
+}
+
 /** 「… 원본 항목 전체 보기」 — 받은 결과 전부(키는 한국어 이름, 값은 받은 그대로) */
 function RawView({ name, v }: { name: string; v: unknown }) {
   const [open, setOpen] = useState(false);
@@ -132,9 +196,15 @@ export default function EventDetail({ id, label, ctx }: { id: string; label: str
   const tp = r?.time_profile;
 
   return (
-    <div className="dpane fadein">
-      <div className="xs muted">사건 ID {id}</div>
-      <h2 style={{ fontSize: 19, marginTop: 6 }}>{r?.display_name ?? label}</h2>
+    <div className="dpane fadein evd">
+      {/* 머리 — 사건 이름(큰 제목), 재난유형 아이콘은 받은 첫 재난유형으로 고른 그림만 */}
+      <header className="evd-hero">
+        {r && <span className="evd-hero-ic"><DisasterTypeIcon type={r.disaster_types?.[0]} size={30} /></span>}
+        <div className="evd-hero-t">
+          <div className="evd-id">사건 ID {id}</div>
+          <h2 className="evd-title">{r?.display_name ?? label}</h2>
+        </div>
+      </header>
       {evQ.state === "error" && <div className="notice danger" style={{ marginTop: 12 }}>{evQ.error}</div>}
       {evQ.state === "loading" && <div className="muted s" style={{ marginTop: 12 }}>불러오는 중…</div>}
       {ev && !r && <div style={{ marginTop: 12 }}><NoResult env={ev} /></div>}
@@ -143,16 +213,16 @@ export default function EventDetail({ id, label, ctx }: { id: string; label: str
           {/* 머리 칩 — 기간(날짜 칩) · 재난유형(받은 항목마다) · 진행 상태, 모두 받은 글자 그대로 */}
           <div className="ev-chips">
             <span className="di-chip"><IcCalendar size={12} /><span>{txt(tp?.started_at)}</span>~<span>{txt(tp?.ended_at)}</span></span>
-            {(r.disaster_types ?? []).map((t, i) => <span key={i} className="di-tag">{txt(t)}</span>)}
+            {(r.disaster_types ?? []).map((t, i) => <span key={i} className="di-tag evd-type"><DisasterTypeIcon type={t} size={13} />{txt(t)}</span>)}
             <span className="di-tag t-b">{r.lifecycle_status ? VALUE_KO[r.lifecycle_status] ?? r.lifecycle_status : "—"}</span>
           </div>
-          <div className="xs muted" style={{ margin: "6px 0 10px" }}>
+          <div className="xs muted evd-sub">
             {txt(tp?.started_at)} ~ {txt(tp?.ended_at)} · 주관 {txt(r.lead_agency)} · 데이터 기준 <span className="nowrap">{ev.meta?.base_time ?? "—"}</span>
           </div>
 
           <section className="ev-sec">
             <h3 className="di-pill">요약</h3>
-            <p className="s ev-text">{txt(r.event_summary)}</p>
+            <p className="s ev-text ev-lead">{txt(r.event_summary)}</p>
           </section>
 
           <section className="ev-sec">
@@ -180,7 +250,7 @@ export default function EventDetail({ id, label, ctx }: { id: string; label: str
 
           <section className="ev-sec">
             <h3 className="di-pill">사건 개요</h3>
-            <dl className="kv" style={{ margin: "6px 0 8px" }}>
+            <dl className="kv ev-kv" style={{ margin: "6px 0 8px" }}>
               <dt>재난유형</dt><dd>{txt(r.disaster_types)}</dd>
               <dt>진행 상태</dt><dd>{r.lifecycle_status ? VALUE_KO[r.lifecycle_status] ?? r.lifecycle_status : "—"}</dd>
               <dt>대표지역</dt><dd>{txt(r.representative_admin_area?.name)}</dd>
@@ -258,7 +328,7 @@ function DamageView({ d, res, env }: { d: Damage; res: Dmg; env: Env<Dmg> }) {
   return (
     <>
       <div className="ev-head"><Headline items={tiles} /></div>
-      <dl className="kv" style={{ margin: "6px 0 4px" }}>
+      <dl className="kv ev-kv" style={{ margin: "6px 0 4px" }}>
         <dt>재산피해</dt><dd>{krw(d.property?.property_damage_krw)}</dd>
         <dt>인명·이재민</dt><dd>{human.map(([k, v]) => `${fieldKo(k)} ${num(k, v)}`).join(" · ") || "—"}</dd>
         <dt>공공시설</dt><dd>{cnt(d.facilities?.public?.record_count)} · {krw(d.facilities?.public?.damage_amount_krw)}</dd>
@@ -332,6 +402,7 @@ function TimelineView({ t, items, env }: { t: Tl; items: TlItem[]; env: Env<Tl> 
       <ol className="ev-tl-list">
         {items.map((i, n) => (
           <li key={n}>
+            <span className="ev-tl-dot" aria-hidden />
             <span className="di-chip"><IcCalendar size={12} />{txt(i.occurred_at)}</span>
             <div className="ev-tl-body">
               <span className="di-tag">{txt(i.category)}</span>
@@ -371,6 +442,9 @@ function SimilarityView({ s, env }: { s: Sim; env: Env<Sim> }) {
         parts={cons.map((c) => ({ key: c.factor_group, label: c.factor_group, value: c.contribution_points, color: groupColor(c.factor_group), note: c.contribution_pct == null ? undefined : `${c.contribution_pct}%` }))}
         ariaLabel={`유사도 요인군 기여: ${cons.map((c) => `${c.factor_group} ${c.contribution_points}점`).join(", ")}`}
       />
+      {(s.factors ?? []).length > 0 && <FactorCards factors={s.factors ?? []} hi={scaleHi(sim?.scale)} />}
+      <details className="xs ev-ftable">
+      <summary>요인 표로 보기</summary>
       <div className="md-table" style={{ maxHeight: 280, overflow: "auto" }}>
         <table>
           <thead><tr><th>요인군</th><th>요인</th><th>현재 조건</th><th>과거 사례</th><th>일치도</th><th>가중치</th><th>기여도</th></tr></thead>
@@ -381,10 +455,59 @@ function SimilarityView({ s, env }: { s: Sim; env: Env<Sim> }) {
           </tbody>
         </table>
       </div>
-      {s.similarity_reasons?.length ? <ul className="xs" style={{ margin: "6px 0", paddingLeft: 18 }}>{s.similarity_reasons.map((x, i) => <li key={i}>{x}</li>)}</ul> : null}
-      {s.disclaimer && <div className="xs muted">{s.disclaimer}</div>}
+      </details>
+      {s.similarity_reasons?.length ? <ul className="xs ev-reasons">{s.similarity_reasons.map((x, i) => <li key={i}>{x}</li>)}</ul> : null}
+      {s.disclaimer && <div className="xs muted ev-note">{s.disclaimer}</div>}
       <RawView name="유사도 근거" v={s} />
       <Gaps env={env} />
     </>
+  );
+}
+
+/** 받은 척도 「0~100」 꼴의 끝값 — 기여도 막대 길이의 기준(받은 글자에서 읽기만). 모양이 다르면 null(막대 없음) */
+function scaleHi(scale: unknown): number | null {
+  const m = typeof scale === "string" ? /^\s*(-?[\d.]+)\s*[~-]\s*([\d.]+)\s*$/.exec(scale) : null;
+  const hi = m ? Number(m[2]) : NaN;
+  return Number.isFinite(hi) && hi > 0 ? hi : null;
+}
+
+/** 막대 한 줄(그림만) — 비율이 0~1 밖이거나 숫자가 아니면 막대 없이 값 글자만 */
+function Meter({ lb, v, ratio, color }: { lb: string; v: unknown; ratio: number | null; color: string }) {
+  const ok = ratio !== null && Number.isFinite(ratio) && ratio >= 0 && ratio <= 1;
+  return (
+    <div className="ev-meter">
+      <span className="ev-meter-lb">{lb}</span>
+      <span className="ev-meter-track" aria-hidden="true">{ok && <i style={{ width: `${(ratio * 100).toFixed(1)}%`, background: color }} />}</span>
+      <b className="ev-meter-v">{txt(v)}</b>
+    </div>
+  );
+}
+
+/**
+ * 요인 카드(T3Q-11 factors) — 받은 순서 그대로 한 장씩: 요인군 · 요인(단위) · 현재 조건 ↔ 과거 사례 · 일치도 막대 · 기여도 막대 · 가중치.
+ * 일치도 막대 = 받은 일치도(0~1일 때만 그 길이) · 기여도 막대 = 받은 기여도 ÷ 받은 유사도 척도 끝값. 값 글자는 받은 그대로
+ */
+function FactorCards({ factors, hi }: { factors: Factor[]; hi: number | null }) {
+  return (
+    <ol className="ev-factors">
+      {factors.map((f, i) => {
+        const c = groupColor(f.factor_group);
+        return (
+          <li key={i} style={{ "--fc": c } as CSSProperties}>
+            <div className="ev-f-h">
+              <span className="ev-f-group">{f.factor_group}</span>
+              <b className="ev-f-name">{f.factor}{f.unit ? <small> ({f.unit})</small> : null}</b>
+            </div>
+            <div className="ev-f-vs">
+              <div><span>현재 조건</span><b>{num("current_value", f.current_value)}</b></div>
+              <div><span>과거 사례</span><b>{num("past_value", f.past_value)}</b></div>
+            </div>
+            <Meter lb="일치도" v={f.match} ratio={typeof f.match === "number" ? f.match : null} color="var(--g-teal)" />
+            <Meter lb="기여도" v={f.contribution} ratio={typeof f.contribution === "number" && hi !== null ? f.contribution / hi : null} color={c} />
+            <div className="ev-f-w">가중치 <b>{txt(f.weight_used)}</b></div>
+          </li>
+        );
+      })}
+    </ol>
   );
 }
