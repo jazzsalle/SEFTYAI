@@ -47,8 +47,11 @@ describe("시연 자료 패널 — 그림마다 값이 글자로 보인다(고�
   it("1-3: ① 연대기(사건 5건 · 2014년 130mm · 2.63㎢ · 2024년 18.7만㎡) + ③ 왜 잠기나(6단계)", () => {
     const [chron, why] = figs("SH-1-3");
     expect(chron.textContent).toContain("온천천 침수 연대기");
-    expect(within(chron).getAllByRole("listitem")).toHaveLength(5);
+    expect(chron.querySelectorAll(".di-chron > li")).toHaveLength(5);
     expect(chron.textContent).toContain("2014.8.25");
+    expect(chron.querySelectorAll(".di-chip")).toHaveLength(5); // 날짜 칩
+    expect(chron.querySelector(".di-head")!.textContent).toContain("130"); // 큰 숫자 헤드라인
+    expect(chron.querySelector(".di-pill")!.textContent).toContain("온천천 침수 연대기"); // 띠 제목
     expect(chron.textContent).toContain("130mm");
     expect(chron.textContent).toContain("2.63㎢");
     expect(chron.textContent).toContain("2020.7.23~24");
@@ -63,8 +66,11 @@ describe("시연 자료 패널 — 그림마다 값이 글자로 보인다(고�
 
   it("2-1·1-2·2-6: ② 지도 — 물길 한 개 · 번호 ①~④ · 세병교는 글로만 · 동 중심(근사) 각주", () => {
     const [map] = figs("SH-2-1");
-    expect(map.querySelector("path.di-river")).not.toBeNull();
-    const nums = [...map.querySelectorAll(".di-mk > text:not(.di-mk-name)")].map((t) => t.textContent);
+    expect(map.querySelector(".im-area path")).not.toBeNull();
+    expect(map.textContent).toContain("호우 예비특보"); // 지도 위 띠(특보·가정 강우·관측소)
+    expect(map.textContent).toContain("가정 1시간 30mm");
+    expect(map.textContent).toContain("2020년 22,886㎡"); // 표지 말풍선 값
+    const nums = [...map.querySelectorAll(".im-mk > text:not(.im-name):not(.im-sub)")].map((t) => t.textContent);
     expect(nums.join("")).toContain("①②");
     expect(nums.join("")).toContain("③");
     expect(nums.filter((n) => n === "④").length).toBeGreaterThanOrEqual(3);
@@ -88,6 +94,8 @@ describe("시연 자료 패널 — 그림마다 값이 글자로 보인다(고�
     expect(ev.textContent).toContain("22,887㎡");
     expect(ev.textContent).toContain("연계 예정 자료");
     expect(ev.querySelector("section.pending")!.textContent).toContain("교통 돌발");
+    expect(ev.querySelector(".di-head")!.textContent).toContain("22:30");
+    expect(ev.querySelectorAll("svg").length).toBeGreaterThan(5); // 아이콘
     expect(mx.querySelectorAll("tbody tr")).toHaveLength(5);
     expect(mx.querySelectorAll("thead th")).toHaveLength(8);
     expect(mx.querySelectorAll("td.on").length).toBeGreaterThan(0);
@@ -101,27 +109,28 @@ describe("시연 자료 패널 — 그림마다 값이 글자로 보인다(고�
 
   it("1-1: ⑤ 눈금자(가정 30 · 2014년 130 · 세병교 1.5~1.8m · 2.45m) + ⑥ 지하차도 6곳(통제 5.0cm)", () => {
     const [g, u] = figs("SH-1-1");
-    expect(g.textContent).toContain("가정 30");
-    expect(g.textContent).toContain("2014년 130");
-    expect(g.textContent).toContain("2020년 80~86");
+    expect(g.textContent).toContain("지금 가정");
+    expect(g.textContent).toContain("130mm");
+    expect(g.textContent).toContain("80~86mm");
+    expect(g.textContent).toContain("2014년 8월 25일");
     expect(g.textContent).toContain("산책로 차단 약 1.5~1.8m");
     expect(g.textContent).toContain("하상도로 통제 약 2.45m");
-    expect(g.querySelector(".di-gauge-mk.now")).not.toBeNull();
+    expect(g.querySelector(".di-bar-row.now")).not.toBeNull();
     expect(u.textContent).toContain("5.0cm");
     expect(within(u).getAllByRole("listitem")).toHaveLength(6);
     for (const n of ["구서지하차도", "장전지하차도(1)", "장전지하차도(2)", "내성지하차도", "우장춘지하차도", "안락지하차도"]) expect(u.textContent).toContain(n);
-    expect(u.querySelector("svg")).toBeNull(); // 1-1 은 작은 지도 없이
+    expect(u.querySelector("svg.im-map")).toBeNull(); // 1-1 은 작은 지도 없이(아이콘 svg 는 있음)
     cleanup();
     const [u2] = figs("SH-2-5");
-    expect(u2.querySelector("svg.di-map.small")).not.toBeNull(); // 2-2 침수·산사태는 지하차도만 찍은 작은 지도
-    expect(u2.querySelectorAll(".di-mk").length).toBe(4); // 겹치는 동 중심은 표지 하나(내성=우장춘 · 장전①=②)
+    expect(u2.querySelector("svg.im-map.small")).not.toBeNull(); // 2-2 침수·산사태는 지하차도만 찍은 작은 지도
+    expect(u2.querySelectorAll(".im-mk").length).toBe(4); // 겹치는 동 중심은 표지 하나(내성=우장춘 · 장전①=②)
   });
 
   it("화면 글자에 영어 낱말이 없다(단위·기호 제외)", () => {
     for (const id of ["SH-1-1", "SH-1-3", "SH-2-1", "SH-2-5", "SH-2-6"]) {
       const { container } = render(<DemoInfoPanel job={job(id)} />);
       const text = container.textContent ?? "";
-      expect(text.replace(/mm\/h|mm|cm|\bm\b/g, "")).not.toMatch(/[A-Za-z]{2,}/);
+      expect(text.replace(/mm\/h|mm|cm|km|\bm\b/g, "")).not.toMatch(/[A-Za-z]{2,}/);
       cleanup();
     }
   });

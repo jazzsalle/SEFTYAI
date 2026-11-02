@@ -5,6 +5,10 @@ import { fieldKo, statusKo, VALUE_KO } from "@/lib/labels";
 import { fmtNum, fmtValue } from "@/lib/format";
 import { BarList, compactKo, GroupBars, SERIES, StackedBar, Timeline } from "../viz/Charts";
 import { Gaps, Tree } from "./DetailPane";
+import { Headline } from "../answer/infoBits";
+import { IcCalendar, IcEvacuate, IcFacility, IcHouseFlood, IcRecovery } from "../answer/infoIcons";
+import "../answer/demoInfo.css";
+import "./eventInfo.css";
 
 /**
  * 재난사건 상세 (Figma 204002) — T3Q-10 사건을 받고, available_sections 가 true 인 것만 이어서 조회
@@ -14,6 +18,7 @@ import { Gaps, Tree } from "./DetailPane";
  * 숫자는 받은 그대로(건수·명·연도·번호에 쉼표를 넣지 않음), 금액(원)만 예전처럼 천 단위 쉼표. 데이터 기준 시각도 받은 글자 그대로.
  * 섹션마다 「… 원본 항목 전체 보기」 — 받은 결과 전부(화면에 고른 항목 밖의 것 포함, 키는 한국어·값은 받은 그대로).
  * 그림: V2 요인군 기여 누적 막대 · V3 타임라인 그대로, 보고 단계는 묶음 막대 대신 받은 값 표(결함 7).
+ * 꾸밈: 행안부·연합뉴스 재난 그래픽 문법(띠 제목 알약 · 큰 숫자 타일 · 단색 선 아이콘 · 날짜 칩) — 값은 받은 그대로, 빨강 없음.
  */
 type Env<R> = T3qEnvelope<R>;
 type Area = { admin_code?: string | null; name?: string | null };
@@ -135,40 +140,46 @@ export default function EventDetail({ id, label, ctx }: { id: string; label: str
       {ev && !r && <div style={{ marginTop: 12 }}><NoResult env={ev} /></div>}
       {ev && r && (
         <>
+          {/* 머리 칩 — 기간(날짜 칩) · 재난유형(받은 항목마다) · 진행 상태, 모두 받은 글자 그대로 */}
+          <div className="ev-chips">
+            <span className="di-chip"><IcCalendar size={12} /><span>{txt(tp?.started_at)}</span>~<span>{txt(tp?.ended_at)}</span></span>
+            {(r.disaster_types ?? []).map((t, i) => <span key={i} className="di-tag">{txt(t)}</span>)}
+            <span className="di-tag t-b">{r.lifecycle_status ? VALUE_KO[r.lifecycle_status] ?? r.lifecycle_status : "—"}</span>
+          </div>
           <div className="xs muted" style={{ margin: "6px 0 10px" }}>
             {txt(tp?.started_at)} ~ {txt(tp?.ended_at)} · 주관 {txt(r.lead_agency)} · 데이터 기준 <span className="nowrap">{ev.meta?.base_time ?? "—"}</span>
           </div>
 
           <section className="ev-sec">
-            <h3>요약</h3>
+            <h3 className="di-pill">요약</h3>
             <p className="s ev-text">{txt(r.event_summary)}</p>
           </section>
 
           <section className="ev-sec">
-            <h3>근거</h3>
+            <h3 className="di-pill">근거</h3>
             {!av.evidence ? EMPTY : <EvidenceView q={evdQ} />}
           </section>
 
           <section className="ev-sec">
-            <h3>피해·복구</h3>
+            <h3 className="di-pill">피해·복구</h3>
             {!av.damage_response ? EMPTY
               : <Loaded q={dmgQ}>{(res, env) => (res.damage ? <DamageView d={res.damage} res={res} env={env} /> : null)}</Loaded>}
           </section>
 
           <section className="ev-sec">
-            <h3>사건 타임라인</h3>
+            <h3 className="di-pill">사건 타임라인</h3>
             {!av.timeline ? EMPTY
               : <Loaded q={tlQ}>{(res, env) => (res.items?.length ? <TimelineView t={res} items={res.items} env={env} /> : null)}</Loaded>}
           </section>
 
           <details className="ev-sec ev-fold">
-            <summary><h3>유사도 근거</h3></summary>
+            <summary><h3 className="di-pill t-c">유사도 근거</h3></summary>
             {!av.similarity || !ctx ? EMPTY
               : <Loaded q={simQ}>{(res, env) => <SimilarityView s={res} env={env} />}</Loaded>}
           </details>
 
           <section className="ev-sec">
-            <h3>사건 개요</h3>
+            <h3 className="di-pill">사건 개요</h3>
             <dl className="kv" style={{ margin: "6px 0 8px" }}>
               <dt>재난유형</dt><dd>{txt(r.disaster_types)}</dd>
               <dt>진행 상태</dt><dd>{r.lifecycle_status ? VALUE_KO[r.lifecycle_status] ?? r.lifecycle_status : "—"}</dd>
@@ -224,6 +235,9 @@ function EvidenceView({ q }: { q: T3qDataState<Env<Evd>> }) {
   );
 }
 
+/** 큰 숫자 칸 — 숫자면 천 단위 쉼표 + 단위(작은 글자), 아니면 받은 글자(빈 값은 「—」) */
+const big = (v: unknown, unit: string) => (typeof v === "number" ? { v: fmtNum(v), unit } : { v: txt(v) });
+
 /** 피해·복구(T3Q-13) — 받은 값 그대로. 시설유형 막대(받은 순서, 이름 옆에 받은 건수), 보고 단계·재해대장은 표(행마다 받은 값) */
 function DamageView({ d, res, env }: { d: Damage; res: Dmg; env: Env<Dmg> }) {
   const cats = d.facilities?.public?.by_category ?? [];
@@ -232,8 +246,18 @@ function DamageView({ d, res, env }: { d: Damage; res: Dmg; env: Env<Dmg> }) {
   const regKeys = keysOf(regs);
   // 인명 칸은 받은 키마다 따로(같은 「—」도 합치지 않음). 받은 글(text)이 비어 있을 때만 뺀다
   const human = Object.entries(d.human ?? {}).filter(([k, v]) => !(k === "text" && v == null));
+  // 큰 숫자 타일 — 받은 값만(빈 값도 「—」로 칸을 남김, 더하거나 세지 않음)
+  const pub = d.facilities?.public;
+  const pri = d.facilities?.private;
+  const tiles = [
+    { ...big(d.property?.property_damage_krw, "원"), lb: "재산피해", icon: <IcRecovery size={26} /> },
+    { ...big(pub?.record_count, "건"), lb: `공공시설 · ${krw(pub?.damage_amount_krw)}`, icon: <IcFacility size={26} /> },
+    { ...big(pri?.record_count, "건"), lb: `사유시설 · ${krw(pri?.damage_amount_krw)}`, icon: <IcHouseFlood size={26} /> },
+    ...human.map(([k, v]) => ({ v: num(k, v), lb: fieldKo(k), icon: <IcEvacuate size={26} /> })),
+  ];
   return (
     <>
+      <div className="ev-head"><Headline items={tiles} /></div>
       <dl className="kv" style={{ margin: "6px 0 4px" }}>
         <dt>재산피해</dt><dd>{krw(d.property?.property_damage_krw)}</dd>
         <dt>인명·이재민</dt><dd>{human.map(([k, v]) => `${fieldKo(k)} ${num(k, v)}`).join(" · ") || "—"}</dd>
@@ -304,6 +328,19 @@ function TimelineView({ t, items, env }: { t: Tl; items: TlItem[]; env: Env<Tl> 
         items={items.map((i) => ({ at: i.occurred_at, category: i.category, label: i.description, detail: [i.agency, i.source_ref].filter(Boolean).join(" · ") }))}
         ariaLabel="사건 타임라인 — 특보·재난문자 기록"
       />
+      {/* 받은 기록 세로 목록 — 받은 순서 그대로, 날짜 칩(받은 시각 글자) · 분류 꼬리표 · 내용 · 기관 */}
+      <ol className="ev-tl-list">
+        {items.map((i, n) => (
+          <li key={n}>
+            <span className="di-chip"><IcCalendar size={12} />{txt(i.occurred_at)}</span>
+            <div className="ev-tl-body">
+              <span className="di-tag">{txt(i.category)}</span>
+              <span className="ev-tl-desc">{txt(i.description)}</span>
+              {i.agency ? <span className="xs muted">{i.agency}</span> : null}
+            </div>
+          </li>
+        ))}
+      </ol>
       <details className="xs">
         <summary>기록 목록 보기</summary>
         <div className="md-table" style={{ maxHeight: 260, overflow: "auto" }}>

@@ -92,6 +92,23 @@ describe("유사재난 사례 카드 — 배치", () => {
     expect(rows[14].querySelector(".sim-meta")!.textContent).toBe("2018-08-06 ~ 2018-08-07 · 대표지역 강원특별자치도 · 종료");
   });
 
+  it("유사도 순위 그림 — 받은 순서 그대로 한 줄씩, 막대는 받은 척도 끝값 대비 받은 점수, 누르면 사건 상세", () => {
+    stubDetails(never);
+    const { container, x } = show(tagged("chart"));
+    const li = [...container.querySelectorAll<HTMLElement>(".sim-chart-list li")];
+    expect(li).toHaveLength(ITEMS.length);
+    expect(li.map((l) => l.querySelector(".sim-chart-name")!.textContent)).toEqual(ITEMS.map((it) => it.display_name));
+    expect(li[0].querySelector(".sim-chart-v")!.textContent).toBe("96.67");
+    expect(li[0].querySelector(".di-chip")!.textContent).toBe("2021-08-25");
+    expect((li[0].querySelector(".sim-bar i") as HTMLElement).style.width).toBe("96.7%");
+    expect(container.querySelector(".sim-chart .di-pill")!.textContent).toBe("유사도 순위");
+    fireEvent.click(li[1]);
+    const call = (x.openDetail as ReturnType<typeof vi.fn>).mock.calls[0];
+    expect(call[0]).toBe("T3Q-10");
+    expect(call[1]).toContain(ITEMS[1].event_master_id);
+    expect(call[2]).toBe(ITEMS[1].display_name);
+  });
+
   it("덧붙인 설명·센 값 없음 · 영문 툴팁 없음", () => {
     stubDetails(never);
     const { container } = show(tagged("plain"));

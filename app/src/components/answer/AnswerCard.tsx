@@ -12,7 +12,8 @@ import { SCN_SENT_LABEL, sentWithScenario } from "@/lib/scenario";
 import { useExplore } from "../explore/ExploreCtx";
 import { IcChevD } from "../Icons";
 import { AnswerMarkdown, entityLabel, mdPlainText } from "./Markdown";
-import DemoInfoPanel from "./DemoInfographic";
+import DemoInfoPanel, { hasDemoInfographic } from "./DemoInfographic";
+import AutoInfoPanel from "./AutoInfographic";
 import "./answer.css";
 
 export { entityLabel } from "./Markdown";
@@ -249,8 +250,8 @@ function Card({ job, full, compact }: CardProps) {
       {after.length > 0 && <div className="ans-caution" role="note">⚠ 답변을 받은 뒤 특보 발표: {after.map(advText).join(" · ")}</div>}
       {hasNotice && <button type="button" className="ans-jump" onClick={() => goTo(noticeId, "center")}>경고·정보 부족 보기 ↓</button>}
 
-      {/* 시연 자료(미리 만든 인포그래픽) — 시연 탭 항목의 답에만, 답 글 위에 먼저(11/2 행안부 회의 코멘트, 사용자 승인 2026-11-02). 답 글·대상은 그대로 */}
-      <DemoInfoPanel job={job} />
+      {/* 그림을 먼저(11/2 행안부 회의 코멘트, 사용자 승인 2026-11-02) — 시연 탭 항목은 미리 만든 시연 자료, 그 밖은 받은 대상·조회 값으로 그린 답변 그림. 답 글·대상은 그대로 */}
+      {hasDemoInfographic(job) ? <DemoInfoPanel job={job} /> : <AutoInfoPanel job={job} full={full} />}
 
       {answer ? (
         <div ref={bodyRef} className={fold ? "acard-body folded" : "acard-body"}>

@@ -6,6 +6,8 @@ import { useT3qDataMany, type T3qDataState, type T3qEnvelope } from "@/lib/t3qDa
 import { useExplore } from "@/components/explore/ExploreCtx";
 import { Gaps } from "@/components/explore/DetailPane";
 import { allKeys, CardHead, cellText, DETAIL, pick } from "./GenericCard";
+import { IcCalendar } from "../infoIcons";
+import "../demoInfo.css";
 import "./similar.css";
 
 /**
@@ -65,6 +67,57 @@ type Fields = ReturnType<typeof fieldsOf>;
 const metaOf = (f: Fields) => [f.period, f.area === null ? null : `대표지역 ${f.area}`, f.life].filter((x) => x !== null).join(" · ");
 const scaleOf = (f: Fields) => (f.scale === null ? "" : ` · 척도 ${f.scale}`);
 
+/** 유사도 막대 비율 — 받은 척도(「0~100」 꼴)의 끝값 대비 받은 점수. 척도·점수가 숫자가 아니면 null(막대 없음) */
+export function scoreRatio(it: Item): number | null {
+  const sc = pick("similarity.score")(it);
+  const scale = pick("similarity.scale")(it);
+  const score = typeof sc === "number" ? sc : typeof sc === "string" && sc.trim() !== "" ? Number(sc) : NaN;
+  const m = typeof scale === "string" ? /^\s*(-?[\d.]+)\s*[~-]\s*([\d.]+)\s*$/.exec(scale) : null;
+  if (!Number.isFinite(score) || !m) return null;
+  const lo = Number(m[1]), hi = Number(m[2]);
+  if (!(hi > lo)) return null;
+  return Math.max(0, Math.min(1, (score - lo) / (hi - lo)));
+}
+
+/** 유사도 막대(그림만 — 값 글자는 옆 칸에 받은 그대로) */
+function ScoreBar({ it }: { it: Item }) {
+  const r = scoreRatio(it);
+  if (r === null) return null;
+  return (
+    <span className="sim-bar" aria-hidden="true">
+      <i style={{ width: `${(r * 100).toFixed(1)}%` }} />
+    </span>
+  );
+}
+
+/** 유사도 순위 그림 — 받은 순서 그대로 한 줄씩(순위 · 시작일 칩 · 사건 · 막대 · 점수). 누르면 사건 상세 */
+function RankChart({ items, onOpen }: { items: Item[]; onOpen: (it: Item) => void }) {
+  if (!items.some((it) => scoreRatio(it) !== null)) return null;
+  return (
+    <figure className="sim-chart" role="img" aria-label="유사도 순위 그림">
+      <figcaption className="di-cap">
+        <span className="di-pill">유사도 순위</span>
+        <span className="sim-meta">받은 순서·점수 그대로</span>
+      </figcaption>
+      <ol className="sim-chart-list">
+        {items.map((it, i) => {
+          const f = fieldsOf(it);
+          const start = textOrNull(it.started_at);
+          return (
+            <li key={i} onClick={() => onOpen(it)}>
+              <span className="sim-chart-rank">{f.rank ?? ""}</span>
+              <span className="sim-chart-date">{start !== null && <span className="di-chip"><IcCalendar size={12} />{start}</span>}</span>
+              <span className="sim-chart-name">{f.name}</span>
+              <ScoreBar it={it} />
+              <span className="sim-chart-v">{f.score}</span>
+            </li>
+          );
+        })}
+      </ol>
+    </figure>
+  );
+}
+
 /** 목록 사건 전부의 사건 상세를 한꺼번에 — items 순서대로 상태(ID 가 없으면 null) */
 function useEventDetails(items: Item[]): (DetailState | null)[] {
   const ids = items.map(idOf);
@@ -109,6 +162,7 @@ export default function SimilarEventsCard({ p }: { p: PreviewItem }) {
             <AllFields items={items} onOpen={openEvent} />
           ) : (
             <>
+              <RankChart items={items} onOpen={openEvent} />
               {/* 사건 이름(단추)이나 칸 어디를 눌러도 사건 상세 — 단추의 클릭(키보드 Enter·Space 포함)은 칸으로 올라간다 */}
               {first && <TopCard it={first} s={details[0] ?? null} onOpen={() => openEvent(first)} />}
               {rest.length > 0 && (
@@ -156,6 +210,7 @@ function TopCard({ it, s, onOpen }: { it: Item; s: DetailState | null; onOpen: (
           {scaleOf(f)}
         </span>
       </div>
+      <ScoreBar it={it} />
       <button type="button" className="sim-name">{f.name}</button>
       <div className="sim-meta">{metaOf(f)}</div>
       <Summary s={s} />

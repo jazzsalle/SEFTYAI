@@ -1,0 +1,61 @@
+/* 답변 그림(자동 인포그래픽) · 정적 지도 SVG — 색은 viz.css 계열색(빨강 없음) */
+
+/* 큰 숫자 타일 */
+.ai-tiles { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 4px; }
+.ai-tile { display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto; column-gap: 8px; align-items: center; min-width: 140px; padding: 8px 12px; border: 1px solid var(--viz-grid); border-radius: 8px; background: #f7f9fb; }
+.ai-tile-ic { grid-row: 1 / span 2; display: inline-flex; color: var(--series-1); }
+.ai-tile b { font-size: 20px; line-height: 1.2; color: var(--viz-ink); font-variant-numeric: tabular-nums; }
+.ai-tile > span:not(.ai-tile-ic) { font-size: var(--fs-2xs); color: var(--viz-muted); margin-top: 2px; }
+.ai-tile.warn { border-color: #f5dea0; background: var(--c-warn-sub); }
+.ai-tile.warn b, .ai-tile.warn .ai-tile-ic { color: var(--c-warn-dk); }
+.ai-tile.cond { border-color: #bcd6f3; background: #eef5fc; }
+.ai-tile.cond b { color: var(--series-1); }
+.ai-chron-lb .di-chip { align-self: flex-start; margin-bottom: 2px; }
+
+/* 정적 지도 */
+.im-wrap { display: flex; gap: 14px; align-items: flex-start; }
+.im-map { flex: none; height: auto; overflow: visible; }
+.im-map.small { width: 110px; }
+.im-ground { fill: #f7f9fb; stroke: var(--viz-grid); rx: 6; }
+.im-mk rect { fill: var(--series-3); stroke: #fff; stroke-width: 2; }
+.im-mk.t-b rect { fill: var(--series-2); }
+.im-mk.t-c rect { fill: var(--series-4); }
+.im-area path { fill: var(--series-1); fill-opacity: 0.18; stroke: var(--series-1); stroke-width: 1.2; stroke-linejoin: round; }
+.im-area.on path { fill-opacity: 0.3; }
+.im-line path { fill: none; stroke: var(--series-1); stroke-width: 2; stroke-linecap: round; }
+.im-mk circle { fill: var(--series-3); stroke: #fff; stroke-width: 2; }
+.im-mk.t-b circle { fill: var(--series-2); }
+.im-mk.t-c circle { fill: var(--series-4); }
+.im-mk text { font-size: 12px; font-weight: 700; fill: #fff; pointer-events: none; }
+.im-mk.t-c text { fill: #3a2a00; }
+.im-mk text.im-name { font-size: 10px; font-weight: 400; fill: var(--viz-ink-2); paint-order: stroke; stroke: #f7f9fb; stroke-width: 3px; }
+.im-mk[onclick], .im-mk { cursor: pointer; }
+.im-scale line { stroke: var(--viz-ink-2); stroke-width: 1.5; }
+.im-scale text, .im-north { font-size: 10px; fill: var(--viz-muted); }
+.im-legend { margin: 0; padding: 0; list-style: none; flex: 1; min-width: 0; max-height: 420px; overflow: auto; font-size: var(--fs-2xs); color: var(--viz-ink-2); line-height: 1.5; }
+.im-legend li { display: grid; grid-template-columns: 24px 1fr auto; gap: 6px; align-items: baseline; padding: 3px 0; border-bottom: 1px dashed var(--viz-grid); }
+.im-num { width: 22px; height: 22px; border-radius: 50%; border: 0; background: var(--series-3); color: #fff; font-size: 11px; font-weight: 700; cursor: pointer; }
+.im-num.t-b { background: var(--series-2); }
+.im-num.t-c { background: var(--series-4); color: #3a2a00; }
+.im-lname { color: var(--viz-ink); font-weight: 600; }
+
+/* 유사사례 연대기 */
+.ai-chron { position: relative; }
+.ai-chron-row { display: grid; grid-template-columns: minmax(160px, 38%) 1fr; gap: 10px; align-items: center; padding: 4px 0; border-bottom: 1px solid var(--viz-grid); }
+.ai-chron-lb { display: flex; flex-direction: column; min-width: 0; font-size: var(--fs-2xs); }
+.ai-chron-lb .lnk { text-align: left; font-weight: 600; }
+.ai-chron-track { position: relative; height: 14px; }
+.ai-chron-bar { position: absolute; top: 2px; height: 10px; border-radius: 3px; background: var(--series-1); min-width: 6px; }
+.ai-chron-axis { position: relative; height: 16px; margin-left: calc(38% + 10px); font-size: 10px; color: var(--viz-muted); border-top: 1px solid var(--viz-axis); }
+.ai-chron-axis span { position: absolute; top: 2px; transform: translateX(-50%); }
+
+/* 시설 카드 */
+.ai-cards { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 6px; }
+.ai-cards li { border: 1px solid var(--viz-grid); border-left: 4px solid var(--series-2); border-radius: 6px; padding: 6px 10px; display: flex; flex-direction: column; gap: 2px; font-size: var(--fs-2xs); color: var(--viz-ink-2); }
+.ai-cards li .lnk, .ai-cards li b { color: var(--viz-ink); font-size: var(--fs-xs); font-weight: 700; text-align: left; }
+
+@media (max-width: 720px) {
+  .im-wrap { flex-direction: column; }
+  .ai-chron-row { grid-template-columns: 1fr; }
+  .ai-chron-axis { margin-left: 0; }
+}

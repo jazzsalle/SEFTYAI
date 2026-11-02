@@ -1,0 +1,25 @@
+/* 사건 상세 패널 — 행안부·연합뉴스 재난 그래픽 문법(띠 제목 알약 · 큰 숫자 타일 · 날짜 칩). 공통 조각은 ../answer/demoInfo.css, 색은 viz.css 계열색(빨강 없음) */
+
+/* 섹션 띠 제목 — h3 를 알약으로(renewal.css 의 .ev-sec h3 글자 크기를 덮음) */
+.ev-sec h3.di-pill { display: inline-block; font-size: var(--fs-xs); margin: 0 0 8px; line-height: 1.4; }
+.ev-fold > summary h3.di-pill { display: inline-block; margin: 0; }
+
+/* 머리 칩 줄 — 기간 · 재난유형 · 진행 상태 */
+.ev-chips { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 8px 0 2px; }
+.ev-chips .di-tag { font-size: var(--fs-2xs); }
+
+/* 큰 숫자 타일 — 연한 카드 배경, 좁은 화면에서는 두 칸씩 */
+.ev-head .di-head { margin: 4px 0 8px; }
+.ev-head .di-head-item { flex: 1 1 150px; min-width: 0; }
+.ev-head .di-head-v { overflow-wrap: anywhere; }
+.ev-head .di-head-v b { font-size: 20px; }
+.ev-head .di-head-item:nth-child(2) .di-head-ic { color: var(--series-2); }
+.ev-head .di-head-item:nth-child(3) .di-head-ic { color: var(--series-3); }
+.ev-head .di-head-item:nth-child(n + 4) .di-head-ic { color: var(--series-4); }
+
+/* 타임라인 기록 세로 목록 — 날짜 칩 + 분류 꼬리표 + 내용 · 기관 */
+.ev-tl-list { list-style: none; margin: 8px 0 6px; padding: 0; max-height: 300px; overflow: auto; border: 1px solid var(--viz-grid); border-radius: 8px; background: #f7f9fb; }
+.ev-tl-list li { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: flex-start; padding: 6px 10px; border-bottom: 1px dashed var(--viz-grid); }
+.ev-tl-list li:last-child { border-bottom: 0; }
+.ev-tl-body { display: flex; flex-wrap: wrap; gap: 2px 6px; align-items: baseline; flex: 1 1 200px; min-width: 0; font-size: var(--fs-2xs); line-height: 1.5; color: var(--viz-ink-2); }
+.ev-tl-desc { color: var(--viz-ink); overflow-wrap: anywhere; }
