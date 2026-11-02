@@ -266,6 +266,9 @@ export const DEMO_SHOW: ShowItem[] = [
     text: "부산시 재난안전 담당 공무원이 온천천 주변 침수와 범람 피해를 예방하기 위해 우선 확인하고 조치해야 할 대응절차를 행동매뉴얼을 기준으로 알려주세요.", cond: { conditions: [{ item: "RAIN_1H", value: 30 }] }, base: { sido: { code: "26", name: "부산광역시" } } },
   { id: "SH-2-9", group: 2, regions: ["busan"], scene: "2-8", title: "상황보고서 작성", category: "행동매뉴얼", stage: "비상",
     text: "온천천 주변의 침수 취약지역, 과거 피해사례, 주요 점검대상 및 대응조치 계획을 포함하여 재난상황보고서 초안을 작성해 주세요. 확인되지 않은 실제 피해나 조치사항은 미확인으로 표시해 주세요.", cond: { conditions: [{ item: "RAIN_1H", value: 30 }] }, base: { sido: { code: "26", name: "부산광역시" } } },
+  // 캠핑장·야영장 — 11/2 회의 전달 사항(지하도·캠핑장 정보가 나오는지)으로 추가(사용자 승인 2026-11-02)
+  { id: "SH-2-10", group: 2, regions: ["busan"], scene: "2-9", title: "캠핑장·야영장 통제 대상", category: "통제·대피 대상", stage: "비상",
+    text: "부산광역시에 호우특보가 발효되면 통제·대피를 검토해야 할 캠핑장·야영장은 어디이며, 하천이나 급경사지와 얼마나 가까운지 알려주세요.", cond: { conditions: [{ item: "RAIN_1H", value: 30 }] }, base: { sido: { code: "26", name: "부산광역시" } } },
 ];
 
 /** 지역 묶음(장면 순서) */

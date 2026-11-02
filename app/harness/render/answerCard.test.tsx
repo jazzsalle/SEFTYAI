@@ -86,6 +86,19 @@ describe("답변 카드 — 받은 값만, 센 값·설명 없음", () => {
     expect(head.textContent).not.toContain("시연 시나리오");
   });
 
+  it("시연 자료 패널: 시연 탭 항목(library_id SH-1-3)의 답에만 답 글 위에 — 보통 답에는 없음, 답 글은 그대로", () => {
+    const job = makeJob({ library_id: "SH-1-3" });
+    const { container } = wrap(<AnswerCard job={job} full={makeFull(job)} />);
+    const panel = container.querySelector("details.demo-info")!;
+    expect(panel).not.toBeNull();
+    expect(panel.textContent).toContain("시연 자료");
+    expect(panel.compareDocumentPosition(container.querySelector(".acard-body")!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(container.querySelector(".acard-body .md")!.textContent).toContain("도심 저지대");
+    cleanup();
+    const plain = makeJob();
+    expect(wrap(<AnswerCard job={plain} full={makeFull(plain)} />).container.querySelector(".demo-info")).toBeNull();
+  });
+
   it("머리: 시연 시나리오 특보(SCN-)와 함께 보낸 질문이면 회색 한 줄 — 기상청 특보만이면 없음(R43)", () => {
     const job = makeJob({ source: "BRIEFING" });
     const scn = { ...BUSAN, weather_warnings: { source: "시연 시나리오(가상 특보)", items: [{ warning_key: "SCN-BS-1", kind: "호우", level: "경보", area: "부산" }] } };
