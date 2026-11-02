@@ -308,7 +308,13 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   // T3Q 연결 상태 (30초)
   useEffect(() => {
     if (!account) return;
-    const load = () => fetch("/api/t3q/health").then((r) => r.json()).then((j: { ok: boolean }) => setT3qOk(j.ok)).catch(() => setT3qOk(false));
+    // 연속 두 번 실패해야 끊김(T3Q 가 느려 점검이 가끔 늦는 동안 띠가 깜빡이지 않게 — 2026-11-02)
+    let fails = 0;
+    const set = (ok: boolean) => {
+      fails = ok ? 0 : fails + 1;
+      if (ok || fails >= 2) setT3qOk(ok);
+    };
+    const load = () => fetch("/api/t3q/health").then((r) => r.json()).then((j: { ok: boolean }) => set(j.ok)).catch(() => set(false));
     load();
     const t = setInterval(load, 30_000);
     return () => clearInterval(t);
