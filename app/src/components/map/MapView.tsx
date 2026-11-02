@@ -9,9 +9,12 @@
  * - 행정경계는 VWorld WMS. 실패하면 경계 없이 배경지도만 보인다.
  * - 배경지도 VWorld WMTS 가 연속 실패하면 OSM 으로 바꾸고 onTileStatus("osm").
  * - 설명서 7.5-2: activeJobId 의 대상은 진하게, 다른 답변의 대상은 흐리게.
+ * - 범례 거르기(filter): 그 종류만 그리고 그 범위로 맞춤. 선택한 대상은 거르기와 상관없이 보인다.
+ * - 선택한 대상은 말풍선 카드(MapPopup)로 — 받은 유형·이름·위치 정밀도만, 동작은 이미 있는 것(답변 목록으로 이동·확대·같은 종류만)만.
  */
 import "./map.css";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import OlMap from "ol/Map";
 import View from "ol/View";
 import Feature from "ol/Feature";
@@ -41,9 +44,10 @@ import { defaults as defaultInteractions } from "ol/interaction";
 import type { RegionId } from "@/lib/contract/agent";
 import { REGIONS } from "@/lib/config";
 import {
-  MAP_COLOR, PIN, approxLevel, entityTypeKo, isRangePrecision, legendOf, pinDataUri, precisionKo, rgba,
-  type LegendEntry,
+  MAP_COLOR, PIN, approxLevel, entityTypeKo, isRangePrecision, lookOf, matchFilter, pinDataUri, precisionKo, rgba, shade,
+  type LegendEntry, type Look,
 } from "./mapStyle";
+import MapPopup from "./MapPopup";
 
 const VW_KEY = process.env.NEXT_PUBLIC_VWORLD_KEY ?? "";
 
@@ -85,6 +89,12 @@ interface Props {
   layers: MapLayers;
   onSelect?: (key: string) => void;
   onTileStatus?: (s: "vworld" | "osm") => void;
+  /** 범례 거르기 열쇠(mapStyle filterKey) — 주면 그 종류만 그린다. null/없음 = 모두 */
+  filter?: string | null;
+  /** 말풍선의 「같은 종류만 보기」 — 거르기 열쇠(null = 모두 보기) */
+  onFilter?: (key: string | null) => void;
+  /** 말풍선의 「답변에서 보기」 — 그 대상이 든 답변으로 이동 */
+  onLocate?: (f: MapFeature) => void;
 }
 
 /* ─── 표식 스타일 ─────────────────────────────────────────────────────────── */
@@ -96,6 +106,8 @@ interface Rec {
   mf: MapFeature;
   kind: Kind;
   entry: LegendEntry;
+  /** 범례 항목 + 이름 낱말로 고른 세부 종류·기호 */
+  look: Look;
   /** 대표점 — 점이면 그 점, 선은 길이 중간, 면은 안쪽 점 (라벨·축소 핀 자리) */
   anchor: Point;
   /** 도형 범위의 긴 변 (지도 단위) */
@@ -110,7 +122,7 @@ interface Rec {
 
 const FONT = `Pretendard, "Pretendard Variable", "Noto Sans KR", "Malgun Gothic", sans-serif`;
 /** 핀 폭(px) — 기본 · 호버 · 선택(커진 핀) · 흐림 */
-const PIN_W: Record<St, number> = { dim: 21, base: 26, hover: 26, sel: 34 };
+const PIN_W: Record<St, number> = { dim: 24, base: 30, hover: 32, sel: 40 };
 const Z: Record<St, number> = { dim: 10, base: 20, hover: 30, sel: 40 };
 /** 선·면이 이 픽셀보다 작게 보이면 대표점에 핀을 함께 그림 */
 const SMALL_PX = 22;
@@ -122,37 +134,59 @@ const FOCUS_WAIT_MS = 10_000;
 const recs = new WeakMap<FeatureLike, Rec>();
 const anchorOf = (f: FeatureLike) => recs.get(f)?.anchor;
 const styleCache = new Map<string, Style[]>();
-const hatchCache = new Map<string, CanvasPattern | string>();
+const patCache = new Map<string, CanvasPattern | string>();
 const geoFormat = new GeoJSON();
 
-/** 빗금 채움 (Figma map_area — 위험·취약지역) */
-function hatch(color: string): CanvasPattern | string {
-  const hit = hatchCache.get(color);
+/** 작은 캔버스 무늬 (실패하면 반투명 단색) */
+function pattern(k: string, size: number, draw: (g: CanvasRenderingContext2D) => void, fallback: string): CanvasPattern | string {
+  const hit = patCache.get(k);
   if (hit) return hit;
   let pat: CanvasPattern | null = null;
   const c = document.createElement("canvas");
-  c.width = c.height = 8;
+  c.width = c.height = size;
   const g = c.getContext("2d");
   if (g) {
-    g.fillStyle = rgba(color, 0.08);
-    g.fillRect(0, 0, 8, 8);
-    g.strokeStyle = rgba(color, 0.6);
-    g.lineWidth = 1.4;
-    g.beginPath();
-    g.moveTo(-2, 10); g.lineTo(10, -2);
-    g.moveTo(-2, 2); g.lineTo(2, -2);
-    g.moveTo(6, 10); g.lineTo(10, 6);
-    g.stroke();
+    draw(g);
     pat = g.createPattern(c, "repeat");
   }
-  const out = pat ?? rgba(color, 0.14);
-  hatchCache.set(color, out);
+  const out = pat ?? fallback;
+  patCache.set(k, out);
   return out;
 }
 
-/** 핀 (+ 근사 위치 점선 원 · 호버/선택 후광). onAnchor = 선·면의 대표점에 그림 */
-function pinStyles(e: LegendEntry, st: St, approx: 0 | 1 | 2, onAnchor: boolean): Style[] {
-  const k = `p|${e.id}|${st}|${approx}|${onAnchor ? 1 : 0}`;
+/** 빗금 채움 (Figma map_area — 위험·취약지역). strong = 호버·선택 */
+function hatch(color: string, strong = false): CanvasPattern | string {
+  return pattern(`h|${color}|${strong ? 1 : 0}`, 10, (g) => {
+    g.fillStyle = rgba(color, strong ? 0.16 : 0.08);
+    g.fillRect(0, 0, 10, 10);
+    g.strokeStyle = rgba(color, strong ? 0.75 : 0.55);
+    g.lineWidth = 1.5;
+    g.beginPath();
+    g.moveTo(-2, 12); g.lineTo(12, -2);
+    g.moveTo(-2, 2); g.lineTo(2, -2);
+    g.moveTo(8, 12); g.lineTo(12, 8);
+    g.stroke();
+  }, rgba(color, 0.14));
+}
+
+/** 점무늬 채움 (침수지도 구역) */
+function dots(color: string, strong = false): CanvasPattern | string {
+  return pattern(`d|${color}|${strong ? 1 : 0}`, 10, (g) => {
+    g.fillStyle = rgba(color, strong ? 0.18 : 0.1);
+    g.fillRect(0, 0, 10, 10);
+    g.fillStyle = rgba(color, strong ? 0.7 : 0.5);
+    for (const [x, y] of [[2.5, 2.5], [7.5, 7.5]]) {
+      g.beginPath();
+      g.arc(x, y, 1.25, 0, Math.PI * 2);
+      g.fill();
+    }
+  }, rgba(color, 0.14));
+}
+
+/** 핀 (+ 근사 위치 점선 원 · 호버/선택 후광 · 선택 바닥 고리). onAnchor = 선·면의 대표점에 그림 */
+function pinStyles(look: Look, st: St, approx: 0 | 1 | 2, onAnchor: boolean): Style[] {
+  const e = look.entry;
+  const k = `p|${e.id}|${look.glyph}|${st}|${approx}|${onAnchor ? 1 : 0}`;
   const hit = styleCache.get(k);
   if (hit) return hit;
   const w = PIN_W[st];
@@ -164,10 +198,18 @@ function pinStyles(e: LegendEntry, st: St, approx: 0 | 1 | 2, onAnchor: boolean)
       geometry,
       zIndex: z,
       image: new CircleStyle({
-        radius: approx === 2 ? 26 : 18,
-        fill: new Fill({ color: st === "dim" ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.4)" }),
-        stroke: new Stroke({ color: st === "dim" ? rgba(MAP_COLOR.ring, 0.45) : MAP_COLOR.ring, width: 2.5, lineDash: [5, 3] }),
+        radius: approx === 2 ? 28 : 20,
+        fill: new Fill({ color: st === "dim" ? "rgba(255,255,255,0.18)" : rgba(MAP_COLOR.ring, 0.1) }),
+        stroke: new Stroke({ color: st === "dim" ? rgba(MAP_COLOR.ring, 0.45) : MAP_COLOR.ring, width: 2.5, lineDash: [5, 4] }),
       }),
+    }));
+  }
+  if (st === "sel") {
+    // 바닥 고리 — 핀 끝이 가리키는 자리
+    out.push(new Style({
+      geometry,
+      zIndex: z,
+      image: new CircleStyle({ radius: 9, fill: new Fill({ color: rgba(e.pin, 0.22) }), stroke: new Stroke({ color: "#fff", width: 2 }) }),
     }));
   }
   if (st === "hover" || st === "sel") {
@@ -175,17 +217,22 @@ function pinStyles(e: LegendEntry, st: St, approx: 0 | 1 | 2, onAnchor: boolean)
       geometry,
       zIndex: z + 1,
       image: new CircleStyle({
-        radius: st === "sel" ? 21 : 16,
+        radius: st === "sel" ? 27 : 21,
         displacement: [0, w * PIN.headK],
-        fill: new Fill({ color: rgba(e.pin, st === "sel" ? 0.3 : 0.16) }),
-        stroke: st === "sel" ? new Stroke({ color: rgba(e.pin, 0.55), width: 1.5 }) : undefined,
+        fill: new Fill({ color: rgba(e.pin, st === "sel" ? 0.2 : 0.14) }),
+        stroke: st === "sel" ? new Stroke({ color: rgba(e.pin, 0.5), width: 1.5 }) : undefined,
       }),
     }));
   }
   out.push(new Style({
     geometry,
     zIndex: z + 2,
-    image: new Icon({ src: pinDataUri(e), anchor: [0.5, PIN.tipY], scale: w / PIN.srcW, opacity: st === "dim" ? 0.5 : 1 }),
+    image: new Icon({
+      src: pinDataUri({ pin: e.pin, glyph: look.glyph, shape: e.shape }),
+      anchor: [0.5, PIN.tipY],
+      scale: w / PIN.srcW,
+      opacity: st === "dim" ? 0.5 : 1,
+    }),
   }));
   styleCache.set(k, out);
   return out;
@@ -195,32 +242,53 @@ function lineStyles(e: LegendEntry, st: St, range: boolean): Style[] {
   const k = `l|${e.id}|${st}|${range ? 1 : 0}`;
   const hit = styleCache.get(k);
   if (hit) return hit;
-  const w = st === "dim" ? 2.5 : st === "base" ? 3.5 : st === "hover" ? 4.5 : 5;
+  const w = st === "dim" ? 2.5 : st === "base" ? 4 : st === "hover" ? 5 : 6;
   const z = Z[st];
   const cap = { lineCap: "round", lineJoin: "round" } as const;
   const out: Style[] = [];
-  if (st === "sel") out.push(new Style({ zIndex: z, stroke: new Stroke({ color: rgba(MAP_COLOR.primary, 0.3), width: w + 10, ...cap }) }));
-  out.push(new Style({ zIndex: z + 1, stroke: new Stroke({ color: st === "dim" ? "rgba(255,255,255,0.55)" : "#fff", width: w + 3, ...cap }) }));
+  if (st === "sel" || st === "hover") {
+    out.push(new Style({ zIndex: z, stroke: new Stroke({ color: rgba(e.stroke, st === "sel" ? 0.28 : 0.16), width: w + (st === "sel" ? 12 : 8), ...cap }) }));
+  }
+  out.push(new Style({ zIndex: z + 1, stroke: new Stroke({ color: st === "dim" ? "rgba(255,255,255,0.55)" : "#fff", width: w + 3.5, ...cap }) }));
   out.push(new Style({
     zIndex: z + 2,
-    stroke: new Stroke({ color: st === "dim" ? rgba(e.stroke, 0.5) : e.stroke, width: w, lineDash: range ? [8, 5] : undefined, ...cap }),
+    stroke: new Stroke({ color: st === "dim" ? rgba(e.stroke, 0.5) : e.stroke, width: w, lineDash: range ? [8, 6] : undefined, ...cap }),
   }));
+  // 물길은 가운데 밝은 줄 — 흐르는 물처럼
+  if (st !== "dim" && !range && (e.id === "river" || e.id === "floodTrace")) {
+    out.push(new Style({ zIndex: z + 3, stroke: new Stroke({ color: rgba(shade(e.stroke, 0.55), 0.9), width: Math.max(1, w * 0.3), lineDash: [10, 8], ...cap }) }));
+  }
   styleCache.set(k, out);
   return out;
+}
+
+function areaFill(e: LegendEntry, st: St): CanvasPattern | string {
+  if (st === "dim") return rgba(e.stroke, 0.05);
+  const strong = st !== "base";
+  const pat = e.pattern ?? (e.hatch ? "hatch" : "soft");
+  if (pat === "hatch") return hatch(e.stroke, strong);
+  if (pat === "dots") return dots(e.stroke, strong);
+  return e.fill;
 }
 
 function areaStyles(e: LegendEntry, st: St, range: boolean): Style[] {
   const k = `a|${e.id}|${st}|${range ? 1 : 0}`;
   const hit = styleCache.get(k);
   if (hit) return hit;
-  const w = st === "dim" ? 1.5 : st === "base" ? 2 : st === "hover" ? 3 : 3.5;
+  const w = st === "dim" ? 1.5 : st === "base" ? 2.2 : st === "hover" ? 3 : 3.5;
   const z = Z[st];
+  const dash = range ? [8, 6] : undefined;
   const out: Style[] = [];
-  if (st === "sel") out.push(new Style({ zIndex: z, stroke: new Stroke({ color: rgba(MAP_COLOR.primary, 0.35), width: w + 7 }) }));
+  if (st === "sel") out.push(new Style({ zIndex: z, stroke: new Stroke({ color: rgba(e.stroke, 0.26), width: w + 10, lineJoin: "round" }) }));
+  if (st !== "dim") out.push(new Style({ zIndex: z + 1, stroke: new Stroke({ color: "rgba(255,255,255,0.9)", width: w + 3, lineJoin: "round" }) }));
+  // 무늬 없는 면은 호버·선택 때 한 겹 더 채워 진하게
+  if ((st === "sel" || st === "hover") && !(e.pattern ?? (e.hatch ? "hatch" : ""))) {
+    out.push(new Style({ zIndex: z + 1, fill: new Fill({ color: rgba(e.stroke, st === "sel" ? 0.14 : 0.08) }) }));
+  }
   out.push(new Style({
-    zIndex: z + 1,
-    fill: new Fill({ color: st === "dim" ? rgba(e.stroke, 0.06) : e.hatch ? hatch(e.stroke) : e.fill }),
-    stroke: new Stroke({ color: st === "dim" ? rgba(e.stroke, 0.45) : e.stroke, width: w, lineDash: range ? [8, 5] : undefined }),
+    zIndex: z + 2,
+    fill: new Fill({ color: areaFill(e, st) }),
+    stroke: new Stroke({ color: st === "dim" ? rgba(e.stroke, 0.45) : e.stroke, width: w, lineDash: dash, lineJoin: "round" }),
   }));
   styleCache.set(k, out);
   return out;
@@ -232,11 +300,11 @@ function labelStyle(r: Rec): Style {
     geometry: anchorOf,
     text: new Text({
       text: r.mf.displayName ?? "",
-      font: `600 12px ${FONT}`,
-      fill: new Fill({ color: MAP_COLOR.text }),
-      stroke: new Stroke({ color: "#fff", width: 3.5 }),
+      font: `700 12px ${FONT}`,
+      fill: new Fill({ color: MAP_COLOR.navyDk }),
+      stroke: new Stroke({ color: "rgba(255,255,255,0.96)", width: 4 }),
       textBaseline: "top",
-      offsetY: 6,
+      offsetY: 7,
     }),
   });
   return r.label;
@@ -281,7 +349,8 @@ function toOlFeatures(mf: MapFeature): Feature[] {
   } catch {
     return []; // 읽을 수 없는 도형은 그리지 않는다
   }
-  const entry = legendOf(mf.entityType);
+  const look = lookOf(mf.entityType, mf.displayName);
+  const entry = look.entry;
   const approx = approxLevel(mf.precision);
   const range = isRangePrecision(mf.precision);
   const out: Feature[] = [];
@@ -298,7 +367,7 @@ function toOlFeatures(mf: MapFeature): Feature[] {
     }
     const f = new Feature({ geometry: part });
     f.setId(`${mf.key}#${out.length}`);
-    recs.set(f, { mf, kind, entry, anchor, size: Math.max(getWidth(ext), getHeight(ext)), approx, range, primary: out.length === 0 });
+    recs.set(f, { mf, kind, entry, look, anchor, size: Math.max(getWidth(ext), getHeight(ext)), approx, range, primary: out.length === 0 });
     out.push(f);
   }
   return out;
@@ -312,6 +381,12 @@ interface Api {
   restyle(): void;
   focus(duration: number): void;
   toRegion(): void;
+  /** 거르기가 바뀜 → 다시 그리고 그 범위로 맞춤 */
+  applyFilter(): void;
+  /** 말풍선 자리 다시 잡기 (닫기·다시 열기) */
+  placePop(pan?: boolean): void;
+  /** 한 대상으로 확대 */
+  zoomTo(key: string): void;
 }
 
 export default function MapView(p: Props) {
@@ -322,6 +397,11 @@ export default function MapView(p: Props) {
   const focusSeen = useRef<{ token?: number } | null>(null);
   const areaSeen = useRef<{ token?: number } | null>(null);
   const [ready, setReady] = useState(false);
+  // 선택 말풍선 — OpenLayers 오버레이 요소에 React 로 그린다 · 닫아 둔 대상 키
+  const [popEl, setPopEl] = useState<HTMLDivElement | null>(null);
+  const [closedKey, setClosedKey] = useState<string | null>(null);
+  const closedRef = useRef<string | null>(null);
+  closedRef.current = closedKey;
 
   // 초기화 (한 번)
   useEffect(() => {
@@ -367,12 +447,17 @@ export default function MapView(p: Props) {
       if (P.activeJobId && r.mf.jobId !== P.activeJobId) return "dim";
       return "base";
     };
+    /** 범례 거르기 — 선택한 대상은 늘 보인다 */
+    const shownRec = (r: Rec): boolean => {
+      const P = propsRef.current;
+      return matchFilter(P.filter, r.look) || (!!P.selectedKey && r.mf.key === P.selectedKey);
+    };
     const area = new VectorLayer({
       source: src,
       zIndex: 20,
       style: (f) => {
         const r = recs.get(f);
-        return r?.kind === "area" ? areaStyles(r.entry, stateOf(r), r.range) : undefined;
+        return r?.kind === "area" && shownRec(r) ? areaStyles(r.entry, stateOf(r), r.range) : undefined;
       },
     });
     const line = new VectorLayer({
@@ -380,7 +465,7 @@ export default function MapView(p: Props) {
       zIndex: 21,
       style: (f) => {
         const r = recs.get(f);
-        return r?.kind === "line" ? lineStyles(r.entry, stateOf(r), r.range) : undefined;
+        return r?.kind === "line" && shownRec(r) ? lineStyles(r.entry, stateOf(r), r.range) : undefined;
       },
     });
     const pin = new VectorLayer({
@@ -388,11 +473,11 @@ export default function MapView(p: Props) {
       zIndex: 22,
       style: (f, res) => {
         const r = recs.get(f);
-        if (!r) return undefined;
+        if (!r || !shownRec(r)) return undefined;
         const st = stateOf(r);
-        if (r.kind === "point") return pinStyles(r.entry, st, r.approx, false);
+        if (r.kind === "point") return pinStyles(r.look, st, r.approx, false);
         // 선·면: 선택됐거나 draw=pin 이거나 화면에서 너무 작으면 대표점에 핀
-        if (r.primary && (st === "sel" || r.mf.draw === "pin" || r.size / res < SMALL_PX)) return pinStyles(r.entry, st, r.approx, true);
+        if (r.primary && (st === "sel" || r.mf.draw === "pin" || r.size / res < SMALL_PX)) return pinStyles(r.look, st, r.approx, true);
         return undefined;
       },
     });
@@ -402,9 +487,9 @@ export default function MapView(p: Props) {
       declutter: true,
       style: (f, res) => {
         const r = recs.get(f);
-        if (!r || !r.primary || !r.mf.displayName || res > LABEL_MAX_RES) return undefined;
+        if (!r || !r.primary || !r.mf.displayName || res > LABEL_MAX_RES || !shownRec(r)) return undefined;
         const st = stateOf(r);
-        return st === "sel" || st === "dim" ? undefined : labelStyle(r); // 선택은 말풍선 라벨(오버레이)
+        return st === "sel" || st === "dim" ? undefined : labelStyle(r); // 선택은 말풍선 카드(오버레이)
       },
     });
     const vecSet = new Set<unknown>([area, line, pin, label]);
@@ -420,15 +505,15 @@ export default function MapView(p: Props) {
       interactions: defaultInteractions({ altShiftDragRotate: false, pinchRotate: false }),
     });
 
-    // ── 툴팁(호버) · 선택 라벨 — React 밖에서 만든 요소 (OpenLayers 가 옮겨 붙임)
+    // ── 툴팁(호버) · 선택 말풍선 — React 밖에서 만든 요소 (OpenLayers 가 옮겨 붙임)
     const tipEl = document.createElement("div");
     tipEl.className = "sa-map-tip";
-    const tip = new Overlay({ element: tipEl, positioning: "bottom-center", offset: [0, -14], stopEvent: false });
-    const lblEl = document.createElement("div");
-    lblEl.className = "sa-map-label";
-    const lbl = new Overlay({ element: lblEl, positioning: "bottom-center", offset: [0, -Math.round(PIN_W.sel * PIN.topK + 12)], stopEvent: false });
+    const tip = new Overlay({ element: tipEl, positioning: "bottom-center", offset: [0, -16], stopEvent: false });
+    const popBox = document.createElement("div");
+    popBox.className = "sa-map-pop";
+    const pop = new Overlay({ element: popBox, positioning: "bottom-center", offset: [0, -Math.round(PIN_W.sel * PIN.topK + 8)], stopEvent: true });
     m.addOverlay(tip);
-    m.addOverlay(lbl);
+    m.addOverlay(pop);
 
     let tipKey: string | null = null;
     const hideTip = () => {
@@ -438,12 +523,15 @@ export default function MapView(p: Props) {
     const showTip = (r: Rec, at: number[]) => {
       if (tipKey !== r.mf.key) {
         tipKey = r.mf.key;
+        tipEl.style.setProperty("--c", r.entry.pin);
         const name = document.createElement("b");
         name.textContent = r.mf.displayName ?? "이름 미제공";
         if (!r.mf.displayName) name.className = "none";
         const meta = document.createElement("span");
         meta.className = "meta";
-        meta.append(entityTypeKo(r.mf.entityType));
+        const dot = document.createElement("i");
+        dot.setAttribute("aria-hidden", "true");
+        meta.append(dot, entityTypeKo(r.mf.entityType));
         const pk = precisionKo(r.mf.precision);
         if (pk) {
           const s = document.createElement("span");
@@ -455,16 +543,19 @@ export default function MapView(p: Props) {
       }
       tip.setPosition(at);
     };
-    const placeLabel = () => {
+    const panPop = () => {
+      if (pop.getPosition()) pop.panIntoView({ animation: { duration: 250 }, margin: 16 });
+    };
+    const placePop = (pan = false) => {
       const P = propsRef.current;
       const fs = P.selectedKey ? byKey.get(P.selectedKey) : undefined;
       const r = fs?.length ? recs.get(fs[0]) : undefined;
-      if (!r || !r.mf.displayName || !P.layers.features) {
-        lbl.setPosition(undefined);
+      if (!r || !P.layers.features || closedRef.current === r.mf.key) {
+        pop.setPosition(undefined);
         return;
       }
-      if (lblEl.textContent !== r.mf.displayName) lblEl.textContent = r.mf.displayName;
-      lbl.setPosition(r.anchor.getCoordinates());
+      pop.setPosition(r.anchor.getCoordinates());
+      if (pan) requestAnimationFrame(panPop);
     };
     const restyle = () => src.changed();
 
@@ -479,7 +570,7 @@ export default function MapView(p: Props) {
       bnd.setVisible(P.layers.boundary && !wmsFailed);
       for (const l of [area, line, pin, label]) l.setVisible(P.layers.features);
       if (!P.layers.features) hideTip();
-      placeLabel();
+      placePop();
     };
 
     // 배경지도 실패 → OSM (처음 6장 연속 실패, 또는 실패가 성공의 2배를 넘을 때)
@@ -522,7 +613,7 @@ export default function MapView(p: Props) {
     let waitSize = false; // 지도가 숨겨져 크기가 0 → 보이면 다시 맞춤
     const zoomCap = (r: Rec) =>
       r.kind !== "point" ? 17 : r.approx === 2 ? 12 : r.approx === 1 ? 14 : r.mf.precision === "centroid_only" ? 15 : 16;
-    const fitTo = (fs: Feature[], duration: number): boolean => {
+    const fitTo = (fs: Feature[], duration: number, done?: () => void): boolean => {
       const size = m.getSize();
       if (!size || size[0] < 8 || size[1] < 8) {
         waitSize = true;
@@ -541,25 +632,47 @@ export default function MapView(p: Props) {
       const pad = Math.round(Math.max(16, Math.min(56, Math.min(size[0], size[1]) * 0.12)));
       const v = m.getView();
       v.cancelAnimations();
-      v.fit(ext, { padding: [pad + 36, pad, pad, pad], maxZoom: cap, duration: duration || undefined }); // 위쪽은 핀 높이만큼 더 · 0 이면 즉시
+      v.fit(ext, {
+        padding: [pad + 36, pad, pad, pad], // 위쪽은 핀 높이만큼 더
+        maxZoom: cap,
+        duration: duration || undefined, // 0 이면 즉시
+        callback: done ? (ok) => { if (ok) done(); } : undefined,
+      });
       return true;
+    };
+    /** 이 작업(없으면 전체)의 대상 중 조건에 맞는 도형 */
+    const jobFeatures = (keep: (r: Rec) => boolean = () => true): Feature[] => {
+      const P = propsRef.current;
+      const fs: Feature[] = [];
+      byKey.forEach((arr) => {
+        const r = recs.get(arr[0]);
+        if (r && (!P.activeJobId || r.mf.jobId === P.activeJobId) && keep(r)) fs.push(...arr);
+      });
+      return fs;
     };
     const focus = (duration: number) => {
       const P = propsRef.current;
       let ok = false;
       let wait = false;
       const sel = P.selectedKey ? byKey.get(P.selectedKey) : undefined;
-      if (sel?.length) ok = fitTo(sel, duration);
+      if (sel?.length) ok = fitTo(sel, duration, panPop);
       else {
         if (P.selectedKey) wait = true; // 선택 대상 도형이 아직 오지 않음
-        const fs: Feature[] = [];
-        byKey.forEach((arr) => {
-          const r = recs.get(arr[0]);
-          if (r && (!P.activeJobId || r.mf.jobId === P.activeJobId)) fs.push(...arr);
-        });
+        const fs = jobFeatures();
         ok = fs.length > 0 && fitTo(fs, duration);
       }
       waitUntil = !ok || wait ? Date.now() + FOCUS_WAIT_MS : 0;
+    };
+    let lastFilter: string | null = P0.filter ?? null;
+    const applyFilter = () => {
+      const f = propsRef.current.filter ?? null;
+      if (f === lastFilter) return;
+      lastFilter = f;
+      restyle();
+      hideTip();
+      // 거른 종류(없으면 이 작업 전체) 범위로 맞춤
+      const fs = jobFeatures((r) => matchFilter(f, r.look));
+      if (fs.length) fitTo(fs, 450);
     };
     const toRegion = () => {
       const r = REGIONS[propsRef.current.region] ?? REGIONS.national;
@@ -568,6 +681,10 @@ export default function MapView(p: Props) {
       const v = m.getView();
       v.cancelAnimations();
       v.animate({ center: fromLonLat(r.center), zoom: r.zoom, duration: 450 });
+    };
+    const zoomTo = (key: string) => {
+      const fs = byKey.get(key);
+      if (fs?.length) fitTo(fs, 450, panPop);
     };
 
     const setFeatures = (list: MapFeature[]) => {
@@ -587,7 +704,7 @@ export default function MapView(p: Props) {
       src.addFeatures(all);
       if (hoverKey && !next.has(hoverKey)) hoverKey = null;
       if (tipKey && !next.has(tipKey)) hideTip();
-      placeLabel();
+      placePop();
       if (waitUntil > Date.now()) focus(450);
     };
 
@@ -606,13 +723,28 @@ export default function MapView(p: Props) {
         restyle();
       }
       target.style.cursor = r ? "pointer" : "";
-      if (r) showTip(r, e.coordinate);
+      // 말풍선이 열린 대상에는 툴팁을 겹쳐 띄우지 않는다
+      if (r && !(r.mf.key === propsRef.current.selectedKey && pop.getPosition())) showTip(r, e.coordinate);
       else if (tipKey) hideTip();
     });
     m.on("singleclick", (e) => {
-      if (!propsRef.current.layers.features) return;
+      const P = propsRef.current;
+      if (!P.layers.features) return;
       const r = hitRec(e.pixel);
-      if (r) propsRef.current.onSelect?.(r.mf.key);
+      if (r) {
+        hideTip();
+        if (r.mf.key === P.selectedKey) {
+          // 이미 고른 대상 — 닫아 둔 말풍선만 다시 연다
+          closedRef.current = null;
+          setClosedKey(null);
+          placePop(true);
+        } else P.onSelect?.(r.mf.key);
+      } else if (P.selectedKey && pop.getPosition()) {
+        // 빈 곳을 누르면 말풍선만 닫는다 (선택 강조는 그대로)
+        closedRef.current = P.selectedKey;
+        setClosedKey(P.selectedKey);
+        pop.setPosition(undefined);
+      }
     });
     const vp = m.getViewport();
     const onLeave = () => {
@@ -646,13 +778,17 @@ export default function MapView(p: Props) {
       setFeatures,
       restyle: () => {
         restyle();
-        placeLabel();
+        placePop();
       },
       focus,
       toRegion,
+      applyFilter,
+      placePop,
+      zoomTo,
     };
     applyLayers();
     if (osmMode) P0.onTileStatus?.("osm");
+    setPopEl(popBox);
     setReady(true);
 
     return () => {
@@ -664,6 +800,7 @@ export default function MapView(p: Props) {
       api.current = null;
       focusSeen.current = null;
       areaSeen.current = null;
+      setPopEl(null);
     };
   }, []);
 
@@ -682,6 +819,16 @@ export default function MapView(p: Props) {
     api.current?.restyle();
   }, [p.activeJobId, p.selectedKey, ready]);
 
+  // 범례 거르기
+  useEffect(() => {
+    api.current?.applyFilter();
+  }, [p.filter, ready]);
+
+  // 말풍선 닫기·다시 열기
+  useEffect(() => {
+    api.current?.placePop();
+  }, [closedKey, ready]);
+
   // focusToken → 선택 대상(있으면) 또는 이 작업 대상 범위로 맞춤. 처음 붙을 때는 애니메이션 없이.
   useEffect(() => {
     const a = api.current;
@@ -690,6 +837,10 @@ export default function MapView(p: Props) {
     if (!first && focusSeen.current?.token === p.focusToken) return;
     focusSeen.current = { token: p.focusToken };
     if (p.focusToken === undefined) return;
+    // 같은 대상을 다시 보여 달라고 하면 닫아 둔 말풍선도 다시 연다
+    closedRef.current = null;
+    setClosedKey(null);
+    a.placePop();
     a.focus(first ? 0 : 450);
   }, [p.focusToken, ready]);
 
@@ -720,10 +871,26 @@ export default function MapView(p: Props) {
     return `지도 표시 대상 ${list.length}건${list.length < all.length ? `(전체 ${all.length}건 중)` : ""}: ${names.join(", ")}${list.length > 12 ? " 외" : ""}.${selText}`;
   }, [p.features, p.activeJobId, p.selectedKey]);
 
+  const selFeature = p.selectedKey ? p.features.find((f) => f.key === p.selectedKey) : undefined;
+  const popOpen = !!selFeature && closedKey !== selFeature.key && p.layers.features;
+
   return (
     <div className="sa-map olmap" role="region" aria-label="지도">
       <div ref={el} className="sa-map-canvas" />
       <p className="sa-map-sr" aria-live="polite">{sr}</p>
+      {popEl && popOpen && selFeature && createPortal(
+        <MapPopup
+          key={selFeature.key}
+          f={selFeature}
+          other={!!p.activeJobId && selFeature.jobId !== p.activeJobId}
+          filter={p.filter ?? null}
+          onClose={() => setClosedKey(selFeature.key)}
+          onLocate={p.onLocate ? () => p.onLocate?.(selFeature) : undefined}
+          onFilter={p.onFilter}
+          onZoom={() => api.current?.zoomTo(selFeature.key)}
+        />,
+        popEl,
+      )}
     </div>
   );
 }

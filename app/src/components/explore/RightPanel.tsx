@@ -5,7 +5,7 @@ import { useSession } from "@/lib/session";
 import type { PanelTab } from "./ExploreCtx";
 import { useExplore } from "./ExploreCtx";
 import { DEFAULT_LAYERS, type Basemap, type MapFeature, type MapLayers, zoomBy } from "../map/MapView";
-import { MapLegend } from "../map/MapLegend";
+import MapLegendPanel from "../map/MapLegendPanel";
 import SopPane from "../sop/SopPane";
 import { DocPane } from "../sop/DocPane";
 import DetailPane from "./DetailPane";
@@ -66,7 +66,17 @@ function MapPanel(p: Props) {
   const [basemap, setBasemap] = useState<Basemap>("Base");
   const [tile, setTile] = useState<"vworld" | "osm">("vworld");
   const [lp, setLp] = useState(false);
+  // 범례 거르기 — 답변(작업)이 바뀌면 풀린다
+  const [filt, setFilt] = useState<{ job: string | null; key: string | null }>({ job: null, key: null });
+  const filter = filt.job === p.activeJobId ? filt.key : null;
+  const setFilter = (key: string | null) => setFilt({ job: p.activeJobId, key });
   const shown = p.features.filter((f) => f.jobId === p.activeJobId);
+  // 말풍선 「답변에서 보기」 — 그 답변의 대상 목록(없으면 답변 머리)으로
+  const locate = (f: MapFeature) => {
+    const el = document.getElementById(`refs-${f.jobId}`) ?? document.getElementById(`job-${f.jobId}`);
+    el?.scrollIntoView({ behavior: "smooth", block: "center" });
+    el?.focus({ preventScroll: true });
+  };
   return (
     <div className="mapwrap">
       <MapView
@@ -83,6 +93,9 @@ function MapPanel(p: Props) {
           x.showOnMap(jobId, ref);
         }}
         onTileStatus={setTile}
+        filter={filter}
+        onFilter={setFilter}
+        onLocate={locate}
       />
       {tile === "osm" && <div className="map-note">배경지도(VWorld)를 불러오지 못해 OpenStreetMap 으로 표시합니다.</div>}
       <div className="map-tools">
@@ -103,11 +116,15 @@ function MapPanel(p: Props) {
         <button className="btn sm" onClick={() => zoomBy(1)} aria-label="확대">＋</button>
         <button className="btn sm" onClick={() => zoomBy(-1)} aria-label="축소">－</button>
       </div>
-      {/* 범례만(표시한 대상이 있을 때) — 유엔이가 센 곳 수·위치 없음 수·설명 문구는 두지 않는다(R25) */}
-      {shown.length > 0 && (
-        <div className="map-foot">
-          <MapLegend features={shown} />
-        </div>
+      {/* 지도 위 범례 카드(표시한 대상이 있을 때) — 곳 수는 지도에 그린 대상을 종류별로 센 범례 표시, 설명 문구는 두지 않는다(R25) */}
+      {shown.length > 0 && layers.features && (
+        <MapLegendPanel
+          features={shown}
+          filter={filter}
+          onFilter={setFilter}
+          boundary={layers.boundary}
+          dimOthers={p.features.some((f) => f.jobId !== p.activeJobId)}
+        />
       )}
     </div>
   );
