@@ -218,13 +218,62 @@ export const DEMO_DAY: DemoItem[] = [
 /** 브리핑 장면이 있는 지역 — 「시연 세트 예열」이 그 지역 담당자 계정의 브리핑 세트(설정 화면 「내 브리핑 항목」)도 보낸다 */
 export const DEMO_DAY_BRIEFING: PilotRegion[] = ["busan"];
 
+/**
+ * 질문 모음 「시연」 탭(사용자 지시 2026-11-02 — 행안부 보고 시연) — 항목마다 미리 받은 답을 고정해 두고 누르면 바로 보인다(lib/server/jobs demoPins).
+ * ① 호우 예비특보 가정 · AI 모드 브리핑 세트 4문 ② 온천천 시간당 30mm 집중호우 — 조건은 1시간 강우량 30mm만. 질문 글은 사용자가 준 원문 그대로
+ */
+export interface ShowItem extends DemoItem {
+  group: 1 | 2;
+  /** 이 질문에 싣는 가정 특보(weather_warnings) — ① 묶음은 호우 예비특보 */
+  warnings?: Record<string, unknown>;
+}
+/** ① 묶음 가정 특보 — 사용자가 준 가상 시연 데이터 그대로(부산광역시 · 호우 · 예비특보 발표, 주의보 발표 예상 · 3시간 이내 가정) */
+export const SHOW_PRE_WARNING = {
+  collect_status: "COLLECTED",
+  collected_at: null,
+  source: "시연 시나리오(가상 특보)",
+  items: [{ warning_key: "SCN-BS-PRE-1", kind: "호우", level: "예비특보", area: "부산광역시", announced_at: null, effective_at: null, change: "예비특보 발표(주의보 발표 예상 · 시연 기준시각 이후 3시간 이내 가정 · 침수·범람 발생 여부 미확인)" }],
+};
+export const SHOW_GROUPS: { group: 1 | 2; title: string; note: string }[] = [
+  { group: 1, title: "1. 호우 예비특보 — AI 모드 브리핑", note: "부산광역시 호우 예비특보(주의보 발표 예상) 가정 · 강우 조건 입력 없음" },
+  { group: 2, title: "2. 온천천 시간당 30mm 집중호우", note: "AI 모드 종료 · 기준지역 부산광역시 · 조건은 1시간 강우량 30mm만" },
+];
+export const DEMO_SHOW: ShowItem[] = [
+  { id: "SH-1-1", group: 1, regions: ["busan"], scene: "1-1", title: "특보 상황·관측정보·경계 기준", category: "특보·문자", stage: "특보",
+    text: "온천천 유역의 기상특보 상황을 요약하고, 하천 수위 및 강우량 등 중점적으로 확인해야 할 관측정보와 관련 경계 기준을 알려주세요.", cond: {}, warnings: SHOW_PRE_WARNING, base: { sido: { code: "26", name: "부산광역시" } } },
+  { id: "SH-1-2", group: 1, regions: ["busan"], scene: "1-2", title: "저감종합계획 침수·범람 취약지역", category: "위험·취약지역", stage: "특보",
+    text: "자연재해저감종합계획과 관련 위험지역 자료에 지정된 침수·범람 취약지역은 어디이며, 각 지역의 주요 위험요인과 지정 근거는 무엇입니까?", cond: {}, warnings: SHOW_PRE_WARNING, base: { sido: { code: "26", name: "부산광역시" } } },
+  { id: "SH-1-3", group: 1, regions: ["busan"], scene: "1-3", title: "과거 침수·범람 피해 사례", category: "과거 피해 이력", stage: "특보",
+    text: "온천천과 주변 지역에서 과거 집중호우로 침수·범람 피해가 발생한 주요 사례는 무엇이며, 당시 강우량, 피해지역 및 피해 원인을 요약해 주세요.", cond: {}, warnings: SHOW_PRE_WARNING, base: { sido: { code: "26", name: "부산광역시" } } },
+  { id: "SH-1-4", group: 1, regions: ["busan"], scene: "1-4", title: "하천기본계획 수리·수문 정보", category: "계획·정비", stage: "특보",
+    text: "온천천 하천기본계획에 수록된 계획홍수량, 계획홍수위, 제방고 및 여유고 등 주요 수리·수문 정보를 확인하고, 계획 당시 분석된 홍수 취약요인과 관련 구간을 알려주세요. 근거 문서와 수립연도도 함께 제시해 주세요", cond: {}, warnings: SHOW_PRE_WARNING, base: { sido: { code: "26", name: "부산광역시" } } },
+  { id: "SH-2-1", group: 2, regions: ["busan"], scene: "2-1", title: "침수 우선지역", category: "위험·취약지역", stage: "비상",
+    text: "온천천 주변에서 과거 침수 이력과 재해위험지구 지정 현황을 기준으로 가장 먼저 확인해야 할 침수 취약지역은 어디입니까?", cond: { conditions: [{ item: "RAIN_1H", value: 30 }] }, base: { sido: { code: "26", name: "부산광역시" } } },
+  { id: "SH-2-2", group: 2, regions: ["busan"], scene: "2-2", title: "하천·관측소 모니터링", category: "통제·대피 대상", stage: "비상",
+    text: "온천천의 범람 위험을 확인하기 위해 집중 모니터링해야 할 수위관측소와 강우관측소는 어디이며, 관련 수위 기준은 무엇입니까?", cond: { conditions: [{ item: "RAIN_1H", value: 30 }] }, base: { sido: { code: "26", name: "부산광역시" } } },
+  { id: "SH-2-3", group: 2, regions: ["busan"], scene: "2-3", title: "범람·침수 발생 시점", category: "위험·취약지역", stage: "비상",
+    text: "온천천 유역에 시간당 30mm의 집중호우가 지속된다고 가정할 때, 과거 피해사례와 하천기본계획을 기준으로 온천천의 범람이나 주변 침수가 시작되는 시점을 판단할 수 있습니까? 판단에 필요한 추가 조건도 알려주세요.", cond: { conditions: [{ item: "RAIN_1H", value: 30 }] }, base: { sido: { code: "26", name: "부산광역시" } } },
+  { id: "SH-2-4", group: 2, regions: ["busan"], scene: "2-4", title: "주민 대피", category: "통제·대피 대상", stage: "비상",
+    text: "온천천 주변에서 우선적으로 주민 대피를 검토해야 할 지역은 어디이며, 대피 시점과 대피장소를 결정할 때 참고해야 할 기준과 행동매뉴얼은 무엇입니까?", cond: { conditions: [{ item: "RAIN_1H", value: 30 }] }, base: { sido: { code: "26", name: "부산광역시" } } },
+  { id: "SH-2-5", group: 2, regions: ["busan"], scene: "2-5", title: "침수·산사태 취약지역", category: "위험·취약지역", stage: "비상",
+    text: "온천천 주변의 저지대·지하차도 등 침수 취약지역과 인접 급경사지의 붕괴·산사태 취약지역을 구분하여 알려주세요.", cond: { conditions: [{ item: "RAIN_1H", value: 30 }] }, base: { sido: { code: "26", name: "부산광역시" } } },
+  { id: "SH-2-6", group: 2, regions: ["busan"], scene: "2-6", title: "과거 유사재난 사례", category: "과거 피해 이력", stage: "비상",
+    text: "온천천과 주변 지역에서 과거 집중호우로 침수 또는 하천 범람 피해가 발생한 사례는 무엇이며, 당시 강우량과 피해지역, 대응조치는 어떠했습니까?", cond: { conditions: [{ item: "RAIN_1H", value: 30 }] }, base: { sido: { code: "26", name: "부산광역시" } } },
+  { id: "SH-2-7", group: 2, regions: ["busan"], scene: "2-7", title: "2020년 7월 23일 침수흔적도", category: "침수 이력", stage: "비상",
+    text: "2020년 7월 23일 집중호우 당시 침수흔적도를 보여줘", cond: { conditions: [{ item: "RAIN_1H", value: 30 }] }, base: { sido: { code: "26", name: "부산광역시" } } },
+  { id: "SH-2-8", group: 2, regions: ["busan"], scene: "2-8", title: "재난대응 절차", category: "행동매뉴얼", stage: "비상",
+    text: "부산시 재난안전 담당 공무원이 온천천 주변 침수와 범람 피해를 예방하기 위해 우선 확인하고 조치해야 할 대응절차를 행동매뉴얼을 기준으로 알려주세요.", cond: { conditions: [{ item: "RAIN_1H", value: 30 }] }, base: { sido: { code: "26", name: "부산광역시" } } },
+  { id: "SH-2-9", group: 2, regions: ["busan"], scene: "2-9", title: "상황보고서 작성", category: "행동매뉴얼", stage: "비상",
+    text: "온천천 주변의 침수 취약지역, 과거 피해사례, 주요 점검대상 및 대응조치 계획을 포함하여 재난상황보고서 초안을 작성해 주세요. 확인되지 않은 실제 피해나 조치사항은 미확인으로 표시해 주세요.", cond: { conditions: [{ item: "RAIN_1H", value: 30 }] }, base: { sido: { code: "26", name: "부산광역시" } } },
+];
+
 /** 지역 묶음(장면 순서) */
 export const demoFor = (region: string) => DEMO_DAY.filter((d) => d.regions[0] === region);
 
 /** 묶음 항목을 보낼 모양 — 화면(질문 모음 「재난담당자의 하루」)과 「시연 세트 예열」이 같이 쓴다. 출처는 질문 모음과 같다(LIBRARY → T3Q SUGGEST) */
 export const demoAsk = (d: DemoItem) => ({ question: d.text, source: "LIBRARY" as const, libraryId: d.id, quickQueryId: d.quickQueryId ?? null, cond: d.cond });
 
-export const libById = (id: string): LibraryQuestion | undefined => LIBRARY.find((q) => q.id === id) ?? DEMO_DAY.find((q) => q.id === id);
+export const libById = (id: string): LibraryQuestion | undefined => LIBRARY.find((q) => q.id === id) ?? DEMO_DAY.find((q) => q.id === id) ?? DEMO_SHOW.find((q) => q.id === id);
 
 /** 지역 이름을 채운 질문 글 */
 export function fillText(q: LibraryQuestion, regionName: string) {

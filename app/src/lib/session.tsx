@@ -74,6 +74,9 @@ export interface SubmitArgs {
   noCache?: boolean;
   /** 질문별 조건 프리셋(질문 모음 「재난담당자의 하루」) — 이 질문 요청에만 싣는다. 세션 조건은 바꾸지 않는다 */
   cond?: CondPreset | null;
+  /** 시연 고정 답 항목(질문 모음 「시연」) · 새로 받기 */
+  pinId?: string | null;
+  pinFresh?: boolean;
 }
 
 /**

@@ -131,6 +131,10 @@ export interface SubmitInput {
   /** 이어서 묻기 — 이전 작업 + 고른 참조 대상(R4) */
   followUp?: { jobId: string; refs?: { display_name?: string | null; entity_type?: string | null }[] } | null;
   noCache?: boolean;
+  /** 시연 고정 답(질문 모음 「시연」 탭) — 이 항목에 받아 둔 답이 있으면 조건과 상관없이 그 답을 바로 쓴다. 없으면 새로 받아 고정 */
+  pinId?: string | null;
+  /** 고정 답을 쓰지 않고 새로 받기(받은 답이 성공이면 고정을 바꾼다) */
+  pinFresh?: boolean;
   /** 스트리밍(T3Q v0.4 STREAM) — 접수만 하고 제출은 화면이 여는 /api/agent/jobs/{id}/stream 이 한다. 열지 않으면 폴링이 ASYNC 로 제출 */
   stream?: boolean;
   /** 자동 조회 데이터(R3) — 라우트가 미리 받아 둔 Data API 원응답 */
@@ -181,7 +185,12 @@ export async function submitJob(acc: Account, input: SubmitInput): Promise<Job> 
   const id = randomUUID();
   const base = [id, acc.id, input.convId ?? null, input.turnNo ?? null, input.source, input.libraryId ?? null, input.question.trim(), questionSent, JSON.stringify(request), cacheKey];
 
-  if (!input.noCache) {
+  // 시연 고정 답 — 받아 둔 답이 있으면 그대로(사본 행). 없으면 아래에서 새로 받고 받는 작업을 고정 대기로 둔다
+  if (input.pinId && !input.pinFresh) {
+    const pinned = await pinnedJob(input.pinId);
+    if (pinned) return copyJob(base, input, pinned);
+  }
+  if (!input.noCache && !input.pinId) {
     // 원래 받은 답(재사용 사본이 아닌 행)만 찾는다 — 사본의 시각으로 재사용 기간이 이어서 늘어나지 않게.
     // AI 모드 점검은 같은 계정의 원래 점검만(R47 — 사용자별 독립: 다른 계정의 점검을 가져오지 않는다. 같은 계정 같은 10분 구간은 R39 ②)
     const aim = input.source === "AI_MODE";
@@ -204,15 +213,7 @@ export async function submitJob(acc: Account, input: SubmitInput): Promise<Job> 
     // R39 — 같은 계정이 같은 10분 구간에 다시 보낸 AI 모드 점검(새로 고침·새 탭·껐다 켬)은 사본 행 없이 원래 점검 작업 그대로.
     // (AI 모드 점검은 위에서 같은 계정 것만 찾으므로 사본은 생기지 않는다 — R47)
     if (hit && aim) return { ...hit, ...NO_SOURCE };
-    if (hit) {
-      const [row] = await q(
-        `insert into sa_agent_jobs (id, account_id, conv_id, turn_no, source, library_id, question_user, question_sent, request, cache_key,
-           state, t3q_status, http_status, raw, preview, geo, cached_from, t3q_conversation_id, finished_at, elapsed_ms)
-         values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,'DONE',$11,$12,$13,$14,$15,$16,$17,now(),0) returning *`,
-        [...base, hit.t3q_status, hit.http_status, JSON.stringify(hit.raw), JSON.stringify(input.preview ?? hit.preview), hit.geo == null ? null : JSON.stringify(hit.geo), hit.id, hit.t3q_conversation_id],
-      );
-      return { ...row, source_finished_at: hit.finished_at, source_wx_seen: hit.wx_seen ?? null };
-    }
+    if (hit) return copyJob(base, input, hit);
     const [running] = await q(`select * from sa_agent_jobs where cache_key = $1 and account_id = $2 and state in ('QUEUED','SUBMITTED','RUNNING') limit 1`, [cacheKey, acc.id]);
     if (running) return { ...running, ...NO_SOURCE };
   }
@@ -222,8 +223,55 @@ export async function submitJob(acc: Account, input: SubmitInput): Promise<Job> 
      values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,'QUEUED',$11) returning *`,
     [...base, input.preview === undefined ? null : JSON.stringify(input.preview)],
   );
+  if (input.pinId) await ensurePins();
+  if (input.pinId) await q(`insert into sa_demo_pins (item_id, pending_job_id, updated_at) values ($1, $2, now())
+    on conflict (item_id) do update set pending_job_id = excluded.pending_job_id, updated_at = now()`, [input.pinId, id]);
   if (input.stream) return { ...row, ...NO_SOURCE };
   return { ...((await dispatch(row)) ?? row), ...NO_SOURCE };
+}
+
+/** 받아 둔 답의 사본 행 — 재사용(cached_from)으로 표시된다 */
+async function copyJob(base: unknown[], input: SubmitInput, hit: Job): Promise<Job> {
+  const [row] = await q(
+    `insert into sa_agent_jobs (id, account_id, conv_id, turn_no, source, library_id, question_user, question_sent, request, cache_key,
+       state, t3q_status, http_status, raw, preview, geo, cached_from, t3q_conversation_id, finished_at, elapsed_ms)
+     values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,'DONE',$11,$12,$13,$14,$15,$16,$17,now(),0) returning *`,
+    [...base, hit.t3q_status, hit.http_status, JSON.stringify(hit.raw), JSON.stringify(input.preview ?? hit.preview), hit.geo == null ? null : JSON.stringify(hit.geo), hit.id, hit.t3q_conversation_id],
+  );
+  return { ...row, source_finished_at: hit.finished_at, source_wx_seen: hit.wx_seen ?? null };
+}
+
+// ── 시연 고정 답(사용자 지시 2026-11-02) — 항목마다 성공한 답 하나를 고정. 새로 받는 중인 작업이 성공하면 그것으로 바꾼다 ──
+let pinsReady = false;
+async function ensurePins() {
+  if (pinsReady) return;
+  await q(`create table if not exists sa_demo_pins (item_id text primary key, job_id text, pending_job_id text, updated_at timestamptz default now())`);
+  pinsReady = true;
+}
+const okDone = (j?: Job) => !!j && j.state === "DONE" && (j.t3q_status === "SUCCESS" || j.t3q_status === "PARTIAL_SUCCESS");
+
+/** 항목별 고정 상태 — 받는 중인 작업이 성공으로 끝났으면 고정으로 올린다 */
+export async function demoPins(): Promise<Record<string, { job: Job | null; pending: Job | null }>> {
+  await ensurePins();
+  const rows = await q<{ item_id: string; job_id: string | null; pending_job_id: string | null }>("select item_id, job_id, pending_job_id from sa_demo_pins");
+  const ids = rows.flatMap((r) => [r.job_id, r.pending_job_id]).filter((x): x is string => !!x);
+  const jobs = new Map((ids.length ? await q("select * from sa_agent_jobs where id = any($1::text[])", [ids]) : []).map((j) => [j.id, j]));
+  const out: Record<string, { job: Job | null; pending: Job | null }> = {};
+  for (const r of rows) {
+    let job = r.job_id ? jobs.get(r.job_id) ?? null : null;
+    let pending = r.pending_job_id ? jobs.get(r.pending_job_id) ?? null : null;
+    if (pending && okDone(pending)) {
+      await q("update sa_demo_pins set job_id = $2, pending_job_id = null, updated_at = now() where item_id = $1 and pending_job_id = $2", [r.item_id, pending.id]);
+      job = pending;
+      pending = null;
+    }
+    out[r.item_id] = { job: okDone(job ?? undefined) ? job : null, pending };
+  }
+  return out;
+}
+
+async function pinnedJob(itemId: string): Promise<Job | null> {
+  return (await demoPins())[itemId]?.job ?? null;
 }
 
 /**

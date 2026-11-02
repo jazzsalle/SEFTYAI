@@ -8,7 +8,7 @@ import type { JobSource, SubmitInput } from "./jobs";
 export interface JobBody {
   question?: string; source?: JobSource; libraryId?: string | null; convId?: string | null; turnNo?: number | null; condition?: ClientCondition;
   warnings?: Record<string, unknown> | null; briefing?: Record<string, unknown> | null; quickQueryId?: string | null; aiMode?: Record<string, unknown> | null;
-  followUp?: { jobId: string; refs?: { display_name?: string; entity_type?: string }[] } | null; noCache?: boolean; stream?: boolean;
+  followUp?: { jobId: string; refs?: { display_name?: string; entity_type?: string }[] } | null; noCache?: boolean; stream?: boolean; pinId?: string | null; pinFresh?: boolean;
 }
 
 /**
@@ -27,5 +27,6 @@ export function jobInputOf(who: Account, b: JobBody | null | undefined, question
     queryContext, weatherWarnings: b?.warnings ?? null, briefing: b?.briefing ?? null, quickQueryId: b?.quickQueryId ?? null,
     aiMode: b?.aiMode ?? null, followUp: b?.followUp ?? null, noCache: !!b?.noCache,
     stream: !!b?.stream && process.env.T3Q_MODE !== "replay",
+    pinId: b?.pinId ?? null, pinFresh: !!b?.pinFresh,
   };
 }

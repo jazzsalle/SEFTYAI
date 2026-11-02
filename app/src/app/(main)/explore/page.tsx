@@ -4,7 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useSession, uid, type Conversation, type SubmitArgs, type Turn } from "@/lib/session";
 import { useSop } from "@/lib/sopState";
 import { useBriefState } from "@/lib/briefing";
-import { briefRequest, demoAsk, fillText, libById, presetLines, presetManual, type DemoItem, type LibraryQuestion } from "@/lib/library";
+import { briefRequest, demoAsk, fillText, libById, presetLines, presetManual, type DemoItem, type LibraryQuestion, type ShowItem } from "@/lib/library";
 import { REGIONS } from "@/lib/config";
 import { api } from "@/lib/api";
 import type { Citation } from "@/lib/contract/agent";
@@ -221,6 +221,11 @@ function Explore() {
   };
   /** 질문 모음 「재난담당자의 하루」 — 질문 모음 질문과 같은 경로(자동 조회 먼저), 항목의 조건 프리셋은 이 질문에만 싣는다(세션 조건 그대로) */
   const askDemo = (d: DemoItem) => ask(demoAsk(d)).catch(toastErr);
+  /** 질문 모음 「시연」 — 고정해 둔 답이 있으면 바로, 없으면 새로 받아 고정 */
+  const askShow = async (ds: DemoItem[]) => {
+    setLibOpen(false);
+    for (const d of ds) await ask({ ...demoAsk(d), pinId: d.id, warnings: (d as ShowItem).warnings ?? null }).catch(toastErr);
+  };
 
   /** 브리핑 세트 — 항목마다 자리 턴을 먼저 만들고(실패해도 자리 유지) 동시에 보낸다(R2) */
   const startBriefing = async () => {
@@ -459,6 +464,7 @@ function Explore() {
             onAsk={(q) => { setLibOpen(false); askLib(q); }}
             onAskMany={askMany}
             onAskDemo={(d) => { setLibOpen(false); askDemo(d); }}
+            onAskShow={askShow}
           />
         )}
       </div>
