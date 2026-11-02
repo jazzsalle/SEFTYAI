@@ -10,6 +10,9 @@ import { codeLabel, myGroupIds, stepLabel, stepProgress } from "@/lib/sop";
 import { advName } from "@/lib/wxref";
 import { IcChevR, IcPushpin } from "../Icons";
 
+/** 2026-11-02 사용자 지시: 단계·진행·다음 할 일은 일단 숨긴다(되살리려면 false) */
+const HIDE_DETAIL = true;
+
 export default function SopBar() {
   const sop = useSop();
   const { checks } = useSession();
@@ -34,6 +37,7 @@ export default function SopBar() {
   return (
     <div className={`sopbar ${rec && rec.level === "경보" ? "hot" : ""}`} role="region" aria-label="행동매뉴얼 대응 단계">
       <span className="sb-lab" title={`${m.title} 기준`}><IcPushpin size={15} /> 대응절차</span>
+      {!HIDE_DETAIL && <>
       <ol className="sb-steps" aria-label="대응단계">
         {m.steps.map((s) => {
           const on = s.step === sop.step;
@@ -73,6 +77,7 @@ export default function SopBar() {
         </span>
       )}
       {pg.total > 0 && next.length === 0 && <span className="sb-next done">이 단계 내 부서 조치 완료</span>}
+      </>}
       <span className="sp" />
       <button className="btn sm navy" onClick={() => open()}>대응절차 전체 <IcChevR size={14} /></button>
     </div>

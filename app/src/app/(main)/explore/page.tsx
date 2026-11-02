@@ -459,7 +459,6 @@ function Explore() {
             onAsk={(q) => { setLibOpen(false); askLib(q); }}
             onAskMany={askMany}
             onAskDemo={(d) => { setLibOpen(false); askDemo(d); }}
-            onAskT3q={(text) => { setLibOpen(false); ask({ question: text, source: "SUGGEST" }).catch(toastErr); }}
           />
         )}
       </div>

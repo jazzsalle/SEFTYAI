@@ -23,7 +23,7 @@ const GYEONGBUK: BaseRegion = { sido: { code: "47", name: "경상북도" } };
 
 const drawer = (base: BaseRegion, onAskDemo: (d: DemoItem) => void = () => {}) => {
   session.s = { cond: { base, region: basePilot(base) } };
-  return render(<LibraryDrawer regionName={baseName(base)} onClose={() => {}} onAsk={() => {}} onAskMany={() => {}} onAskT3q={() => {}} onAskDemo={onAskDemo} />).container;
+  return render(<LibraryDrawer regionName={baseName(base)} onClose={() => {}} onAsk={() => {}} onAskMany={() => {}} onAskDemo={onAskDemo} />).container;
 };
 const dayTitles = (c: HTMLElement) => [...c.querySelectorAll(".day-btn b")].map((b) => b.textContent);
 const libTexts = (c: HTMLElement) => [...c.querySelectorAll(".lib-q > button.lnk")].map((b) => b.textContent);

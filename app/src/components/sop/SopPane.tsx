@@ -20,6 +20,8 @@ import SopCardView, { Orgs } from "./SopCardView";
 import SopPropagate from "./SopPropagate";
 import { ActionEditor, GroupEditor, HistoryModal, ManualEditor, MissionEditor, PastSituationsModal, actLabel, fmtTime, useSopEditOps } from "./SopEdit";
 
+/** 2026-11-02 사용자 지시: 상황전파 버튼·추천 단계 안내·대응 지침은 일단 숨긴다(되살리려면 false) */
+const HIDE_EXTRA = true;
 const KIND_ORDER: Record<string, number> = { 초기대응부서: 0, 지휘부: 1, 협업부서: 2, 유관기관: 3 };
 type Dlg = { k: "act"; a: SopAction; isNew?: boolean } | { k: "mis"; mi: SopMission; isNew?: boolean } | { k: "grp"; g: SopGroup } | { k: "man" } | { k: "log" } | { k: "past" };
 type RowEdit = { onEdit: () => void; onUp: () => void; onDown: () => void; onDel: () => void; onRestore: () => void };
@@ -95,7 +97,7 @@ export default function SopPane({ focus }: { focus?: { id: string; n: number } }
           <h2>{m.title}</h2>
         </div>
         <div className="acts">
-          {!editing && <SopPropagate />}
+          {!editing && !HIDE_EXTRA && <SopPropagate />}
           <button className="btn sm" onClick={() => x.openCitation(cite(st.tablePdfPage, "재난대응 프로세스"))}><IcDoc size={13} /> 매뉴얼 원문</button>
           {sop.canEdit && (
             <button className={`btn sm ${editing ? "pri" : ""}`} onClick={() => sop.setEditing(!editing)} aria-pressed={editing} title="매뉴얼이 개정되면 조치·행동카드·단계 기준을 직접 고칩니다">
@@ -143,6 +145,7 @@ export default function SopPane({ focus }: { focus?: { id: string; n: number } }
         })}
       </div>
 
+      {!HIDE_EXTRA && <>
       <div className={`notice ${rec?.level === "경보" ? "danger" : rec ? "warn" : ""} sp-rec`}>
         {rec ? (
           <>
@@ -166,6 +169,7 @@ export default function SopPane({ focus }: { focus?: { id: string; n: number } }
           {st.goals.length > 3 && <button className="btn xs ghost" onClick={() => setGoalsAll((v) => !v)}>{goalsAll ? "접기" : `${st.goals.length - 3}개 더 보기`}</button>}
         </div>
       )}
+      </>}
 
       <div className="sp-tools">
         <div className="modeSw" role="group" aria-label="부서 범위">
