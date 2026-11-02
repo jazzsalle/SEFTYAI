@@ -86,11 +86,11 @@ export default function LibraryDrawer({ regionName, onClose, onAsk, onAskMany, o
               <section key={g.group} className="lib-sec">
                 <div className="lib-st">{g.title}</div>
                 <div className="xs muted" style={{ margin: "2px 0 6px" }}>{g.note}</div>
-                {items.map((d, i) => {
+                {items.map((d) => {
                   const p = pinLabel(d.id);
                   return (
                     <div key={d.id} className="lib-q day-q">
-                      <span className="badge neutral">{i + 1}</span>
+                      <span className="badge neutral">{d.scene}</span>
                       <div className="day-b">
                         <button className="lnk day-btn" onClick={() => onAskShow([d])}><b>{d.title}</b><span>{d.text}</span></button>
                         <div className="xs muted">
