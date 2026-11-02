@@ -23,7 +23,8 @@ export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }
   if (!job) return new Response(null, { status: 204 }); // 이미 제출됐거나 슬롯이 없음 → 화면은 폴링
   const up = await t3qStream({ ...job.request, response_mode: "STREAM" }, job.t3q_request_id!);
   if (!up.sse) {
-    if (up.http === 0) await streamAbort(id);
+    // 닿지 못했거나 봉투가 아닌 오류(예: 500 Internal server error)면 스트림을 포기하고 ASYNC 로 다시 제출하게 돌려놓는다
+    if (up.http === 0 || !up.envelope) await streamAbort(id);
     else await streamNotSse(id, up.http, up.envelope, up.json, up.error);
     return new Response(null, { status: 204 });
   }
