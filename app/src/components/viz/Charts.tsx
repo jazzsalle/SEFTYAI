@@ -5,7 +5,7 @@ import { fmtNum } from "@/lib/format";
 
 /**
  * 시각화 부품 — T3Q Data API 값을 그대로 그린다(값 가공 없음, 축 눈금만 간추림). V1 반려, V2·V3 그대로(R25),
- * 보고 단계 묶음 막대는 표로 바꿔 지웠다(결함 7).
+ * 보고 단계 묶음 막대는 결함 7 로 표로 바꿨다가 사용자 지시(2026-11-02)로 GroupBars 로 되살림(표는 「표로 보기」에).
  * dataviz 방법: 단일 계열 = 한 색, 범주 = 고정 순서 슬롯, 막대 ≤24px·끝 4px 둥글게, 실선 헤어라인 축, 2계열 이상 범례,
  * 툴팁은 보조(값은 항상 표·글자로도 보임), 글자는 잉크 색(계열 색 아님).
  * 화면 숫자는 받은 값 그대로(fmtNum — 반올림 없음). 유엔이가 센 수는 두지 않는다(R25).
@@ -96,6 +96,60 @@ export function BarList({ title, sub, items, max, unit = "", fmt, axisFmt, ariaL
         <span />
         <div className="viz-axis">{ticks(top).map((g) => <span key={g}>{(axisFmt ?? ((v: number) => v.toLocaleString("ko-KR")))(g)}</span>)}</div>
       </div>
+      {t.el}
+    </figure>
+  );
+}
+
+/**
+ * 묶음 가로 막대(행마다 계열 2~3개, 같은 축) — 보고 단계별 피해액·복구비(사용자 지시 2026-11-02, 결함 7 로 표로 바꿨던 것을 되살림).
+ * 값은 받은 그대로 막대 끝에 쓰고, 표는 아래 「표로 보기」에 그대로 둔다
+ */
+export function GroupBars({ title, sub, rows, series, unit = "", axisFmt, ariaLabel }: {
+  title: string;
+  sub?: string;
+  rows: { label: string; values: (number | null | undefined)[] }[];
+  series: string[];
+  unit?: string;
+  axisFmt?: (v: number) => string;
+  ariaLabel: string;
+}) {
+  const t = useTip();
+  const nums = rows.flatMap((r) => r.values.filter((v): v is number => typeof v === "number"));
+  const top = niceMax(Math.max(1, ...nums));
+  const show = (v: number | null | undefined) => (typeof v === "number" ? `${fmtNum(v)}${unit}` : "—");
+  return (
+    <figure className="viz" ref={t.box} role="img" aria-label={ariaLabel}>
+      <figcaption className="viz-title">{title}</figcaption>
+      {sub && <div className="viz-sub">{sub}</div>}
+      <div className="viz-bars">
+        {rows.map((r, i) => (
+          <div key={i} style={{ display: "contents" }}>
+            <span className="lb" title={r.label}>{r.label}</span>
+            <div className="viz-group">
+              {r.values.map((v, j) => (
+                <div key={j} className="viz-track">
+                  <span className="grids">{ticks(top).slice(1, -1).map((g) => <span key={g} className="grid" style={{ left: `${(g / top) * 100}%` }} />)}</span>
+                  <span
+                    className="viz-bar"
+                    tabIndex={0}
+                    aria-label={`${r.label} ${series[j]} ${show(v)}`}
+                    style={{ width: `${typeof v === "number" ? Math.max(0, Math.min(100, (v / top) * 100)) : 0}%`, background: SERIES[j] }}
+                    onPointerMove={(e) => t.show(e, show(v), `${r.label} · ${series[j]}`)}
+                    onPointerLeave={t.hide}
+                    onFocus={(e) => t.show(e, show(v), `${r.label} · ${series[j]}`)}
+                    onBlur={t.hide}
+                  />
+                  <span className="val">{show(v)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+        <span />
+        <div className="viz-axis">{ticks(top).map((g) => <span key={g}>{(axisFmt ?? ((v: number) => v.toLocaleString("ko-KR")))(g)}</span>)}</div>
+      </div>
+      <div className="viz-legend">{series.map((x, j) => <span key={x}><span className="sw" style={{ background: SERIES[j] }} />{x}</span>)}</div>
       {t.el}
     </figure>
   );

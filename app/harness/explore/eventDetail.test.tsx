@@ -93,14 +93,17 @@ describe("사건 상세 패널 — 배치(R25)", () => {
     expect(fold?.querySelector(".viz-stack")).not.toBeNull();
   });
 
-  it("보고 단계 — 묶음 막대 없이 받은 값 표, 값이 같아도 행마다", async () => {
+  it("보고 단계 — 피해액·복구비 묶음 막대(사용자 지시 2026-11-02) + 「표로 보기」에 받은 값 표, 값이 같아도 행마다", async () => {
     const c = await full();
-    expect(c.querySelector(".viz-group")).toBeNull();
     const fig = screen.getByText("보고 단계별 피해액·복구비").closest("figure");
-    expect(fig?.getAttribute("role")).toBeNull(); // 그림(img)이 아니라 표
-    expect([...(fig?.querySelectorAll("thead th") ?? [])].map((x) => x.textContent)).toEqual(["보고 단계", "항목 수", "피해액(원)", "복구비(원)"]);
+    expect(fig?.getAttribute("role")).toBe("img");
+    expect(fig?.querySelectorAll(".viz-group").length).toBe(2);
+    expect([...(fig?.querySelectorAll(".viz-group .val") ?? [])].map((x) => x.textContent)).toEqual(["950,141,668,000원", "3,263,503,307,000원", "950,173,767,000원", "3,279,393,548,000원"]);
+    const tbl = [...c.querySelectorAll("details")].find((d) => d.querySelector("summary")?.textContent === "표로 보기");
+    expect([...(tbl?.querySelectorAll("thead th") ?? [])].map((x) => x.textContent)).toEqual(["보고 단계", "항목 수", "피해액(원)", "복구비(원)"]);
+    const fig2 = tbl;
     // 숫자는 천 단위 쉼표로 통일(사용자 결정 2026-10-28) — 항목 수·금액 모두
-    expect(rowsOf(fig)).toEqual([
+    expect(rowsOf(fig2 as unknown as HTMLElement)).toEqual([
       ["중앙", "15,506", "950,141,668,000", "3,263,503,307,000"],
       ["시군구", "15,506", "950,173,767,000", "3,279,393,548,000"],
     ]);

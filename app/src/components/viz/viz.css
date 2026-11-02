@@ -83,3 +83,6 @@
 .ev-text { margin: 0; line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; }
 /* 사건 근거(T3Q-19, R41) — 받은 항목마다 한 줄 */
 .ev-evd { margin: 0 0 4px; padding-left: 18px; line-height: 1.6; overflow-wrap: anywhere; }
+
+/* 묶음 막대(GroupBars) — 한 행에 계열별 막대를 위아래로 */
+.viz-group { display: flex; flex-direction: column; gap: 3px; }

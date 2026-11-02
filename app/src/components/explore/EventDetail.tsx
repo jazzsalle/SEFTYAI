@@ -3,7 +3,7 @@ import { useState, type ReactNode } from "react";
 import { type T3qDataState, type T3qEnvelope, useT3qData } from "@/lib/t3qData";
 import { fieldKo, statusKo, VALUE_KO } from "@/lib/labels";
 import { fmtNum, fmtValue } from "@/lib/format";
-import { BarList, compactKo, SERIES, StackedBar, Timeline } from "../viz/Charts";
+import { BarList, compactKo, GroupBars, SERIES, StackedBar, Timeline } from "../viz/Charts";
 import { Gaps, Tree } from "./DetailPane";
 
 /**
@@ -250,8 +250,17 @@ function DamageView({ d, res, env }: { d: Damage; res: Dmg; env: Env<Dmg> }) {
         />
       )}
       {rec.length > 0 && (
-        <figure className="viz">
-          <figcaption className="viz-title">보고 단계별 피해액·복구비</figcaption>
+        <>
+        <GroupBars
+          title="보고 단계별 피해액·복구비"
+          rows={rec.map((x) => ({ label: `${txt(x.report_level)}${typeof x.item_count === "number" ? ` (${num("item_count", x.item_count)}건)` : ""}`, values: [x.damage_amount_krw, x.recovery_cost_krw] }))}
+          series={["피해액", "복구비"]}
+          unit="원"
+          axisFmt={compactKo}
+          ariaLabel={`보고 단계별 피해액·복구비: ${rec.map((x) => `${txt(x.report_level)} 피해액 ${amt(x.damage_amount_krw)}원 복구비 ${amt(x.recovery_cost_krw)}원`).join(", ")}`}
+        />
+        <details className="xs">
+          <summary>표로 보기</summary>
           <div className="md-table">
             <table>
               <thead><tr><th>보고 단계</th><th className="num">항목 수</th><th className="num">피해액(원)</th><th className="num">복구비(원)</th></tr></thead>
@@ -262,7 +271,8 @@ function DamageView({ d, res, env }: { d: Damage; res: Dmg; env: Env<Dmg> }) {
               </tbody>
             </table>
           </div>
-        </figure>
+        </details>
+        </>
       )}
       {regs.length > 0 && (
         <figure className="viz">

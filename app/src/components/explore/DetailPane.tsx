@@ -61,6 +61,19 @@ export function Tree({ v, k }: { v: unknown; k?: string }) {
   if (Array.isArray(v)) {
     if (!v.length) return <span className="mute2">없음</span>;
     if (v.every((x) => x === null || typeof x !== "object")) return <span>{v.map((x) => (typeof x === "number" ? fmtValue(k, x) : String(x))).join(", ")}</span>;
+    // 칸이 모두 단순 값인 객체 목록은 표로(열 = 받은 칸 전부, 받은 순서) — 들여쓴 나열보다 한눈에(사용자 지시 2026-11-02)
+    const flat = (x: unknown) => !!x && typeof x === "object" && !Array.isArray(x) && Object.values(x as object).every((y) => y === null || typeof y !== "object");
+    if (v.every(flat)) {
+      const cols = [...new Set(v.flatMap((x) => Object.keys(x as object)))];
+      return (
+        <div className="md-table tree-table">
+          <table>
+            <thead><tr>{cols.map((c) => <th key={c}>{fieldKo(c)}</th>)}</tr></thead>
+            <tbody>{v.map((x, i) => <tr key={i}>{cols.map((c) => <td key={c}><Tree v={(x as Record<string, unknown>)[c]} k={c} /></td>)}</tr>)}</tbody>
+          </table>
+        </div>
+      );
+    }
     return (
       <ol className="tree-list">
         {v.map((x, i) => <li key={i}><Tree v={x} k={k} /></li>)}
