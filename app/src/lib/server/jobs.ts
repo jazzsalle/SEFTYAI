@@ -302,8 +302,9 @@ async function dispatch(job: Job): Promise<Job | null> {
   if (!claimed) return null;
   const req = { ...claimed.request, response_mode: "ASYNC" };
   let r = await t3q<{ status?: string }>("POST", "/agent/query", req, { requestId: claimed.t3q_request_id!, timeoutMs: SUBMIT_TIMEOUT_MS });
-  if (r.http === 0) {
-    await new Promise((res) => setTimeout(res, 1000));
+  // 닿지 못했거나 T3Q 가 봉투 없는 서버 오류(500 Internal server error — 2026-11-02 간헐)를 주면 한 번 더
+  if (r.http === 0 || (r.http >= 500 && !r.envelope)) {
+    await new Promise((res) => setTimeout(res, r.http === 0 ? 1000 : 2000));
     r = await t3q("POST", "/agent/query", req, { requestId: claimed.t3q_request_id!, timeoutMs: SUBMIT_TIMEOUT_MS });
   }
   return (await submitted(job.id, r.http, r.envelope, r.body, r.error)) ?? claimed;
