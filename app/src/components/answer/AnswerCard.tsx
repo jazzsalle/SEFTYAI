@@ -117,12 +117,20 @@ function Card({ job, full, compact }: CardProps) {
 
   if (active) {
     const ms = now - new Date(job.created_at).getTime();
+    const lv = s.live?.[job.id];
     return (
       <div className="acard loading" aria-busy="true">
         <div className="acard-h"><span className="ai-dot spin" /> <b>재난안전 AI</b> <span className="xs muted">{STATE_LABEL[job.state]}</span></div>
         <div className="s" style={{ marginTop: 8 }}>
           답변을 만드는 중입니다 · <b>{fmtRunning(ms)}</b>
+          {lv?.stage && !lv.text && <span className="xs muted"> · {lv.stage}</span>}
         </div>
+        {/* 스트리밍(T3Q v0.4) — 받은 글 조각 그대로. 끝나면 저장된 원응답(final)으로 바뀐다 */}
+        {lv?.text && (
+          <div className="acard-body" style={{ marginTop: 8 }}>
+            <AnswerMarkdown text={lv.text} refs={lv.refs} />
+          </div>
+        )}
         {ms > 600_000 && <div className="notice warn" style={{ marginTop: 8 }}>10분이 지났습니다. 계속 기다리거나 취소할 수 있습니다(15분이 지나면 자동으로 끝냅니다).</div>}
         <div className="row" style={{ marginTop: 10 }}>
           <button className="btn sm" onClick={() => s.cancel(job.id).catch(() => s.toast("취소하지 못했습니다."))}>질의 취소</button>

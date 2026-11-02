@@ -131,6 +131,8 @@ export interface SubmitInput {
   /** 이어서 묻기 — 이전 작업 + 고른 참조 대상(R4) */
   followUp?: { jobId: string; refs?: { display_name?: string | null; entity_type?: string | null }[] } | null;
   noCache?: boolean;
+  /** 스트리밍(T3Q v0.4 STREAM) — 접수만 하고 제출은 화면이 여는 /api/agent/jobs/{id}/stream 이 한다. 열지 않으면 폴링이 ASYNC 로 제출 */
+  stream?: boolean;
   /** 자동 조회 데이터(R3) — 라우트가 미리 받아 둔 Data API 원응답 */
   preview?: unknown;
 }
@@ -168,7 +170,7 @@ export async function submitJob(acc: Account, input: SubmitInput): Promise<Job> 
     question_source: T3Q_SOURCE[input.source],
     query_context: input.queryContext ?? null,
     reference,
-    response_mode: "ASYNC",
+    response_mode: input.stream ? "STREAM" : "ASYNC",
     ...(input.briefing ? { briefing: input.briefing } : {}),
     ...(input.quickQueryId ? { quick_query_id: input.quickQueryId } : {}),
     ...(input.aiMode ? { ai_mode: input.aiMode } : {}),
@@ -220,6 +222,7 @@ export async function submitJob(acc: Account, input: SubmitInput): Promise<Job> 
      values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,'QUEUED',$11) returning *`,
     [...base, input.preview === undefined ? null : JSON.stringify(input.preview)],
   );
+  if (input.stream) return { ...row, ...NO_SOURCE };
   return { ...((await dispatch(row)) ?? row), ...NO_SOURCE };
 }
 
@@ -295,6 +298,30 @@ const withSource1 = async (job: Job) => (await withSource([job]))[0];
  */
 async function dispatch(job: Job): Promise<Job | null> {
   if (job.state !== "QUEUED") return job;
+  const claimed = await claimSlot(job);
+  if (!claimed) return null;
+  const req = { ...claimed.request, response_mode: "ASYNC" };
+  let r = await t3q<{ status?: string }>("POST", "/agent/query", req, { requestId: claimed.t3q_request_id!, timeoutMs: SUBMIT_TIMEOUT_MS });
+  if (r.http === 0) {
+    await new Promise((res) => setTimeout(res, 1000));
+    r = await t3q("POST", "/agent/query", req, { requestId: claimed.t3q_request_id!, timeoutMs: SUBMIT_TIMEOUT_MS });
+  }
+  return (await submitted(job.id, r.http, r.envelope, r.body, r.error)) ?? claimed;
+}
+
+/** 제출 응답 처리 — 202 면 진행 중, 아니면 그 응답이 곧 결과(오류 봉투 포함) — 그대로 저장, 추적로그에도 남긴다 */
+async function submitted(id: string, http: number, envelope: boolean, body: unknown, error?: string): Promise<Job | null> {
+  if (http === 202) {
+    const [u] = await q(`update sa_agent_jobs set state = 'RUNNING', last_polled_at = now() where id = $1 and state = 'SUBMITTED' returning *`, [id]);
+    return u ?? (await q("select * from sa_agent_jobs where id = $1", [id]))[0] ?? null;
+  }
+  return (await finish(id, envelope && http === 200 ? "DONE" : "FAILED", {
+    http, raw: body ?? undefined, status: (body as { status?: string } | null)?.status, error: envelope ? undefined : error ?? "SUBMIT_FAILED",
+  })) ?? null;
+}
+
+/** 슬롯 차지(QUEUED→SUBMITTED) — 한도 안이면 차지한 행, 아니면 null */
+async function claimSlot(job: Job): Promise<Job | null> {
   await ensureSchema();
   const sql = db();
   const [, rows] = (await sql.transaction([
@@ -309,22 +336,45 @@ async function dispatch(job: Job): Promise<Job | null> {
       [job.id, newRequestId(), job.account_id, PER_ACCOUNT, new Date(Date.now() - CANCEL_COOLDOWN_MS), GLOBAL()],
     ),
   ])) as unknown as [unknown, Job[]];
-  const claimed = rows[0];
-  if (!claimed) return null;
-  let r = await t3q<{ status?: string }>("POST", "/agent/query", claimed.request, { requestId: claimed.t3q_request_id!, timeoutMs: SUBMIT_TIMEOUT_MS });
-  if (r.http === 0) {
-    await new Promise((res) => setTimeout(res, 1000));
-    r = await t3q("POST", "/agent/query", claimed.request, { requestId: claimed.t3q_request_id!, timeoutMs: SUBMIT_TIMEOUT_MS });
-  }
-  if (r.http === 202) {
-    const [u] = await q(`update sa_agent_jobs set state = 'RUNNING', last_polled_at = now() where id = $1 and state = 'SUBMITTED' returning *`, [job.id]);
-    return u ?? (await q("select * from sa_agent_jobs where id = $1", [job.id]))[0] ?? claimed;
-  }
-  // 202 가 아니면 그 응답이 곧 결과(오류 봉투 포함) — 그대로 저장, 추적로그에도 남긴다
-  const done = await finish(job.id, r.envelope && r.http === 200 ? "DONE" : "FAILED", {
-    http: r.http, raw: r.body ?? undefined, status: (r.body as { status?: string } | null)?.status, error: r.envelope ? undefined : r.error ?? "SUBMIT_FAILED",
-  });
-  return done ?? claimed;
+  return rows[0] ?? null;
+}
+
+// ── 스트리밍(T3Q v0.4 STREAM) — /api/agent/jobs/{id}/stream 이 쓴다. 끊기면 같은 request_id 를 폴링(advance)이 이어 받는다 ──
+const STREAM_GRACE_MS = 6000;
+const STREAM_HOLD = "45 seconds";
+
+/** 화면이 스트림을 열 때 — 본인의 대기 작업이면 슬롯을 차지해 돌려준다(아니면 null → 화면은 폴링) */
+export async function claimStream(acc: Account, id: string): Promise<Job | null> {
+  const [job] = await q("select * from sa_agent_jobs where id = $1 and account_id = $2 and state = 'QUEUED'", [id, acc.id]);
+  if (!job) return null;
+  const claimed = await claimSlot(job);
+  if (claimed) await q(`update sa_agent_jobs set last_polled_at = now() + interval '${STREAM_HOLD}' where id = $1`, [id]);
+  return claimed;
+}
+
+/** 스트림이 살아 있는 동안 폴링이 T3Q 를 따로 부르지 않게 미룬다. meta 를 받으면 진행 중·대화 번호 */
+export async function streamAlive(id: string, conv?: string | null) {
+  await q(
+    `update sa_agent_jobs set state = case when state = 'SUBMITTED' then 'RUNNING' else state end, t3q_conversation_id = coalesce($2, t3q_conversation_id),
+       last_polled_at = now() + interval '${STREAM_HOLD}' where id = $1 and state in ('SUBMITTED','RUNNING')`,
+    [id, conv ?? null],
+  );
+}
+
+/** event: final(01-A 응답 JSON — 정본)을 그대로 저장 */
+export async function streamFinal(id: string, body: { status?: string; conversation_id?: string } | null) {
+  const envelope = !!body && typeof body === "object" && "schema_version" in body;
+  const done = await finish(id, envelope ? "DONE" : "FAILED", { http: 200, raw: body ?? undefined, status: body?.status, conv: body?.conversation_id, error: envelope ? undefined : "STREAM_FINAL_INVALID" });
+  if (done?.state === "DONE") await prefetchGeo(done).catch((e) => console.error("[jobs] geo", e));
+  return done;
+}
+
+/** 스트림이 아닌 응답(오류·202)을 받았을 때 — 일반 제출과 같이 처리 */
+export const streamNotSse = submitted;
+
+/** T3Q 에 닿지 못한 경우 — 슬롯을 돌려놓아 폴링이 ASYNC 로 제출하게 */
+export async function streamAbort(id: string) {
+  await q(`update sa_agent_jobs set state = 'QUEUED', t3q_request_id = null, submitted_at = null, last_polled_at = null where id = $1 and state = 'SUBMITTED'`, [id]);
 }
 
 /** 상태 조회 — 필요하면 T3Q 를 한 번 폴링 (lazy) */
@@ -339,6 +389,8 @@ export async function getJob(acc: Account, id: string): Promise<Job | null> {
 
 async function advance(job: Job): Promise<Job> {
   if (job.state === "QUEUED") {
+    // 스트림으로 받기로 한 작업은 화면이 스트림을 열 시간을 준다(그 뒤에도 안 열면 ASYNC 로 제출)
+    if ((job.request as { response_mode?: string } | null)?.response_mode === "STREAM" && Date.now() - new Date(job.created_at).getTime() < STREAM_GRACE_MS) return job;
     // 너무 오래 기다린 대기 작업은 끝낸다(슬롯이 계속 막혀 있는 경우)
     if (Date.now() - new Date(job.created_at).getTime() > QUEUE_MAX_MS) return (await finish(job.id, "TIMEOUT", { error: "QUEUE_TIMEOUT" })) ?? job;
     return (await dispatch(job)) ?? job;

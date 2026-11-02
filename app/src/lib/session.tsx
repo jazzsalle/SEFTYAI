@@ -3,7 +3,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import type { Advisory, DisasterType, RegionId, WeatherResponse } from "./contract/agent";
 import { api, ApiError } from "./api";
 import type { Account } from "./config";
-import { isActive, locksBase, sourceLocksBase, type JobFull, type JobSource, type JobSummary } from "./jobTypes";
+import { isActive, locksBase, sourceLocksBase, type JobFull, type JobSource, type JobSummary, type T3qRef } from "./jobTypes";
 import { basePilot, baseWire, defaultBase, type BaseRegion } from "./baseRegion";
 import { presetCondition, wireCondition, type CondPreset } from "./library";
 
@@ -128,6 +128,15 @@ interface SessionState {
   loadFull: (jobId: string) => Promise<JobFull | null>;
   watch: (jobId: string) => void;
   t3qOk: boolean | null;
+  /** 스트리밍 중인 답(T3Q v0.4 STREAM) — 받은 글 조각을 그대로 이은 것·진행 단계·답변 대상. 끝나면 저장된 원응답으로 바뀐다 */
+  live: Record<string, LiveAnswer>;
+}
+
+export interface LiveAnswer {
+  text: string;
+  /** progress 의 message 그대로 */
+  stage: string | null;
+  refs: T3qRef[];
 }
 
 const Ctx = createContext<SessionState | null>(null);
@@ -176,6 +185,9 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   const [medianMs, setMedian] = useState<number | null>(null);
   const [full, setFull] = useState<Record<string, JobFull>>({});
   const [t3qOk, setT3qOk] = useState<boolean | null>(null);
+  const [live, setLive] = useState<Record<string, LiveAnswer>>({});
+  const liveRef = useRef<Record<string, LiveAnswer>>({});
+  const liveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   /** 접수 응답을 기다리는 질문 수(보내는 중인 턴 — AI 모드 점검 접수는 세지 않음, R44) — 화면용 값과 바로 읽는 값 */
   const [sending, setSending] = useState(0);
   const sendingRef = useRef(0);
@@ -412,6 +424,68 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     };
   }, [account, putJob]);
 
+  /** 스트림 받기 — 글 조각은 0.15초마다 모아 화면에 반영. 실패·끊김은 조용히 넘긴다(폴링이 같은 작업을 이어 받음) */
+  const flushLive = useCallback(() => {
+    if (liveTimer.current) return;
+    liveTimer.current = setTimeout(() => {
+      liveTimer.current = null;
+      setLive({ ...liveRef.current });
+    }, 150);
+  }, []);
+  const openStream = useCallback(
+    async (jobId: string) => {
+      try {
+        const r = await fetch(`/api/agent/jobs/${jobId}/stream`, { cache: "no-store" });
+        if (r.status !== 200 || !r.body) return;
+        liveRef.current = { ...liveRef.current, [jobId]: { text: "", stage: null, refs: [] } };
+        flushLive();
+        const reader = r.body.getReader();
+        const dec = new TextDecoder();
+        let buf = "";
+        let finalSeen = false;
+        for (;;) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          buf += dec.decode(value, { stream: true });
+          let cut: number;
+          while ((cut = buf.indexOf("\n\n")) >= 0) {
+            const block = buf.slice(0, cut);
+            buf = buf.slice(cut + 2);
+            let ev = "message";
+            let data = "";
+            for (const line of block.split("\n")) {
+              if (line.startsWith("event:")) ev = line.slice(6).trim();
+              else if (line.startsWith("data:")) data += (data ? "\n" : "") + line.slice(5).replace(/^ /, "");
+            }
+            const cur = liveRef.current[jobId] ?? { text: "", stage: null, refs: [] };
+            let d: Record<string, unknown> = {};
+            try {
+              d = JSON.parse(data || "{}");
+            } catch {
+              /* 무시 */
+            }
+            if (ev === "token" && typeof d.delta === "string") liveRef.current[jobId] = { ...cur, text: cur.text + d.delta };
+            else if (ev === "reset") liveRef.current[jobId] = { ...cur, text: "" };
+            else if (ev === "progress" && typeof d.message === "string") liveRef.current[jobId] = { ...cur, stage: d.message };
+            else if (ev === "meta") putJob({ ...jobsRef.current[jobId], state: "RUNNING" });
+            else if (ev === "refs" && Array.isArray(d.refs)) {
+              const have = new Set(cur.refs.map((x) => x.ref));
+              liveRef.current[jobId] = { ...cur, refs: [...cur.refs, ...(d.refs as T3qRef[]).filter((x) => !have.has(x.ref))] };
+            } else if (ev === "final") finalSeen = true;
+            flushLive();
+          }
+        }
+        if (finalSeen) {
+          const j = await api<{ job: JobSummary }>(`/api/agent/jobs/${jobId}`);
+          putJob(j.job);
+        }
+      } catch {
+        /* 폴링이 이어 받는다 */
+      }
+    },
+    [flushLive, putJob],
+  );
+
   const submit = useCallback(
     async (a: SubmitArgs) => {
       const c = cond;
@@ -422,8 +496,9 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
         setSending(sendingRef.current);
       }
       try {
-        const r = await api<{ job: JobSummary }>("/api/agent/jobs", { method: "POST", json: submitBody(c, a) });
+        const r = await api<{ job: JobSummary }>("/api/agent/jobs", { method: "POST", json: { ...submitBody(c, a), stream: true } });
         putJob(r.job);
+        if (r.job.state === "QUEUED") void openStream(r.job.id);
         // 접수를 기다리는 사이 AI 모드가 꺼졌으면(기준지역 변경 · AI 모드 종료) 그 점검은 아무도 보지 않는다 — 진행 중이면 취소(R47)
         if (a.source === "AI_MODE" && !aimOnRef.current && isActive(r.job.state)) cancelRef.current(r.job.id).catch(() => {});
         return r.job;
@@ -434,7 +509,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
         }
       }
     },
-    [cond, putJob],
+    [cond, putJob, openStream],
   );
 
   const cancel = useCallback(
@@ -475,9 +550,9 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       ready, account, login, logout, sessionExpired, cond, setCond, setBase, asking, weather,
       reloadWeather: () => setWxTick((t) => t + 1),
       convs, saveConv, deleteConvs, checks, checkInfo, toggleCheck, resetChecks, toast, toastMsg, aimOn, setAimOn, wxRef, setWxRef,
-      jobs, jobOrder, medianMs, submit, cancel, full, loadFull, watch, t3qOk,
+      jobs, jobOrder, medianMs, submit, cancel, full, loadFull, watch, t3qOk, live,
     }),
-    [ready, account, login, logout, sessionExpired, cond, setCond, setBase, asking, weather, convs, saveConv, deleteConvs, checks, checkInfo, toggleCheck, resetChecks, toast, toastMsg, aimOn, setAimOn, wxRef, setWxRef, jobs, jobOrder, medianMs, submit, cancel, full, loadFull, watch, t3qOk],
+    [ready, account, login, logout, sessionExpired, cond, setCond, setBase, asking, weather, convs, saveConv, deleteConvs, checks, checkInfo, toggleCheck, resetChecks, toast, toastMsg, aimOn, setAimOn, wxRef, setWxRef, jobs, jobOrder, medianMs, submit, cancel, full, loadFull, watch, t3qOk, live],
   );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

@@ -52,3 +52,38 @@ export async function t3q<T = unknown>(method: "GET" | "POST" | "DELETE", path: 
     return { http: 0, ms: Date.now() - t0, requestId, envelope: false, body: null, error: timeout ? "T3Q 응답 시간 초과" : "T3Q 연결 실패" };
   }
 }
+
+/**
+ * T3Q-01 스트리밍(v0.4 — response_mode STREAM, text/event-stream) — 응답 머리까지만 기다리고 본문은 부른 쪽이 읽는다.
+ * 본문이 스트림이 아니면(오류 봉투·202) 읽어서 돌려준다. 닿지 못하면 http 0
+ */
+export async function t3qStream(body: unknown, requestId: string, timeoutMs = 15000): Promise<{ http: number; sse: Response | null; envelope: boolean; json: unknown; error?: string }> {
+  const base = process.env.T3Q_BASE_URL?.replace(/\/$/, "");
+  const token = process.env.T3Q_CLIENT_TOKEN;
+  if (!base || !token) return { http: 0, sse: null, envelope: false, json: null, error: "T3Q 연결 설정이 없습니다" };
+  const ac = new AbortController();
+  const timer = setTimeout(() => ac.abort(), timeoutMs);
+  try {
+    const r = await fetch(base + "/agent/query", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json; charset=utf-8", Accept: "text/event-stream", "X-Request-Id": requestId },
+      body: JSON.stringify(body),
+      signal: ac.signal,
+      cache: "no-store",
+    });
+    clearTimeout(timer);
+    if (r.status === 200 && (r.headers.get("content-type") ?? "").includes("text/event-stream")) return { http: 200, sse: r, envelope: false, json: null };
+    const text = await r.text();
+    let json: unknown = null;
+    try {
+      json = JSON.parse(text);
+    } catch {
+      /* 본문이 JSON 이 아님 */
+    }
+    const envelope = !!json && typeof json === "object" && "schema_version" in (json as object);
+    return { http: r.status, sse: null, envelope, json, error: envelope ? undefined : `T3Q 응답 오류 (${r.status})` };
+  } catch (e) {
+    clearTimeout(timer);
+    return { http: 0, sse: null, envelope: false, json: null, error: (e as Error).name === "AbortError" ? "T3Q 응답 시간 초과" : "T3Q 연결 실패" };
+  }
+}
