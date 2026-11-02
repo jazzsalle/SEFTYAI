@@ -259,7 +259,7 @@ export const DEMO_SHOW: ShowItem[] = [
   { id: "SH-2-2", group: 2, regions: ["busan"], scene: "2-4", title: "하천·관측소 모니터링", category: "통제·대피 대상", stage: "비상",
     text: "온천천의 범람 위험을 확인하기 위해 집중 모니터링해야 할 수위관측소와 강우관측소는 어디이며, 관련 수위 기준은 무엇입니까?", cond: { conditions: [{ item: "RAIN_1H", value: 30 }] }, base: { sido: { code: "26", name: "부산광역시" } } },
   { id: "SH-2-3", group: 2, regions: ["busan"], scene: "2-5", title: "범람·침수 발생 시점", category: "위험·취약지역", stage: "비상",
-    text: "온천천 유역에 시간당 30mm의 집중호우가 지속된다고 가정할 때, 과거 피해사례와 하천기본계획을 기준으로 온천천의 범람이나 주변 침수가 시작되는 시점을 판단할 수 있습니까? 판단에 필요한 추가 조건도 알려주세요.", cond: { conditions: [{ item: "RAIN_1H", value: 30 }] }, base: { sido: { code: "26", name: "부산광역시" } } },
+    text: "범람·침수 위험을 판단하기 위해 추가로 확인해야 할 누적강우량, 하천 수위 변화, 선행강우 및 하천시설 관련 정보는 무엇입니까? 과거 재난기록과 하천기본계획을 근거로 설명해 주세요.", cond: { conditions: [{ item: "RAIN_1H", value: 30 }] }, base: { sido: { code: "26", name: "부산광역시" } } },
   { id: "SH-2-4", group: 2, regions: ["busan"], scene: "2-6", title: "주민 대피", category: "통제·대피 대상", stage: "비상",
     text: "온천천 주변에서 우선적으로 주민 대피를 검토해야 할 지역은 어디이며, 대피 시점과 대피장소를 결정할 때 참고해야 할 기준과 행동매뉴얼은 무엇입니까?", cond: { conditions: [{ item: "RAIN_1H", value: 30 }] }, base: { sido: { code: "26", name: "부산광역시" } } },
   { id: "SH-2-8", group: 2, regions: ["busan"], scene: "2-7", title: "재난대응 절차", category: "행동매뉴얼", stage: "비상",
