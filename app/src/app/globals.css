@@ -140,6 +140,9 @@ h1, h2, h3, h4 { margin: 0; letter-spacing: -0.02em; }
 .badge.sq { border-radius: var(--r-s); }
 .badge.danger { background: var(--c-dang-sub); color: var(--c-dang-dk); border-color: #f8cdc9; }
 .badge.warn { background: var(--c-warn-sub); color: var(--c-warn-dk); border-color: #f5dea0; }
+/* 「브리핑 시작」 초록 버튼(사용자 지시 2026-11-02 — 시작 화면·AI 모드) */
+.btn.go { background: var(--c-ok); border-color: var(--c-ok); color: #fff; font-weight: 700; }
+.btn.go:hover:not(:disabled) { background: #1c7230; border-color: #1c7230; }
 .badge.ok { background: var(--c-ok-sub); color: var(--c-ok); border-color: #bfe3c8; }
 .badge.info { background: var(--c-primary-sub); color: var(--c-primary-dk); border-color: var(--c-primary-bd); }
 .badge.neutral { background: #fff; color: var(--c-sub); border-color: var(--c-bd); }

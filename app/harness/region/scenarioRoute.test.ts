@@ -88,13 +88,13 @@ describe("시연 시나리오 특보 — 서버가 계정·켜짐·끝나는 시
     const b = (await r.json()) as AdminScenarioResponse;
     expect(b.live).toBe(true);
     expect(b.state.regions).toEqual(["busan", "inje", "yeongcheon"]);
-    expect(await ids("bs_safety01")).toEqual(["SCN-BS-1*"]);
+    expect(await ids("bs_safety01")).toEqual(["SCN-BS-PRE-1*"]);
     expect(await ids("ij_safety01")).toEqual(["SCN-IJ-1*"]);
     expect(await ids("yc_safety02")).toEqual(["SCN-YC-1*"]);
     expect(await ids("mois_dsd01")).toEqual(["KMA-강풍주의보-부산"]);
     expect(await ids("admin01")).toEqual(["KMA-강풍주의보-부산"]);
     // 예열의 브리핑 특보도 같은 값(계정 화면이 받는 특보)
-    expect((await weatherFor(ACC.bs_safety01)).advisories.map((a) => a.id)).toEqual(["SCN-BS-1"]);
+    expect((await weatherFor(ACC.bs_safety01)).advisories.map((a) => a.id)).toEqual(["SCN-BS-PRE-1"]);
     expect((await weatherFor(ACC.admin01)).advisories.map((a) => a.id)).toEqual(["KMA-강풍주의보-부산"]);
   });
 
@@ -135,7 +135,7 @@ describe("시연 시나리오 특보 — 서버가 계정·켜짐·끝나는 시
 
   it("끄면 다시 실시간", async () => {
     await set({ on: true, until: inHours(4) });
-    expect(await ids("bs_safety01")).toEqual(["SCN-BS-1*"]);
+    expect(await ids("bs_safety01")).toEqual(["SCN-BS-PRE-1*"]);
     const r = await set({ on: false });
     expect(((await r.json()) as AdminScenarioResponse).live).toBe(false);
     for (const id of ["bs_safety01", "ij_safety01", "yc_safety02"]) expect(await ids(id)).toEqual(["KMA-강풍주의보-부산"]);

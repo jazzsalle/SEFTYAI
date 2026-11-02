@@ -79,6 +79,8 @@ export function fmtYmdHm(iso: string): string {
   return `${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())} ${p2(d.getHours())}:${p2(d.getMinutes())}`;
 }
 const advText = (a: Advisory) => `${a.area} ${advLabel(a)} ${advTime(a.issuedAt)}`;
+/** 「이전 답변 재사용」 띠 — 끔(사용자 지시 2026-11-02) */
+const SHOW_REUSE = false;
 
 type CardProps = { job: JobSummary; full: JobFull | undefined; compact?: boolean };
 
@@ -231,7 +233,8 @@ function Card({ job, full, compact }: CardProps) {
         </div>
       </div>
 
-      {reused && (
+      {/* 「이전 답변 재사용」 띠는 보이지 않는다(사용자 지시 2026-11-02 — 시연에서 보일 필요 없음). 받은 뒤 특보 주의 줄은 그대로 */}
+      {SHOW_REUSE && reused && (
         <div className="ans-reuse" role="note">
           <span>
             <b>이전 답변 재사용</b>

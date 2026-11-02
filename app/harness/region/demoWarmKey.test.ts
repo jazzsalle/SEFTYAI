@@ -147,11 +147,13 @@ describe("시연 세트 예열 ↔ 화면 — 같은 재사용 열쇠", () => {
     const ww = briefWarningsOf(weather, acc);
     expect(ww).toEqual(warningsPayload(weather, activeAdvisories(weather, baseTarget(condOf(defaultBase(acc)).base))));
     // 녹화(demo_v3/BRF-BS-4)의 weather_warnings 와 시각만 다르다 — 수집 시각 = 특보 응답을 받은 시각, 발표·발효 시각 = 켠 시각
+    // 부산 시나리오는 호우 예비특보로 바꿨다(사용자 지시 2026-11-02) — 녹화(호우경보)와는 특보 번호·단계만 다르다
+    const BS_PRE = { warning_key: "SCN-BS-PRE-1", level: "예비특보" };
     const rw = brf4.request.weather_warnings as unknown as { collected_at: string; items: Record<string, string>[] };
     const at = (s: string) => (s === rw.collected_at ? on.startedAt : s);
-    expect(ww).toEqual({ ...rw, collected_at: new Date(Date.parse("2026-11-05T08:30:00+09:00")).toISOString(), items: rw.items.map((i) => Object.fromEntries(Object.entries(i).map(([k, v]) => [k, at(v)]))) });
+    expect(ww).toEqual({ ...rw, collected_at: new Date(Date.parse("2026-11-05T08:30:00+09:00")).toISOString(), items: rw.items.map((i) => ({ ...Object.fromEntries(Object.entries(i).map(([k, v]) => [k, at(v)])), ...BS_PRE })) });
     // 녹화(demo_v3/BRF-BS-4 — 대본 실측)와 열쇠 성분·출처가 같다(시각은 열쇠에 안 들어감)
-    expect(warnKeys(ww)).toEqual(warnKeys(brf4.request.weather_warnings as unknown as Record<string, unknown>));
+    expect(warnKeys(ww)).toEqual([["SCN-BS-PRE-1", "호우", "예비특보", "부산"]]);
     expect(ww.source).toBe((brf4.request.weather_warnings as unknown as { source: string }).source);
     // 4번 = 설정 화면 「+ 항목 추가」로 넣은 항목(질문 모음 문항 아님 — 녹화 briefing_item_id 「c-BS-01」), BR-04 체크 해제
     const items = [
@@ -167,8 +169,8 @@ describe("시연 세트 예열 ↔ 화면 — 같은 재사용 열쇠", () => {
       expect(cacheKeyOf(p.input)).toBe(screenKey(acc, condOf(defaultBase(acc)), a));
       expect(p.input.briefing).toEqual({ preset_id: "MY-BRIEFING", briefing_item_id: use[i].key, item_no: i + 1, item_total: 4 });
       expect(p.input.turnNo).toBe(i + 1);
-      expect(warnKeys(p.input.weatherWarnings)).toEqual([["SCN-BS-1", "호우", "경보", "부산"]]);
-      expect(warnNosOf(p.input.weatherWarnings)).toEqual(["SCN-BS-1"]); // 운영관리 표의 브리핑 줄
+      expect(warnKeys(p.input.weatherWarnings)).toEqual([["SCN-BS-PRE-1", "호우", "예비특보", "부산"]]);
+      expect(warnNosOf(p.input.weatherWarnings)).toEqual(["SCN-BS-PRE-1"]); // 운영관리 표의 브리핑 줄
     });
     // 녹화(demo_v3/BRF-BS-1~4)와 같은 질문 글·query_context·briefing 칸 — 4번은 문항이 아니라 자동 조회 없음(libraryId 없음)
     plan.forEach((p, i) => {

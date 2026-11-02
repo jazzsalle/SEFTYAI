@@ -188,27 +188,23 @@ describe("D5 — 재사용 답", () => {
   const reusedJob = (over: Partial<JobSummary> = {}) =>
     makeJob({ id: "job-2", cached_from: "job-0", finished_at: local(20, 50), source_finished_at: local(2, 48), wx_seen: null, source_wx_seen: [], ...over });
 
-  it("받은 시각·지난 시간(원래 답을 받은 시각 기준) + 새로 받기 — 받은 뒤 특보가 없으면 「받은 뒤 특보 바뀜」 없음", () => {
+  // 「이전 답변 재사용」 띠는 보이지 않는다(사용자 지시 2026-11-02 — 시연에서 보일 필요 없음). 받은 뒤 특보 주의 줄(C9)은 그대로
+  it("재사용 답에도 「이전 답변 재사용」 띠·새로 받기가 없다", () => {
     vi.useFakeTimers({ toFake: ["Date"] });
     vi.setSystemTime(new Date(2026, 9, 28, 20, 50));
     const job = reusedJob();
     const { container } = wrap(<AnswerCard job={job} full={makeFull(job)} />);
-    const note = container.querySelector(".ans-reuse")!;
-    expect(note.textContent).toContain("이전 답변 재사용 · 2026-10-28 02:48 받은 답(18시간 전)");
-    expect(note.textContent).not.toContain("받은 뒤 특보 바뀜");
-    expect(note.querySelector("[title]")).toBeNull();
-    fireEvent.click(within(note as HTMLElement).getByRole("button", { name: "새로 받기" }));
-    expect(x.retry).toHaveBeenCalledWith("job-2");
+    expect(container.querySelector(".ans-reuse")).toBeNull();
+    expect(container.textContent).not.toContain("이전 답변 재사용");
+    expect(within(container).queryByRole("button", { name: "새로 받기" })).toBeNull();
   });
 
-  it("원래 답을 받은 뒤 그 지역 특보가 발표됐으면 「받은 뒤 특보 바뀜」 + C9 주의 줄", () => {
+  it("원래 답을 받은 뒤 그 지역 특보가 발표됐으면 C9 주의 줄은 보인다", () => {
     vi.useFakeTimers({ toFake: ["Date"] });
     vi.setSystemTime(new Date(2026, 9, 28, 3, 30));
     session.weather = weather([adv({})]);
     const job = reusedJob();
     const { container } = wrap(<AnswerCard job={job} full={makeFull(job)} />);
-    expect(container.querySelector(".ans-reuse")!.textContent).toContain("받은 답(42분 전)");
-    expect(container.querySelector(".ans-reuse .ans-flag")!.textContent).toBe("받은 뒤 특보 바뀜");
     expect(container.querySelector(".ans-caution")!.textContent).toBe("⚠ 답변을 받은 뒤 특보 발표: 부산 호우경보 10.28. 03:10");
   });
 
@@ -222,15 +218,11 @@ describe("D5 — 재사용 답", () => {
     expect(container.querySelector(".ans-caution")).toBeNull();
   });
 
-  it("원래 답을 받은 시각을 모르면 「이전 답변 재사용」만 — 답의 기준 시각으로 메우지 않고, 받은 뒤 특보도 가리지 않는다", () => {
+  it("원래 답을 받은 시각을 모르면 받은 뒤 특보를 가리지 않는다(주의 줄 없음)", () => {
     session.weather = weather([adv({})]);
     const job = reusedJob({ source_finished_at: null });
     const { container } = wrap(<AnswerCard job={job} full={makeFull(job)} />);
-    const note = container.querySelector(".ans-reuse")!;
-    expect(note.querySelector("span")!.textContent).toBe("이전 답변 재사용");
-    expect(note.textContent).not.toContain("받은 답");
-    expect(note.textContent).not.toContain("02:48");
-    expect(container.querySelector(".ans-reuse .ans-flag")).toBeNull();
+    expect(container.querySelector(".ans-reuse")).toBeNull();
     expect(container.querySelector(".ans-caution")).toBeNull();
   });
 

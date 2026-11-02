@@ -44,7 +44,7 @@ const bar = (weather: WeatherResponse, base: BaseRegion | null = BUSAN, setWxRef
 describe("특보 줄 — 「시연 시나리오」 표지 · 기상청 실시간 특보 끊음(R45)", () => {
   it("시나리오 특보 — 이름 옆에 「시연 시나리오」, 갱신 칸 = 「HH:MM 켬 · 기상청 실시간 특보 끊음」(기상청 시각 없음)", () => {
     const b = bar(cutOf("bs_safety01"));
-    expect(b.querySelector(".tit")!.textContent).toBe("부산 호우경보 발효 중 시연 시나리오");
+    expect(b.querySelector(".tit")!.textContent).toBe("부산 호우예비특보 발효 중 시연 시나리오");
     expect(b.querySelector(".tit .scn-tag")!.textContent).toBe("시연 시나리오");
     expect(b.querySelector(".meta")!.textContent).toBe(`${hm(ON.startedAt!)} 켬 · 기상청 실시간 특보 끊음`);
     expect(b.textContent).not.toMatch(/기상청 \d\d:\d\d (갱신|발표)|조회 \d\d:\d\d/);
@@ -55,7 +55,7 @@ describe("특보 줄 — 「시연 시나리오」 표지 · 기상청 실시간
     bar(cutOf("bs_safety01"), BUSAN, set);
     fireEvent.click(screen.getByRole("button", { name: /특보로 질문/ }));
     expect(set).toHaveBeenCalledTimes(1);
-    expect((set.mock.calls[0][0] as Advisory).id).toBe("SCN-BS-1");
+    expect((set.mock.calls[0][0] as Advisory).id).toBe("SCN-BS-PRE-1");
   });
 
   it("기준지역을 시나리오 구역 밖으로 바꾸면 — 「실시간 끊음」(회색) · 「…에는 시연 시나리오 특보가 없습니다」 · 「특보 없음」·「발효 중인 기상특보가 없습니다」 없음", () => {
@@ -118,9 +118,9 @@ describe("AI 모드 창·띠 — 「시연 시나리오」, 점검 질의에는 
     expect(arg.warnings.collect_status).toBe("COLLECTED");
     expect(arg.warnings.collected_at).toBe(now); // 수집 시각 = 특보 응답을 받은 시각(발표·발효 시각 = 켠 시각)
     expect(arg.warnings.items[0]).toMatchObject({ announced_at: ON.startedAt, effective_at: ON.startedAt });
-    expect(arg.warnings.items.map((i) => i.warning_key)).toEqual(["SCN-BS-1"]);
+    expect(arg.warnings.items.map((i) => i.warning_key)).toEqual(["SCN-BS-PRE-1"]);
     fireEvent.click(screen.getByRole("button", { name: "접기" }));
-    expect(container.querySelector(".aim-bar .aim-w")!.textContent).toBe("호우경보 (시연 시나리오)");
+    expect(container.querySelector(".aim-bar .aim-w")!.textContent).toBe("호우예비특보 (시연 시나리오)");
     expect(container.querySelector(".aim-bar .aim-t")!.textContent).toMatch(/^기상청 실시간 특보 끊음 · /);
   });
 
@@ -142,7 +142,7 @@ describe("AI 모드 창·띠 — 「시연 시나리오」, 점검 질의에는 
   it("머리줄 AI 모드 단추 색 — 끊긴 계정에 덮는 특보가 없으면 녹색이 아니라 회색, 덮는 시나리오 특보가 있으면 단계 색", () => {
     const cut = cutOf("bs_safety01");
     expect(aimTone(cut, [])).toBe("gray");
-    expect(aimTone(cut, cut.advisories)).toBe("red"); // 부산 호우경보
+    expect(aimTone(cut, cut.advisories)).toBe("yellow"); // 부산 호우 예비특보(2026-11-02)
     expect(aimTone(cutOf("ij_safety01"), cutOf("ij_safety01").advisories)).toBe("yellow"); // 인제 호우주의보
     // 끊지 않은 계정 — 지금 그대로(특보 없음 녹색 · 조회 실패 회색 · 아직 못 받음 녹색)
     expect(aimTone(live(), [])).toBe("green");

@@ -29,7 +29,7 @@ export default function StartScreen({ regionName, onBriefing, onAskBrief, onAskL
         <div>
           <b>현재 상황 브리핑</b>
         </div>
-        <button className="btn primary lg" onClick={onBriefing}>브리핑 시작 <IcChevR size={16} /></button>
+        <button className="btn go lg" onClick={onBriefing}>브리핑 시작 <IcChevR size={16} /></button>
       </div>
       <div className="start-tiles">
         {brief.map((b) => (

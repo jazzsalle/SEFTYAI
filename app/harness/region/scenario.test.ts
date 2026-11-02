@@ -100,7 +100,19 @@ describe("기상청 실시간 특보 끊음(R45) — 판정 · 끊긴 응답", (
 });
 
 describe("T3Q weather_warnings — 대본 정의·녹화(demo_v3/AIM-*)와 같다", () => {
-  for (const r of SCN_REGIONS) {
+  // 부산은 호우 예비특보로 바꿨다(사용자 지시 2026-11-02) — 녹화(호우경보) 대신 아래에서 따로 확인
+  it("busan — 호우 예비특보 SCN-BS-PRE-1 하나 · 발표·발효 시각 = 켠 시각 · source 「시연 시나리오(가상 특보)」", () => {
+    const a = acc("bs_safety01");
+    const weather = cutOf(a.id);
+    const ww = warningsPayload(weather, activeAdvisories(weather, baseTarget(defaultBase(a))));
+    expect(ww).toEqual({
+      collect_status: "COLLECTED",
+      collected_at: new Date(NOW).toISOString(),
+      source: SCN_SOURCE,
+      items: [{ warning_key: "SCN-BS-PRE-1", kind: "호우", level: "예비특보", area: "부산", announced_at: ON.startedAt, effective_at: ON.startedAt, change: "발효" }],
+    });
+  });
+  for (const r of SCN_REGIONS.filter((x) => x !== "busan")) {
     it(`${r} — 끊긴 응답: 녹화 꼴 그대로(COLLECTED · 수집 시각 = 받은 시각 · 발표·발효 시각 = 켠 시각 · source 「시연 시나리오(가상 특보)」 · 항목 하나 · 항목별 source 없음)`, () => {
       const a = acc(SCN_ACCOUNT[r]);
       const weather = cutOf(a.id);
@@ -147,12 +159,12 @@ describe("화면 — 구역 맞추기 · 이름 · 대응절차 추천 · 답을
   });
 
   it("글로 잇는 곳의 이름에 「(시연 시나리오)」 — 기상청 특보는 그대로", () => {
-    expect(advName(scenarioAdvisories(ON, "bs_safety01", NOW)[0])).toBe("호우경보 (시연 시나리오)");
+    expect(advName(scenarioAdvisories(ON, "bs_safety01", NOW)[0])).toBe("호우예비특보 (시연 시나리오)");
     expect(advName(KMA_BUSAN)).toBe("강풍주의보");
   });
 
-  it("대응절차 단계 추천이 시나리오를 따른다 — 부산 3단계 「비상대응」 · 인제 2단계 「초기대응」 · 영천 경보 단계", () => {
-    const want = { busan: ["경보", "비상대응"], inje: ["주의보", "초기대응"], yeongcheon: ["경보", null] } as const;
+  it("대응절차 단계 추천이 시나리오를 따른다 — 부산 예비특보 단계 · 인제 2단계 「초기대응」 · 영천 경보 단계", () => {
+    const want = { busan: ["예비특보", null], inje: ["주의보", "초기대응"], yeongcheon: ["경보", null] } as const;
     for (const r of SCN_REGIONS) {
       const m = SOP_MANUALS.find((x) => x.region === r)!;
       const rec = recommendStep(m, cutOf(SCN_ACCOUNT[r]).advisories)!;

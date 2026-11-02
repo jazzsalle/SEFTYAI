@@ -77,6 +77,8 @@ export interface SubmitArgs {
   /** 시연 고정 답 항목(질문 모음 「시연」) · 새로 받기 */
   pinId?: string | null;
   pinFresh?: boolean;
+  /** 고정 답을 바로 받았을 때 화면에 내보이기까지 기다리는 시간(ms) — AI 모드 점검·브리핑 시연(사용자 지시 2026-11-02). 요청에는 넣지 않는다 */
+  revealMs?: number;
 }
 
 /**
@@ -85,6 +87,7 @@ export interface SubmitArgs {
  */
 export function submitBody(c: Cond, a: SubmitArgs) {
   const { cond: preset, ...rest } = a;
+  delete rest.revealMs; // 화면 쪽 값 — 요청에 넣지 않는다
   return { ...rest, condition: preset ? presetCondition(baseWire(c.base), preset) : wireCondition(baseWire(c.base), c) };
 }
 
@@ -506,6 +509,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       }
       try {
         const r = await api<{ job: JobSummary }>("/api/agent/jobs", { method: "POST", json: { ...submitBody(c, a), stream: true } });
+        if (a.revealMs && a.pinId && r.job.cached_from && r.job.state === "DONE") await new Promise((ok) => setTimeout(ok, a.revealMs));
         putJob(r.job);
         if (r.job.state === "QUEUED") void openStream(r.job.id);
         // 접수를 기다리는 사이 AI 모드가 꺼졌으면(기준지역 변경 · AI 모드 종료) 그 점검은 아무도 보지 않는다 — 진행 중이면 취소(R47)

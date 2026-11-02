@@ -4,7 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useSession, uid, type Conversation, type SubmitArgs, type Turn } from "@/lib/session";
 import { useSop } from "@/lib/sopState";
 import { useBriefState } from "@/lib/briefing";
-import { briefRequest, demoAsk, fillText, libById, presetLines, presetManual, type DemoItem, type LibraryQuestion, type ShowItem } from "@/lib/library";
+import { briefRequest, DEMO_SHOW, demoAsk, fillText, libById, presetLines, presetManual, type DemoItem, type LibraryQuestion, type ShowItem } from "@/lib/library";
 import { REGIONS } from "@/lib/config";
 import { api } from "@/lib/api";
 import type { Citation } from "@/lib/contract/agent";
@@ -255,7 +255,15 @@ function Explore() {
   const askBrief = (q: string, preset?: string) => {
     const lib = preset ? libById(preset) : undefined;
     if (lib && lib.text === q) return askLib(lib, "BRIEFING");
-    return ask({ question: q.replaceAll("{지역}", regionName), source: "BRIEFING", warnings: s.aimOn ? liveWarnings() : null }, undefined, true).catch(toastErr);
+    return ask({ question: q.replaceAll("{지역}", regionName), source: "BRIEFING", warnings: s.aimOn ? liveWarnings() : null, ...showPin(q, 0) }, undefined, true).catch(toastErr);
+  };
+  /**
+   * 브리핑 항목 글이 질문 모음 「시연」 질문과 같으면 그 항목의 고정 답을 쓴다 — 받아 둔 답을 몇 초 뒤 차례로 보인다(사용자 지시 2026-11-02).
+   * 받아 둔 답이 없으면 새로 받아 고정한다
+   */
+  const showPin = (q: string, i: number) => {
+    const d = DEMO_SHOW.find((x) => x.text === q.trim());
+    return d ? { pinId: d.id, revealMs: 3000 + i * 1500 } : {};
   };
   /** 질문 모음 「재난담당자의 하루」 — 질문 모음 질문과 같은 경로(자동 조회 먼저), 항목의 조건 프리셋은 이 질문에만 싣는다(세션 조건 그대로) */
   const askDemo = (d: DemoItem) => ask(demoAsk(d)).catch(toastErr);
@@ -274,7 +282,7 @@ function Explore() {
     const warnings = s.aimOn ? liveWarnings() : null;
     const plan = items.map((it, i) => {
       // 질문 글·문항·briefing 칸 — 「시연 세트 예열」과 같은 함수(lib/library briefRequest)
-      const a: AskArgs = { ...briefRequest(it, i, items.length, regionName), source: "BRIEFING", warnings };
+      const a: AskArgs = { ...briefRequest(it, i, items.length, regionName), source: "BRIEFING", warnings, ...showPin(it.q, i) };
       // 현황판(D1)용 — 브리핑 설정의 항목 이름·보낸 기준지역 이름을 턴에 함께 둔다(요청에는 넣지 않음)
       const group: BriefGroup = { id: gid, no: i + 1, total: items.length, title: "현재 상황 브리핑", label: it.label?.trim() || undefined, region: regionName };
       const t: Turn = { id: uid("t"), jobId: "", pending: true, q: a.question, source: "BRIEFING", libraryId: a.libraryId ?? null, at: now, args: a, group };

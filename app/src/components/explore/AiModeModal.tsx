@@ -22,6 +22,8 @@ import { BRIEF_AIM_COUNT, useBriefItems } from "@/lib/briefing";
  * 점검은 사용자마다 따로 — 같은 계정이 같은 10분 구간에 다시 켜면 원래 점검 그대로(R39 ②), 다른 계정의 점검은 가져오지 않는다(R47 — lib/server/jobs)
  */
 const INTERVAL_MIN = 10;
+/** 받아 둔 점검 답을 보이기까지 기다리는 시간 — 시연 시나리오 계정만 */
+const AIM_REVEAL_MS = 4000;
 /**
  * 점검 질의(R36) — 상세 요구사항 정의서 v1.72 UFR-001-001-05 「Agent 질의 내용」을 사용자 지시(2026-10-28)로 줄인 것:
  * 특보마다 「먼저 확인할 내용」 2문장(80자 내외)만, 제목·과거 사례·근거 목록 없이. 특보가 없으면 점검 결과 1문장. 지역은 query_context.region, 특보는 weather_warnings 로 따로 보낸다
@@ -39,6 +41,8 @@ export default function AiModeModal() {
   const [jobId, setJobId] = useState<string | null>(null);
   const [lastAt, setLastAt] = useState<string | null>(null);
   const [pg, setPg] = useState(0);
+  /** 점검을 접수하는 중(받아 둔 답을 내보이기 전 기다림 포함) */
+  const [busy, setBusy] = useState(false);
   const brief = useBriefItems();
   const sentKey = useRef<string>("");
   const base = s.cond.base;
@@ -62,6 +66,7 @@ export default function AiModeModal() {
     async (trigger: "START" | "INTERVAL" | "WARNING_CHANGE" | "MANUAL") => {
       const cur = sRef.current;
       if (!cur.cond.base) return;
+      setBusy(true);
       try {
         const job = await cur.submit({
           question: AIM_Q,
@@ -70,6 +75,8 @@ export default function AiModeModal() {
           // 사용자가 직접 [지금 다시 점검] 하면 10분 캐시를 쓰지 않고 새로 묻는다
           noCache: trigger === "MANUAL",
           warnings: warningsPayload(cur.weather, activeAdvisories(cur.weather, baseTarget(cur.cond.base))),
+          // 시연 시나리오를 켠 시연 계정(R45) — 지역별로 받아 둔 점검 답을 몇 초 뒤 보인다(없으면 새로 받아 고정). [지금 다시 점검]은 새로 받아 바꾼다(사용자 지시 2026-11-02)
+          ...(cur.weather?.realtimeCut ? { pinId: `AIM-${baseKey(cur.cond.base)}`, pinFresh: trigger === "MANUAL", revealMs: AIM_REVEAL_MS } : {}),
         });
         if (!alive.current) return;
         setJobId(job.id);
@@ -77,6 +84,8 @@ export default function AiModeModal() {
         setLastAt(job.created_at);
       } catch (e) {
         if (alive.current) cur.toast((e as Error).message);
+      } finally {
+        if (alive.current) setBusy(false);
       }
     },
     [],
@@ -136,7 +145,7 @@ export default function AiModeModal() {
     const tone = national || wxFail || (cut && !advs.length) ? "gray" : advs.some((x) => x.level === "경보") ? "red" : advs.length ? "yellow" : "green";
     const when = [
       cut ? SCN_CUT_LABEL : null,
-      !national && !job ? "점검 준비 중" : job && isActive(job.state) ? "점검 중" : null,
+      !national && !job && !busy ? "점검 준비 중" : busy || (job && isActive(job.state)) ? "점검 중" : null,
       lastAt ? `마지막 점검 ${hm(lastAt)}` : null,
       next ? `다음 점검 ${hm(next)}` : null,
     ].filter(Boolean).join(" · ");
@@ -162,7 +171,7 @@ export default function AiModeModal() {
           <button className="lnk" onClick={() => setCollapsed(true)} aria-label="접기">접기</button>
         </div>
         <div className="xs muted">
-          {job && isActive(job.state) ? <><span className="ai-dot spin" /> 점검 중</> : null} {lastAt ? `마지막 점검 ${hm(lastAt)}` : ""} {next ? `· 다음 점검 ${hm(next)}` : ""} · 이 화면이 열려 있는 동안 {INTERVAL_MIN}분마다 점검
+          {busy || (job && isActive(job.state)) ? <><span className="ai-dot spin" /> 점검 중</> : null} {lastAt ? `마지막 점검 ${hm(lastAt)}` : ""} {next ? `· 다음 점검 ${hm(next)}` : ""} · 이 화면이 열려 있는 동안 {INTERVAL_MIN}분마다 점검
         </div>
         {national ? (
           <div className="notice" style={{ marginTop: 12 }}>AI 모드는 지역 기준으로 점검합니다. 상단에서 기준지역을 고르세요.</div>
@@ -197,7 +206,7 @@ export default function AiModeModal() {
               <div className="xs b" style={{ color: "var(--c-navy)" }}>AI 안내</div>
               {answer ? (
                 <AnswerMarkdown text={answer} refs={(full?.raw?.result?.refs ?? []) as T3qRef[]} />
-              ) : job && isActive(job.state) ? (
+              ) : busy || (job && isActive(job.state)) ? (
                 <div className="s muted">점검 질의에 답을 기다리는 중입니다(보통 1~3분).</div>
               ) : job && job.state === "DONE" && !full ? (
                 <div className="s muted">점검 답을 불러오는 중입니다.</div>
@@ -217,9 +226,9 @@ export default function AiModeModal() {
           <>
             <div className="start-brief" style={{ boxShadow: "none", background: "var(--c-sec-sub)", padding: "16px 20px" }}>
               <div>
-                <b>브리핑 세트</b>
+                <b>기상 특보 기반 상황 브리핑</b>
               </div>
-              <button className="btn" onClick={() => { setCollapsed(true); if (path?.startsWith("/explore")) window.dispatchEvent(new CustomEvent("sa:briefing")); else router.push("/explore?brief=1"); }}>브리핑 시작 ›</button>
+              <button className="btn go" onClick={() => { setCollapsed(true); if (path?.startsWith("/explore")) window.dispatchEvent(new CustomEvent("sa:briefing")); else router.push("/explore?brief=1"); }}>브리핑 시작 ›</button>
             </div>
             <div className="start-tiles" style={{ gridTemplateColumns: "repeat(4, 1fr)" }}>
               {brief.slice(0, BRIEF_AIM_COUNT).map((b) => (

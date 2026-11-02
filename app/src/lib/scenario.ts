@@ -29,12 +29,13 @@ export interface ScnDef {
   /** 특보 번호(warning_key) — 재사용 열쇠에 들어간다 */
   key: string;
   type: string;
-  level: "경보" | "주의보";
+  level: "경보" | "주의보" | "예비특보";
   /** 기상청 특보 현황의 구역 글 꼴 그대로(lib/wxMatch 가 기준지역과 맞춘다) */
   area: string;
 }
 export const SCN_DEFS: Record<ScnRegion, ScnDef> = {
-  busan: { key: "SCN-BS-1", type: "호우", level: "경보", area: "부산" },
+  // 부산 = 호우 예비특보(사용자 지시 2026-11-02 — 시연 ①묶음 「호우 예비특보 AI 모드 브리핑」과 같은 특보 번호 SCN-BS-PRE-1, lib/library SHOW_PRE_WARNING)
+  busan: { key: "SCN-BS-PRE-1", type: "호우", level: "예비특보", area: "부산" },
   inje: { key: "SCN-IJ-1", type: "호우", level: "주의보", area: "강원도(인제평지, 인제산지)" },
   yeongcheon: { key: "SCN-YC-1", type: "호우", level: "경보", area: "경상북도(영천)" },
 };
