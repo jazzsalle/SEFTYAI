@@ -5,6 +5,7 @@
  * 내 부서 조치가 기본, [전체 부서 보기]로 다른 부서·유관기관 조치까지.
  * [수정] — 매뉴얼이 개정되면 담당자가 조치·카드·단계 기준을 직접 고친다 (원문 추출본은 그대로, 수정본만 저장).
  */
+import { baseName } from "@/lib/baseRegion";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Citation } from "@/lib/contract/agent";
 import { useSession } from "@/lib/session";
@@ -27,7 +28,7 @@ type RowEdit = { onEdit: () => void; onUp: () => void; onDown: () => void; onDel
 
 export default function SopPane({ focus }: { focus?: { id: string; n: number } }) {
   const sop = useSop();
-  const { checks, checkInfo, toggleCheck, resetChecks, toast } = useSession();
+  const { checks, checkInfo, toggleCheck, resetChecks, toast, account, cond } = useSession();
   const [askReset, setAskReset] = useState(false);
   const [sitName, setSitName] = useState("");
   const x = useExplore();
@@ -93,6 +94,10 @@ export default function SopPane({ focus }: { focus?: { id: string; n: number } }
         <div style={{ minWidth: 0 }}>
           <div className="xs b" style={{ color: "var(--c-navy)" }}>행동매뉴얼 대응절차</div>
           <h2>{m.title}</h2>
+          {/* 기준지역이 소속과 다를 때만 — 매뉴얼·이행체크·상황전파는 소속 지자체 기준(사용자 판단 2026-11-03), 답변·지도는 기준지역 */}
+          {account && cond.region !== account.region && (
+            <div className="sp-own">우리 기관({account.org}) 매뉴얼 — 기준지역({baseName(cond.base)})과 별개로 소속 지자체 기준으로 보여 줍니다</div>
+          )}
         </div>
         <div className="acts">
           {!editing && !HIDE_EXTRA && <SopPropagate />}

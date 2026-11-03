@@ -851,6 +851,7 @@ label.chk input { width: 18px; height: 18px; accent-color: var(--c-primary); }
 
 .rtab.pinned .rtab-b { gap: 4px; color: var(--c-navy); font-weight: 700; }
 .soppane .dh h2 { font-size: 18px; }
+.soppane .dh .sp-own { margin-top: 6px; padding: 5px 10px; border-radius: var(--r-s); background: var(--c-surface); color: var(--c-sub); font-size: var(--fs-2xs); line-height: 1.5; }
 .sp-steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-top: 14px; padding: 4px; border-radius: var(--r-l); background: var(--c-sec-sub); }
 .sp-steps button { display: flex; flex-direction: column; align-items: flex-start; gap: 1px; padding: 7px 10px; border: 0; border-radius: var(--r-m); background: none; text-align: left; min-width: 0; }
 .sp-steps button .n { font-size: 11px; font-weight: 700; color: var(--c-mute); display: flex; gap: 4px; align-items: center; }
