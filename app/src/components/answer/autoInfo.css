@@ -75,3 +75,17 @@
   .ai-chron-row { grid-template-columns: 1fr; gap: 6px; }
   .ai-chron-axis { margin-left: 0; }
 }
+
+/* 답변 대상 카드 — 번호 원 · 아이콘 원 · 이름 · 종류 (지도 형식 대신, 2026-11-03) */
+.ai-targets { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 8px; }
+.ai-targets li button { width: 100%; display: grid; grid-template-columns: 26px 40px minmax(0, 1fr); gap: 10px; align-items: center; padding: 10px 12px; border: 1px solid #e3e7ed; border-top: 3px solid var(--series-3); border-radius: 12px; background: #fff; text-align: left; cursor: pointer; font: inherit; transition: transform 0.12s, box-shadow 0.12s; }
+.ai-targets li button:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(11, 42, 85, 0.1); }
+.ai-targets li.t-b button { border-top-color: var(--series-2); }
+.ai-targets li.t-c button { border-top-color: var(--series-4); }
+.ai-tg-num { width: 26px; height: 26px; border-radius: 50%; background: #0b2a55; color: #fff; font-size: 12px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; font-variant-numeric: tabular-nums; }
+.ai-tg-ic { width: 40px; height: 40px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: #efecfb; color: var(--series-3); }
+.ai-targets li.t-b .ai-tg-ic { background: #e6f6f0; color: var(--series-2); }
+.ai-targets li.t-c .ai-tg-ic { background: #fdf3dc; color: #9a6a00; }
+.ai-tg-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.ai-tg-body b { font-size: var(--fs-xs); color: var(--viz-ink); line-height: 1.35; overflow-wrap: anywhere; }
+.ai-tg-body span { font-size: var(--fs-2xs); color: var(--viz-muted); }

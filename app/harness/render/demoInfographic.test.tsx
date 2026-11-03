@@ -64,22 +64,18 @@ describe("시연 자료 패널 — 그림마다 값이 글자로 보인다(고�
     expect(why.textContent).toContain("만조");
   });
 
-  it("2-1·1-2·2-6: ② 지도 — 물길 한 개 · 번호 ①~④ · 세병교는 글로만 · 동 중심(근사) 각주", () => {
-    const [map] = figs("SH-2-1");
-    expect(map.querySelector(".im-area path")).not.toBeNull();
-    expect(map.textContent).toContain("호우 예비특보"); // 지도 위 띠(특보·가정 강우·관측소)
-    expect(map.textContent).toContain("가정 1시간 30mm");
-    expect(map.textContent).toContain("2020년 22,886㎡"); // 표지 말풍선 값
-    const nums = [...map.querySelectorAll(".im-mk > text:not(.im-name):not(.im-sub)")].map((t) => t.textContent);
-    expect(nums.join("")).toContain("①②");
-    expect(nums.join("")).toContain("③");
-    expect(nums.filter((n) => n === "④").length).toBeGreaterThanOrEqual(3);
-    expect(map.textContent).toContain("연산교 일원");
-    expect(map.textContent).toContain("안락2");
-    expect(map.textContent).toContain("토곡");
-    expect(map.textContent).toContain("5.0cm");
-    expect(map.textContent).toContain("세병교");
-    expect(map.textContent).toContain("동 중심(근사)");
+  it("2-1·1-2·2-4: ② 먼저 볼 곳 네 가지 — 번호 카드 ①~④(지도 형식 아님) · 특보·가정 띠 · 세병교는 글로만", () => {
+    const [card] = figs("SH-2-1");
+    expect(card.querySelector("svg.im-map")).toBeNull();
+    expect(card.textContent).toContain("호우 예비특보");
+    expect(card.textContent).toContain("가정 1시간 30mm");
+    const li = card.querySelectorAll(".di-spots > li");
+    expect(li).toHaveLength(4);
+    expect([...li].map((l) => l.querySelector(".di-spot-num")!.textContent)).toEqual(["①", "②", "③", "④"]);
+    expect(card.textContent).toContain("연산교 일원");
+    expect(card.textContent).toContain("2020년 22,886㎡");
+    expect(card.textContent).toContain("5.0cm");
+    expect(card.textContent).toContain("세병교");
     cleanup();
     expect(figs("SH-1-2")[0].textContent).toContain("온천천 유역");
     cleanup();
@@ -119,11 +115,11 @@ describe("시연 자료 패널 — 그림마다 값이 글자로 보인다(고�
     expect(u.textContent).toContain("5.0cm");
     expect(within(u).getAllByRole("listitem")).toHaveLength(6);
     for (const n of ["구서지하차도", "장전지하차도(1)", "장전지하차도(2)", "내성지하차도", "우장춘지하차도", "안락지하차도"]) expect(u.textContent).toContain(n);
-    expect(u.querySelector("svg.im-map")).toBeNull(); // 1-1 은 작은 지도 없이(아이콘 svg 는 있음)
+    expect(u.querySelector("svg.im-map")).toBeNull();
     cleanup();
     const [u2] = figs("SH-2-5");
-    expect(u2.querySelector("svg.im-map.small")).not.toBeNull(); // 2-2 침수·산사태는 지하차도만 찍은 작은 지도
-    expect(u2.querySelectorAll(".im-mk").length).toBe(4); // 겹치는 동 중심은 표지 하나(내성=우장춘 · 장전①=②)
+    expect(u2.querySelector("svg.im-map")).toBeNull(); // 지도 형식 그림은 뺐다(2026-11-03) — 카드만
+    expect(within(u2).getAllByRole("listitem")).toHaveLength(6);
   });
 
   it("화면 글자에 영어 낱말이 없다(단위·기호 제외)", () => {

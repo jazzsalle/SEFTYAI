@@ -5,10 +5,7 @@ import type { ReactNode } from "react";
 import type { JobSummary } from "@/lib/jobTypes";
 import { DEMO_SHOW, type ShowItem } from "@/lib/library";
 import { Fig, Headline } from "./infoBits";
-import InfoMapSvg, { type MapLabel } from "./InfoMapSvg";
-import type { MapShape } from "./infoMap";
 import { IcCalendar, IcEvacuate, IcGate, IcGauge, IcHouseFlood, IcLandmark, IcNews, IcPump, IcRain, IcRecovery, IcRiver, IcRoadBlock, IcSlope, IcSms, IcTide, IcUnderpass, IcWarning } from "./infoIcons";
-import { ONCHEON_RING, ONCHEON_SPOTS } from "./oncheon";
 
 /**
  * 시연 자료(인포그래픽) — 11/2 행안부 회의 코멘트(미리 만든 인포그래픽을 먼저 띄우고 AI 답이 설명, 사건 중심·지구 기반 연계 예시)로 추가(사용자 승인 2026-11-02).
@@ -30,7 +27,7 @@ const FIGURES: Record<string, (() => ReactNode)[]> = {
   "SH-1-2": [() => <OncheonMap />],
   "SH-1-3": [Chronicle, WhyFlood],
   "SH-2-1": [() => <OncheonMap />],
-  "SH-2-5": [() => <Underpasses withMap />],
+  "SH-2-5": [() => <Underpasses />],
   "SH-2-6": [Event2020, DataMatrix],
   "SH-2-7": [Event2020],
   "SH-2-2": [RainCompare],
@@ -96,51 +93,35 @@ function Chronicle() {
   );
 }
 
-// ── ② 온천천 한 장 지도 (답 2-1 · 좌표는 공간 API geo 그대로) — 번호 표지 + 말풍선 값 + 지도 위 띠 ──
-const RIVER: MapShape = { ref: "river", kind: "area", paths: [ONCHEON_RING] };
-const SPOT_SHAPES: MapShape[] = ONCHEON_SPOTS.map((s) => ({ ref: s.id, kind: "point", paths: [[s.c]], precision: "dong_center" }));
-/** 번호는 답 2-1 순서 — ① 연산교 ② 안락2 ③ 토곡·거제 ④ 지하차도. 말풍선 값은 답 2-1·2-3 본문 */
-const SPOT_LABELS: Record<string, MapLabel> = {
-  "HZ-6793": { num: "①", name: "연산교 일원", sub: "홍수취약지구 온천천-1" },
-  "HZ-1564": { num: "②", name: "안락2", sub: "2020년 22,886㎡" },
-  "HZ-1582": { num: "③", name: "토곡", sub: "2024년 20,467㎡" },
-  "HZ-1581": { num: "③", name: "거제", sub: "2024년 25,253㎡" },
-  "UP-636": { num: "④", name: "내성·우장춘", sub: "통제 5.0cm", tone: "b" },
-  "UP-628": { num: "④", name: "구서", sub: "통제 5.0cm", tone: "b" },
-  "UP-630": { num: "④", name: "장전①②", sub: "통제 5.0cm", tone: "b" },
-};
-function labelsOf(only?: "지하차도") {
-  const m = new Map<string, MapLabel>();
-  for (const s of ONCHEON_SPOTS) {
-    if (only && s.kind !== only) continue;
-    const l = SPOT_LABELS[s.id];
-    if (l) m.set(s.id, l);
-  }
-  // 같은 좌표에 모이는 점(안락2=연산교=안락지하차도 · 장전①=② · 내성=우장춘)은 대표 하나만 이름을 적는다
-  if (!only) { m.set("UP-637", { num: "④", name: "", tone: "b" }); }
-  else { m.set("UP-637", { num: "④", name: "안락", sub: "통제 5.0cm", tone: "b" }); }
-  return m;
-}
+// ── ② 온천천 먼저 볼 곳 네 가지 (답 2-1 순서) — 지도 대신 번호 카드(사용자 지시 2026-11-03: 지도 형식 그림은 빼고 다른 시각 요소로) ──
+const SPOTS: { num: string; ic: ReactNode; kind: string; name: string; big: string; desc: string; tone: "a" | "b" | "c" }[] = [
+  { num: "①", ic: <IcRiver />, kind: "합류부", name: "연산교 일원", big: "홍수취약지구 온천천-1", desc: "온천천·수영강 합류부, 국가하천 온천천 홍수취약지구", tone: "a" },
+  { num: "②", ic: <IcLandmark />, kind: "위험개선지구", name: "안락2(안락서원)", big: "2020년 22,886㎡", desc: "자연재해위험개선지구 침수위험 나등급(2022년 지정), 2014년 약 11.9만㎡·2020년 22,886㎡ 침수", tone: "c" },
+  { num: "③", ic: <IcHouseFlood />, kind: "위험개선지구", name: "토곡(2023년 지정)·거제", big: "2024년 25,253㎡", desc: "연제구 상습 내수침수 저지대, 2024년 연서초 61,883㎡·교대역 아래 48,529㎡·거제역 아래 25,253㎡", tone: "c" },
+  { num: "④", ic: <IcUnderpass />, kind: "지하차도", name: "지하차도 6곳", big: "통제 5.0cm", desc: "내성·우장춘(온천동), 구서(구서동), 장전①②(장전동), 안락(안락동) · 통제 침수심 5.0cm", tone: "b" },
+];
 function OncheonMap() {
   return (
-    <Fig title="온천천 유역 — 먼저 볼 곳 네 가지" src="값 출처: 답 2-1 · 2-2 · 2-3" label="온천천 물길과 연산교 합류부, 안락2·토곡·거제 위험개선지구, 지하차도 위치를 번호로 표시한 지도"
-      foot="지점 위치는 공간정보 조회가 준 동 중심(근사) 좌표 그대로 — 같은 동은 표지가 겹친다. 기준 관측소 부산시(세병교)는 좌표가 없어 글로만.">
+    <Fig title="온천천 유역 — 먼저 볼 곳 네 가지" src="값 출처: 답 2-1 · 2-2 · 2-3" label="연산교 합류부, 안락2·토곡·거제 위험개선지구, 지하차도를 답 순서대로 번호를 붙인 카드">
       <div className="di-maphead">
         <span className="di-mh warn"><IcWarning size={18} />호우 예비특보 · 부산광역시</span>
         <span className="di-mh cond"><IcRain size={18} />가정 1시간 30mm</span>
         <span className="di-mh"><IcGauge size={18} />기준 관측소 부산시(세병교)</span>
         <span className="di-mh"><IcTide size={18} />만조 중첩 주의</span>
       </div>
-      <div className="im-wrap">
-        <InfoMapSvg shapes={[RIVER, ...SPOT_SHAPES]} labels={labelsOf()} width={300} maxH={460} />
-        <ol className="di-map-legend">
-          <li><b className="t-a">①</b><IcRiver size={16} /> 연산교 일원 — 온천천·수영강 합류부, 국가하천 온천천 홍수취약지구(온천천-1)</li>
-          <li><b className="t-a">②</b><IcLandmark size={16} /> 안락2(안락서원) — 자연재해위험개선지구 침수위험 나등급(2022년 지정), 2014년 약 11.9만㎡·2020년 22,886㎡ 침수</li>
-          <li><b className="t-a">③</b><IcHouseFlood size={16} /> 토곡(2023년 지정)·거제 — 연제구 상습 내수침수 저지대, 2024년 연서초 61,883㎡·교대역 아래 48,529㎡·거제역 아래 25,253㎡</li>
-          <li><b className="t-b">④</b><IcUnderpass size={16} /> 지하차도 — 내성·우장춘(온천동), 구서(구서동), 장전①②(장전동), 안락(안락동) · 통제 침수심 5.0cm</li>
-          <li className="muted"><IcGauge size={16} /> 세병교 수위 — 산책로 차단 약 1.5~1.8m, 하상도로 통제 약 2.45m</li>
-        </ol>
-      </div>
+      <ol className="di-spots">
+        {SPOTS.map((p) => (
+          <li key={p.num} className={`t-${p.tone}`}>
+            <span className="di-spot-num" aria-hidden="true">{p.num}</span>
+            <span className="di-spot-ic" aria-hidden="true">{p.ic}</span>
+            <span className="di-spot-kind">{p.kind}</span>
+            <b className="di-spot-name">{p.name}</b>
+            <span className="di-spot-big">{p.big}</span>
+            <span className="di-spot-desc">{p.desc}</span>
+          </li>
+        ))}
+      </ol>
+      <div className="di-spot-gauge"><IcGauge size={16} /> 세병교 수위 — 산책로 차단 약 1.5~1.8m, 하상도로 통제 약 2.45m</div>
     </Fig>
   );
 }
@@ -259,11 +240,10 @@ const UNDER = [
   { name: "우장춘지하차도", where: "동래구 온천동", near: "배후 연결도로", shape: "U자형", mgmt: "인명피해우려지역" },
   { name: "안락지하차도", where: "동래구 안락동", near: "하류 합류권역", shape: "U자형", mgmt: "인명피해우려지역" },
 ];
-function Underpasses({ withMap }: { withMap?: boolean }) {
+function Underpasses() {
   return (
     <Fig title="온천천 인접 지하차도 6곳 — 통제 침수심 5.0cm" src="값 출처: 답 2-2 · 1-1" label="온천천 인접 지하차도 여섯 곳의 위치, 구조, 관리 구분" tone="b">
       <div className="di-under-wrap">
-        {withMap && <InfoMapSvg shapes={[RIVER, ...SPOT_SHAPES.filter((s) => s.ref?.startsWith("UP-"))]} labels={labelsOf("지하차도")} small width={110} maxH={220} />}
         <ul className="di-under">
           {UNDER.map((u) => (
             <li key={u.name}>

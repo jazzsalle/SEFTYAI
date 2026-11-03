@@ -12,6 +12,8 @@ import { baseKey, baseName, baseTarget } from "@/lib/baseRegion";
 import BasePicker from "./BasePicker";
 import { SopProvider } from "@/lib/sopState";
 import SopBar from "./sop/SopBar";
+
+const SHOW_SOPBAR = false;
 import { openHelp } from "./HelpCenter";
 import AiModeModal from "./explore/AiModeModal";
 import FontSize from "./FontSize";
@@ -236,7 +238,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       </header>
       {t3qOk === false && <div className="sysbar">에이전트 서버에 연결할 수 없습니다. 새 질문은 연결되면 처리되고, 이전 답변은 대화 이력에서 볼 수 있습니다.</div>}
       <WxBar />
-      <SopBar />
+      {/* 대응 단계 바 — 2026-11-03 사용자 지시로 숨김(되살리려면 SHOW_SOPBAR = true) */}
+      {SHOW_SOPBAR && <SopBar />}
       {/* AI 모드 — 접으면 이 자리(내용 맨 위)에 띠로 남고 아래 내용이 그만큼 내려간다. 펼친 창은 화면 위에 뜬다 */}
       {aimOn && <AiModeModal />}
       {children}

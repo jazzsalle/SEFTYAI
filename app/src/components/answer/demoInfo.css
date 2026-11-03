@@ -199,3 +199,18 @@
   .di-flow li:not(:nth-child(3n))::after { display: none; }
   .di-ev-icons { grid-template-columns: 1fr 1fr; }
 }
+
+/* ② 먼저 볼 곳 — 번호 카드 (지도 형식 대신, 2026-11-03) */
+.di-spots { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
+.di-spots li { position: relative; display: grid; grid-template-columns: 44px minmax(0, 1fr); grid-template-areas: "ic kind" "ic name" "big big" "desc desc"; column-gap: 10px; row-gap: 2px; padding: 14px 14px 12px; border: 1px solid #e3e7ed; border-top: 4px solid var(--series-1); border-radius: 12px; background: #fff; }
+.di-spots li.t-b { border-top-color: var(--series-2); }
+.di-spots li.t-c { border-top-color: var(--series-3); }
+.di-spot-num { position: absolute; top: 10px; right: 12px; font-size: 26px; font-weight: 800; line-height: 1; color: #d5dde8; }
+.di-spot-ic { grid-area: ic; width: 44px; height: 44px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: #e8f0fb; color: var(--series-1); }
+.di-spots li.t-b .di-spot-ic { background: #e6f6f0; color: var(--series-2); }
+.di-spots li.t-c .di-spot-ic { background: #efecfb; color: var(--series-3); }
+.di-spot-kind { grid-area: kind; align-self: end; font-size: 10px; font-weight: 700; color: var(--viz-muted); letter-spacing: 0.02em; }
+.di-spot-name { grid-area: name; font-size: var(--fs-s); color: var(--viz-ink); line-height: 1.3; padding-right: 28px; }
+.di-spot-big { grid-area: big; margin-top: 8px; font-size: 20px; font-weight: 800; color: #0b2a55; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.di-spot-desc { grid-area: desc; margin-top: 4px; font-size: var(--fs-2xs); color: var(--viz-ink-2); line-height: 1.55; }
+.di-spot-gauge { margin-top: 10px; display: flex; gap: 6px; align-items: center; padding: 6px 10px; border-radius: 8px; background: #f4f6f9; font-size: var(--fs-2xs); color: var(--viz-ink-2); }

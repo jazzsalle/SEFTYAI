@@ -9,7 +9,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { Citation } from "@/lib/contract/agent";
 import { useSession } from "@/lib/session";
 import { useSop } from "@/lib/sopState";
-import { advName } from "@/lib/wxref";
 import {
   codeLabel, editCount, myGroupIds, sopCheckKey, stepLabel, stepProgress, stepView,
   type SopAction, type SopCard, type SopGroup, type SopManual, type SopMission,
@@ -72,7 +71,6 @@ export default function SopPane({ focus }: { focus?: { id: string; n: number } }
   const myName = vm.groups.filter((g) => g.mine).map((g) => g.name)[0] ?? vm.mine;
   const cite = (pdfPage: number, locator?: string): Citation => ({ id: `s${pdfPage}`, docId: `MAN:${m.manualId}`, title: m.short, kind: "매뉴얼", page: pdfPage, locator });
   const goals = goalsAll ? st.goals : st.goals.slice(0, 3);
-  const rec = sop.rec;
   const visible = [...view.flow.flatMap((g) => g.missions.flatMap((v) => v.actions)), ...view.cond].map((a) => a.id);
   const allOpen = visible.length > 0 && visible.every((id) => open[id]);
   const toggle = (id: string) => setOpen((o) => ({ ...o, [id]: !o[id] }));
@@ -100,7 +98,7 @@ export default function SopPane({ focus }: { focus?: { id: string; n: number } }
           {!editing && !HIDE_EXTRA && <SopPropagate />}
           <button className="btn sm" onClick={() => x.openCitation(cite(st.tablePdfPage, "재난대응 프로세스"))}><IcDoc size={13} /> 매뉴얼 원문</button>
           {sop.canEdit && (
-            <button className={`btn sm ${editing ? "pri" : ""}`} onClick={() => sop.setEditing(!editing)} aria-pressed={editing} title="매뉴얼이 개정되면 조치·행동카드·단계 기준을 직접 고칩니다">
+            <button className={`btn sm ${editing ? "pri" : ""}`} onClick={() => sop.setEditing(!editing)} aria-pressed={editing} title="매뉴얼이 개정되면 조치·행동카드·대응 지침을 직접 고칩니다">
               {editing ? <><IcCheck size={13} /> 수정 마침</> : <><IcEdit size={13} /> 수정</>}
             </button>
           )}
@@ -114,7 +112,7 @@ export default function SopPane({ focus }: { focus?: { id: string; n: number } }
             <div className="xs" style={{ marginTop: 2 }}>수정본은 서버에 저장되어 같은 기관 담당자가 함께 봅니다. 다른 담당자가 먼저 고쳤으면 최신본을 불러온 뒤 다시 고칩니다.</div>
           </div>
           <div className="btns">
-            <button className="btn xs" onClick={() => setDlg({ k: "man" })}>매뉴얼 정보·단계 기준</button>
+            <button className="btn xs" onClick={() => setDlg({ k: "man" })}>매뉴얼 정보·대응 지침</button>
             <button className="btn xs" onClick={() => setDlg({ k: "log" })}>수정 이력·내보내기{nEdit ? ` (${nEdit})` : ""}</button>
           </div>
         </div>
@@ -134,10 +132,9 @@ export default function SopPane({ focus }: { focus?: { id: string; n: number } }
         {vm.steps.map((s) => {
           const p = stepProgress(m, s.step, myGroupIds(m), checks);
           const on = s.step === sop.step;
-          const isRec = rec?.step === s.step;
           return (
-            <button key={s.step} role="tab" aria-selected={on} className={`${on ? "on" : ""} ${isRec ? "rec" : ""}`} onClick={() => sop.setStep(isRec || (!rec && s.no === 1) ? null : s.step)}>
-              <span className="n">{s.no}단계{isRec && <em>추천</em>}</span>
+            <button key={s.step} role="tab" aria-selected={on} className={on ? "on" : ""} onClick={() => sop.setStep(s.no === 1 ? null : s.step)}>
+              <span className="n">{s.no}단계</span>
               <span className="t">{stepLabel(vm, s.step)}</span>
               <span className="c">{p.total ? `${p.done}/${p.total}` : "—"}</span>
             </button>
@@ -146,19 +143,6 @@ export default function SopPane({ focus }: { focus?: { id: string; n: number } }
       </div>
 
       {!HIDE_EXTRA && <>
-      <div className={`notice ${rec?.level === "경보" ? "danger" : rec ? "warn" : ""} sp-rec`}>
-        {rec ? (
-          <>
-            <b>{rec.level === "해제" ? "특보 해제" : `${rec.advisory ? rec.advisory.area + " " + advName(rec.advisory) : rec.level} 발효`}</b> → 매뉴얼 기준 추천 단계 <b>{stepLabel(m, rec.step)}</b>
-            <button className="pg" onClick={() => x.openCitation(cite(rec.pdfPage, rec.basis))} title={rec.basis}>p.{rec.pdfPage}</button>
-            {sop.picked && <> · 지금 보는 단계 <b>{stepLabel(m, sop.step)}</b>(직접 선택) <button className="btn xs" onClick={() => sop.setStep(null)}>추천 단계로</button></>}
-          </>
-        ) : (
-          <>발효 중인 특보가 없어 평시 기준 <b>{stepLabel(m, sop.step)}</b> 조치를 보여 줍니다. 특보가 발효되면 매뉴얼 기준 단계를 추천합니다.</>
-        )}
-        <div className="xs" style={{ marginTop: 4, opacity: 0.85 }}>추천 단계는 참고용입니다. 현장 상황에 맞게 단계를 바꿔 쓰세요.</div>
-      </div>
-
       {st.goals.length > 0 && (
         <div className="sp-goals">
           <div className="hd">
@@ -195,7 +179,7 @@ export default function SopPane({ focus }: { focus?: { id: string; n: number } }
               setAskReset(false);
               const labels = Object.fromEntries(m.actions.filter((a) => checks[sopCheckKey(m, a)]).map((a) => [sopCheckKey(m, a), { label: actLabel(m, a), step: stepLabel(m, a.step) }]));
               try {
-                const n = await resetChecks(`sop:${m.id}:`, { title: sitName.trim(), note: rec ? `추천 단계 ${stepLabel(m, rec.step)}` : "", labels });
+                const n = await resetChecks(`sop:${m.id}:`, { title: sitName.trim(), note: "", labels });
                 toast(`체크 ${n}개를 지난 상황으로 보관하고 비웠습니다.`);
               } catch { toast("체크를 비우지 못했습니다."); }
             }}>보관하고 비우기</button>

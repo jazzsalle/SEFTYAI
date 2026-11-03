@@ -1,13 +1,12 @@
 "use client";
 /**
  * 대응 단계 바 — 특보 바 바로 아래, 모든 화면에 고정 (지자체 계정만)
- * 특보 → 매뉴얼 대응단계 추천 → 지금 할 일(내 부서) → [대응절차 전체]
+ * 대응단계 → 지금 할 일(내 부서) → [대응절차 전체] (특보 연동 추천은 2026-11-03 뺌)
  */
 import { usePathname, useRouter } from "next/navigation";
 import { useSession } from "@/lib/session";
 import { useSop } from "@/lib/sopState";
 import { codeLabel, myGroupIds, stepLabel, stepProgress } from "@/lib/sop";
-import { advName } from "@/lib/wxref";
 import { IcChevR, IcPushpin } from "../Icons";
 
 /** 2026-11-02 사용자 지시: 단계·진행·다음 할 일은 일단 숨긴다(되살리려면 false) */
@@ -27,41 +26,29 @@ export default function SopBar() {
     sop.requestOpen(focus);
     if (!path.startsWith("/explore")) router.push("/explore");
   };
-  const rec = sop.rec;
-  const basis = rec
-    ? rec.level === "해제"
-      ? "특보 해제 → 수습·복구 추천"
-      : `${rec.advisory ? advName(rec.advisory) : rec.level} 발효 → ${stepLabel(m, rec.step)} 추천`
-    : "발효 특보 없음 · 평시";
   const pct = pg.total ? Math.round((pg.done / pg.total) * 100) : 0;
   return (
-    <div className={`sopbar ${rec && rec.level === "경보" ? "hot" : ""}`} role="region" aria-label="행동매뉴얼 대응 단계">
+    <div className="sopbar" role="region" aria-label="행동매뉴얼 대응 단계">
       <span className="sb-lab" title={`${m.title} 기준`}><IcPushpin size={15} /> 대응절차</span>
       {!HIDE_DETAIL && <>
       <ol className="sb-steps" aria-label="대응단계">
         {m.steps.map((s) => {
           const on = s.step === sop.step;
-          const isRec = rec?.step === s.step;
           return (
             <li key={s.step}>
               <button
-                className={`${on ? "on" : ""} ${isRec ? "rec" : ""}`}
+                className={on ? "on" : ""}
                 aria-pressed={on}
-                onClick={() => sop.setStep(isRec || (!rec && s.no === 1) ? null : s.step)}
-                title={isRec ? `특보 기준 추천 단계 · ${rec?.basis}` : "이 단계 조치 보기"}
+                onClick={() => sop.setStep(s.no === 1 ? null : s.step)}
+                title="이 단계 조치 보기"
               >
                 <i>{s.no}</i>
                 {stepLabel(m, s.step)}
-                {isRec && <em>추천</em>}
               </button>
             </li>
           );
         })}
       </ol>
-      <span className="sb-basis" title={rec ? `${m.short} p.${rec.pdfPage} — ${rec.basis}` : "특보가 발효되면 매뉴얼 기준 대응단계를 추천합니다"}>
-        {basis}
-        {sop.picked && <> · <button className="lnk" onClick={() => sop.setStep(null)}>추천 단계로</button></>}
-      </span>
       <span className="sb-prog" title="내 부서 조치 완료 / 전체 (필요시 임무는 실행한 것만 셈)">
         내 부서 <b>{pg.done}</b>/{pg.total}
         <span className="bar"><i style={{ width: `${pct}%` }} /></span>

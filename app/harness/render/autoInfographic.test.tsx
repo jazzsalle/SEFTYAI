@@ -107,7 +107,7 @@ describe("답변 그림 — 패널", () => {
     const panel = container.querySelector("details.auto-info") as HTMLDetailsElement;
     expect(panel.open).toBe(true);
     expect(panel.querySelector("summary")!.textContent).toContain("답변 그림");
-    const legend = [...panel.querySelectorAll(".im-legend li")].map((li) => li.textContent);
+    const legend = [...panel.querySelectorAll(".ai-targets li")].map((li) => li.textContent);
     expect(legend).toHaveLength(4);
     expect(legend[0]).toContain("내성지하차도");
     expect(legend[0]).toContain("근사");
@@ -115,12 +115,9 @@ describe("답변 그림 — 패널", () => {
     expect(legend[1]).not.toContain("근사");
     expect(legend[3]).toContain("우장춘지하차도");
     expect(panel.textContent).not.toContain("좌표 없음");
-    const marks = [...panel.querySelectorAll(".im-mk > text:not(.im-name):not(.im-sub)")].map((t) => t.textContent);
-    expect(marks).toContain("14"); // 내성①+우장춘④ 한 표지
-    expect(marks).toContain("3");
-    expect(marks).toContain("2"); // 면(온천천)에도 번호
-    expect(panel.querySelector(".im-scale text")!.textContent).toMatch(/km$/);
-    fireEvent.click(panel.querySelector(".im-legend .im-num")!);
+    expect(panel.querySelector("svg.im-map")).toBeNull(); // 지도 형식 그림은 뺐다(2026-11-03)
+    expect(panel.querySelector(".ai-targets li .ai-tg-num")!.textContent).toBe("1");
+    fireEvent.click(panel.querySelector(".ai-targets li button")!);
     expect(x.showOnMap).toHaveBeenCalledWith("job-1", "r3");
   });
 

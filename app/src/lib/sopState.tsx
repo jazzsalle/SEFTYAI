@@ -2,14 +2,14 @@
 /**
  * 대응절차 화면 상태 — 단계 바(AppShell)와 우측 「대응절차」 탭(탐색 화면)이 함께 쓴다.
  *  · 지자체 계정만, 자기 지역 매뉴얼만 (중앙정부·운영자 계정은 숨김)
- *  · 단계 = 특보로 추천한 단계 (사용자가 바꾸면 그 단계, 특보가 바뀌면 다시 추천 단계)
+ *  · 단계 = 사용자가 고른 단계, 없으면 1단계 (특보 연동 추천은 2026-11-03 사용자 지시로 뺌)
  *  · 체크 = 세션 checks (기관 공용 서버 저장, D39)
  *  · 수정본 = 담당자가 매뉴얼 개정을 반영해 고친 내용 (기관·매뉴얼별 서버 저장 D39 — scope org:지역, key sopEdits:매뉴얼ID, 판 rev 로 충돌 확인. 원문 추출본은 그대로)
  */
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { useSession } from "./session";
 import { api, ApiError } from "./api";
-import { applyEdits, emptyEdits, recommendStep, type SopEdits, type SopManual, type SopRec, type SopStep } from "./sop";
+import { applyEdits, emptyEdits, type SopEdits, type SopManual, type SopStep } from "./sop";
 
 export type SopScope = "mine" | "all";
 
@@ -31,7 +31,6 @@ interface SopState {
   /** 가져온 수정본으로 바꿈 (다른 PC·담당자에게서 받은 파일) */
   replaceEdits: (e: SopEdits | null, what: string) => void;
   failed: boolean;
-  rec: SopRec | null;
   step: SopStep;
   /** 사용자가 추천과 다른 단계를 직접 골랐는지 */
   picked: boolean;
@@ -63,7 +62,7 @@ const LS = {
 };
 
 export function SopProvider({ children }: { children: React.ReactNode }) {
-  const { account, weather, toast } = useSession();
+  const { account, toast } = useSession();
   const region = account?.role === "지자체" && account.region !== "national" ? account.region : null;
   const [base, setBase] = useState<SopManual | null>(null);
   const [edits, setEditsS] = useState<SopEdits | null>(null);
@@ -178,19 +177,17 @@ export function SopProvider({ children }: { children: React.ReactNode }) {
     setScopeS(LS.get<SopScope>("sa.sopScope", "mine"));
   }, [account]);
 
-  const rec = useMemo(() => (manual ? recommendStep(manual, weather?.advisories) : null), [manual, weather]);
-  const recKey = rec ? rec.level : "none";
-  // 직접 고른 단계는 그때의 추천이 그대로일 때만 유지 — 특보가 바뀌면 새 추천 단계로
-  const picked = !!pick && pick.rec === recKey && pick.step !== (rec?.step ?? "SIGN_DETECTION");
-  const step: SopStep = picked ? pick!.step : rec?.step ?? "SIGN_DETECTION";
+  // 특보 연동 단계 추천은 뺐다(2026-11-03 사용자 지시) — 직접 고른 단계, 없으면 첫 단계
+  const picked = !!pick && pick.step !== "SIGN_DETECTION";
+  const step: SopStep = picked ? pick!.step : "SIGN_DETECTION";
 
   const setStep = useCallback(
     (s: SopStep | null) => {
-      const v = s ? { step: s, rec: recKey } : null;
+      const v = s ? { step: s, rec: "none" } : null;
       setPick(v);
       if (account) LS.set(`sa.sopStep.${account.id}`, v);
     },
-    [account, recKey],
+    [account],
   );
   const setScope = useCallback((s: SopScope) => {
     setScopeS(s);
@@ -202,9 +199,9 @@ export function SopProvider({ children }: { children: React.ReactNode }) {
   const value = useMemo<SopState>(
     () => ({
       enabled: !!region && !!manual, manual, base, editView, edits, canEdit, editing, setEditing, saveEdits, replaceEdits,
-      failed, rec, step, picked, setStep, scope, setScope, openReq, requestOpen, clearOpen,
+      failed, step, picked, setStep, scope, setScope, openReq, requestOpen, clearOpen,
     }),
-    [region, manual, base, editView, edits, canEdit, editing, saveEdits, replaceEdits, failed, rec, step, picked, setStep, scope, setScope, openReq, requestOpen, clearOpen],
+    [region, manual, base, editView, edits, canEdit, editing, saveEdits, replaceEdits, failed, step, picked, setStep, scope, setScope, openReq, requestOpen, clearOpen],
   );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

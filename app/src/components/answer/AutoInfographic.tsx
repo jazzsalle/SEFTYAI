@@ -7,13 +7,12 @@ import { useExplore } from "@/components/explore/ExploreCtx";
 import { entityLabel } from "./Markdown";
 import { cellText, pick } from "./cards/GenericCard";
 import { Fig } from "./infoBits";
-import InfoMapSvg, { type MapLabel } from "./InfoMapSvg";
 import { refOrder, shapesOf } from "./infoMap";
-import { IcCalendar, IcFacility, IcRain, IcWarning } from "./infoIcons";
+import { IcCalendar, IcCamp, IcFacility, IcGate, IcHouseFlood, IcMapPin, IcPump, IcRain, IcRiver, IcSlope, IcUnderpass, IcWarning } from "./infoIcons";
 
 /**
  * 답변 그림 — 받은 값만으로 규칙으로 그리는 인포그래픽(LLM 없음). 11/2 회의 코멘트(그림을 먼저, 사건 중심)에 따라 모든 답에 붙는다(사용자 승인 2026-11-02).
- * 재료는 셋뿐: ① 답변 대상(refs)+공간정보(geo) → 번호 지도 ② 자동 조회(preview) 유사사례 → 연대기, 시설 목록 → 카드 ③ 요청 조건·특보·받은 전체 건수 → 큰 숫자 타일.
+ * 재료는 셋뿐: ① 답변 대상(refs)+공간정보(geo) → 번호 카드 ② 자동 조회(preview) 유사사례 → 연대기, 시설 목록 → 카드 ③ 요청 조건·특보·받은 전체 건수 → 큰 숫자 타일.
  * 답 글 속 숫자는 꺼내지 않는다(글은 그대로 아래에). 유엔이가 세거나 고르거나 정렬하지 않는다 — 순서는 받은 순서·답 글 등장 순.
  */
 
@@ -43,7 +42,7 @@ export default function AutoInfoPanel({ job, full }: { job: JobSummary; full: Jo
       </summary>
       <div className="viz demo-info-body">
         <Tiles full={full} />
-        {f.order.length > 0 && <AnswerMap job={job} refs={f.refs} shapes={f.shapes} order={f.order} />}
+        {f.order.length > 0 && <AnswerTargets job={job} refs={f.refs} shapes={f.shapes} order={f.order} />}
         {f.similar.length > 0 && <SimilarChronicle items={f.similar} full={full} />}
         {f.facility.length > 0 && <FacilityCards items={f.facility} p={previewOf(full, "RISK_FACILITY")!} />}
       </div>
@@ -78,32 +77,51 @@ function Tiles({ full }: { full: JobFull | null | undefined }) {
   );
 }
 
-// ── 번호 지도 — 답 글에 처음 나온 순서로 번호 ──
-const TONE: Record<string, MapLabel["tone"]> = { RISK_FACTOR: "b", FACILITY: "b", FLOOD_TRACE: "c", FLOOD_MAP: "c" };
-function AnswerMap({ job, refs, shapes, order }: { job: JobSummary; refs: T3qRef[]; shapes: ReturnType<typeof shapesOf>; order: string[] }) {
+// ── 답변 대상 카드 — 답 글에 처음 나온 순서로 번호(지도 형식 그림은 빼고 카드로, 사용자 지시 2026-11-03). 누르면 오른쪽 지도에서 그 대상 ──
+const TONE: Record<string, "a" | "b" | "c"> = { RISK_FACTOR: "b", FACILITY: "b", FLOOD_TRACE: "c", FLOOD_MAP: "c" };
+/** 아이콘 — 받은 종류, 시설은 받은 이름 낱말로 그림만 고른다(모르면 종류 기본) */
+function iconOf(type: string, name: string): ReactNode {
+  if (type === "RISK_FACTOR" || type === "FACILITY") {
+    if (/지하차도|지하보차도/.test(name)) return <IcUnderpass />;
+    if (/펌프/.test(name)) return <IcPump />;
+    if (/수문|배수문/.test(name)) return <IcGate />;
+    if (/급경사|사면|비탈/.test(name)) return <IcSlope />;
+    if (/캠핑|야영/.test(name)) return <IcCamp />;
+    return <IcFacility />;
+  }
+  if (type === "FLOOD_TRACE") return <IcHouseFlood />;
+  if (type === "FLOOD_MAP") return <IcRain />;
+  if (type === "RIVER") return <IcRiver />;
+  if (type === "RISK_AREA") return <IcWarning />;
+  return <IcMapPin />;
+}
+function AnswerTargets({ job, refs, shapes, order }: { job: JobSummary; refs: T3qRef[]; shapes: ReturnType<typeof shapesOf>; order: string[] }) {
   const x = useExplore();
   const byRef = new Map(refs.map((r) => [r.ref, r]));
-  const labels = new Map<string, MapLabel>(order.map((r, i) => [r, { num: String(i + 1), name: byRef.get(r)?.display_name ?? r, tone: TONE[byRef.get(r)?.entity_type ?? ""] ?? "a" }]));
   const approx = shapes.some((s) => s.precision === "dong_center");
   return (
-    <Fig title="답변 대상 지도" src="답변 대상 · 공간정보 그대로 · 번호는 답 글에 나온 순서" label={`답변 대상 ${order.length}곳을 번호로 표시한 지도`}
-      foot={approx ? "「근사」 표시는 공간정보가 동 중심 좌표를 준 대상 — 같은 동은 표지가 겹친다. 번호를 누르면 지도에서 본다." : "번호를 누르면 지도에서 본다."}>
-      <div className="im-wrap">
-        <InfoMapSvg shapes={shapes} labels={labels} width={order.length > 8 ? 380 : 320} onPick={(r) => x.showOnMap(job.id, r)} />
-        <ol className="im-legend">
-          {order.map((r, i) => {
-            const ref = byRef.get(r);
-            const s = shapes.find((q) => q.ref === r);
-            return (
-              <li key={r}>
-                <button type="button" className={`im-num t-${labels.get(r)?.tone ?? "a"}`} onClick={() => x.showOnMap(job.id, r)} aria-label={`${i + 1} ${ref?.display_name ?? r} 지도에서 보기`}>{i + 1}</button>
-                <span className="im-lname">{ref?.display_name ?? r}</span>
-                <span className="xs muted">{entityLabel(ref?.entity_type ?? null)}{s?.precision === "dong_center" ? " · 근사" : ""}</span>
-              </li>
-            );
-          })}
-        </ol>
-      </div>
+    <Fig title="답변 대상 — 답 글에 나온 순서" src="답변 대상 · 공간정보 그대로 · 번호는 답 글에 나온 순서" label={`답변 대상 ${order.length}곳을 번호 카드로 표시`}
+      foot={approx ? "「근사」 표시는 공간정보가 동 중심 좌표를 준 대상. 카드를 누르면 지도에서 본다." : "카드를 누르면 지도에서 본다."}>
+      <ol className="ai-targets">
+        {order.map((r, i) => {
+          const ref = byRef.get(r);
+          const type = ref?.entity_type ?? "";
+          const name = ref?.display_name ?? r;
+          const s = shapes.find((q) => q.ref === r);
+          return (
+            <li key={r} className={`t-${TONE[type] ?? "a"}`}>
+              <button type="button" onClick={() => x.showOnMap(job.id, r)} aria-label={`${i + 1} ${name} 지도에서 보기`}>
+                <span className="ai-tg-num">{i + 1}</span>
+                <span className="ai-tg-ic" aria-hidden="true">{iconOf(type, name)}</span>
+                <span className="ai-tg-body">
+                  <b>{name}</b>
+                  <span>{entityLabel(type || null)}{s?.precision === "dong_center" ? " · 근사" : ""}</span>
+                </span>
+              </button>
+            </li>
+          );
+        })}
+      </ol>
     </Fig>
   );
 }

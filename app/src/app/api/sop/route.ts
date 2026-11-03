@@ -8,6 +8,6 @@ export async function GET(req: Request) {
   if (!(await whoami(req))) return NextResponse.json({ error: "로그인이 필요합니다." }, { status: 401 });
   const region = RegionId.catch("national").parse(new URL(req.url).searchParams.get("region"));
   const m = region === "national" ? undefined : sopByRegion(region);
-  if (!m) return NextResponse.json({ error: "대응절차가 없는 지역입니다" }, { status: 404 });
+  if (!m) return NextResponse.json({ error: "이 지역의 행동매뉴얼은 아직 구축되지 않았습니다" }, { status: 404 });
   return NextResponse.json(m, { headers: { "cache-control": "private, max-age=3600" } });
 }

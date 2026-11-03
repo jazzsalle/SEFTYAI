@@ -10,8 +10,8 @@ import { api } from "@/lib/api";
 import { useSession, type CheckHistory } from "@/lib/session";
 import { useSop } from "@/lib/sopState";
 import {
-  SOP_STEPS, blocksToText, codeLabel, deriveCard, editCount, newSopId, stepLabel, textToBlocks,
-  type SopAction, type SopActionPatch, type SopCard, type SopDetail, type SopEdits, type SopGroup, type SopManual, type SopMission, type SopRecommend, type SopStep,
+  blocksToText, codeLabel, deriveCard, editCount, newSopId, stepLabel, textToBlocks,
+  type SopAction, type SopActionPatch, type SopCard, type SopDetail, type SopEdits, type SopGroup, type SopManual, type SopMission, type SopStep,
 } from "@/lib/sop";
 import { CardBlocks } from "./SopCardView";
 import { IcDown, IcPlus, IcUp, IcX } from "../Icons";
@@ -357,7 +357,6 @@ export function GroupEditor({ g, onClose }: { g: SopGroup; onClose: () => void }
 }
 
 /* ---------------------------------------------------------------- 매뉴얼 개정 정보 · 단계 기준 · 대응 지침 */
-const LEVELS: SopRecommend["level"][] = ["예비특보", "주의보", "경보", "해제"];
 
 export function ManualEditor({ onClose }: { onClose: () => void }) {
   const sop = useSop();
@@ -368,10 +367,6 @@ export function ManualEditor({ onClose }: { onClose: () => void }) {
   const [revisedAt, setRevisedAt] = useState(m.info?.revisedAt ?? "");
   const [memo, setMemo] = useState(m.info?.memo ?? "");
   const [goals, setGoals] = useState<Record<SopStep, string>>(Object.fromEntries(m.steps.map((s) => [s.step, s.goals.join("\n")])) as Record<SopStep, string>);
-  const [rec, setRec] = useState(Object.fromEntries(LEVELS.map((lv) => {
-    const r = m.recommend.find((x) => x.level === lv);
-    return [lv, { step: r?.step ?? "SIGN_DETECTION", basis: r?.basis ?? "" }];
-  })) as Record<SopRecommend["level"], { step: SopStep; basis: string }>);
   const save = () => {
     sop.saveEdits((e) => {
       const info = { edition: edition.trim(), revisedAt: revisedAt.trim(), memo: memo.trim() };
@@ -381,20 +376,14 @@ export function ManualEditor({ onClose }: { onClose: () => void }) {
         const gl = lineList(goals[s.step] ?? "");
         if (!same(gl, s.goals)) e.steps[s.step] = { goals: gl };
       }
-      e.recommend = {};
-      for (const lv of LEVELS) {
-        const b0 = base.recommend.find((x) => x.level === lv);
-        const v = rec[lv];
-        if (!b0 || v.step !== b0.step || v.basis.trim() !== b0.basis) e.recommend[lv] = { step: v.step, basis: v.basis.trim() };
-      }
-    }, "매뉴얼 개정 정보·단계 기준 수정");
-    toast("매뉴얼 정보와 단계 기준을 저장했습니다.");
+    }, "매뉴얼 개정 정보·대응 지침 수정");
+    toast("매뉴얼 정보와 대응 지침을 저장했습니다.");
     onClose();
   };
   return (
     <Modal
       wide
-      title="매뉴얼 개정 정보 · 단계 기준"
+      title="매뉴얼 개정 정보 · 대응 지침"
       sub={m.title}
       onClose={onClose}
       foot={<><span className="sp" /><button className="btn" onClick={onClose}>취소</button><button className="btn pri" onClick={save}>저장</button></>}
@@ -403,20 +392,6 @@ export function ManualEditor({ onClose }: { onClose: () => void }) {
       <div className="frow"><span className="lb">개정판</span><input className="input sm" value={edition} onChange={(e) => setEdition(e.target.value)} placeholder="예: 2027년 개정판" style={{ maxWidth: 280 }} /></div>
       <div className="frow"><span className="lb">개정일</span><input className="input sm" type="date" value={revisedAt} onChange={(e) => setRevisedAt(e.target.value)} style={{ maxWidth: 200 }} /></div>
       <div className="frow top"><span className="lb">개정 내용</span><textarea className="input ta" rows={3} value={memo} onChange={(e) => setMemo(e.target.value)} placeholder="무엇이 바뀌었는지 (예: 조직 개편으로 부서명 변경, 3단계 조치 추가)" /></div>
-
-      <h3 className="sp-eh">특보 → 대응단계 추천 기준</h3>
-      <p className="xs mute2">특보가 발효되면 이 기준으로 단계를 추천합니다. 근거 문구는 단계 바에 보입니다.</p>
-      {LEVELS.map((lv) => (
-        <div key={lv} className="frow">
-          <span className="lb">{lv === "해제" ? "특보 해제" : `${lv} 발효`}</span>
-          <div className="sp-recrow">
-            <select className="select sm" value={rec[lv].step} onChange={(e) => setRec((r) => ({ ...r, [lv]: { ...r[lv], step: e.target.value as SopStep } }))}>
-              {SOP_STEPS.map((s, i) => <option key={s} value={s}>{i + 1}단계 {stepLabel(m, s)}</option>)}
-            </select>
-            <input className="input sm" value={rec[lv].basis} onChange={(e) => setRec((r) => ({ ...r, [lv]: { ...r[lv], basis: e.target.value } }))} placeholder="매뉴얼 근거 문구" />
-          </div>
-        </div>
-      ))}
 
       <h3 className="sp-eh">단계별 대응 지침</h3>
       {m.steps.map((s) => (
