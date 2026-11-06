@@ -40,24 +40,24 @@ describe("보이는 계정 · 켜짐 · 끝나는 시각", () => {
       expect(a).toHaveLength(1);
       expect(a[0]).toMatchObject({ id: SCN_DEFS[r].key, type: "호우", level: SCN_DEFS[r].level, area: SCN_DEFS[r].area, regionId: r, status: "발효", scenario: true, issuedAt: ON.startedAt });
     }
-    expect(SCN_ACCOUNT).toEqual({ busan: "bs_safety01", inje: "ij_safety01", yeongcheon: "yc_safety02" });
-    for (const id of ["mois_dsd01", "admin01", "bs_safety02", "", null, undefined]) expect(scenarioAdvisories(ON, id, NOW)).toEqual([]);
+    expect(SCN_ACCOUNT).toEqual({ busan: "busan", inje: "inje", yeongcheon: "01000" });
+    for (const id of ["hang", "unes", "busan2", "bs_safety02", "", null, undefined]) expect(scenarioAdvisories(ON, id, NOW)).toEqual([]);
     // 설정의 계정 가운데 시연 계정이 아닌 것 모두
     for (const a of ACCOUNTS.filter((x) => !Object.values(SCN_ACCOUNT).includes(x.id))) expect(scenarioAdvisories(ON, a.id, NOW)).toEqual([]);
   });
 
   it("꺼짐 · 끝나는 시각 지남(그 시각 포함) · 켠 시각·끝나는 시각 없음 · 그 지역을 켜지 않음 → 빈 목록", () => {
-    expect(scenarioAdvisories(SCN_OFF, "bs_safety01", NOW)).toEqual([]);
-    expect(scenarioAdvisories({ ...ON, on: false }, "bs_safety01", NOW)).toEqual([]);
-    expect(scenarioAdvisories(ON, "bs_safety01", Date.parse(ON.until!))).toEqual([]);
-    expect(scenarioAdvisories(ON, "bs_safety01", Date.parse(ON.until!) + 1)).toEqual([]);
-    expect(scenarioAdvisories(ON, "bs_safety01", Date.parse(ON.until!) - 1)).toHaveLength(1);
-    expect(scenarioAdvisories({ ...ON, until: null }, "bs_safety01", NOW)).toEqual([]);
-    expect(scenarioAdvisories({ ...ON, until: "모름" }, "bs_safety01", NOW)).toEqual([]);
-    expect(scenarioAdvisories({ ...ON, startedAt: null }, "bs_safety01", NOW)).toEqual([]);
-    expect(scenarioAdvisories({ ...ON, regions: ["inje"] }, "bs_safety01", NOW)).toEqual([]);
-    expect(scenarioAdvisories({ ...ON, regions: ["inje"] }, "ij_safety01", NOW)).toHaveLength(1);
-    expect(scenarioAdvisories(null, "bs_safety01", NOW)).toEqual([]);
+    expect(scenarioAdvisories(SCN_OFF, "busan", NOW)).toEqual([]);
+    expect(scenarioAdvisories({ ...ON, on: false }, "busan", NOW)).toEqual([]);
+    expect(scenarioAdvisories(ON, "busan", Date.parse(ON.until!))).toEqual([]);
+    expect(scenarioAdvisories(ON, "busan", Date.parse(ON.until!) + 1)).toEqual([]);
+    expect(scenarioAdvisories(ON, "busan", Date.parse(ON.until!) - 1)).toHaveLength(1);
+    expect(scenarioAdvisories({ ...ON, until: null }, "busan", NOW)).toEqual([]);
+    expect(scenarioAdvisories({ ...ON, until: "모름" }, "busan", NOW)).toEqual([]);
+    expect(scenarioAdvisories({ ...ON, startedAt: null }, "busan", NOW)).toEqual([]);
+    expect(scenarioAdvisories({ ...ON, regions: ["inje"] }, "busan", NOW)).toEqual([]);
+    expect(scenarioAdvisories({ ...ON, regions: ["inje"] }, "inje", NOW)).toHaveLength(1);
+    expect(scenarioAdvisories(null, "busan", NOW)).toEqual([]);
     expect(scenarioLive(ON, NOW)).toBe(true);
     expect(scenarioLive(ON, Date.parse(ON.until!) + 1)).toBe(false);
   });
@@ -67,16 +67,16 @@ describe("기상청 실시간 특보 끊음(R45) — 판정 · 끊긴 응답", (
   it("끊는 계정 = 시연 계정 · 켬 · 끝나는 시각 전 · 그 지역 켬 — 시나리오 특보를 붙이는 조건과 정확히 같다", () => {
     for (const r of SCN_REGIONS) expect(scenarioCuts(ON, SCN_ACCOUNT[r], NOW)).toBe(true);
     // 다른 계정(운영자·행안부)·모르는 계정
-    for (const id of ["admin01", "mois_dsd01", "bs_safety02", "", null, undefined]) expect(scenarioCuts(ON, id, NOW)).toBe(false);
+    for (const id of ["unes", "hang", "busan2", "bs_safety02", "", null, undefined]) expect(scenarioCuts(ON, id, NOW)).toBe(false);
     // 꺼짐 · 만료(그 시각 포함) · 시각 없음 · 그 지역 안 켬 · 상태 없음
-    expect(scenarioCuts(SCN_OFF, "bs_safety01", NOW)).toBe(false);
-    expect(scenarioCuts({ ...ON, on: false }, "bs_safety01", NOW)).toBe(false);
-    expect(scenarioCuts(ON, "bs_safety01", Date.parse(ON.until!))).toBe(false);
-    expect(scenarioCuts(ON, "bs_safety01", Date.parse(ON.until!) - 1)).toBe(true);
-    expect(scenarioCuts({ ...ON, startedAt: null }, "bs_safety01", NOW)).toBe(false);
-    expect(scenarioCuts({ ...ON, regions: ["inje"] }, "bs_safety01", NOW)).toBe(false);
-    expect(scenarioCuts({ ...ON, regions: ["inje"] }, "ij_safety01", NOW)).toBe(true);
-    expect(scenarioCuts(null, "bs_safety01", NOW)).toBe(false);
+    expect(scenarioCuts(SCN_OFF, "busan", NOW)).toBe(false);
+    expect(scenarioCuts({ ...ON, on: false }, "busan", NOW)).toBe(false);
+    expect(scenarioCuts(ON, "busan", Date.parse(ON.until!))).toBe(false);
+    expect(scenarioCuts(ON, "busan", Date.parse(ON.until!) - 1)).toBe(true);
+    expect(scenarioCuts({ ...ON, startedAt: null }, "busan", NOW)).toBe(false);
+    expect(scenarioCuts({ ...ON, regions: ["inje"] }, "busan", NOW)).toBe(false);
+    expect(scenarioCuts({ ...ON, regions: ["inje"] }, "inje", NOW)).toBe(true);
+    expect(scenarioCuts(null, "busan", NOW)).toBe(false);
     // 같은 조건 — 상태·계정·시각을 엮은 모든 경우
     const states: (ScenarioState | null)[] = [ON, SCN_OFF, { ...ON, on: false }, { ...ON, regions: ["busan"] }, { ...ON, regions: ["yeongcheon", "inje"] }, { ...ON, until: null }, null];
     for (const st of states)
@@ -92,17 +92,17 @@ describe("기상청 실시간 특보 끊음(R45) — 판정 · 끊긴 응답", (
       });
     }
     expect(SCN_CUT_MESSAGE).toBe("시연 시나리오를 켠 동안 기상청 실시간 특보를 받지 않습니다");
-    for (const id of ["admin01", "mois_dsd01"]) expect(scenarioWeather(ON, id, NOW)).toBeNull();
-    expect(scenarioWeather(SCN_OFF, "bs_safety01", NOW)).toBeNull();
-    expect(scenarioWeather({ ...ON, regions: ["inje"] }, "bs_safety01", NOW)).toBeNull();
-    expect(scenarioWeather(ON, "bs_safety01", Date.parse(ON.until!) + 1)).toBeNull();
+    for (const id of ["unes", "hang"]) expect(scenarioWeather(ON, id, NOW)).toBeNull();
+    expect(scenarioWeather(SCN_OFF, "busan", NOW)).toBeNull();
+    expect(scenarioWeather({ ...ON, regions: ["inje"] }, "busan", NOW)).toBeNull();
+    expect(scenarioWeather(ON, "busan", Date.parse(ON.until!) + 1)).toBeNull();
   });
 });
 
 describe("T3Q weather_warnings — 대본 정의·녹화(demo_v3/AIM-*)와 같다", () => {
   // 부산은 호우 예비특보로 바꿨다(사용자 지시 2026-11-02) — 녹화(호우경보) 대신 아래에서 따로 확인
   it("busan — 호우 예비특보 SCN-BS-PRE-1 하나 · 발표·발효 시각 = 켠 시각 · source 「시연 시나리오(가상 특보)」", () => {
-    const a = acc("bs_safety01");
+    const a = acc("busan");
     const weather = cutOf(a.id);
     const ww = warningsPayload(weather, activeAdvisories(weather, baseTarget(defaultBase(a))));
     expect(ww).toEqual({
@@ -132,7 +132,7 @@ describe("T3Q weather_warnings — 대본 정의·녹화(demo_v3/AIM-*)와 같�
   }
 
   it("끊긴 계정이 기준지역을 시나리오 구역 밖으로 바꿔도 기상청을 조회한 것처럼 보내지 않는다 — source 시나리오 · 항목 없음 · 섞임 없음", () => {
-    const weather = cutOf("bs_safety01");
+    const weather = cutOf("busan");
     const ww = warningsPayload(weather, activeAdvisories(weather, { sido: "서울특별시" }));
     expect(ww).toEqual({ collect_status: "COLLECTED", collected_at: new Date(NOW).toISOString(), source: SCN_SOURCE, items: [] });
     // 끊긴 응답에는 기상청 특보가 없다 — 「기상청 · 시나리오」 섞인 출처가 생기지 않는다
@@ -159,7 +159,7 @@ describe("화면 — 구역 맞추기 · 이름 · 대응절차 추천 · 답을
   });
 
   it("글로 잇는 곳의 이름에 「(시연 시나리오)」 — 기상청 특보는 그대로", () => {
-    expect(advName(scenarioAdvisories(ON, "bs_safety01", NOW)[0])).toBe("호우예비특보 (시연 시나리오)");
+    expect(advName(scenarioAdvisories(ON, "busan", NOW)[0])).toBe("호우예비특보 (시연 시나리오)");
     expect(advName(KMA_BUSAN)).toBe("강풍주의보");
   });
 
@@ -179,7 +179,7 @@ describe("화면 — 구역 맞추기 · 이름 · 대응절차 추천 · 답을
   });
 
   it("「답변을 받은 뒤 특보」에는 시나리오가 들지 않는다 — 끊긴 화면에는 뜨지 않는다(wx_seen 은 기상청 기록 그대로)", () => {
-    const weather = cutOf("bs_safety01");
+    const weather = cutOf("busan");
     const before = new Date(T0 - 3_600_000).toISOString();
     // 시나리오를 켜기 전에 받은 답(예열한 답) — 그때 특보 없음
     expect(advisoriesAfter(weather, { sido: "부산광역시" }, before, [])).toEqual([]);

@@ -1,12 +1,12 @@
 // 운영자 전용 — 개발서버가 받아 둔 시연 답(ai_demo_pin)을 우리 「질문 모음」 고정 답(sa_demo_pins)으로 가져온다(2026-11-06, 개발서버 질문 모음 맞추기).
-// node harness/demo/import_pins.mjs <내보낸 파일.json> [--apply] [--account admin01]
+// node harness/demo/import_pins.mjs <내보낸 파일.json> [--apply] [--account unes]
 //  · 입력 = 개발서버 DB 에서 내보낸 JSON 배열 — 줄마다 { pin_id, question, response_json, received_de } (response_json 은 상류 봉투 원문 · 글자 또는 객체)
 //      예) 개발서버 PostgreSQL(nia_ai)에서: select pin_id, question, response_json, received_de from ai_demo_pin where response_json is not null
 //    답 파일은 저장소에 커밋하지 않는다(harness/recordings 밖 임시 폴더에 두고 쓴 뒤 지운다). 이 도구는 답을 만들거나 고치지 않는다 — 봉투 원문 그대로 넣는다
 //  · 짝 규칙(개발서버와 같음): pin_id 가 질문 모음 「시연」(DEMO_SHOW) 또는 「한눈 요약 질의」(DAY_ITEMS) 항목이고 질문 글이 글자까지 같을 때만. 글이 다르면 그 답은 이 질문의 답이 아니다
 //    봉투 status 가 SUCCESS 인 것만(우리 고정 답 규칙 — 일부 제공 등은 고정하지 않는다)
 //  · 기본은 미리 보기(쓰지 않음). --apply 를 붙이면 app/.env.local 의 DATABASE_URL(운영 Neon)에 작업 행(출처 LIBRARY · 원래 답)을 넣고 고정 답으로 올린다
-//    작업 행 명의 = --account(기본 admin01 운영자). 받은 시각 = received_de. 비밀값은 출력하지 않는다
+//    작업 행 명의 = --account(기본 unes 운영자). 받은 시각 = received_de. 비밀값은 출력하지 않는다
 import { readFileSync } from "node:fs";
 import { randomUUID } from "node:crypto";
 import { dirname, join, resolve } from "node:path";
@@ -27,7 +27,7 @@ const fail = (m) => {
 const file = args.find((a, i) => !a.startsWith("--") && args[i - 1] !== "--account");
 if (!file) fail("내보낸 파일(.json)을 주세요 — node harness/demo/import_pins.mjs <파일> [--apply]");
 const apply = args.includes("--apply");
-const account = flag("--account") ?? "admin01";
+const account = flag("--account") ?? "unes";
 
 let rows;
 try {

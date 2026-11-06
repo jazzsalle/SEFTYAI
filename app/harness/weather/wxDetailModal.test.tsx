@@ -58,7 +58,7 @@ afterEach(() => {
 
 const open = async (opts: { advs?: Advisory[]; base?: BaseRegion | null; cut?: boolean; aimOn?: boolean } = {}) => {
   const setCond = vi.fn(), toast = vi.fn();
-  session.s = { weather: weather(opts.advs ?? [HAN, SEA, BUSAN], opts.cut), account: { id: "ij_safety01" }, cond: { base: opts.base === undefined ? INJE : opts.base }, wxRef: null, setWxRef: () => {}, aimOn: !!opts.aimOn, setCond, toast, reloadWeather: () => {} };
+  session.s = { weather: weather(opts.advs ?? [HAN, SEA, BUSAN], opts.cut), account: { id: "inje" }, cond: { base: opts.base === undefined ? INJE : opts.base }, wxRef: null, setWxRef: () => {}, aimOn: !!opts.aimOn, setCond, toast, reloadWeather: () => {} };
   render(<WxBar />);
   await act(async () => fireEvent.click(screen.getByRole("button", { name: "특보 상세" })));
   const dlg = screen.getByRole("dialog", { name: "기상특보 상세" });

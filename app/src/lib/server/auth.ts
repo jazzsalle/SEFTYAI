@@ -5,7 +5,7 @@ import { ACCOUNTS, type Account } from "../config";
 import { db, ensureSchema } from "./db";
 
 /**
- * 로그인·세션 (R7, UFR-007) — 사전 발급 5계정, scrypt 해시, 서명 쿠키 sa_sid
+ * 로그인·세션 (R7, UFR-007) — 사전 발급 7계정(R50 개발서버 아이디), scrypt 해시, 서명 쿠키 sa_sid
  * 유휴 4시간(슬라이딩, last_seen 갱신은 60초에 1회) · 절대 12시간 · 같은 계정 새 로그인 시 기존 세션 종료
  * 비밀번호 9자 이상 + 영문·숫자·특수문자 · 5회 실패 15분 잠금
  */

@@ -253,11 +253,11 @@ async function ensureBase(s, sido, sigungu) {
   }
 }
 
-const admin = await session("admin01");
+const admin = await session("unes");
 const sessions = [];
 try {
   // ── ① 부산 시연 계정 브리핑 4번 ──
-  const bs = await session("bs_safety01");
+  const bs = await session("busan");
   sessions.push(bs);
   const briefPage = async () => {
     const kv = bs.page.waitForResponse((r) => r.url().includes("/api/kv?scope=acct:"), { timeout: 30000 }).catch(() => null);
@@ -339,13 +339,13 @@ try {
   await deckShot(admin.page, "op3_warm_done", admin.page.locator("section.adm-sec", { has: admin.page.locator("h2", { hasText: "예열 항목" }) }));
 
   // ── ④ 특보 줄(세 시연 계정) · 무대 전 정리(기준지역 = 계정 기본 · AI 모드 끔 · 조건 비움) ──
-  const ij = await session("ij_safety01");
-  const yc = await session("yc_safety02");
+  const ij = await session("inje");
+  const yc = await session("01000");
   sessions.push(ij, yc);
   const STAGE = {
-    bs_safety01: { sido: "부산광역시", sigungu: null, wx: "부산 호우경보 발효 중" },
-    ij_safety01: { sido: "강원특별자치도", sigungu: "인제군", wx: "강원도(인제평지, 인제산지) 호우주의보 발효 중" },
-    yc_safety02: { sido: "경상북도", sigungu: "영천시", wx: "경상북도(영천) 호우경보 발효 중" },
+    busan: { sido: "부산광역시", sigungu: null, wx: "부산 호우경보 발효 중" },
+    inje: { sido: "강원특별자치도", sigungu: "인제군", wx: "강원도(인제평지, 인제산지) 호우주의보 발효 중" },
+    "01000": { sido: "경상북도", sigungu: "영천시", wx: "경상북도(영천) 호우경보 발효 중" },
   };
   for (const s of [bs, ij, yc]) {
     await s.page.goto(base + "/explore");
@@ -450,7 +450,7 @@ try {
   for (const s of sessions) if (await s.page.locator(".ai-pill.on").count().catch(() => 0)) await s.page.locator(".ai-pill").click().catch(() => {});
   const off = await admin.page.evaluate(async () => (await fetch("/api/admin/scenario", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ on: false }) })).json()).catch((e) => ({ error: String(e) }));
   console.log("  끝 — 시나리오 꺼짐:", off?.live === false ? "확인" : JSON.stringify(off));
-  const bs = sessions.find((s) => s.acc === "bs_safety01");
+  const bs = sessions.find((s) => s.acc === "busan");
   if (bs) {
     const kv = bs.page.waitForResponse((r) => r.url().includes("/api/kv?scope=acct:"), { timeout: 30000 }).catch(() => null);
     await bs.page.goto(base + "/settings/briefing").catch(() => {});

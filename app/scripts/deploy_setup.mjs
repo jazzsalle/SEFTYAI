@@ -5,7 +5,7 @@
  *
  * 1) T3Q_BASE_URL · T3Q_CLIENT_TOKEN — app/.env.local 의 값을 그대로 등록
  * 2) SESSION_SECRET · SEED_SECRET — 새로 만들어 등록(이미 있으면 건너뜀)
- * 3) 계정 5개 초기 비밀번호를 새로 만들어 저장소 밖 파일 D:\vibecoding\safetyai\_secrets\seed.env 에 저장
+ * 3) 계정 7개 초기 비밀번호를 새로 만들어 저장소 밖 파일 D:\vibecoding\safetyai\_secrets\seed.env 에 저장
  *    (SEED_URL · SEED_SECRET · SA_INIT_PASSWORDS). 배포 뒤:  node --env-file=<그 파일> scripts/seed_accounts.mjs
  * 값은 화면에 출력하지 않는다(이름·결과·파일 경로만).
  */
@@ -19,7 +19,7 @@ const APP = join(dirname(fileURLToPath(import.meta.url)), "..");
 const OUT_DIR = "D:\\vibecoding\\safetyai\\_secrets";
 const OUT = join(OUT_DIR, "seed.env");
 const SITE = "https://safetyai-three.vercel.app";
-const ACCOUNTS = ["bs_safety01", "ij_safety01", "yc_safety02", "mois_dsd01", "admin01"];
+const ACCOUNTS = ["busan", "busan2", "inje", "01000", "hang", "unes", "issuer"];
 
 const env = Object.fromEntries(
   readFileSync(join(APP, ".env.local"), "utf8").split(/\r?\n/).filter((l) => /^[A-Z_]+=/.test(l)).map((l) => [l.slice(0, l.indexOf("=")), l.slice(l.indexOf("=") + 1).replace(/^"|"$/g, "")]),

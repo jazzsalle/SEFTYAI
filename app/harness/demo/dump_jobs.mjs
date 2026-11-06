@@ -35,7 +35,7 @@ function prodUrl() {
 const sql = neon(prodUrl());
 
 const accounts = Object.values(SCN_ACCOUNT);
-const short = { bs_safety01: "BS", ij_safety01: "IJ", yc_safety02: "YC" };
+const short = { busan: "BS", inje: "IJ", "01000": "YC" };
 const since = new Date(Date.now() - hours * 3600_000);
 const rows = await sql.query(
   `select id, account_id, source, library_id, turn_no, question_user, request, state, t3q_status, raw, elapsed_ms, created_at, finished_at

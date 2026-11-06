@@ -37,7 +37,7 @@ npm run harness:verbatim     # 답변 무가공 렌더 검증
 npm run harness:jobs         # 질의 작업 엔진 SQL(PGlite + 재생)
 npm run harness:auth         # 로그인·세션·잠금 SQL(PGlite)
 npm run harness:labels       # 정보 부족 항목 이름 한국어
-npm run harness:smoke -- http://localhost:3100 bs_safety01 BS-03   # 로그인→질의→자동 조회→답→캐시→로그아웃
+npm run harness:smoke -- http://localhost:3100 busan BS-03   # 로그인→질의→자동 조회→답→캐시→로그아웃
 npm run harness:forcepw -- http://localhost:3100                   # 초기 비밀번호 변경 강제(로컬 전용)
 npm run harness:shots -- http://localhost:3100                     # 화면 캡처(설치된 Chrome)
 npm run harness:cq -- --conc 3                                      # 역량질문 70문 실서버 실행·리포트
@@ -48,4 +48,4 @@ npx tsc --noEmit && npx eslint src harness --max-warnings=0
 `app/.env.example` 참고. T3Q 토큰·세션 비밀은 **서버 전용**이다.
 
 ## 계정
-사전 발급 5개(비밀번호 로그인, 세션 30분): 부산 `bs_safety01` · 인제 `ij_safety01` · 영천 `yc_safety02` · 정부기관 `mois_dsd01` · 운영자 `admin01`.
+사전 발급 7개(개발서버 아이디, R50 · 비밀번호 로그인, 세션 유휴 4시간): 부산 `busan`·`busan2` · 인제 `inje` · 영천 `01000` · 정부기관 `hang` · 운영자 `unes`·계정 발급자 `issuer`(우리 역할 운영자 — 계정 발급 화면은 없음).

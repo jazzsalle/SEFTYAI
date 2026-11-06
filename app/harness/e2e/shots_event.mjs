@@ -6,7 +6,7 @@ import { chromium } from "playwright-core";
 import { APP } from "../t3q/client.mjs";
 
 const [tag = "after", eventName = "2021년 07.05~07.08 호우", base = "http://localhost:3100"] = process.argv.slice(2);
-const id = "bs_safety01";
+const id = "busan";
 const out = join(APP, "harness", "reports", "shots", "visual");
 mkdirSync(out, { recursive: true });
 const line = readFileSync(join(APP, ".env.development.local"), "utf8").split(/\r?\n/).find((l) => l.startsWith("SA_INIT_PASSWORDS="));

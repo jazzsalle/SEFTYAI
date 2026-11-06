@@ -13,8 +13,8 @@ import { ACCOUNTS, REGIONS, type Account } from "@/lib/config";
 import { useSession } from "@/lib/session";
 import { GovLogo, IcEye, IcEyeOff, IcX } from "@/components/Icons";
 
-/** 계정 카드 순서 — 부산·인제·영천·정부기관·운영자 */
-const CARD_IDS = ["bs_safety01", "ij_safety01", "yc_safety02", "mois_dsd01", "admin01"];
+/** 계정 카드 순서 — 부산·부산2·인제·영천·정부기관·운영자·계정 발급자 */
+const CARD_IDS = ["busan", "busan2", "inje", "01000", "hang", "unes", "issuer"];
 const CARDS = CARD_IDS.map((id) => ACCOUNTS.find((a) => a.id === id)).filter((a): a is Account => !!a);
 const cardLabel = (a: Account) => (a.role === "지자체" ? REGIONS[a.region].short : a.role === "중앙정부" ? "정부기관" : "운영자");
 

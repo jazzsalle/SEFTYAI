@@ -1,11 +1,11 @@
 // 하네스 ⑦ 스모크 — 실행 중인 앱(로컬·배포본)에 로그인 → 라이브러리 질문 1건 → 자동 조회 데이터 → 에이전트 답 완료까지.
-// node harness/t3q/smoke.mjs [baseUrl=http://localhost:3100] [accountId=bs_safety01] [libraryId=BS-03]
+// node harness/t3q/smoke.mjs [baseUrl=http://localhost:3100] [accountId=busan] [libraryId=BS-03]
 // 비밀번호: env SMOKE_PASSWORD 또는 app/.env.development.local 의 SA_INIT_PASSWORDS (출력하지 않는다)
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { APP, sleep } from "./client.mjs";
 
-const [base = "http://localhost:3100", id = "bs_safety01", lib = "BS-03"] = process.argv.slice(2);
+const [base = "http://localhost:3100", id = "busan", lib = "BS-03"] = process.argv.slice(2);
 let pw = process.env.SMOKE_PASSWORD;
 if (!pw && existsSync(join(APP, ".env.development.local"))) {
   const line = readFileSync(join(APP, ".env.development.local"), "utf8").split(/\r?\n/).find((l) => l.startsWith("SA_INIT_PASSWORDS="));

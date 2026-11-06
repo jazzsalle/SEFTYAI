@@ -6,7 +6,7 @@ import { chromium } from "playwright-core";
 import { APP } from "../t3q/client.mjs";
 
 const [tag = "before", base = "http://localhost:3100", eventName = "2021년 07.05~07.08 호우"] = process.argv.slice(2);
-const id = "bs_safety01";
+const id = "busan";
 const tileText = "위험·취약지역 중 과거 재난 때 실제로 피해가 났던 곳과 피해 내용은?";
 const out = join(APP, "harness", "reports", "shots", "viz");
 mkdirSync(out, { recursive: true });

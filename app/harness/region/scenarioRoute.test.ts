@@ -55,21 +55,21 @@ const ids = async (id: string) => {
   return w.advisories.map((a) => `${a.id}${a.scenario ? "*" : ""}`);
 };
 const set = async (body: unknown) => {
-  as("admin01");
+  as("unes");
   return scnPOST(req(body));
 };
 const inHours = (h: number) => new Date(Date.now() + h * 3_600_000).toISOString();
 
 describe("시연 시나리오 특보 — 서버가 계정·켜짐·끝나는 시각으로 판단", () => {
   it("처음엔 꺼짐 — 모든 계정이 기상청 특보만", async () => {
-    as("admin01");
+    as("unes");
     const g = (await (await scnGET(req())).json()) as AdminScenarioResponse;
     expect(g.live).toBe(false);
-    for (const id of ["bs_safety01", "ij_safety01", "yc_safety02", "mois_dsd01", "admin01"]) expect(await ids(id)).toEqual(["KMA-강풍주의보-부산"]);
+    for (const id of ["busan", "inje", "01000", "hang", "unes"]) expect(await ids(id)).toEqual(["KMA-강풍주의보-부산"]);
   });
 
   it("운영자만 켜고 끈다 — 지자체·중앙정부는 403 · 끝나는 시각이 없거나 지났거나 48시간 넘으면 400", async () => {
-    for (const id of ["bs_safety01", "mois_dsd01"]) {
+    for (const id of ["busan", "hang"]) {
       as(id);
       expect((await scnPOST(req({ on: true, until: inHours(2) }))).status).toBe(403);
       expect((await scnGET(req())).status).toBe(403);
@@ -79,7 +79,7 @@ describe("시연 시나리오 특보 — 서버가 계정·켜짐·끝나는 시
     expect((await set({ on: true, until: inHours(49) })).status).toBe(400);
     expect((await set({ on: true, until: inHours(2), regions: [] })).status).toBe(400);
     expect((await set({ on: true, until: inHours(2), regions: ["seoul"] })).status).toBe(400);
-    expect(await ids("bs_safety01")).toEqual(["KMA-강풍주의보-부산"]);
+    expect(await ids("busan")).toEqual(["KMA-강풍주의보-부산"]);
   });
 
   it("켜면 시연 계정 셋은 기상청 실시간을 끊고 그 지역 시나리오 하나만 — 중앙정부·운영자는 기상청 그대로", async () => {
@@ -88,24 +88,24 @@ describe("시연 시나리오 특보 — 서버가 계정·켜짐·끝나는 시
     const b = (await r.json()) as AdminScenarioResponse;
     expect(b.live).toBe(true);
     expect(b.state.regions).toEqual(["busan", "inje", "yeongcheon"]);
-    expect(await ids("bs_safety01")).toEqual(["SCN-BS-PRE-1*"]);
-    expect(await ids("ij_safety01")).toEqual(["SCN-IJ-1*"]);
-    expect(await ids("yc_safety02")).toEqual(["SCN-YC-1*"]);
-    expect(await ids("mois_dsd01")).toEqual(["KMA-강풍주의보-부산"]);
-    expect(await ids("admin01")).toEqual(["KMA-강풍주의보-부산"]);
+    expect(await ids("busan")).toEqual(["SCN-BS-PRE-1*"]);
+    expect(await ids("inje")).toEqual(["SCN-IJ-1*"]);
+    expect(await ids("01000")).toEqual(["SCN-YC-1*"]);
+    expect(await ids("hang")).toEqual(["KMA-강풍주의보-부산"]);
+    expect(await ids("unes")).toEqual(["KMA-강풍주의보-부산"]);
     // 예열의 브리핑 특보도 같은 값(계정 화면이 받는 특보)
-    expect((await weatherFor(ACC.bs_safety01)).advisories.map((a) => a.id)).toEqual(["SCN-BS-PRE-1"]);
-    expect((await weatherFor(ACC.admin01)).advisories.map((a) => a.id)).toEqual(["KMA-강풍주의보-부산"]);
+    expect((await weatherFor(ACC.busan)).advisories.map((a) => a.id)).toEqual(["SCN-BS-PRE-1"]);
+    expect((await weatherFor(ACC.unes)).advisories.map((a) => a.id)).toEqual(["KMA-강풍주의보-부산"]);
   });
 
   it("끊긴 계정은 기상청을 부르지 않는다 — 예비특보 없음 · 상태 ok · 조회 시각 = 지금(특보 발표 시각 = 켠 시각) · 끊김 글 · realtimeCut. 끊지 않은 계정은 기상청 그대로(예비특보 포함)", async () => {
-    as("admin01");
+    as("unes");
     const st = ((await (await scnGET(req())).json()) as AdminScenarioResponse).state;
     // 서버 기상청 캐시(60초)를 지나 — 이제 부르면 셀 수 있다
     vi.useFakeTimers({ toFake: ["Date"] });
     vi.setSystemTime(Date.now() + 61_000);
     const before = kma.calls;
-    for (const id of ["bs_safety01", "ij_safety01", "yc_safety02"]) {
+    for (const id of ["busan", "inje", "01000"]) {
       as(id);
       const w = (await (await weatherGET(req())).json()) as WeatherResponse;
       expect(w.realtimeCut).toBe(true);
@@ -115,7 +115,7 @@ describe("시연 시나리오 특보 — 서버가 계정·켜짐·끝나는 시
       await weatherFor(ACC[id]);
     }
     expect(kma.calls).toBe(before); // 기상청 호출 0회
-    as("mois_dsd01");
+    as("hang");
     const m = (await (await weatherGET(req())).json()) as WeatherResponse;
     expect(kma.calls).toBe(before + 1);
     expect(m.realtimeCut).toBeUndefined();
@@ -124,30 +124,30 @@ describe("시연 시나리오 특보 — 서버가 계정·켜짐·끝나는 시
   });
 
   it("켜 둔 채 지역·끝나는 시각을 바꾸면 켠 시각은 그대로, 고르지 않은 지역의 시연 계정은 다시 실시간", async () => {
-    as("admin01");
+    as("unes");
     const before = ((await (await scnGET(req())).json()) as AdminScenarioResponse).state;
     const b = (await (await set({ on: true, until: inHours(6), regions: ["inje"] })).json()) as AdminScenarioResponse;
     expect(b.state.startedAt).toBe(before.startedAt);
     expect(b.state.regions).toEqual(["inje"]);
-    expect(await ids("bs_safety01")).toEqual(["KMA-강풍주의보-부산"]);
-    expect(await ids("ij_safety01")).toEqual(["SCN-IJ-1*"]);
+    expect(await ids("busan")).toEqual(["KMA-강풍주의보-부산"]);
+    expect(await ids("inje")).toEqual(["SCN-IJ-1*"]);
   });
 
   it("끄면 다시 실시간", async () => {
     await set({ on: true, until: inHours(4) });
-    expect(await ids("bs_safety01")).toEqual(["SCN-BS-PRE-1*"]);
+    expect(await ids("busan")).toEqual(["SCN-BS-PRE-1*"]);
     const r = await set({ on: false });
     expect(((await r.json()) as AdminScenarioResponse).live).toBe(false);
-    for (const id of ["bs_safety01", "ij_safety01", "yc_safety02"]) expect(await ids(id)).toEqual(["KMA-강풍주의보-부산"]);
+    for (const id of ["busan", "inje", "01000"]) expect(await ids(id)).toEqual(["KMA-강풍주의보-부산"]);
   });
 
   it("끝나는 시각이 지나면 저절로 다시 실시간(끄지 않아도)", async () => {
     await set({ on: true, until: inHours(1) });
-    expect(await ids("yc_safety02")).toEqual(["SCN-YC-1*"]);
+    expect(await ids("01000")).toEqual(["SCN-YC-1*"]);
     vi.useFakeTimers({ toFake: ["Date"] });
     vi.setSystemTime(Date.now() + 61 * 60_000);
-    expect(await ids("yc_safety02")).toEqual(["KMA-강풍주의보-부산"]);
-    as("admin01");
+    expect(await ids("01000")).toEqual(["KMA-강풍주의보-부산"]);
+    as("unes");
     expect(((await (await scnGET(req())).json()) as AdminScenarioResponse).live).toBe(false);
   });
 });

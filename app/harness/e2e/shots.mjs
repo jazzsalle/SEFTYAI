@@ -1,11 +1,11 @@
 // 하네스 ⑥ 화면 확인 — 설치된 Chrome(headless, playwright-core)으로 로그인 → 시작 화면 → 질문 목록의 완료 답 → 지도 를 찍는다.
-// node harness/e2e/shots.mjs [baseUrl=http://localhost:3100] [outDir] [accountId=bs_safety01]
+// node harness/e2e/shots.mjs [baseUrl=http://localhost:3100] [outDir] [accountId=busan]
 import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { chromium } from "playwright-core";
 import { APP } from "../t3q/client.mjs";
 
-const [base = "http://localhost:3100", out = join(APP, "harness", "reports", "shots"), id = "bs_safety01"] = process.argv.slice(2);
+const [base = "http://localhost:3100", out = join(APP, "harness", "reports", "shots"), id = "busan"] = process.argv.slice(2);
 mkdirSync(out, { recursive: true });
 let pw = process.env.SMOKE_PASSWORD;
 if (!pw && existsSync(join(APP, ".env.development.local"))) {

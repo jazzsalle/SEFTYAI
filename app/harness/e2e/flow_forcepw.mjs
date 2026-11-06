@@ -1,12 +1,12 @@
 // 하네스 — 초기 비밀번호 변경 강제(Figma 101002) 흐름을 실제 화면에서 확인한다(로컬 개발 서버 전용).
-// node harness/e2e/flow_forcepw.mjs [baseUrl] [accountId=mois_dsd01]
+// node harness/e2e/flow_forcepw.mjs [baseUrl] [accountId=hang]
 // 1) 발급(변경 강제) → 2) 로그인 시 닫을 수 없는 "초기 비밀번호 변경" 창 → 3) 바꾸기 전 질의·연락망 저장은 403 → 4) 원상 복구(강제 해제)
 import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { chromium } from "playwright-core";
 import { APP } from "../t3q/client.mjs";
 
-const [base = "http://localhost:3100", id = "mois_dsd01"] = process.argv.slice(2);
+const [base = "http://localhost:3100", id = "hang"] = process.argv.slice(2);
 if (!/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(base)) throw new Error("로컬 개발 서버에서만 돌린다: " + base);
 const out = join(APP, "harness", "reports", "shots");
 mkdirSync(out, { recursive: true });

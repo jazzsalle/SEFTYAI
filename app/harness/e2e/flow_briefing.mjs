@@ -1,11 +1,11 @@
 // 하네스 ⑥-2 흐름 확인 — 브리핑 4문항 병렬 → 질문 목록 진행 표시 → 완료순 표시, AI 모드, 운영관리 화면.
-// node harness/e2e/flow_briefing.mjs [baseUrl] [accountId=ij_safety01]   (실제 T3Q 를 부른다 — 약 2~4분)
+// node harness/e2e/flow_briefing.mjs [baseUrl] [accountId=inje]   (실제 T3Q 를 부른다 — 약 2~4분)
 import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { chromium } from "playwright-core";
 import { APP } from "../t3q/client.mjs";
 
-const [base = "http://localhost:3100", id = "ij_safety01"] = process.argv.slice(2);
+const [base = "http://localhost:3100", id = "inje"] = process.argv.slice(2);
 const out = join(APP, "harness", "reports", "shots");
 mkdirSync(out, { recursive: true });
 const pwOf = (acc) => {
@@ -54,7 +54,7 @@ await shot(p, "13_aimode_open");
 await p.getByRole("button", { name: "AI 모드 종료" }).click().catch(() => {});
 
 // 3) 운영관리
-const a = await session("admin01");
+const a = await session("unes");
 await a.goto(base + "/admin");
 await a.waitForTimeout(3000);
 await shot(a, "14_admin");

@@ -23,7 +23,7 @@ export const SCN_MAX_HOURS = 48;
 export type ScnRegion = "busan" | "inje" | "yeongcheon";
 export const SCN_REGIONS: ScnRegion[] = ["busan", "inje", "yeongcheon"];
 /** 시연 계정 — 이 셋에만 보인다(같은 지역의 다른 계정이 생겨도 넣지 않는다) */
-export const SCN_ACCOUNT: Record<ScnRegion, string> = { busan: "bs_safety01", inje: "ij_safety01", yeongcheon: "yc_safety02" };
+export const SCN_ACCOUNT: Record<ScnRegion, string> = { busan: "busan", inje: "inje", yeongcheon: "01000" };
 
 export interface ScnDef {
   /** 특보 번호(warning_key) — 재사용 열쇠에 들어간다 */

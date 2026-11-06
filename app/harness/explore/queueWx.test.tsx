@@ -25,7 +25,7 @@ afterEach(() => cleanup());
 
 const now = new Date().toISOString();
 const job = (id: string, source: JobSummary["source"], state: JobSummary["state"], q: string): JobSummary => ({
-  id, account_id: "admin01", conv_id: null, turn_no: 1, source, library_id: null, question_user: q, question_sent: q, state,
+  id, account_id: "unes", conv_id: null, turn_no: 1, source, library_id: null, question_user: q, question_sent: q, state,
   t3q_status: state === "DONE" ? "SUCCESS" : null, http_status: null, cached_from: null, retry_of: null, error_code: null,
   created_at: now, submitted_at: now, finished_at: state === "DONE" ? now : null, elapsed_ms: state === "DONE" ? 9000 : null, t3q_conversation_id: null,
 });
@@ -74,7 +74,7 @@ describe("특보 줄 — 5초 자동 넘김(개발 서버 AlertBanner, 2026-11-0
   const gale = parseStatusText(S.gale.t6, t(S.gale.tmFc)) as Advisory[];
   const weather: WeatherResponse = { mode: "live", status: { ok: true, fetchedAt: now, message: "기상청 06:00 발표" }, advisories: gale, preliminary: [] };
   const show = (base: BaseRegion | null) => {
-    session.s = { weather, account: { id: "admin01" }, cond: { base }, wxRef: null, setWxRef: () => {}, aimOn: false };
+    session.s = { weather, account: { id: "unes" }, cond: { base }, wxRef: null, setWxRef: () => {}, aimOn: false };
     return render(<WxBar />).container;
   };
   const mine = (base: BaseRegion | null) => gale.filter((a) => a.status !== "해제" && a.status !== "변경" && wxCovers(a.area, baseTarget(base)));
@@ -119,7 +119,7 @@ describe("특보 줄 — 5초 자동 넘김(개발 서버 AlertBanner, 2026-11-0
   describe("[모두 보기] 닫기", () => {
     const list = () => screen.queryByRole("list", { name: "발효 중인 특보" });
     const at = (w: WeatherResponse, base: BaseRegion | null = null) => {
-      session.s = { weather: w, account: { id: "admin01" }, cond: { base }, wxRef: null, setWxRef: () => {}, aimOn: false };
+      session.s = { weather: w, account: { id: "unes" }, cond: { base }, wxRef: null, setWxRef: () => {}, aimOn: false };
     };
     const openAll = () => {
       at(weather);
@@ -176,7 +176,7 @@ describe("특보 줄 — 자동 넘김 동작(개발 서버 AlertBanner AlertRot
   ];
   const w = (advisories: Advisory[]): WeatherResponse => ({ mode: "live", status: { ok: true, fetchedAt: now, message: "" }, advisories, preliminary: [] });
   const at = (advisories: Advisory[]) => {
-    session.s = { weather: w(advisories), account: { id: "admin01" }, cond: { base: null }, wxRef: null, setWxRef: () => {}, aimOn: false };
+    session.s = { weather: w(advisories), account: { id: "unes" }, cond: { base: null }, wxRef: null, setWxRef: () => {}, aimOn: false };
   };
   const reduce = (on: boolean) => {
     vi.stubGlobal("matchMedia", (q: string) => ({ matches: on && q.includes("reduce"), media: q, addEventListener: () => {}, removeEventListener: () => {} }));

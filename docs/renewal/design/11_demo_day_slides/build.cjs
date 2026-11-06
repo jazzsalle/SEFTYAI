@@ -43,9 +43,9 @@ const THEME = {
 };
 const HEX = { muted: "5B6474", line: "D5DAE1", faint: "8A93A3", amberBg: "FFF4E5", slateBg: "EEF1F5", tealBg: "E7F4F2", navyBg: "E8EDF6" };
 const REGION = {
-  부산: { c: "accent1", hex: THEME.colors.accent1, bg: "E6F0F8", win: "부산 창 · bs_safety01" },
-  인제: { c: "accent2", hex: THEME.colors.accent2, bg: "E8F3EC", win: "인제 창 · ij_safety01" },
-  영천: { c: "accent3", hex: THEME.colors.accent3, bg: "EFEAF7", win: "영천 창 · yc_safety02" },
+  부산: { c: "accent1", hex: THEME.colors.accent1, bg: "E6F0F8", win: "부산 창 · busan" },
+  인제: { c: "accent2", hex: THEME.colors.accent2, bg: "E8F3EC", win: "인제 창 · inje" },
+  영천: { c: "accent3", hex: THEME.colors.accent3, bg: "EFEAF7", win: "영천 창 · 01000" },
 };
 const MODE = { 실시간: { c: "accent4", note: "기다림 있음" }, 예열: { c: "accent5", note: "바로 뜸" }, "앱 화면": { c: "accent6", note: "에이전트 질의 없음" } };
 
@@ -635,7 +635,7 @@ function divider(region, sub, sec, notes = "") {
     T(s, "운영 화면 — 예열 끝 · 세 창 특보 줄", { x: 0.5, y: 0.35, w: 12.3, h: 0.75, fontSize: 30, bold: true, color: C.text1, valign: "middle" });
     if (has("op3_warm_done")) await addImage(s, "op3_warm_done", 0.5, 1.35, 6.05, { caption: "③⑤ 「시연 세트 예열 시작」 → 진행 중 0 · 예열 항목 모두 끝" });
     let y = 1.35;
-    for (const [acc, lab] of [["bs_safety01", "부산 창"], ["ij_safety01", "인제 창"], ["yc_safety02", "영천 창"]]) {
+    for (const [acc, lab] of [["busan", "부산 창"], ["inje", "인제 창"], ["01000", "영천 창"]]) {
       const n = `op4_${acc}`;
       if (!has(n)) continue;
       const h = await addImage(s, n, 6.78, y, 6.05, { caption: `④ ${lab} 특보 줄 — 「시연 시나리오」 · 「기상청 실시간 특보 끊음」` });

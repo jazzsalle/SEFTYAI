@@ -21,46 +21,46 @@ beforeAll(async () => {
 
 describe("로그인·세션", () => {
   it("계정 발급(기본은 첫 로그인 때 변경 강제) 후 로그인하면 변경 필요 표시가 온다", async () => {
-    await A.upsertAccount("bs_safety01", PW);
-    const r = await A.login("bs_safety01", PW, "ua");
+    await A.upsertAccount("busan", PW);
+    const r = await A.login("busan", PW, "ua");
     expect(r.ok).toBe(true);
     if (r.ok) expect(r.account.mustChangePw).toBe(true);
   });
 
   it("발급 때 변경 강제를 끄면 표시가 없다", async () => {
-    await A.upsertAccount("ij_safety01", PW, false);
-    const r = await A.login("ij_safety01", PW, "ua");
+    await A.upsertAccount("inje", PW, false);
+    const r = await A.login("inje", PW, "ua");
     expect(r.ok && r.account.mustChangePw).toBe(false);
   });
 
   it("5회 틀리면 잠기고, 잠긴 동안에는 맞는 비밀번호도 거절한다", async () => {
-    await A.upsertAccount("yc_safety02", PW, false);
-    for (let i = 0; i < 5; i++) expect((await A.login("yc_safety02", "Wrong!pass999", "ua")).ok).toBe(false);
-    const r = await A.login("yc_safety02", PW, "ua");
+    await A.upsertAccount("01000", PW, false);
+    for (let i = 0; i < 5; i++) expect((await A.login("01000", "Wrong!pass999", "ua")).ok).toBe(false);
+    const r = await A.login("01000", PW, "ua");
     expect(r.ok).toBe(false);
     if (!r.ok) expect(r.status).toBe(423);
-    await A.unlock("yc_safety02");
-    expect((await A.login("yc_safety02", PW, "ua")).ok).toBe(true);
+    await A.unlock("01000");
+    expect((await A.login("01000", PW, "ua")).ok).toBe(true);
   });
 
   it("동시에 틀려도 실패 횟수가 사라지지 않는다(원자적 집계)", async () => {
-    await A.upsertAccount("admin01", PW, false);
-    await Promise.all(Array.from({ length: 5 }, () => A.login("admin01", "Wrong!pass999", "ua")));
-    const r = await A.login("admin01", PW, "ua");
+    await A.upsertAccount("unes", PW, false);
+    await Promise.all(Array.from({ length: 5 }, () => A.login("unes", "Wrong!pass999", "ua")));
+    const r = await A.login("unes", PW, "ua");
     expect(r.ok).toBe(false);
-    await A.unlock("admin01");
+    await A.unlock("unes");
   });
 
   it("세션: 활동 표시가 있을 때만 유휴 시간을 연장한다", async () => {
-    const r = await A.login("ij_safety01", PW, "ua");
+    const r = await A.login("inje", PW, "ua");
     if (!r.ok) throw new Error("login");
     const ck = cookieOf(r.cookie);
     await sql.query("update sa_sessions set last_seen_at = now() - interval '10 minutes'");
     expect(await A.sessionAccount(req(ck))).not.toBeNull();
-    const [s1] = await sql.query("select last_seen_at from sa_sessions where revoked_at is null and account_id = 'ij_safety01'");
+    const [s1] = await sql.query("select last_seen_at from sa_sessions where revoked_at is null and account_id = 'inje'");
     expect(Date.now() - new Date(String(s1.last_seen_at)).getTime()).toBeGreaterThan(9 * 60_000); // 폴링은 연장 안 함
     await A.sessionAccount(req(ck, true));
-    const [s2] = await sql.query("select last_seen_at from sa_sessions where revoked_at is null and account_id = 'ij_safety01'");
+    const [s2] = await sql.query("select last_seen_at from sa_sessions where revoked_at is null and account_id = 'inje'");
     expect(Date.now() - new Date(String(s2.last_seen_at)).getTime()).toBeLessThan(60_000); // 사용자 조작은 연장
     await sql.query("update sa_sessions set last_seen_at = now() - interval '239 minutes'");
     expect(await A.sessionAccount(req(ck))).not.toBeNull(); // 유휴 4시간 안 — 아직 유효
@@ -69,23 +69,23 @@ describe("로그인·세션", () => {
   });
 
   it("비밀번호 변경: 같은 비밀번호 거절, 바꾸면 다른 세션은 끊긴다", async () => {
-    const r1 = await A.login("ij_safety01", PW, "ua");
+    const r1 = await A.login("inje", PW, "ua");
     if (!r1.ok) throw new Error("login");
     const ck1 = cookieOf(r1.cookie);
-    expect(await A.changePw("ij_safety01", PW, PW, A.currentSid(req(ck1)))).toMatch(/다른 비밀번호/);
+    expect(await A.changePw("inje", PW, PW, A.currentSid(req(ck1)))).toMatch(/다른 비밀번호/);
     // 다른 기기 세션을 하나 더 만든다(새 로그인은 기존 세션을 끊으므로 직접 넣음)
-    await sql.query("insert into sa_sessions (sid, account_id, created_at, last_seen_at, expires_at) values ('other-device', 'ij_safety01', now(), now(), now() + interval '1 hour')");
-    expect(await A.changePw("ij_safety01", PW, "New!pass4567", A.currentSid(req(ck1)))).toBeNull();
+    await sql.query("insert into sa_sessions (sid, account_id, created_at, last_seen_at, expires_at) values ('other-device', 'inje', now(), now(), now() + interval '1 hour')");
+    expect(await A.changePw("inje", PW, "New!pass4567", A.currentSid(req(ck1)))).toBeNull();
     const [o] = await sql.query("select revoked_at from sa_sessions where sid = 'other-device'");
     expect(o.revoked_at).not.toBeNull();
     expect(await A.sessionAccount(req(ck1, true))).not.toBeNull(); // 지금 세션은 유지
-    expect((await A.login("ij_safety01", "New!pass4567", "ua")).ok).toBe(true);
+    expect((await A.login("inje", "New!pass4567", "ua")).ok).toBe(true);
   });
 
   it("비활성 계정의 세션은 무효", async () => {
-    const r = await A.login("bs_safety01", PW, "ua");
+    const r = await A.login("busan", PW, "ua");
     if (!r.ok) throw new Error("login");
-    await sql.query("update sa_accounts set status = 'DISABLED' where id = 'bs_safety01'");
+    await sql.query("update sa_accounts set status = 'DISABLED' where id = 'busan'");
     expect(await A.sessionAccount(req(cookieOf(r.cookie), true))).toBeNull();
   });
 });

@@ -1,6 +1,6 @@
 // 하네스 — R39·R40·R41 화면 확인
-//  (가) AI 모드(부산 bs_safety01): 켜고 점검 답 → 질문 목록에 점검이 없음 → 새로 고침·새 탭에서도 같은 점검 작업(새 행 없음)
-//  (나) 특보 줄(전국 admin01): 지금 기상청 현황 그대로 + 특보가 여럿인 때(기상청 실응답 원문 harness/region/kma_t6_samples.json gale 다시 보기)
+//  (가) AI 모드(부산 busan): 켜고 점검 답 → 질문 목록에 점검이 없음 → 새로 고침·새 탭에서도 같은 점검 작업(새 행 없음)
+//  (나) 특보 줄(전국 unes): 지금 기상청 현황 그대로 + 특보가 여럿인 때(기상청 실응답 원문 harness/region/kma_t6_samples.json gale 다시 보기)
 //       — 「외 n건」·개수 숫자 없이 나머지 특보 이름을 받은 순서로 · 로, [모두 보기] = 발효 특보 전체(받은 순서, Esc·바깥 누르기로 닫힘, 390·768px 화면 안)
 //  (다) 사건 상세 근거(부산 대화 이력에서 「2020년 7.23.~25. 호우, 강풍, 풍랑」 사건을 연다 — 새 질의 없음): T3Q-19 받은 값 그대로
 // node harness/e2e/shots_aimode_r25.mjs [baseUrl=http://localhost:3100]   → harness/reports/shots/r39_*.png
@@ -114,7 +114,7 @@ if (left < 180) {
   await new Promise((r) => setTimeout(r, (left + 5) * 1000));
 }
 const bucket = Math.floor(Date.now() / 600000);
-const { ctx: c1, page: p } = await session("bs_safety01");
+const { ctx: c1, page: p } = await session("busan");
 const ids = aimIds(p);
 const before = await aimRows(p, bucket);
 await p.getByRole("button", { name: "AI 모드", exact: true }).click();
@@ -165,7 +165,7 @@ await shot(p.locator(".modal.aim"), "03_aimode_after_reload");
 
 // 새 탭
 const p2 = await c1.newPage();
-watch(p2, "bs_safety01(새 탭)");
+watch(p2, "busan(새 탭)");
 const ids2 = aimIds(p2);
 await p2.goto(base + "/explore");
 await p2.locator(".modal.aim").waitFor({ timeout: 30000 });
@@ -217,9 +217,9 @@ if (conv) {
 await c1.close();
 }
 
-// ── (나) 특보 줄 — 전국 admin01 ──
+// ── (나) 특보 줄 — 전국 unes ──
 if (!only || only === "wx") {
-const { ctx: c2, page: a } = await session("admin01");
+const { ctx: c2, page: a } = await session("unes");
 const live = await text(a, ".wxbar");
 console.log("  특보 줄(지금 기상청):", live);
 ok(!/외 |\d+\s*건/.test(live), "특보 줄(지금)에 「외 」·「n건」 없음");
@@ -229,7 +229,7 @@ await c2.close();
 const KMA = JSON.parse(readFileSync(join(APP, "harness", "region", "kma_t6_samples.json"), "utf8"));
 const gale = KMA.samples.find((s) => s.key === "gale");
 const galeBody = JSON.stringify(weatherOf(gale.t6, gale.tmFc));
-const { ctx: c3, page: g } = await session("admin01", (ctx) => ctx.route("**/api/weather", (r) => r.fulfill({ status: 200, contentType: "application/json", body: galeBody })));
+const { ctx: c3, page: g } = await session("unes", (ctx) => ctx.route("**/api/weather", (r) => r.fulfill({ status: 200, contentType: "application/json", body: galeBody })));
 await g.locator(".wxbar .more").waitFor({ timeout: 20000 });
 const bar = await text(g, ".wxbar");
 console.log("  특보 줄(기상청 원문 다시 보기):", bar.slice(0, 220));

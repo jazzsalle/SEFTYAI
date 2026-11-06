@@ -30,11 +30,11 @@ process.env.T3Q_MODE = "replay";
 process.env.T3Q_MAX_GLOBAL = "8";
 
 const acc = (id: string) => ACCOUNTS.find((a) => a.id === id)!;
-const MOIS = acc("mois_dsd01");
-const ADMIN = acc("admin01");
-const YC = acc("yc_safety02");
-const IJ = acc("ij_safety01");
-const BS = acc("bs_safety01");
+const MOIS = acc("hang");
+const ADMIN = acc("unes");
+const YC = acc("01000");
+const IJ = acc("inje");
+const BS = acc("busan");
 
 const SAMPLE = Object.fromEntries(KMA.samples.map((s) => [s.key, s])) as unknown as Record<"now" | "cold" | "gale" | "d1022" | "daegu" | "d1025", { tmFc: number; t6: string }>;
 const kmaTime = (v: number) => {
@@ -347,7 +347,7 @@ beforeAll(async () => {
   await db.ensureSchema();
   sql = db.db() as never;
   const A = await import("@/lib/server/auth");
-  for (const id of ["mois_dsd01", "yc_safety02"]) {
+  for (const id of ["hang", "01000"]) {
     await A.upsertAccount(id, PW, false);
     const r = await A.login(id, PW, "ua");
     if (!r.ok) throw new Error("login");
@@ -364,7 +364,7 @@ const row = async (id: string) => (await sql.query("select * from sa_agent_jobs 
 describe("질의 접수 라우트 — 기준지역·R33 이 실제로 보내는 요청에", () => {
   it("중앙정부 + 전국 + 「우리 지역은…」 → query_context.region = 서울특별시, 질문 글은 그대로(보낸 글·저장 글 모두)", async () => {
     const q = "우리 지역은 지금 어디가 가장 위험한가요?";
-    const res = await post("mois_dsd01", { question: q, source: "USER", condition: { base: null, disasterTypes: [] } });
+    const res = await post("hang", { question: q, source: "USER", condition: { base: null, disasterTypes: [] } });
     expect(res.status).toBe(201);
     const { job } = (await res.json()) as { job: { id: string; question_user: string; question_sent: string } };
     const r = await row(job.id);
@@ -376,11 +376,11 @@ describe("질의 접수 라우트 — 기준지역·R33 이 실제로 보내는 
   });
 
   it("지자체가 전국을 고르면 「우리 지역…」이어도 지역 없이, 다른 지역을 고르면 그 지역 그대로", async () => {
-    const a = await post("yc_safety02", { question: "우리 지역 위험지구는?", source: "USER", condition: { base: null } });
+    const a = await post("01000", { question: "우리 지역 위험지구는?", source: "USER", condition: { base: null } });
     expect(a.status).toBe(201);
     const ra = await row(((await a.json()) as { job: { id: string } }).job.id);
     expect((ra.request as { query_context: Record<string, unknown> }).query_context).not.toHaveProperty("region");
-    const b = await post("yc_safety02", { question: "종로구 침수 이력은?", source: "USER", condition: { base: { code: "11110", name: "서울특별시 종로구", level: "SIGUNGU" } } });
+    const b = await post("01000", { question: "종로구 침수 이력은?", source: "USER", condition: { base: { code: "11110", name: "서울특별시 종로구", level: "SIGUNGU" } } });
     expect(b.status).toBe(201);
     const rb = await row(((await b.json()) as { job: { id: string } }).job.id);
     expect((rb.request as { query_context: { region: unknown } }).query_context.region).toEqual({ admin_code: "1111000000", level: "SIGUNGU", name: "서울특별시 종로구" });
@@ -389,7 +389,7 @@ describe("질의 접수 라우트 — 기준지역·R33 이 실제로 보내는 
   it("틀린 기준지역은 400 — 질의를 만들지 않는다", async () => {
     const before = (await sql.query("select count(*)::int as n from sa_agent_jobs"))[0].n;
     for (const base of [{ code: "26350", name: "부산광역시 해운대구", level: "SIDO" }, { code: "26a", name: "부산", level: "SIDO" }, { code: "26", name: "", level: "SIDO" }, "26"]) {
-      const res = await post("mois_dsd01", { question: `틀린 기준지역 ${JSON.stringify(base)}`, source: "USER", condition: { base } });
+      const res = await post("hang", { question: `틀린 기준지역 ${JSON.stringify(base)}`, source: "USER", condition: { base } });
       expect(res.status).toBe(400);
       expect(((await res.json()) as { error: string }).error).toBe("기준지역 값이 올바르지 않습니다.");
     }
@@ -419,28 +419,28 @@ describe("질의 접수 라우트 — AI 모드 점검은 기준지역만(R39)",
 
   it("AI_MODE 면 query_context = 기준지역만 — 재난유형·기준시각·발생기간·특보 종류·단계·키워드·강우 조건 없음, 특보는 weather_warnings 로 그대로", async () => {
     const warnings = { items: [{ warning_key: "KMA-호우경보-경상북도", kind: "호우", level: "경보", area: "경상북도" }] };
-    const req = await sent("yc_safety02", { question: AIM_Q, source: "AI_MODE", aiMode: { check_id: "CHK-1", trigger: "START", interval_min: 10 }, warnings, condition: FULL });
+    const req = await sent("01000", { question: AIM_Q, source: "AI_MODE", aiMode: { check_id: "CHK-1", trigger: "START", interval_min: 10 }, warnings, condition: FULL });
     expect(req.query_context).toEqual({ region: { admin_code: "4723000000", level: "SIGUNGU", name: "경상북도 영천시" } });
     for (const k of ["detail", "period", "reference_time", "disaster_types"]) expect(req.query_context).not.toHaveProperty(k);
     expect(req.weather_warnings).toEqual(warnings);
   });
 
   it("AI_MODE 가 아니면 가정 조건을 지금처럼 싣는다", async () => {
-    const req = await sent("yc_safety02", { question: "R39 대조 — 영천 지하차도 통제 기준은?", source: "USER", condition: FULL });
+    const req = await sent("01000", { question: "R39 대조 — 영천 지하차도 통제 기준은?", source: "USER", condition: FULL });
     for (const k of ["region", "detail", "period", "reference_time", "disaster_types"]) expect(req.query_context).toHaveProperty(k);
   });
 
   it("R33 영향 없음 — 점검 질문은 「우리 지역」으로 시작하지 않아 전국 기본 계정이 전국으로 보내도 서울로 바뀌지 않는다", async () => {
     expect(AIM_Q).toBeTruthy();
     expect(R33_OUR_REGION.test(AIM_Q!)).toBe(false);
-    const req = await sent("mois_dsd01", { question: AIM_Q, source: "AI_MODE", condition: { ...FULL, base: null } });
+    const req = await sent("hang", { question: AIM_Q, source: "AI_MODE", condition: { ...FULL, base: null } });
     expect(req.query_context).toEqual({});
   });
 
   it("AI_MODE 를 잇달아 두 번 보내면(켜자마자 새로 고침·새 탭) 3초 중복 차단 없이 둘 다 201 · 같은 작업 id", async () => {
     const body = { question: AIM_Q, source: "AI_MODE", aiMode: { check_id: "CHK-2", trigger: "START", interval_min: 10 }, warnings: { items: [] }, condition: { base: { code: "26350", name: "부산광역시 해운대구", level: "SIGUNGU" } } };
-    const a = await post("yc_safety02", body);
-    const b = await post("yc_safety02", { ...body, aiMode: { ...body.aiMode, check_id: "CHK-3" } });
+    const a = await post("01000", body);
+    const b = await post("01000", { ...body, aiMode: { ...body.aiMode, check_id: "CHK-3" } });
     expect(a.status).toBe(201);
     expect(b.status).toBe(201);
     const ja = ((await a.json()) as { job: { id: string } }).job.id;
@@ -450,8 +450,8 @@ describe("질의 접수 라우트 — AI 모드 점검은 기준지역만(R39)",
 
   it("AI_MODE 가 아니면 3초 중복 차단은 그대로(429)", async () => {
     const body = { question: "R39 대조 — 3초 안에 같은 질문", source: "USER", condition: { base: null } };
-    expect((await post("yc_safety02", body)).status).toBe(201);
-    expect((await post("yc_safety02", body)).status).toBe(429);
+    expect((await post("01000", body)).status).toBe(201);
+    expect((await post("01000", body)).status).toBe(429);
   });
 });
 

@@ -10,8 +10,8 @@ interface Row {
   id: string; name: string; org: string; role: string; status: string; failed_count: number;
   locked_until: string | null; locked: boolean; last_login_at: string | null; created_at: string | null; session_seen_at: string | null;
 }
-/** 화면 순서 — 부산·인제·영천·정부기관·운영자 */
-const ORDER = ["bs_safety01", "ij_safety01", "yc_safety02", "mois_dsd01", "admin01"];
+/** 화면 순서 — 부산·부산2·인제·영천·정부기관·운영자·계정 발급자 */
+const ORDER = ["busan", "busan2", "inje", "01000", "hang", "unes", "issuer"];
 
 /**
  * GET /api/admin/accounts — 계정 목록 (운영자 전용)

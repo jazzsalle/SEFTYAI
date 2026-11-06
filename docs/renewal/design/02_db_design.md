@@ -19,7 +19,7 @@
 ### 2.1 `sa_accounts` — 계정 (R7)
 | 열 | 형 | 설명 |
 |---|---|---|
-| id | text pk | `bs_safety01` 등 |
+| id | text pk | `busan` 등 |
 | name | text | 표시 이름 |
 | org | text | busan · inje · yeongcheon · central · ops |
 | role | text | LOCAL_GOV · CENTRAL_GOV · OPERATOR |

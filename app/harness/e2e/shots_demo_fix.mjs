@@ -1,10 +1,10 @@
 // 하네스 — R42·R43 검토 지적 반영 화면 확인(실제 T3Q 에이전트 질의 없음)
-//  (가) 영천 yc_safety02 — 「재난담당자의 하루」 탭: 실시간 주의 없음(운영관리에만) · YC-02 「사용자 입력 조건」 · 소개 글 · 마우스를 올리면 항목 이름에만 밑줄
-//  (나) 운영관리 admin01 — 「시연 세트 예열」: 실시간 안내에 YC-02, 표에 YC-01(YC-02 없음 — 사용자 결정 2026-10-30) · 계정 = 시연 계정 · 빨강 표지 없음 · 무대 질의 대기 주의
-//  (다) 부산 bs_safety01 — /explore?brief=1 이 저장된 「내 브리핑 항목」으로 보내는지(기본 4문항이 아니라). 접수 요청은 가로채 보내지 않는다(대화 저장도 막음)
+//  (가) 영천 01000 — 「재난담당자의 하루」 탭: 실시간 주의 없음(운영관리에만) · YC-02 「사용자 입력 조건」 · 소개 글 · 마우스를 올리면 항목 이름에만 밑줄
+//  (나) 운영관리 unes — 「시연 세트 예열」: 실시간 안내에 YC-02, 표에 YC-01(YC-02 없음 — 사용자 결정 2026-10-30) · 계정 = 시연 계정 · 빨강 표지 없음 · 무대 질의 대기 주의
+//  (다) 부산 busan — /explore?brief=1 이 저장된 「내 브리핑 항목」으로 보내는지(기본 4문항이 아니라). 접수 요청은 가로채 보내지 않는다(대화 저장도 막음)
 //       시험 동안 이 계정 브리핑 항목을 대본 세트(BR-01~03 + 「하천 옆 지하차도」)로 바꾸고 끝나면 원래 값으로 되돌린다
 //  (라) 시나리오 켬 → 부산 [특보로 질문] 으로 시나리오 참조 → 끔 → 참조가 저절로 떨어짐
-//  (마) 같은 브라우저에서 창 A(mois_dsd01)를 연 채 창 B 로 ij_safety01 로그인 → 창 A 는 시나리오 특보를 띄우지 않고 세션 만료 안내
+//  (마) 같은 브라우저에서 창 A(hang)를 연 채 창 B 로 inje 로그인 → 창 A 는 시나리오 특보를 띄우지 않고 세션 만료 안내
 // node harness/e2e/shots_demo_fix.mjs [baseUrl=http://localhost:3100]   → harness/reports/shots/r42_fix_*.png
 // 끝나면(실패해도) 시나리오를 끄고 브리핑 항목을 되돌린다. 로그인하면 그 계정의 다른 세션은 끊긴다.
 // 비밀번호: env SMOKE_PASSWORD 또는 app/.env.development.local 의 SA_INIT_PASSWORDS(출력하지 않음)
@@ -66,7 +66,7 @@ const aimOff = async (page) => {
   if (await page.locator(".ai-pill.on").count()) await page.locator(".ai-pill").click();
 };
 
-const admin = await session("admin01");
+const admin = await session("unes");
 const setScenario = (on) =>
   admin.page.evaluate(async (v) => {
     const r = await fetch("/api/admin/scenario", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(v ? { on: true, until: new Date(Date.now() + 2 * 3600_000).toISOString() } : { on: false }) });
@@ -78,7 +78,7 @@ try {
   await setScenario(false);
 
   // ── (가) 영천 — 「재난담당자의 하루」 ──
-  const yc = await session("yc_safety02");
+  const yc = await session("01000");
   await aimOff(yc.page);
   await yc.page.getByRole("button", { name: "질문 목록 보기" }).click();
   await yc.page.getByRole("button", { name: "재난담당자의 하루" }).click();
@@ -105,18 +105,18 @@ try {
   const titles = await admin.page.$$eval(".adm-sec .adm-q b", (l) => l.map((e) => e.textContent));
   ok(titles.includes("소하천이 있는 미해제 위험지구") && !titles.includes("호우경보 때 북안면·신녕면·화북면 재해위험저수지"), "예열 표 — YC-01 있음 · YC-02 없음");
   const accs = [...new Set(await admin.page.$$eval(".adm-sec .adm-tbl tbody tr td:nth-child(4)", (l) => l.map((e) => e.textContent)))].sort();
-  ok(accs.join() === "bs_safety01,ij_safety01,yc_safety02", `예열 계정 ${accs.join(" · ")}`);
+  ok(accs.join() === "busan,inje,01000", `예열 계정 ${accs.join(" · ")}`);
   const red = await admin.page.locator(".adm-sec .badge.danger, .panel .notice.danger, section[aria-label='시연 시나리오 특보'] .notice.danger").count();
   ok(red === 0, `새 패널·표 빨강 표지 ${red}개`);
   await shot(admin.page, "02_admin_demo_warm");
 
   // ── (다) 부산 — /explore?brief=1 은 저장된 브리핑 항목으로 ──
-  const bs = await session("bs_safety01");
+  const bs = await session("busan");
   await aimOff(bs.page);
-  const orig = await bs.page.evaluate(async () => (await fetch("/api/kv?scope=acct:bs_safety01").then((r) => r.json())).brief?.value ?? null);
+  const orig = await bs.page.evaluate(async () => (await fetch("/api/kv?scope=acct:busan").then((r) => r.json())).brief?.value ?? null);
   restoreBrief = async () => {
     await bs.page.evaluate(async (v) => {
-      await fetch("/api/kv", { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify({ scope: "acct:bs_safety01", key: "brief", value: v }) });
+      await fetch("/api/kv", { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify({ scope: "acct:busan", key: "brief", value: v }) });
     }, orig);
     console.log("  브리핑 항목 되돌림:", orig ? `${orig.length}개` : "저장 안 된 상태(기본 4문항)");
   };
@@ -129,7 +129,7 @@ try {
     { key: "c-BS-01", label: "하천 옆 지하차도", q: BRF4, on: true },
   ];
   await bs.page.evaluate(async (v) => {
-    const r = await fetch("/api/kv", { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify({ scope: "acct:bs_safety01", key: "brief", value: v }) });
+    const r = await fetch("/api/kv", { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify({ scope: "acct:busan", key: "brief", value: v }) });
     if (!r.ok) throw new Error(`kv ${r.status}`);
   }, set);
   const sent = [];
@@ -167,10 +167,10 @@ try {
   const shared = await browser.newContext({ viewport: { width: 1600, height: 1000 }, locale: "ko-KR" });
   const winA = await shared.newPage();
   watch(winA, "창A");
-  await login(winA, "mois_dsd01");
+  await login(winA, "hang");
   const winB = await shared.newPage();
   watch(winB, "창B");
-  await login(winB, "ij_safety01");
+  await login(winB, "inje");
   ok((await text(winB, ".wxbar")).includes(SCN), "창 B(인제) 특보 줄에 시나리오");
   // 창 A 의 60초 특보 조회가 인제 기준으로 답한다 → 계정이 달라 버리고 세션 만료
   const expired = await winA.getByText("로그인 세션이 만료되었습니다").waitFor({ timeout: 80000 }).then(() => true, () => false);

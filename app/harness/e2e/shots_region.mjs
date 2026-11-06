@@ -106,8 +106,8 @@ const cancelActive = (page) =>
   });
 const enabledAgain = (page) => page.waitForFunction((q) => document.querySelector(q) && !document.querySelector(q).disabled, SIDO, { timeout: 60000 });
 
-// ── 1) 중앙정부(mois_dsd01) — 기본 전국, 시·도 16개 ──
-const { ctx: c1, page: p } = await session("mois_dsd01");
+// ── 1) 중앙정부(hang) — 기본 전국, 시·도 16개 ──
+const { ctx: c1, page: p } = await session("hang");
 await loaded(p, SIDO);
 const sidoOpts = await p.$$eval(`${SIDO} option`, (os) => os.map((o) => o.textContent));
 ok((await value(p, SIDO)) === "" && sidoOpts[0] === "전국", `중앙정부 기본 기준지역 = 전국 (${sidoOpts[0]})`);
@@ -282,8 +282,8 @@ await enabledAgain(p);
 await p.getByRole("button", { name: "AI 모드 종료" }).click();
 await c1.close();
 
-// ── 2) 지자체(yc_safety02) — 기본 경상북도 영천시, 바꿀 수 있음 ──
-const { ctx: c2, page: y } = await session("yc_safety02");
+// ── 2) 지자체(01000) — 기본 경상북도 영천시, 바꿀 수 있음 ──
+const { ctx: c2, page: y } = await session("01000");
 await loaded(y, SIDO);
 await loaded(y, SGG);
 ok((await value(y, SIDO)) === "47" && (await value(y, SGG)) === "47230", `지자체 기본 = 경상북도 영천시 (${await value(y, SIDO)}/${await value(y, SGG)})`);
@@ -306,7 +306,7 @@ await c2.close();
 const KMA = JSON.parse(readFileSync(join(APP, "harness", "region", "kma_t6_samples.json"), "utf8"));
 const cold = KMA.samples.find((x) => x.key === "cold");
 const coldBody = JSON.stringify(weatherOf(cold.t6, cold.tmFc));
-const { ctx: c4, page: k } = await session("yc_safety02", (ctx) => ctx.route("**/api/weather", (r) => r.fulfill({ status: 200, contentType: "application/json", body: coldBody })));
+const { ctx: c4, page: k } = await session("01000", (ctx) => ctx.route("**/api/weather", (r) => r.fulfill({ status: 200, contentType: "application/json", body: coldBody })));
 await loaded(k, SGG);
 ok((await value(k, SGG)) === "47230", "지자체 기본 = 경상북도 영천시");
 const wxCold = await text(k, ".wxbar .tit");
@@ -319,7 +319,7 @@ await shot(k, "17_yc_cold0500_pohang_excluded");
 await c4.close();
 
 // ── 3) 목록을 받지 못하면 — 「전국」만(지어낸 보기 없음) + 짧은 안내, 다시 불러오기로 회복 ──
-const { ctx: c3, page: f } = await session("mois_dsd01");
+const { ctx: c3, page: f } = await session("hang");
 regionsBlocked = true;
 await c3.route("**/api/regions**", (r) => r.fulfill({ status: 502, contentType: "application/json", body: JSON.stringify({ error: "행정구역 목록을 받지 못했습니다." }) }));
 await f.reload();

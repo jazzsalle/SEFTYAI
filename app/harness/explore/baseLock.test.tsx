@@ -28,7 +28,7 @@ describe("판정 함수 — 진행 중이고 AI 모드 점검이 아닐 때만 �
 });
 
 // ── 실제 SessionProvider — 서버 응답만 흉내 낸다 ──
-const ACC = ACCOUNTS.find((a) => a.id === "bs_safety01")!;
+const ACC = ACCOUNTS.find((a) => a.id === "busan")!;
 const srv = vi.hoisted(() => ({
   jobs: [] as unknown[],
   /** POST /api/agent/jobs — 시험이 정한다(기다리게 하려면 미룬 약속) */
@@ -247,7 +247,7 @@ describe("기준지역을 바꾸면 AI 모드가 꺼진다(R47)", () => {
   });
 
   it("AI 모드 켜짐은 계정별로 저장 — 같은 브라우저의 다른 계정 값은 이어지지 않는다", async () => {
-    localStorage.setItem("sa.aim.ij_safety01", "true");
+    localStorage.setItem("sa.aim.inje", "true");
     localStorage.setItem("sa.aim", "true"); // 예전 판(브라우저 하나에 저장)의 값도 읽지 않는다
     await mount();
     expect(S.aimOn).toBe(false);

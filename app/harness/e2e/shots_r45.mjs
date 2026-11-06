@@ -1,11 +1,11 @@
 // 하네스 — R44(기준지역 잠금에서 AI 모드 점검 빼기) · R45(시연 시나리오를 켠 동안 시연 계정은 기상청 실시간 특보 끊음) 화면 확인
-//  (가) 시나리오 켬 → 부산 bs_safety01 특보 줄: 「부산 호우경보 발효 중 · 시연 시나리오」 · 「HH:MM 켬 · 기상청 실시간 특보 끊음」(기상청 시각 없음) · /api/weather realtimeCut
+//  (가) 시나리오 켬 → 부산 busan 특보 줄: 「부산 호우경보 발효 중 · 시연 시나리오」 · 「HH:MM 켬 · 기상청 실시간 특보 끊음」(기상청 시각 없음) · /api/weather realtimeCut
 //  (나) AI 모드 창(실제 T3Q 점검 1건 — 같은 10분 구간이면 원래 점검 작업을 돌려받음) — 「켬 · 시연 시나리오 · 기상청 실시간 특보 끊음」
 //  (다) R44·R47 — 점검이 도는 동안 기준지역 고르기가 막히지 않고, 서울특별시로 바꾸면 확인 창(두 줄) → AI 모드 꺼짐 · 진행 중이던 부산 점검 취소 · 새 지역 점검 없음.
 //       서울특별시에서 AI 모드를 다시 켜면 시나리오 특보 없는 점검(실제 T3Q 점검 1건)
 //       → 특보 줄 「실시간 끊음」(회색) · 「서울특별시에는 시연 시나리오 특보가 없습니다」 · 갱신 칸 「기상청 실시간 특보 끊음」 · 「특보 없음」·「발효 중인 기상특보가 없습니다」 없음
 //       · 머리줄 AI 모드 단추 회색 · AI 모드 창
-//  (라) mois_dsd01 — 기상청 실시간 그대로(끊음 없음 · 기상청 시각)
+//  (라) hang — 기상청 실시간 그대로(끊음 없음 · 기상청 시각)
 //  (마) 운영관리 — 「시연 시나리오 특보」·「시연 세트 예열」 설명
 //  (바) 시나리오 끔 → 부산 다시 실시간
 // node harness/e2e/shots_r45.mjs [baseUrl=http://localhost:3100]   → harness/reports/shots/r45_*.png
@@ -87,7 +87,7 @@ const waitAnswer = (page) =>
     return t && !/기다리는 중|준비하고 있습니다|불러오는 중/.test(t);
   }, null, { timeout: 240000 });
 
-const admin = await session("admin01");
+const admin = await session("unes");
 const setScenario = (on) =>
   admin.page.evaluate(async (v) => {
     const r = await fetch("/api/admin/scenario", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(v ? { on: true, until: new Date(Date.now() + 2 * 3600_000).toISOString() } : { on: false }) });
@@ -98,7 +98,7 @@ try {
   // ── (가) 켬 → 부산 특보 줄 ──
   const st = await setScenario(true);
   ok(st.live === true, `시나리오 켬 · ${st.state?.startedAt}`);
-  const bs = await session("bs_safety01");
+  const bs = await session("busan");
   if (await bs.page.locator(".ai-pill.on").count()) await bs.page.locator(".ai-pill").click();
   await reload(bs.page);
   const w = await weather(bs.page);
@@ -177,7 +177,7 @@ try {
   await bs.page.getByRole("button", { name: "AI 모드 종료" }).click();
 
   // ── (라) 행안부 — 기상청 실시간 그대로 ──
-  const mo = await session("mois_dsd01");
+  const mo = await session("hang");
   const mw = await weather(mo.page);
   const mbar = await text(mo.page, ".wxbar");
   ok(!mw.realtimeCut && !mw.advisories.some((a) => a.scenario) && !mbar.includes("끊음") && !mbar.includes(SCN) && /기상청 \d\d:\d\d|조회 \d\d:\d\d|최종 시도/.test(mbar), `행안부 특보 줄 「${mbar.slice(0, 110)}」`);

@@ -38,9 +38,9 @@ beforeAll(async () => {
   sql = db.db() as never;
   J = await import("@/lib/server/jobs");
   const { ACCOUNTS } = await import("@/lib/config");
-  busan = ACCOUNTS.find((a) => a.id === "bs_safety01")!;
-  inje = ACCOUNTS.find((a) => a.id === "ij_safety01")!;
-  central = ACCOUNTS.find((a) => a.id === "mois_dsd01")!;
+  busan = ACCOUNTS.find((a) => a.id === "busan")!;
+  inje = ACCOUNTS.find((a) => a.id === "inje")!;
+  central = ACCOUNTS.find((a) => a.id === "hang")!;
 });
 
 const stale = (id: string) => sql.query("update sa_agent_jobs set last_polled_at = now() - interval '5 minutes' where id = $1", [id]);
@@ -232,7 +232,7 @@ describe("재사용 기준(D5) — 원래 받은 시각 기준 24시간, 접수 
     const { scenarioSet } = await import("@/lib/server/scenario");
     const { scenarioLive, scenarioWeather } = await import("@/lib/scenario");
     const { warningsPayload } = await import("@/lib/wxref");
-    const admin = ACCOUNTS.find((a) => a.id === "admin01")!;
+    const admin = ACCOUNTS.find((a) => a.id === "unes")!;
     const st = await scenarioSet(admin, { on: true, until: new Date(Date.now() + 4 * 3_600_000).toISOString() });
     try {
       expect(scenarioLive(st)).toBe(true);
@@ -258,7 +258,7 @@ describe("재사용 기준(D5) — 원래 받은 시각 기준 24시간, 접수 
   it("기상청 실시간이 끊긴 시연 계정(R45)은 실시간 특보가 발효 중이어도 24시간 — 같은 지역을 보는 다른 계정(행안부)은 지금처럼 1시간", async () => {
     const { ACCOUNTS } = await import("@/lib/config");
     const { scenarioSet } = await import("@/lib/server/scenario");
-    const admin = ACCOUNTS.find((a) => a.id === "admin01")!;
+    const admin = ACCOUNTS.find((a) => a.id === "unes")!;
     // 기상청 흉내: 부산 호우경보 발효 중(이 묶음 맨 위) — 시나리오 없이는 부산 2시간 전 답을 다시 쓰지 않는다(위 「특보 발효 중인 지역(부산)」 시험)
     const src = await answered(busan, "재사용 시험 끊김", QC.busan, "2 hours");
     await scenarioSet(admin, { on: true, until: new Date(Date.now() + 4 * 3_600_000).toISOString(), regions: ["busan"] });

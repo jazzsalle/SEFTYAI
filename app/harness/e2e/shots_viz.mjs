@@ -1,11 +1,11 @@
 // 시각화(V1~V4) 적용 전후 비교 캡처 — 같은 질문·같은 화면을 찍는다.
-// node harness/e2e/shots_viz.mjs <before|after> [baseUrl] [accountId=yc_safety02] [libraryText]
+// node harness/e2e/shots_viz.mjs <before|after> [baseUrl] [accountId=01000] [libraryText]
 import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { chromium } from "playwright-core";
 import { APP } from "../t3q/client.mjs";
 
-const [tag = "before", base = "http://localhost:3100", id = "yc_safety02", qText = "영천시에서 과거 호우로 피해가 컸던 사례는?"] = process.argv.slice(2);
+const [tag = "before", base = "http://localhost:3100", id = "01000", qText = "영천시에서 과거 호우로 피해가 컸던 사례는?"] = process.argv.slice(2);
 const out = join(APP, "harness", "reports", "shots", "viz");
 mkdirSync(out, { recursive: true });
 const line = readFileSync(join(APP, ".env.development.local"), "utf8").split(/\r?\n/).find((l) => l.startsWith("SA_INIT_PASSWORDS="));

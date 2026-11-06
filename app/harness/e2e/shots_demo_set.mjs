@@ -1,9 +1,9 @@
 // 하네스 — R42(시연 묶음·프리셋·예열) · R43(시연 시나리오 특보) 화면 확인
-//  (가) 부산 bs_safety01 — 질문 모음 「재난담당자의 하루」 탭
-//  (나) 인제 ij_safety01 — 묶음 항목(IJ-01, 예열해 둔 답) 누름 → 질문 아래 「이 질문에 붙인 조건」 · 입력창 세션 조건 그대로
-//  (다) 운영관리 admin01 — 「시연 세트 예열」 화면(시나리오 패널 · 예열 표). 「이 항목만 예열」은 IJ-01 한 항목만(예열해 둔 답이면 캐시 재사용 — 새 질의 없음)
+//  (가) 부산 busan — 질문 모음 「재난담당자의 하루」 탭
+//  (나) 인제 inje — 묶음 항목(IJ-01, 예열해 둔 답) 누름 → 질문 아래 「이 질문에 붙인 조건」 · 입력창 세션 조건 그대로
+//  (다) 운영관리 unes — 「시연 세트 예열」 화면(시나리오 패널 · 예열 표). 「이 항목만 예열」은 IJ-01 한 항목만(예열해 둔 답이면 캐시 재사용 — 새 질의 없음)
 //  (라) 시나리오 켬 → 부산 특보 줄·AI 모드 창(실제 점검 1건)·AI 모드 띠에 「시연 시나리오」, 대응절차 추천 3단계 · 인제 특보 줄
-//  (마) 중앙정부 mois_dsd01 · 운영자 admin01 에는 안 보임(특보 줄 · /api/weather 응답)
+//  (마) 중앙정부 hang · 운영자 unes 에는 안 보임(특보 줄 · /api/weather 응답)
 //  (바) 끔 → 부산 특보 줄에서 사라짐
 // node harness/e2e/shots_demo_set.mjs [baseUrl=http://localhost:3100]   → harness/reports/shots/r42_*.png
 // 실제 T3Q 에이전트 질의 = (라) 부산 AI 모드 점검 1건(같은 10분 구간·같은 특보면 재사용). (나)·(다)는 예열해 둔 답이면 재사용(24시간 안).
@@ -65,7 +65,7 @@ const reload = async (page) => {
   await page.waitForFunction(() => !/확인하고 있습니다/.test(document.querySelector(".wxbar .tit")?.textContent ?? ""), null, { timeout: 20000 });
 };
 
-const admin = await session("admin01");
+const admin = await session("unes");
 const setScenario = (on) =>
   admin.page.evaluate(async (v) => {
     const r = await fetch("/api/admin/scenario", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(v ? { on: true, until: new Date(Date.now() + 2 * 3600_000).toISOString() } : { on: false }) });
@@ -77,7 +77,7 @@ try {
   await setScenario(false);
 
   // ── (가) 부산 — 질문 모음 「재난담당자의 하루」 ──
-  const bs = await session("bs_safety01");
+  const bs = await session("busan");
   // AI 모드가 켜진 채 남아 있으면 끈다(이 단계에서 점검을 보내지 않게)
   if (await bs.page.locator(".ai-pill.on").count()) await bs.page.locator(".ai-pill").click();
   await bs.page.getByRole("button", { name: "질문 목록 보기" }).click();
@@ -88,7 +88,7 @@ try {
   await bs.page.getByRole("button", { name: "닫기" }).click();
 
   // ── (나) 인제 — 묶음 항목 누름(예열해 둔 IJ-01) ──
-  const ij = await session("ij_safety01");
+  const ij = await session("inje");
   if (await ij.page.locator(".ai-pill.on").count()) await ij.page.locator(".ai-pill").click();
   const condBefore = await text(ij.page, ".cmp-cond");
   await ij.page.getByRole("button", { name: "질문 목록 보기" }).click();
@@ -153,7 +153,7 @@ try {
   await shot(ij.page, "08_inje_wxbar_scenario");
 
   // ── (마) 중앙정부·운영자에는 안 보임 ──
-  const mo = await session("mois_dsd01");
+  const mo = await session("hang");
   ok(!(await text(mo.page, ".wxbar")).includes(SCN) && (await scnIds(mo.page)).length === 0, `중앙정부 특보 줄 「${(await text(mo.page, ".wxbar")).slice(0, 80)}」 · /api/weather 시나리오 없음`);
   await shot(mo.page, "09_central_no_scenario");
   await admin.page.goto(base + "/explore");

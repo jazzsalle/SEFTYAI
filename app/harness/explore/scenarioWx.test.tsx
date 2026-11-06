@@ -37,29 +37,30 @@ const hm = (iso: string) => {
 };
 
 const bar = (weather: WeatherResponse, base: BaseRegion | null = BUSAN, setWxRef: (a: Advisory | null) => void = () => {}) => {
-  session.s = { weather, account: { id: "bs_safety01" }, cond: { base }, wxRef: null, setWxRef, aimOn: false };
+  session.s = { weather, account: { id: "busan" }, cond: { base }, wxRef: null, setWxRef, aimOn: false };
   return render(<WxBar />).container.querySelector(".wxbar")!;
 };
 
 describe("특보 줄 — 「시연 시나리오」 표지 · 기상청 실시간 특보 끊음(R45)", () => {
   it("시나리오 특보 — 이름 옆에 「시연 시나리오」, 갱신 칸 = 「HH:MM 켬 · 기상청 실시간 특보 끊음」(기상청 시각 없음)", () => {
-    const b = bar(cutOf("bs_safety01"));
+    const b = bar(cutOf("busan"));
     expect(b.querySelector(".tit")!.textContent).toBe("부산 호우예비특보 발효 중 시연 시나리오");
     expect(b.querySelector(".tit .scn-tag")!.textContent).toBe("시연 시나리오");
     expect(b.querySelector(".meta")!.textContent).toBe(`${hm(ON.startedAt!)} 켬 · 기상청 실시간 특보 끊음`);
     expect(b.textContent).not.toMatch(/기상청 \d\d:\d\d (갱신|발표)|조회 \d\d:\d\d/);
   });
 
-  it("[특보로 질문] — 시나리오 특보 하나를 바로 참조로 건다", () => {
+  it("[특보로 질문] — 시나리오 특보 하나를 바로 참조로 건다", async () => {
     const set = vi.fn();
-    bar(cutOf("bs_safety01"), BUSAN, set);
+    bar(cutOf("busan"), BUSAN, set);
     fireEvent.click(screen.getByRole("button", { name: /특보로 질문/ }));
     expect(set).toHaveBeenCalledTimes(1);
     expect((set.mock.calls[0][0] as Advisory).id).toBe("SCN-BS-PRE-1");
+    await new Promise((r) => setTimeout(r, 120)); // 누른 뒤 입력칸 포커스 타이머(AppShell 80ms)가 jsdom 정리 뒤에 돌지 않게 기다림
   });
 
   it("기준지역을 시나리오 구역 밖으로 바꾸면 — 「실시간 끊음」(회색) · 「…에는 시연 시나리오 특보가 없습니다」 · 「특보 없음」·「발효 중인 기상특보가 없습니다」 없음", () => {
-    const b = bar(cutOf("bs_safety01"), SEOUL);
+    const b = bar(cutOf("busan"), SEOUL);
     const tag = b.querySelector(".tag")!;
     expect(tag.textContent).toBe("실시간 끊음");
     expect(tag.className).toBe("tag fail"); // 회색(빨강·녹색 아님)
@@ -86,24 +87,24 @@ describe("특보 줄 — 「시연 시나리오」 표지 · 기상청 실시간
   });
 
   it("인제·영천 — 시연 계정 기준지역에서 그 지역 시나리오가 보인다", () => {
-    const b1 = bar(cutOf("ij_safety01"), { sido: { code: "51", name: "강원특별자치도" }, sigungu: { code: "51810", name: "인제군" } });
+    const b1 = bar(cutOf("inje"), { sido: { code: "51", name: "강원특별자치도" }, sigungu: { code: "51810", name: "인제군" } });
     expect(b1.querySelector(".tit")!.textContent).toBe("강원도(인제평지, 인제산지) 호우주의보 발효 중 시연 시나리오");
     expect(b1.querySelector(".meta")!.textContent).toContain("기상청 실시간 특보 끊음");
     cleanup();
-    const b2 = bar(cutOf("yc_safety02"), { sido: { code: "47", name: "경상북도" }, sigungu: { code: "47230", name: "영천시" } });
+    const b2 = bar(cutOf("01000"), { sido: { code: "47", name: "경상북도" }, sigungu: { code: "47230", name: "영천시" } });
     expect(b2.querySelector(".tit")!.textContent).toBe("경상북도(영천) 호우경보 발효 중 시연 시나리오");
   });
 });
 
 const aimSession = (weather: WeatherResponse, base: BaseRegion, submit = vi.fn(async () => ({ id: "j1", created_at: now }))) => {
-  session.s = { weather, account: { id: "bs_safety01" }, cond: { base }, submit, jobs: {}, full: {}, loadFull: () => {}, toast: () => {}, setAimOn: () => {} };
+  session.s = { weather, account: { id: "busan" }, cond: { base }, submit, jobs: {}, full: {}, loadFull: () => {}, toast: () => {}, setAimOn: () => {} };
   return submit;
 };
 type AimArg = { question: string; source: string; warnings: { source: string; collect_status: string; collected_at: string; items: { warning_key: string }[] } };
 
 describe("AI 모드 창·띠 — 「시연 시나리오」, 점검 질의에는 시나리오 출처 · 끊김 표시(R45)", () => {
   it("창의 특보 이름 옆 표지 · 「켬 · 시연 시나리오 · 기상청 실시간 특보 끊음」 · 점검 질의 weather_warnings · 접은 띠의 이름·끊김", async () => {
-    const submit = aimSession(cutOf("bs_safety01"), BUSAN);
+    const submit = aimSession(cutOf("busan"), BUSAN);
     const { container } = render(<AiModeModal />);
     await act(async () => {});
     const card = container.querySelector(".aim-card")!;
@@ -125,7 +126,7 @@ describe("AI 모드 창·띠 — 「시연 시나리오」, 점검 질의에는 
   });
 
   it("끊긴 계정이 기준지역을 구역 밖으로 — 「서울특별시 시연 시나리오 특보 없음」 · 끊김 · 회색 점, 「발효 특보 없음」 없음 · 질의는 시나리오 출처 빈 목록", async () => {
-    const submit = aimSession(cutOf("bs_safety01"), SEOUL);
+    const submit = aimSession(cutOf("busan"), SEOUL);
     const { container } = render(<AiModeModal />);
     await act(async () => {});
     const card = container.querySelector(".aim-card")!;
@@ -140,10 +141,10 @@ describe("AI 모드 창·띠 — 「시연 시나리오」, 점검 질의에는 
   });
 
   it("머리줄 AI 모드 단추 색 — 끊긴 계정에 덮는 특보가 없으면 녹색이 아니라 회색, 덮는 시나리오 특보가 있으면 단계 색", () => {
-    const cut = cutOf("bs_safety01");
+    const cut = cutOf("busan");
     expect(aimTone(cut, [])).toBe("gray");
     expect(aimTone(cut, cut.advisories)).toBe("yellow"); // 부산 호우 예비특보(2026-11-02)
-    expect(aimTone(cutOf("ij_safety01"), cutOf("ij_safety01").advisories)).toBe("yellow"); // 인제 호우주의보
+    expect(aimTone(cutOf("inje"), cutOf("inje").advisories)).toBe("yellow"); // 인제 호우주의보
     // 끊지 않은 계정 — 지금 그대로(특보 없음 녹색 · 조회 실패 회색 · 아직 못 받음 녹색)
     expect(aimTone(live(), [])).toBe("green");
     expect(aimTone(live([KMA]), [KMA])).toBe("yellow");
@@ -163,7 +164,7 @@ describe("AI 모드 창·띠 — 「시연 시나리오」, 점검 질의에는 
 
 describe("특보 줄 — AI 모드를 켠 동안 [특보로 질문] 자리(R46 — 표기를 동작에 맞춤)", () => {
   it("「AI 모드 · 브리핑에 특보 반영」 · 누를 수 없음 · 말풍선 = 브리핑 질문에만 특보(「자동 반영」이라 하지 않음)", () => {
-    session.s = { weather: cutOf("bs_safety01"), account: { id: "bs_safety01" }, cond: { base: BUSAN }, wxRef: null, setWxRef: () => {}, aimOn: true };
+    session.s = { weather: cutOf("busan"), account: { id: "busan" }, cond: { base: BUSAN }, wxRef: null, setWxRef: () => {}, aimOn: true };
     const { container } = render(<WxBar />);
     const b = screen.getByRole("button", { name: /AI 모드 · 브리핑에 특보 반영/ }) as HTMLButtonElement;
     expect(b.disabled).toBe(true);

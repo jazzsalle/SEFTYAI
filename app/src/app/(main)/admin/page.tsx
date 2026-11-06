@@ -946,7 +946,7 @@ function AccountsTab() {
       {error && <div className="notice danger" role="alert" style={{ marginBottom: 12 }}>{error}</div>}
       <section className="adm-sec" style={{ marginTop: 0 }}>
         <h2>
-          계정 <small>사전 발급 5계정 · 30초마다 갱신</small>
+          계정 <small>사전 발급 7계정 · 30초마다 갱신</small>
           <span className="sp" />
           <button type="button" className="btn sm" onClick={() => load()}>새로고침</button>
         </h2>
