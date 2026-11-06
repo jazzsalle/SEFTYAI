@@ -47,3 +47,8 @@
 - SUCCESS가 아닌 답은 24시간 재사용·시연 고정 대상에서 뺀다 — 실패로 보이는 답이 다음 질문에 다시 붙지 않게 (`lib/server/jobs.ts`)
 - 특보 띠가 돌아가는 동안에도 [모두 보기]로 발효 특보 전체를 한 번에 본다, [정지] 단추는 좁은 화면에서도 남는다 (`components/AppShell.tsx` `WxBar`)
 - 개발서버 반영 시 참고: 개발서버 `AnswerPanel` 실패 알럿에 원문 보기를 붙이려면 `turn.envelope`가 이미 있으니 그대로 쓰면 된다. 캐시는 백엔드 `AgentJobs` 재사용 조건에 상태 SUCCESS를 거는 것으로 같다.
+
+## 10. 스타일 구조
+- KRDS 원본 CSS를 싣지 않고 토큰만 `app/globals.css` `:root`에 둔다(변수 이름은 개발서버 `styles/renewal/tokens.css`와 같다). 화면별 스타일은 컴포넌트 옆 `.css` 한 곳에만 둔다.
+- 개발서버는 `krds.min.css`(1rem=10px) → `index.css`(7천 줄) → `styles/renewal/*`(같은 클래스를 덮음) 세 겹이라, 한 요소에 규칙이 두세 번 걸리고 읽는 순서가 바뀌면 화면이 깨진다.
+- 개발서버 반영 시 참고: renewal 덮어쓰기는 그대로 두되, renewal이 이미 덮은 `index.css` 규칙을 한 번 걷어내면 고칠 곳이 하나로 준다. 개발서버 치수(rem, 1rem=10px)를 옮길 때는 ×10 px로 바꾼다.
