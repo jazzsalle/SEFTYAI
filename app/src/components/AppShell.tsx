@@ -22,6 +22,7 @@ import FontSize from "./FontSize";
 import { PasswordModal } from "./account/PasswordModal";
 import { MyInfoModal } from "./account/MyInfoModal";
 import { SessionExpiredModal } from "./account/SessionExpiredModal";
+import { BriefingSettingsHost, openBriefingSettings } from "./briefing/BriefingSettingsModal";
 
 /** 시연 시나리오 특보 표지(R43) — 특보 이름 옆에. 기상청 특보가 아님을 보이는 것이라 좁은 화면에서도 숨기지 않는다 */
 export const ScnTag = ({ a }: { a: Pick<Advisory, "scenario"> }) => (a.scenario ? <span className="scn-tag">{SCN_LABEL}</span> : null);
@@ -311,7 +312,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                 <div className="xs muted">{account.org} {account.dept}</div>
               </div>
               <Link href="/contacts" onClick={() => setMenu(false)}>연락망·상황전파</Link>
-              <Link href="/settings/briefing" onClick={() => setMenu(false)}>브리핑 설정</Link>
+              <button onClick={() => { setMenu(false); openBriefingSettings(); }}>브리핑 설정</button>
               <button onClick={() => { setMenu(false); setModal("me"); }}>내 권한 정보</button>
               <button onClick={() => { setMenu(false); setModal("pw"); }}>비밀번호 변경</button>
               <button onClick={async () => { await logout(); router.push("/login"); }}>로그아웃</button>
@@ -339,6 +340,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       {account.mustChangePw && modal !== "pw" && <PasswordModal forced onClose={() => {}} onDone={() => window.location.reload()} />}
       {modal === "me" && <MyInfoModal onClose={() => setModal(null)} />}
       <SessionExpiredModal />
+      <BriefingSettingsHost />
       {toastMsg && <div className="toast" role="status">{toastMsg}</div>}
     </div>
     </SopProvider>

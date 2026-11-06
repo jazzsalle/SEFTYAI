@@ -36,9 +36,11 @@ export interface DialogProps {
   busy?: boolean;
   /** 열릴 때 먼저 초점을 둘 요소 (없으면 본문 첫 입력·버튼) */
   initialFocus?: React.RefObject<HTMLElement | null>;
+  /** 상자에 덧붙일 class(넓은 창 — 브리핑 설정 등) */
+  className?: string;
 }
 
-export function Dialog({ title, desc, children, footer, onClose, closeOnBackdrop, onSubmit, role = "dialog", size = "md", busy, initialFocus }: DialogProps) {
+export function Dialog({ title, desc, children, footer, onClose, closeOnBackdrop, onSubmit, role = "dialog", size = "md", busy, initialFocus, className }: DialogProps) {
   const [on, setOn] = useState(false);
   const box = useRef<HTMLDivElement>(null);
   const tid = useId();
@@ -94,7 +96,7 @@ export function Dialog({ title, desc, children, footer, onClose, closeOnBackdrop
     <div className="acm-ovl" onMouseDown={(e) => { if (closeOnBackdrop && e.target === e.currentTarget) closeRef.current?.(); }}>
       <div
         ref={box}
-        className={`acm-dlg ${size === "sm" ? "sm" : ""}`}
+        className={`acm-dlg ${size === "sm" ? "sm" : ""} ${className ?? ""}`}
         role={role}
         aria-modal="true"
         aria-labelledby={tid}

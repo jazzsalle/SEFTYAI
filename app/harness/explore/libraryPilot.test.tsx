@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-// 질문 모음·시작 화면 — 시·도까지만 고른 기준지역에서도 인제·영천 질문(R48 — lib/baseRegion baseQuestionPilot).
+// 질문 모음 — 시·도까지만 고른 기준지역에서도 인제·영천 질문(R48 — lib/baseRegion baseQuestionPilot).
 // 강원특별자치도 = 인제, 경상북도 = 영천. 그 도의 다른 시·군(춘천시 등)은 지금처럼 지역 질문 없음. 보낼 때 기준지역은 화면 값 그대로(묶음 항목은 안내 줄)
 // npx vitest run harness/explore/libraryPilot
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
@@ -12,7 +12,8 @@ vi.mock("@/lib/session", () => ({ useSession: () => session.s, uid: (p: string) 
 // 받아 둔 답 — SH-1-1 · IG-IJ-02 만 있다고 둔다(개발서버 ai_demo_pin 의 received_at 자리)
 const pins = vi.hoisted(() => ({ v: {} as Record<string, unknown> }));
 vi.mock("@/lib/api", () => ({ api: async (path: string) => (path === "/api/demo-pins" ? { pins: pins.v } : {}) }));
-vi.mock("@/lib/briefing", async (orig) => ({ ...(await orig<typeof import("@/lib/briefing")>()), useBriefingSet: () => ({ items: [], checked: [], loaded: true }) }));
+const brief = vi.hoisted(() => ({ v: [] as { id: string; label: string; question: string; checked: boolean }[] }));
+vi.mock("@/lib/briefing", async (orig) => ({ ...(await orig<typeof import("@/lib/briefing")>()), useBriefingSet: () => ({ items: brief.v, checked: brief.v.filter((x) => x.checked), loaded: true }) }));
 
 import LibraryDrawer from "@/components/explore/LibraryDrawer";
 import StartScreen from "@/components/explore/StartScreen";
@@ -105,15 +106,25 @@ describe("질문 모음 「시연」 — 받아 둔 답이 없는 질문은 회�
   });
 });
 
-describe("시작 화면 질문 타일 — 시·도까지만 고른 기준지역(R48)", () => {
-  const tiles = (base: BaseRegion) => {
-    session.s = { cond: { base, region: basePilot(base) } };
-    const c = render(<StartScreen regionName={baseName(base)} onBriefing={() => {}} onAskBrief={() => {}} onAskLib={() => {}} />).container;
-    return [...c.querySelectorAll(".tile-q")].map((x) => x.textContent);
-  };
-  it("경상북도 → 영천 문항이 먼저, 강원특별자치도 → 인제 문항이 먼저", () => {
-    expect(tiles(GYEONGBUK)[0]).toBe((libById("YC-03") as LibraryQuestion).text);
-    cleanup();
-    expect(tiles(GANGWON)[0]).toBe((libById("IJ-01") as LibraryQuestion).text);
+describe("시작 화면 — 개발서버 StartGuide 그대로(R53)", () => {
+  it("타일은 브리핑 항목만(지역 질문 타일 없음), 누르면 보내지 않고 질문 칸에 넣을 글을 넘긴다", () => {
+    brief.v = [
+      { id: "a", label: "위험·취약지역", question: "{지역}에서 먼저 점검할 곳은?", checked: true },
+      { id: "b", label: "침수 이력", question: "최근 침수 이력은?", checked: false },
+    ];
+    session.s = { cond: { base: GYEONGBUK, region: basePilot(GYEONGBUK) } };
+    const pick = vi.fn();
+    const c = render(<StartScreen regionName={baseName(GYEONGBUK)} onBriefing={() => {}} onPick={pick} />).container;
+    expect([...c.querySelectorAll(".tile-q")].map((x) => x.textContent)).toEqual(["경상북도에서 먼저 점검할 곳은?", "최근 침수 이력은?"]);
+    expect(c.textContent).not.toContain((libById("YC-03") as LibraryQuestion).text);
+    fireEvent.click(c.querySelectorAll(".tile")[1]);
+    expect(pick).toHaveBeenCalledWith("최근 침수 이력은?");
+    expect(c.textContent).toContain("브리핑 세트 1개 항목");
+    brief.v = [];
+  });
+  it("항목이 없으면 「등록된 브리핑 항목이 없습니다.」", () => {
+    session.s = { cond: { base: GANGWON, region: basePilot(GANGWON) } };
+    const c = render(<StartScreen regionName={baseName(GANGWON)} onBriefing={() => {}} onPick={() => {}} />).container;
+    expect(c.textContent).toContain("등록된 브리핑 항목이 없습니다.");
   });
 });

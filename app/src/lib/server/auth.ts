@@ -6,8 +6,10 @@ import { db, ensureSchema } from "./db";
 
 /**
  * 로그인·세션 (R7, UFR-007) — 사전 발급 7계정(R50 개발서버 아이디), scrypt 해시, 서명 쿠키 sa_sid
- * 유휴 4시간(슬라이딩, last_seen 갱신은 60초에 1회) · 절대 12시간 · 같은 계정 새 로그인 시 기존 세션 종료
- * 비밀번호 9자 이상 + 영문·숫자·특수문자 · 5회 실패 15분 잠금
+ * 유휴 4시간(슬라이딩, last_seen 갱신은 60초에 1회) · 절대 12시간 · 비밀번호 9자 이상 + 영문·숫자·특수문자 · 5회 실패 15분 잠금
+ * 한 사람당 접속 하나 — 개발서버 AuthService(R53): 비밀번호가 맞았는데 다른 곳에서 접속 중이면(자취 beat_at 이 2분 안·이 브라우저의 세션이 아님)
+ * 바로 들이지 않고 409 AUTH_SESSION_EXISTS 로 되묻는다(SCR-UNE-101003). force 면 그 접속을 끊고(revoked_reason TAKEN_OVER) 들어간다.
+ * 끊긴 쪽은 다음 두드림(/api/auth/ping)에서 AUTH_SESSION_TAKEN_OVER 를 받아 「접속이 종료되었습니다」(101004)를 띄운다.
  */
 const scrypt = promisify(_scrypt) as (pw: string, salt: Buffer, len: number, opt: object) => Promise<Buffer>;
 export const COOKIE = "sa_sid";
@@ -16,6 +18,13 @@ const ABS_MS = 12 * 3600_000;
 const LOCK_MS = 15 * 60_000;
 const MAX_FAIL = 5;
 const N = 2 ** 15, R = 8, P = 1;
+/** 이 시간 안에 자취가 있으면 「접속 중」(개발서버 SessionLife.Window) */
+export const LIVE_WINDOW_MS = 2 * 60_000;
+/** 자취를 다시 찍는 간격(개발서버 SessionLife.TouchEvery) */
+const TOUCH_MS = 20_000;
+export const SESSION_EXISTS = "AUTH_SESSION_EXISTS";
+export const TAKEN_OVER = "AUTH_SESSION_TAKEN_OVER";
+export const SESSION_EXPIRED = "AUTH_SESSION_EXPIRED";
 
 function secret() {
   const s = process.env.SESSION_SECRET;
@@ -56,7 +65,9 @@ export function sessionCookie(value: string, maxAgeSec: number) {
   return `${COOKIE}=${value}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${maxAgeSec}${secure}`;
 }
 
-export type LoginResult = { ok: true; account: Account; cookie: string } | { ok: false; error: string; status: number };
+export type LoginResult = { ok: true; account: Account; cookie: string } | { ok: false; error: string; status: number; code?: string };
+/** 화면설계 SCR-UNE-101003 의 확정 문구 */
+export const SESSION_EXISTS_MSG = "다른 곳에서 이 계정으로 접속 중입니다. 로그인하면 그 접속은 종료됩니다.";
 const LOCKED_MSG = "비밀번호를 5회 잘못 입력해 잠시 잠겼습니다. 15분 뒤 다시 시도하거나 운영자에게 해제를 요청하세요.";
 
 /** 실패 1회를 원자적으로 센다 — 5회째에 15분 잠금. 실패 경로에서는 잠금 시각을 지우지 않는다(동시 시도에도 안전) */
@@ -70,10 +81,14 @@ async function countFailure(id: string) {
   );
 }
 
-export async function login(id: string, pw: string, ua: string): Promise<LoginResult> {
+/**
+ * 로그인. opts.force = 다른 곳의 접속을 끊고 들어간다, opts.currentSid = 이 브라우저가 들고 온 세션(남아 있는 접속이 바로 이 브라우저의 것이면 되묻지 않는다)
+ */
+export async function login(id: string, pw: string, ua: string, opts: { force?: boolean; currentSid?: string | null } = {}): Promise<LoginResult> {
   await ensureSchema();
   const sql = db();
-  const generic = { ok: false as const, error: "아이디 또는 비밀번호가 올바르지 않습니다.", status: 401 };
+  // 화면설계 SCR-UNE-101001 의 확정 문구 — 어느 칸이 틀렸는지도, 그 계정이 있는지도 알려 주지 않는다
+  const generic = { ok: false as const, error: "아이디 또는 비밀번호를 잘못 입력했습니다. 다시 입력하세요.", status: 401 };
   const [row] = (await sql.query(
     "select id, pw_hash, status, (locked_until is not null and locked_until > now()) as locked from sa_accounts where id = $1", [id],
   )) as { id: string; pw_hash: string; status: string; locked: boolean }[];
@@ -84,6 +99,15 @@ export async function login(id: string, pw: string, ua: string): Promise<LoginRe
     await countFailure(id);
     return generic;
   }
+  // 다른 곳에서 접속 중이면 되묻는다 — 비밀번호를 확인한 «뒤에»(먼저 물으면 아이디만으로 접속 여부가 드러난다), 실패 기록을 지우기 전에
+  if (!opts.force) {
+    const live = (await sql.query(
+      `select sid from sa_sessions where account_id = $1 and revoked_at is null and expires_at > now()
+         and last_seen_at > now() - make_interval(secs => $2) and beat_at > now() - make_interval(secs => $3) and sid <> $4 limit 1`,
+      [id, IDLE_MS / 1000, LIVE_WINDOW_MS / 1000, opts.currentSid ?? ""],
+    )) as { sid: string }[];
+    if (live.length) return { ok: false, error: SESSION_EXISTS_MSG, status: 409, code: SESSION_EXISTS };
+  }
   // 성공 — 그 사이 다른 실패로 잠겼다면 들이지 않는다
   const [ok] = (await sql.query(
     "update sa_accounts set failed_count = 0, locked_until = null, last_login_at = now() where id = $1 and (locked_until is null or locked_until <= now()) returning must_change_pw", [id],
@@ -91,8 +115,9 @@ export async function login(id: string, pw: string, ua: string): Promise<LoginRe
   if (!ok) return { ok: false, error: LOCKED_MSG, status: 423 };
   const sid = randomBytes(32).toString("hex");
   const now = Date.now();
-  await sql.query("update sa_sessions set revoked_at = now() where account_id = $1 and revoked_at is null", [id]);
-  await sql.query("insert into sa_sessions (sid, account_id, created_at, last_seen_at, expires_at, ua_hash) values ($1, $2, now(), now(), $3, $4)", [
+  // 앞의 접속은 끊는다 — 끊긴 쪽이 「다른 곳에서 로그인했습니다」를 알 수 있게 까닭을 적는다
+  await sql.query("update sa_sessions set revoked_at = now(), revoked_reason = 'TAKEN_OVER' where account_id = $1 and revoked_at is null", [id]);
+  await sql.query("insert into sa_sessions (sid, account_id, created_at, last_seen_at, beat_at, expires_at, ua_hash) values ($1, $2, now(), now(), now(), $3, $4)", [
     sid, id, new Date(now + ABS_MS), createHmac("sha256", "ua").update(ua).digest("hex").slice(0, 16),
   ]);
   return { ok: true, account: { ...account, mustChangePw: !!ok.must_change_pw }, cookie: sessionCookie(sign(sid), ABS_MS / 1000) };
@@ -100,7 +125,35 @@ export async function login(id: string, pw: string, ua: string): Promise<LoginRe
 
 export async function logout(req: Request) {
   const sid = unsign(cookieOf(req));
-  if (sid) await db().query("update sa_sessions set revoked_at = now() where sid = $1", [sid]);
+  if (sid) await db().query("update sa_sessions set revoked_at = now(), revoked_reason = 'LOGOUT' where sid = $1 and revoked_at is null", [sid]);
+}
+
+/**
+ * 「아직 보고 있습니다」(개발서버 /auth/ping) — 살아 있으면 자취(beat_at)를 찍고(20초에 1회) null,
+ * 끊겼으면 까닭: 다른 곳의 로그인으로 끊긴 것은 TAKEN_OVER, 그 밖(만료·로그아웃·없음)은 EXPIRED. 유휴 시간은 늘리지 않는다
+ */
+export async function beat(req: Request): Promise<string | null> {
+  const sid = unsign(cookieOf(req));
+  if (!sid) return SESSION_EXPIRED;
+  await ensureSchema();
+  const [s] = (await db().query(
+    `select s.revoked_at, s.revoked_reason, s.last_seen_at, s.expires_at, s.beat_at, a.status
+       from sa_sessions s left join sa_accounts a on a.id = s.account_id where s.sid = $1`, [sid],
+  )) as { revoked_at: string | null; revoked_reason: string | null; last_seen_at: string; expires_at: string; beat_at: string | null; status: string | null }[];
+  if (!s) return SESSION_EXPIRED;
+  if (s.revoked_at) return s.revoked_reason === "TAKEN_OVER" ? TAKEN_OVER : SESSION_EXPIRED;
+  const now = Date.now();
+  if (s.status !== "ACTIVE" || now - new Date(s.last_seen_at).getTime() > IDLE_MS || now > new Date(s.expires_at).getTime()) return SESSION_EXPIRED;
+  if (!s.beat_at || now - new Date(s.beat_at).getTime() > TOUCH_MS) await db().query("update sa_sessions set beat_at = now() where sid = $1", [sid]);
+  return null;
+}
+
+/** 창이 닫힌다 — 접속은 두고 자취만 창(2분)보다 한 뼘 더 뒤로 보낸다. 다른 브라우저가 곧바로 들어와도 닫힌 창을 가리키며 되묻지 않는다 */
+export async function markLeft(req: Request) {
+  const sid = unsign(cookieOf(req));
+  if (!sid) return;
+  await ensureSchema();
+  await db().query("update sa_sessions set beat_at = now() - make_interval(secs => $2) where sid = $1 and revoked_at is null", [sid, LIVE_WINDOW_MS / 1000 + 1]);
 }
 
 /** 이 요청의 세션 ID(서명 확인된 것) */
@@ -139,7 +192,7 @@ export async function upsertAccount(id: string, pw: string, mustChange = true) {
      on conflict (id) do update set pw_hash = excluded.pw_hash, must_change_pw = excluded.must_change_pw, failed_count = 0, locked_until = null, status = 'ACTIVE'`,
     [id, a.name, a.region, a.role, null, await hashPw(pw), mustChange],
   );
-  await db().query("update sa_sessions set revoked_at = now() where account_id = $1 and revoked_at is null", [id]);
+  await db().query("update sa_sessions set revoked_at = now(), revoked_reason = 'RESET' where account_id = $1 and revoked_at is null", [id]);
 }
 
 /** 비밀번호 변경 — 현재 비밀번호 오입력도 잠금 횟수에 센다. 같은 비밀번호 금지. 이 세션 말고 다른 세션은 끊는다 */
@@ -156,7 +209,7 @@ export async function changePw(id: string, oldPw: string, newPw: string, keepSid
   if (newPw === oldPw) return "현재 비밀번호와 다른 비밀번호로 바꾸세요.";
   if (!pwRule(newPw)) return "새 비밀번호는 9자 이상이며 영문·숫자·특수문자를 모두 포함해야 합니다.";
   await db().query("update sa_accounts set pw_hash = $2, must_change_pw = false, failed_count = 0 where id = $1", [id, await hashPw(newPw)]);
-  await db().query("update sa_sessions set revoked_at = now() where account_id = $1 and revoked_at is null and sid <> $2", [id, keepSid ?? ""]);
+  await db().query("update sa_sessions set revoked_at = now(), revoked_reason = 'PASSWORD' where account_id = $1 and revoked_at is null and sid <> $2", [id, keepSid ?? ""]);
   return null;
 }
 

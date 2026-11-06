@@ -82,6 +82,9 @@ const SCHEMA = [
      sid text primary key, account_id text not null, created_at timestamptz not null, last_seen_at timestamptz not null,
      expires_at timestamptz not null, revoked_at timestamptz, ua_hash text)`,
   `create index if not exists sa_sessions_acc on sa_sessions (account_id) where revoked_at is null`,
+  // 중복 접속 확인(R53, 개발서버 acc_session.updt_de·SessionLife) — 자취(화면이 두드린 때)·끊긴 까닭(TAKEN_OVER·LOGOUT·PASSWORD·RESET)
+  `alter table sa_sessions add column if not exists beat_at timestamptz`,
+  `alter table sa_sessions add column if not exists revoked_reason text`,
   // 질의 작업 — raw = T3Q 최종 봉투 원문(무가공, R0·R1)
   `create table if not exists sa_agent_jobs (
      id text primary key, account_id text not null, conv_id text, turn_no int, t3q_request_id text, t3q_conversation_id text,

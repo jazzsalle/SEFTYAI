@@ -1,119 +1,285 @@
 "use client";
-import { SOURCE_LABEL } from "@/lib/jobTypes";
-import { useMemo, useState } from "react";
+/**
+ * 대화 이력 목록 (SCR-UNE-203002) — 개발서버 ConversationListPage·useConversationList 그대로(R53).
+ *  · 본인 대화만(서버 /api/conversations 가 세션 계정으로 거른다)
+ *  · 대화 제목 검색 · 대화기간(YYYY.MM.DD, 처음 = 최근 일주일) · 시·도 / 시·군·구 / 읍·면·동(「전국」 = 기준지역이 전국이었던 대화만) · [조회]
+ *  · 「적용된 조건 N」 딱지(✕ 로 떼면 바로 다시 조회) · [초기화](기본값 = 최근 일주일) · 결과 N건
+ *  · [선택 삭제] → 「선택한 대화 N건을 삭제하시겠습니까?」 — 실패하면 창을 두고 알림만
+ *  · 표: 대화 제목(누르면 그 대화를 연다) · 기준지역 · 질문 건수 · 최종 대화일시(오늘 HH:MM / YYYY.MM.DD) · 한 쪽 10줄
+ * 지역 선택지는 머리줄 기준지역과 같은 길(/api/regions — BasePicker loadAreas)
+ */
+import "./history.css";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession, type Conversation } from "@/lib/session";
 import { REGIONS } from "@/lib/config";
-import { IcSearch } from "@/components/Icons";
+import { loadAreas } from "@/components/BasePicker";
+import { Dialog } from "@/components/account/Dialog";
+import type { AreaPick } from "@/lib/baseRegion";
+import {
+  NATION, PAGE_SIZE, appliedTags, dropTag, filterConvs, initialForm, lastTurnAt, pagerPages, whenLabel, type ConvForm,
+} from "@/lib/convList";
 
-/** 대화의 기준지역 이름 — 대화를 시작할 때 남긴 이름(R32), 예전 대화는 시범 지역 이름 */
-const regionOf = (c: Conversation) => c.baseName ?? REGIONS[c.region]?.name ?? c.region;
+/** 표의 기준지역 — 대화를 시작할 때 남긴 이름(R32). 모르면 「-」(빈 값을 전국으로 적지 않는다) */
+const regionLabel = (c: Conversation) => c.baseName ?? (c.region === "national" ? "전국" : REGIONS[c.region]?.name) ?? "-";
 
-const fmt = (iso: string) => {
-  const d = new Date(iso);
-  return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, "0")}.${String(d.getDate()).padStart(2, "0")} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
-};
+/** 한 단계 선택지 — parent 가 없으면 빈 목록(꺼진 단계) */
+function useAreas(level: "sido" | "sigungu" | "emd", parent: string | null) {
+  const [items, setItems] = useState<AreaPick[]>([]);
+  useEffect(() => {
+    if (parent === null) return setItems([]);
+    let alive = true;
+    loadAreas(level, parent)
+      .then((x) => alive && setItems(x))
+      .catch(() => alive && setItems([]));
+    return () => {
+      alive = false;
+    };
+  }, [level, parent]);
+  return items;
+}
 
 export default function HistoryPage() {
-  const { convs, deleteConvs, toast } = useSession();
+  const { convs, deleteConvs } = useSession();
   const router = useRouter();
-  const [q, setQ] = useState("");
-  const [qApplied, setQApplied] = useState("");
-  const [period, setPeriod] = useState("전체");
-  
-  const [dt, setDt] = useState("전체");
-  const [rg, setRg] = useState("전체");
-  const [sel, setSel] = useState<string[]>([]);
-  const [size, setSize] = useState(10);
+  const [initial] = useState(() => initialForm());
+  const [form, setForm] = useState<ConvForm>(initial);
+  const [applied, setApplied] = useState<ConvForm>(initial);
   const [page, setPage] = useState(1);
-  const [confirm, setConfirm] = useState(false);
+  const [picked, setPicked] = useState<string[]>([]);
+  const [confirming, setConfirming] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
 
-  const list = useMemo(() => {
-    const now = Date.now();
-    const lim = period === "오늘" ? 864e5 : period === "1주일" ? 7 * 864e5 : period === "1개월" ? 30 * 864e5 : Infinity;
-    return [...convs]
-      .filter((c) => (!qApplied || c.title.includes(qApplied) || c.turns.some((t) => t.q.includes(qApplied))) && now - new Date(c.updatedAt).getTime() <= lim && (dt === "전체" || (c.disasterType ?? "전체") === dt) && (rg === "전체" || regionOf(c) === rg))
-      .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
-  }, [convs, qApplied, period, dt, rg]);
-  // 기준지역 거르개 — 내 대화에 있는 기준지역 이름만(전국 기준지역 R32)
-  const regionNames = useMemo(() => [...new Set(convs.map(regionOf))].sort((a, b) => a.localeCompare(b, "ko")), [convs]);
-  const pages = Math.max(1, Math.ceil(list.length / size));
-  const view = list.slice((page - 1) * size, page * size);
+  const sidos = useAreas("sido", "");
+  const sigungus = useAreas("sigungu", form.sido && form.sido !== NATION ? form.sido : null);
+  const emds = useAreas("emd", form.sigungu || null);
+  // 딱지 이름은 조회에 쓴 값의 목록에서 찾는다(칸을 고치는 중에도 딱지가 따라 움직이지 않게)
+  const tagSigungus = useAreas("sigungu", applied.sido && applied.sido !== NATION ? applied.sido : null);
+  const tagEmds = useAreas("emd", applied.sigungu || null);
+
+  useEffect(() => {
+    if (!toast) return;
+    const t = window.setTimeout(() => setToast(null), 3000);
+    return () => window.clearTimeout(t);
+  }, [toast]);
+
+  const list = useMemo(() => filterConvs(convs, applied), [convs, applied]);
+  const tags = useMemo(() => {
+    const pools = { sido: sidos, sigungu: tagSigungus, emd: tagEmds };
+    return appliedTags(applied, (k, code) => pools[k].find((x) => x.code === code)?.name ?? code);
+  }, [applied, sidos, tagSigungus, tagEmds]);
+  const pageCount = Math.max(1, Math.ceil(list.length / PAGE_SIZE));
+  const at = Math.min(page, pageCount);
+  const view = list.slice((at - 1) * PAGE_SIZE, at * PAGE_SIZE);
+
+  const run = (f: ConvForm) => {
+    setForm(f);
+    setApplied(f);
+    setPage(1);
+  };
+  const search = () => run(form);
+
+  const onPage = view.map((c) => c.id);
+  const allPicked = onPage.length > 0 && onPage.every((id) => picked.includes(id));
+  const toggle = (id: string) => setPicked((now) => (now.includes(id) ? now.filter((x) => x !== id) : [...now, id]));
+  const toggleAll = () => setPicked((now) => (allPicked ? now.filter((id) => !onPage.includes(id)) : [...new Set([...now, ...onPage])]));
+
+  const remove = async () => {
+    setDeleting(true);
+    try {
+      await deleteConvs(picked);
+      setConfirming(false);
+      setPicked([]);
+      setToast("대화를 삭제했습니다.");
+    } catch {
+      // 실패하면 창을 그대로 두고 알림만 — 다시 누를 수 있어야 한다
+      setToast("대화가 삭제되지 않았습니다. 잠시 후 다시 시도하세요.");
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   return (
-    <div className="page">
-      <div className="page-in narrow">
-        <button className="btn xs ghost" onClick={() => router.push("/explore")}>‹ 대화로 돌아가기</button>
-        <div className="ph" style={{ marginTop: 8 }}>
-          <h1>대화 이력</h1>
+    <div className="page conv-page">
+      <main className="conv-body">
+        <div className="conv-head">
+          <h1 className="conv-title">대화 이력</h1>
+          <div className="conv-keyword">
+            <label htmlFor="conv-keyword">대화 제목</label>
+            <div className="conv-keyword-box">
+              <input
+                id="conv-keyword"
+                type="search"
+                placeholder="검색어를 입력하세요."
+                value={form.keyword}
+                onChange={(e) => setForm({ ...form, keyword: e.target.value })}
+                onKeyDown={(e) => e.key === "Enter" && search()}
+              />
+              <button type="button" aria-label="대화 제목으로 검색" onClick={search}>
+                <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" strokeWidth="1.8" />
+                  <path d="M16 16l4.5 4.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+                </svg>
+              </button>
+            </div>
+          </div>
         </div>
-        <div className="row" style={{ gap: 0 }}>
-          <input className="input" style={{ flex: 1, borderRadius: "6px 0 0 6px", height: 46 }} placeholder="대화 제목·질문을 입력하세요" value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={(e) => e.key === "Enter" && (setQApplied(q), setPage(1))} />
-          <button className="btn pri" style={{ height: 46, borderRadius: "0 6px 6px 0" }} onClick={() => { setQApplied(q); setPage(1); }}><IcSearch /> 검색</button>
+
+        <section className="conv-filter" aria-label="검색 조건">
+          <div className="conv-filter-row">
+            <div className="conv-field conv-field--period">
+              <span className="conv-label" id="conv-period">대화기간</span>
+              <div className="conv-period" role="group" aria-labelledby="conv-period">
+                <input type="text" inputMode="numeric" placeholder="YYYY.MM.DD" aria-label="대화기간 시작" value={form.from} onChange={(e) => setForm({ ...form, from: e.target.value })} />
+                <span aria-hidden="true">~</span>
+                <input type="text" inputMode="numeric" placeholder="YYYY.MM.DD" aria-label="대화기간 끝" value={form.to} onChange={(e) => setForm({ ...form, to: e.target.value })} />
+              </div>
+            </div>
+            <div className="conv-field">
+              <label className="conv-label" htmlFor="conv-sido">시·도</label>
+              <select id="conv-sido" value={form.sido} onChange={(e) => setForm({ ...form, sido: e.target.value, sigungu: "", emd: "" })}>
+                <option value="">시·도 전체</option>
+                {/* 「전국」은 지역 조건 없음과 다르다 — 기준지역이 전국이었던 대화만 고른다 */}
+                <option value={NATION}>전국</option>
+                {sidos.map((x) => <option key={x.code} value={x.code}>{x.name}</option>)}
+              </select>
+            </div>
+            <div className="conv-field">
+              <label className="conv-label" htmlFor="conv-sigungu">시·군·구</label>
+              <select id="conv-sigungu" value={form.sigungu} disabled={sigungus.length === 0} onChange={(e) => setForm({ ...form, sigungu: e.target.value, emd: "" })}>
+                <option value="">시·군·구 전체</option>
+                {sigungus.map((x) => <option key={x.code} value={x.code}>{x.name}</option>)}
+              </select>
+            </div>
+            <div className="conv-field">
+              <label className="conv-label" htmlFor="conv-emd">읍·면·동</label>
+              <select id="conv-emd" value={form.emd} disabled={emds.length === 0} onChange={(e) => setForm({ ...form, emd: e.target.value })}>
+                <option value="">읍·면·동 전체</option>
+                {emds.map((x) => <option key={x.code} value={x.code}>{x.name}</option>)}
+              </select>
+            </div>
+            <button type="button" className="conv-search" onClick={search}>조회</button>
+          </div>
+
+          <div className="conv-hints">
+            <p>YYYY.MM.DD 형식으로 입력하세요. 예: 2026.07.25</p>
+            <p>{sigungus.length === 0 ? "시·군·구는 시·도를 먼저 고르면 선택할 수 있습니다." : "읍·면·동은 시·군·구를 먼저 고르면 선택할 수 있습니다."}</p>
+          </div>
+
+          {/* 조건 상자 안 맨 아래에 늘 보인다 — 0개여도 자리를 지킨다 */}
+          <div className="conv-applied">
+            <strong>적용된 조건 {tags.length}</strong>
+            <button type="button" className="conv-reset" onClick={() => run(initial)}>
+              <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+                <path d="M13 8a5 5 0 1 1-1.6-3.6M13 2v3h-3" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              초기화
+            </button>
+            {tags.length === 0 ? (
+              <span className="conv-applied-none">적용된 필터가 없습니다. 검색 필터를 통해 상세한 검색을 해보세요.</span>
+            ) : (
+              <ul className="conv-tags">
+                {tags.map((tag) => (
+                  <li key={tag.key}>
+                    <button type="button" onClick={() => run(dropTag(applied, tag.key))}>
+                      {tag.label}
+                      <span className="sr-only"> 조건 해제</span>
+                      <svg width="12" height="12" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+                        <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                      </svg>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <span className="conv-count">결과 <strong>{list.length}</strong>건</span>
+          </div>
+        </section>
+
+        <div className="conv-actions">
+          <button type="button" className="conv-delete" disabled={picked.length === 0} onClick={() => setConfirming(true)}>선택 삭제</button>
         </div>
-        <div className="panel row w" style={{ marginTop: 12, background: "var(--c-surface)", gap: 14, padding: "12px 16px" }}>
-          <b className="xs">기간</b>
-          {["전체", "오늘", "1주일", "1개월"].map((p) => <button key={p} className={`chip ${period === p ? "on" : ""}`} onClick={() => { setPeriod(p); setPage(1); }}>{p}</button>)}
-          <b className="xs">재난유형</b>
-          <select className="select sm" value={dt} onChange={(e) => { setDt(e.target.value); setPage(1); }} aria-label="재난유형">
-            {["전체", "호우", "태풍", "홍수", "침수", "산사태", "대설", "강풍"].map((x) => <option key={x}>{x}</option>)}
-          </select>
-          <b className="xs">기준지역</b>
-          <select className="select sm" value={rg} onChange={(e) => { setRg(e.target.value); setPage(1); }} aria-label="기준지역">
-            <option>전체</option>
-            {regionNames.map((r) => <option key={r} value={r}>{r}</option>)}
-          </select>
-          <span className="sp" />
-          <button className="btn xs ghost" onClick={() => { setQ(""); setQApplied(""); setPeriod("전체"); setDt("전체"); setRg("전체"); }}>↻ 초기화</button>
-        </div>
-        <div className="row" style={{ margin: "18px 0 8px" }}>
-          <span className="s">총 <b style={{ color: "var(--c-primary-dk)" }}>{list.length}</b>건</span>
-          <span className="sp" />
-          <button className="btn sm" disabled={!sel.length} onClick={() => setConfirm(true)}>선택 삭제</button>
-          <select className="select sm" value={size} onChange={(e) => { setSize(Number(e.target.value)); setPage(1); }}>
-            {[10, 20, 50].map((n) => <option key={n} value={n}>{n}개 보기</option>)}
-          </select>
-        </div>
-        <table className="tbl">
+
+        <table className="conv-table">
+          <caption className="sr-only">대화 이력 목록</caption>
           <thead>
             <tr>
-              <th style={{ width: 40 }}><input type="checkbox" aria-label="전체 선택" checked={view.length > 0 && view.every((c) => sel.includes(c.id))} onChange={(e) => setSel(e.target.checked ? view.map((c) => c.id) : [])} /></th>
-              <th>대화 제목</th><th style={{ width: 90 }}>재난유형</th><th style={{ width: 150 }}>질문 방식</th><th style={{ width: 170 }}>기준지역</th><th style={{ width: 70 }}>질문</th><th style={{ width: 150 }}>최종 대화일시 ▼</th>
+              <th scope="col" className="conv-col-check">
+                {view.length > 0 && <input type="checkbox" checked={allPicked} onChange={toggleAll} aria-label="전체 선택" />}
+              </th>
+              <th scope="col">대화 제목</th>
+              <th scope="col" className="conv-col-region">기준지역</th>
+              <th scope="col" className="conv-col-count">질문 건수</th>
+              <th scope="col" className="conv-col-when">최종 대화일시</th>
             </tr>
           </thead>
           <tbody>
-            {view.map((c) => (
-              <tr key={c.id} className="click" onClick={() => router.push(`/explore?c=${c.id}`)}>
-                <td onClick={(e) => e.stopPropagation()}><input type="checkbox" checked={sel.includes(c.id)} onChange={(e) => setSel((s) => (e.target.checked ? [...s, c.id] : s.filter((x) => x !== c.id)))} aria-label="선택" /></td>
-                <td><b>{c.title}</b><div className="xs mute2" style={{ marginTop: 2 }}>{c.turns.map((t) => t.q).slice(0, 2).join(" · ")}</div></td>
-                <td>{c.disasterType && c.disasterType !== "전체" ? c.disasterType : "전체"}</td>
-                <td>{c.v === 2 ? [...new Set(c.turns.map((t) => SOURCE_LABEL[t.source] ?? "-"))].join(", ") : "이전 버전(표시 불가)"}</td>
-                <td>{regionOf(c)}</td>
-                <td>{c.turns.length}</td>
-                <td className="num">{fmt(c.updatedAt)}</td>
+            {view.length === 0 ? (
+              <tr>
+                {/* 「조건에 맞는 것이 없다」와 「아예 없다」는 다른 말이다 — 기본 기간도 조건이다 */}
+                <td colSpan={5} className="conv-state">
+                  <svg width="64" height="64" viewBox="0 0 64 64" aria-hidden="true" focusable="false" className="conv-empty-art">
+                    <path d="M12 26h40v22a2 2 0 0 1-2 2H14a2 2 0 0 1-2-2z" fill="#dbe4f4" />
+                    <path d="M8 18h48v8H8z" fill="#b9cbe9" />
+                    <path d="M26 26h12v6H26z" fill="#8fa9d4" />
+                    <path d="M40 14c4-4 9-3 9 1s-5 4-9 1" fill="none" stroke="#8fa9d4" strokeWidth="1.6" strokeLinecap="round" strokeDasharray="3 3" />
+                  </svg>
+                  {tags.length === 0 ? (
+                    <p className="conv-state-head">대화 이력이 없습니다.</p>
+                  ) : (
+                    <>
+                      <p className="conv-state-head">조건에 맞는 대화가 없습니다.</p>
+                      <p>검색어나 기간을 바꿔 다시 조회하세요.</p>
+                    </>
+                  )}
+                </td>
               </tr>
-            ))}
-            {!view.length && <tr><td colSpan={6} style={{ textAlign: "center", padding: 40 }} className="muted">대화 이력이 없습니다.</td></tr>}
+            ) : (
+              view.map((c) => (
+                <tr key={c.id}>
+                  <td className="conv-col-check">
+                    <input type="checkbox" checked={picked.includes(c.id)} onChange={() => toggle(c.id)} aria-label={`${c.title} 선택`} />
+                  </td>
+                  <td>
+                    <button type="button" className="conv-link" onClick={() => router.push(`/explore?c=${encodeURIComponent(c.id)}`)}>{c.title}</button>
+                  </td>
+                  <td className="conv-col-region">{regionLabel(c)}</td>
+                  <td className="conv-col-count">{c.turns.length}</td>
+                  <td className="conv-col-when">{whenLabel(lastTurnAt(c))}</td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
-        <div className="row" style={{ justifyContent: "center", marginTop: 18 }}>
-          <button className="btn sm ghost" disabled={page === 1} onClick={() => setPage(page - 1)}>‹</button>
-          {Array.from({ length: pages }, (_, i) => (
-            <button key={i} className={`btn sm ${page === i + 1 ? "navy" : "ghost"}`} onClick={() => setPage(i + 1)}>{i + 1}</button>
-          ))}
-          <button className="btn sm ghost" disabled={page === pages} onClick={() => setPage(page + 1)}>›</button>
-        </div>
-        <p className="xs mute2" style={{ marginTop: 20 }}>※ 대화 이력은 계정별로 보관되며, 답변은 대화 당시의 데이터·조건 기준입니다. (보관 기간·만료 정책은 운영계획에서 확정)</p>
-      </div>
-      {confirm && (
-        <div className="ovl" onClick={() => setConfirm(false)}>
-          <div className="modal" style={{ width: 420 }} onClick={(e) => e.stopPropagation()}>
-            <div className="modal-hd"><h2>대화 삭제</h2></div>
-            <div className="modal-bd">선택한 대화 {sel.length}건을 삭제할까요? 삭제한 대화는 되돌릴 수 없습니다.</div>
-            <div className="modal-ft"><span className="sp" /><button className="btn" onClick={() => setConfirm(false)}>취소</button><button className="btn danger" onClick={() => { deleteConvs(sel); setSel([]); setConfirm(false); toast("삭제했습니다."); }}>삭제</button></div>
-          </div>
-        </div>
+
+        {pageCount > 1 && (
+          <nav className="conv-pager" aria-label="쪽 넘기기">
+            <button type="button" disabled={at <= 1} onClick={() => setPage(at - 1)}>이전</button>
+            {pagerPages(at, pageCount).map((n) => (
+              <button key={n} type="button" className={n === at ? "is-current" : undefined} aria-current={n === at ? "page" : undefined} onClick={() => setPage(n)}>{n}</button>
+            ))}
+            <button type="button" disabled={at >= pageCount} onClick={() => setPage(at + 1)}>다음</button>
+          </nav>
+        )}
+      </main>
+
+      {confirming && (
+        <Dialog
+          size="sm"
+          title={`선택한 대화 ${picked.length}건을 삭제하시겠습니까?`}
+          desc="삭제하면 대화 이력에서 사라집니다."
+          onClose={() => setConfirming(false)}
+          busy={deleting}
+          footer={
+            <>
+              <button type="button" className="acm-btn" onClick={() => setConfirming(false)}>취소</button>
+              <button type="button" className="acm-btn pri" disabled={deleting} onClick={remove}>삭제</button>
+            </>
+          }
+        />
       )}
+      {toast && <div className="toast" role="status">{toast}</div>}
     </div>
   );
 }

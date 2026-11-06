@@ -70,3 +70,8 @@
 - 「시연 자료」 미리 만든 인포그래픽(`DemoInfographic.tsx`)은 그대로, 한눈 요약 카드는 그 아래에 함께
 - 개발서버 반영 시 참고: 개발서버 MapPane 말풍선에 「답변에서 보기」를 붙이려면 SearchPage 의 턴 DOM id 로 scrollIntoView 하면 된다. 배경지도 대체(OSM)는 타일 오류 이벤트를 세어 바꾸는 방식(`MapView.tsx` tileloaderror)
 
+
+## 12. 대화 이력·로그인 맞추기(2026-11-06, R53)에서 남긴 것
+- 로그인 화면의 계정 카드(누르면 아이디만 채움)·Caps Lock 알림·비밀번호 보기 단추·칸별 「아이디를 입력하세요」 (`app/login/page.tsx`)
+- 아무 API 가 401 을 받아도 그 자리에서 까닭(다른 곳의 로그인·만료)을 한 번 물어 바로 알린다 — 두드림 주기를 기다리지 않는다 (`lib/heartbeat.ts` `endReason`)
+- 개발서버 반영 시 참고: 개발서버 `useConversationList.drop('from')` 은 시작 날짜만 지워 「처음 ~ 날짜」 딱지가 남는다. 주석대로 전체 기간이 되려면 `to` 도 함께 비워야 한다

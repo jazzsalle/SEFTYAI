@@ -52,7 +52,7 @@ describe("로그인·세션", () => {
   });
 
   it("세션: 활동 표시가 있을 때만 유휴 시간을 연장한다", async () => {
-    const r = await A.login("inje", PW, "ua");
+    const r = await A.login("inje", PW, "ua", { force: true });
     if (!r.ok) throw new Error("login");
     const ck = cookieOf(r.cookie);
     await sql.query("update sa_sessions set last_seen_at = now() - interval '10 minutes'");
@@ -69,7 +69,7 @@ describe("로그인·세션", () => {
   });
 
   it("비밀번호 변경: 같은 비밀번호 거절, 바꾸면 다른 세션은 끊긴다", async () => {
-    const r1 = await A.login("inje", PW, "ua");
+    const r1 = await A.login("inje", PW, "ua", { force: true });
     if (!r1.ok) throw new Error("login");
     const ck1 = cookieOf(r1.cookie);
     expect(await A.changePw("inje", PW, PW, A.currentSid(req(ck1)))).toMatch(/다른 비밀번호/);
@@ -79,13 +79,104 @@ describe("로그인·세션", () => {
     const [o] = await sql.query("select revoked_at from sa_sessions where sid = 'other-device'");
     expect(o.revoked_at).not.toBeNull();
     expect(await A.sessionAccount(req(ck1, true))).not.toBeNull(); // 지금 세션은 유지
-    expect((await A.login("inje", "New!pass4567", "ua")).ok).toBe(true);
+    expect((await A.login("inje", "New!pass4567", "ua", { force: true })).ok).toBe(true);
   });
 
   it("비활성 계정의 세션은 무효", async () => {
-    const r = await A.login("busan", PW, "ua");
+    const r = await A.login("busan", PW, "ua", { force: true });
     if (!r.ok) throw new Error("login");
     await sql.query("update sa_accounts set status = 'DISABLED' where id = 'busan'");
     expect(await A.sessionAccount(req(cookieOf(r.cookie), true))).toBeNull();
+  });
+});
+
+// 중복 접속 「끊고 들어갈까요」(R53, 개발서버 AuthService.LoginAsync·SessionLife·/auth/ping·/auth/leaving)
+describe("중복 접속", () => {
+  const ping = async (cookie?: string) => {
+    const R = await import("@/app/api/auth/ping/route");
+    const res = await R.POST(new Request("http://x/api/auth/ping", { method: "POST", headers: cookie ? { cookie } : {} }));
+    return { status: res.status, body: (await res.json()) as { code?: string } };
+  };
+
+  it("다른 곳에서 접속 중이면(자취 2분 안) 비밀번호가 맞아도 409 로 되묻고, 실패 기록은 지우지 않는다", async () => {
+    await A.upsertAccount("hang", PW, false);
+    const a = await A.login("hang", PW, "ua");
+    expect(a.ok).toBe(true);
+    await sql.query("update sa_accounts set failed_count = 2 where id = 'hang'");
+    const b = await A.login("hang", PW, "ua");
+    expect(b.ok).toBe(false);
+    if (!b.ok) {
+      expect(b.status).toBe(409);
+      expect(b.code).toBe(A.SESSION_EXISTS);
+      expect(b.error).toBe("다른 곳에서 이 계정으로 접속 중입니다. 로그인하면 그 접속은 종료됩니다.");
+    }
+    const [acc] = await sql.query("select failed_count from sa_accounts where id = 'hang'");
+    expect(acc.failed_count).toBe(2);
+    // 앞 접속은 그대로 살아 있다
+    if (a.ok) expect(await A.sessionAccount(req(cookieOf(a.cookie)))).not.toBeNull();
+  });
+
+  it("비밀번호가 틀리면 접속 여부를 알려 주지 않는다(401 그대로)", async () => {
+    const r = await A.login("hang", "Wrong!pass999", "ua");
+    expect(r.ok).toBe(false);
+    if (!r.ok) {
+      expect(r.status).toBe(401);
+      expect(r.code).toBeUndefined();
+      expect(r.error).toBe("아이디 또는 비밀번호를 잘못 입력했습니다. 다시 입력하세요.");
+    }
+    await A.unlock("hang");
+  });
+
+  it("force 면 앞 접속을 끊고 들어가고, 끊긴 쪽 두드림은 401 AUTH_SESSION_TAKEN_OVER", async () => {
+    const [old] = await sql.query("select sid from sa_sessions where account_id = 'hang' and revoked_at is null");
+    const oldCookie = `sa_sid=${A.sign(String(old.sid))}`;
+    expect((await ping(oldCookie)).status).toBe(200);
+    const b = await A.login("hang", PW, "ua", { force: true });
+    expect(b.ok).toBe(true);
+    expect(await A.sessionAccount(req(oldCookie))).toBeNull();
+    const p = await ping(oldCookie);
+    expect(p.status).toBe(401);
+    expect(p.body.code).toBe(A.TAKEN_OVER);
+    if (b.ok) expect((await ping(cookieOf(b.cookie))).status).toBe(200);
+  });
+
+  it("자취가 2분 넘게 끊긴 접속(창을 닫음)은 되묻지 않는다", async () => {
+    await sql.query("update sa_sessions set beat_at = now() - interval '121 seconds' where account_id = 'hang' and revoked_at is null");
+    expect((await A.login("hang", PW, "ua")).ok).toBe(true);
+  });
+
+  it("창 닫힘(/api/auth/leaving)은 자취만 늙혀 다른 브라우저가 바로 들어온다", async () => {
+    const [s] = await sql.query("select sid from sa_sessions where account_id = 'hang' and revoked_at is null");
+    const ck = `sa_sid=${A.sign(String(s.sid))}`;
+    expect((await A.login("hang", PW, "ua")).ok).toBe(false); // 아직 접속 중
+    const L = await import("@/app/api/auth/leaving/route");
+    await L.POST(new Request("http://x/api/auth/leaving", { method: "POST", headers: { cookie: ck } }));
+    expect(await A.sessionAccount(req(ck))).not.toBeNull(); // 접속 자체는 그대로
+    expect((await A.login("hang", PW, "ua")).ok).toBe(true);
+  });
+
+  it("남아 있는 접속이 바로 이 브라우저의 것이면 되묻지 않는다", async () => {
+    const [s] = await sql.query("select sid from sa_sessions where account_id = 'hang' and revoked_at is null");
+    expect((await A.login("hang", PW, "ua", { currentSid: String(s.sid) })).ok).toBe(true);
+  });
+
+  it("로그아웃·만료로 끝난 접속의 두드림은 AUTH_SESSION_EXPIRED, 쿠키가 없어도 같다", async () => {
+    const [s] = await sql.query("select sid from sa_sessions where account_id = 'hang' and revoked_at is null");
+    const ck = `sa_sid=${A.sign(String(s.sid))}`;
+    await A.logout(req(ck));
+    expect((await ping(ck)).body.code).toBe(A.SESSION_EXPIRED);
+    expect((await ping()).body.code).toBe(A.SESSION_EXPIRED);
+    // 로그아웃한 뒤에는 되묻지 않는다
+    expect((await A.login("hang", PW, "ua")).ok).toBe(true);
+  });
+
+  it("로그인 라우트는 409 에 code 를 싣고, force: true 로 다시 보내면 들어간다", async () => {
+    const R = await import("@/app/api/auth/login/route");
+    const post = (body: Record<string, unknown>) => R.POST(new Request("http://x/api/auth/login", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) }));
+    const r1 = await post({ id: "hang", password: PW });
+    expect(r1.status).toBe(409);
+    expect(((await r1.json()) as { code?: string }).code).toBe("AUTH_SESSION_EXISTS");
+    const r2 = await post({ id: "hang", password: PW, force: true });
+    expect(r2.status).toBe(200);
   });
 });

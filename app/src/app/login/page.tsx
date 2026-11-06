@@ -4,6 +4,8 @@
  * - 아이디·비밀번호 → POST /api/auth/login (useSession().login). 오류 문구는 서버 메시지 그대로, 잠김(423)은 따로 안내
  * - 계정 카드는 아이디만 채운다 — 비밀번호는 직접 입력
  * - /login?expired=1 → 세션 만료 안내
+ * - 다른 곳에서 같은 계정으로 접속 중이면(서버 409 AUTH_SESSION_EXISTS) 「기존 접속을 끊고 로그인하시겠습니까?」(SCR-UNE-101003, 개발서버 LoginPage — R53)
+ *   취소하면 로그인하지 않고 비밀번호를 비운다, [기존 접속 종료 후 로그인]이면 force 로 다시 보낸다
  */
 import "./login.css";
 import { useEffect, useRef, useState } from "react";
@@ -12,6 +14,8 @@ import { ApiError } from "@/lib/api";
 import { ACCOUNTS, REGIONS, type Account } from "@/lib/config";
 import { useSession } from "@/lib/session";
 import { GovLogo, IcEye, IcEyeOff, IcX } from "@/components/Icons";
+import { Dialog } from "@/components/account/Dialog";
+import { SESSION_EXISTS } from "@/lib/heartbeat";
 
 /** 계정 카드 순서 — 부산·부산2·인제·영천·정부기관·운영자·계정 발급자 */
 const CARD_IDS = ["busan", "busan2", "inje", "01000", "hang", "unes", "issuer"];
@@ -19,11 +23,8 @@ const CARDS = CARD_IDS.map((id) => ACCOUNTS.find((a) => a.id === id)).filter((a)
 const cardLabel = (a: Account) => (a.role === "지자체" ? REGIONS[a.region].short : a.role === "중앙정부" ? "정부기관" : "운영자");
 
 interface Notice { tone: "danger" | "info"; title?: string; text: string; sub?: string }
-const EXPIRED: Notice = {
-  tone: "info",
-  text: "세션이 만료되어 로그아웃되었습니다.\n다시 로그인하세요.",
-  sub: "일정 시간 동안 사용하지 않았거나 다른 곳에서 같은 계정으로 로그인하면 접속이 종료됩니다.",
-};
+// 화면설계 SCR-UNE-101001(세션 만료 후 진입)의 확정 문구(개발서버 LoginPage)
+const EXPIRED: Notice = { tone: "danger", text: "일정 시간 동안 사용하지 않아 로그아웃되었습니다. 다시 로그인하세요." };
 const expiredUrl = () => new URLSearchParams(window.location.search).get("expired") === "1";
 
 export default function LoginPage() {
@@ -36,6 +37,8 @@ export default function LoginPage() {
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<Notice | null>(null);
   const [fieldErr, setFieldErr] = useState<{ id?: string; pw?: string }>({});
+  // 같은 계정이 다른 곳에서 접속 중 — 비밀번호는 맞았다. 끊는 일은 되돌릴 수 없으므로 사람이 한 번 고른다
+  const [confirming, setConfirming] = useState(false);
   const idRef = useRef<HTMLInputElement>(null);
   const pwRef = useRef<HTMLInputElement>(null);
   const leaving = useRef(false);
@@ -68,21 +71,42 @@ export default function LoginPage() {
     setFieldErr(fe);
     if (fe.id) return idRef.current?.focus();
     if (fe.pw) return pwRef.current?.focus();
-    setBusy(true);
     setNotice(null);
+    await signIn(uid, false);
+  };
+
+  /** 로그인 한 번. force 면 기존 접속을 끊고 들어간다 */
+  const signIn = async (uid: string, force: boolean) => {
+    setBusy(true);
     try {
-      await login(uid, pw);
+      await login(uid, pw, force);
+      setConfirming(false);
       leaving.current = true;
       router.replace("/explore");
     } catch (err) {
+      // 다른 곳에서 접속 중이다 — 틀린 것이 아니므로 폼 위 알림이 아니라 확인 창으로 묻는다
+      if (err instanceof ApiError && (err.body as { code?: string } | null)?.code === SESSION_EXISTS) {
+        setConfirming(true);
+        setBusy(false);
+        return;
+      }
+      setConfirming(false);
       setPw("");
       setShowPw(false);
       if (err instanceof ApiError)
         setNotice(err.status === 423 ? { tone: "danger", title: "계정이 잠겼습니다", text: err.message } : { tone: "danger", text: err.message });
       else setNotice({ tone: "danger", text: "서버에 연결하지 못했습니다. 잠시 후 다시 시도하세요." });
       setBusy(false);
-      window.setTimeout(() => pwRef.current?.focus(), 0);
+      // 비밀번호만 비우고 아이디 칸으로 초점을 되돌린다(개발서버 LoginPage)
+      window.setTimeout(() => idRef.current?.focus(), 0);
     }
+  };
+
+  /** 되물었다가 그만둔다 — 로그인하지 않는다. 비밀번호는 비운다 */
+  const cancelConfirm = () => {
+    setConfirming(false);
+    setPw("");
+    window.setTimeout(() => idRef.current?.focus(), 0);
   };
 
   return (
@@ -201,10 +225,10 @@ export default function LoginPage() {
             </div>
 
             <button type="submit" className="lgn-submit" disabled={busy}>
-              {busy ? "로그인 중…" : "로그인"}
+              {busy ? "확인 중…" : "로그인"}
             </button>
             <p className="lgn-note">
-              비밀번호를 5회 잘못 입력하면 15분 동안 로그인할 수 없습니다. 같은 계정으로 다른 곳에서 로그인하면 기존 접속은 종료됩니다.
+              비밀번호를 5회 잘못 입력하면 15분 동안 로그인할 수 없습니다.
             </p>
 
             <div className="lgn-accts">
@@ -227,6 +251,20 @@ export default function LoginPage() {
           </form>
         </section>
       </div>
+      {confirming && (
+        <Dialog
+          title="기존 접속을 끊고 로그인하시겠습니까?"
+          desc="다른 곳에서 이 계정으로 접속 중입니다. 로그인하면 그 접속은 종료됩니다."
+          onClose={cancelConfirm}
+          busy={busy}
+          footer={
+            <>
+              <button type="button" className="acm-btn" onClick={cancelConfirm}>취소</button>
+              <button type="button" className="acm-btn pri" disabled={busy} onClick={() => void signIn(id.trim(), true)}>기존 접속 종료 후 로그인</button>
+            </>
+          }
+        />
+      )}
     </main>
   );
 }

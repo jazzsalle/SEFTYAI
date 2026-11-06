@@ -2,6 +2,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import type { Advisory, DisasterType, RegionId, WeatherResponse } from "./contract/agent";
 import { api, ApiError } from "./api";
+import { endReason, useHeartbeat } from "./heartbeat";
 import type { Account } from "./config";
 import { isActive, locksBase, sourceLocksBase, type JobFull, type JobSource, type JobSummary, type T3qRef } from "./jobTypes";
 import { basePilot, baseWire, defaultBase, type BaseRegion } from "./baseRegion";
@@ -36,6 +37,10 @@ export interface Conversation {
   region: RegionId;
   /** 대화를 시작할 때의 기준지역 이름(R32 — 대화 이력 표시). 예전 대화에는 없다 */
   baseName?: string;
+  /** 대화를 시작할 때의 기준지역 코드(가장 아래 단계, 「」 = 전국 — 대화 이력 지역 검색). 예전 대화에는 없다 */
+  baseCode?: string;
+  /** 사람이 제목을 고쳤는지 — 고친 제목은 상류가 준 제목(conversation_title)으로 덮지 않는다(개발서버 RecordTurn) */
+  renamed?: boolean;
   /** 대화를 시작할 때의 재난유형 조건(대화 이력 표시·필터, UFR-006-001-06) */
   disasterType?: string;
   createdAt: string;
@@ -102,9 +107,12 @@ export function submitBody(c: Cond, a: SubmitArgs) {
 interface SessionState {
   ready: boolean;
   account: Account | null;
-  login: (id: string, password: string) => Promise<void>;
+  /** force = 다른 곳의 접속을 끊고 들어간다(SCR-UNE-101003). 다른 곳에서 접속 중이면 409 AUTH_SESSION_EXISTS 로 되묻는다 */
+  login: (id: string, password: string, force?: boolean) => Promise<void>;
   logout: () => Promise<void>;
   sessionExpired: boolean;
+  /** 다른 곳에서 같은 계정으로 로그인해 이 접속이 끊겼다(SCR-UNE-101004) */
+  sessionTaken: boolean;
   cond: Cond;
   /** 기준지역 밖의 조건(재난유형·기준시각·상황 상세정보) */
   setCond: (c: Partial<Omit<Cond, "base" | "region">>) => void;
@@ -119,7 +127,8 @@ interface SessionState {
   reloadWeather: () => void;
   convs: Conversation[];
   saveConv: (c: Conversation) => void;
-  deleteConvs: (ids: string[]) => void;
+  /** 고른 대화를 지운다 — 서버가 지운 건수. 못 지우면 거절(화면은 목록을 그대로 둔다) */
+  deleteConvs: (ids: string[]) => Promise<number>;
   checks: Record<string, boolean>;
   checkInfo: Record<string, { by: string; at: string }>;
   toggleCheck: (k: string) => void;
@@ -165,6 +174,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   const [ready, setReady] = useState(false);
   const [account, setAccount] = useState<Account | null>(null);
   const [sessionExpired, setExpired] = useState(false);
+  const [sessionTaken, setTaken] = useState(false);
   const [cond, setCondS] = useState<Cond>({ base: null, region: "national" });
   const [weather, setWeather] = useState<WeatherResponse | null>(null);
   const [convs, setConvs] = useState<Conversation[]>([]);
@@ -217,15 +227,19 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       })
       .catch(() => setAccount(null))
       .finally(() => setReady(true));
-    const onExpired = () => setExpired(true);
+    // 끊긴 까닭을 서버에 한 번 묻는다 — 다른 곳의 로그인(101004)과 시간 만료를 가른다(개발서버 x-auth-error)
+    const onExpired = () => {
+      endReason().then((r) => (r === "taken" ? setTaken(true) : setExpired(true)));
+    };
     window.addEventListener("sa:session-expired", onExpired);
     return () => window.removeEventListener("sa:session-expired", onExpired);
   }, []);
 
-  const login = useCallback(async (id: string, password: string) => {
-    const r = await api<{ account: Account }>("/api/auth/login", { method: "POST", json: { id, password } });
+  const login = useCallback(async (id: string, password: string, force = false) => {
+    const r = await api<{ account: Account }>("/api/auth/login", { method: "POST", json: { id, password, force } });
     setAccount(r.account);
     setExpired(false);
+    setTaken(false);
     setCondS(condFor(r.account));
     setAimOnS(false);
   }, []);
@@ -240,6 +254,8 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     setJobOrder([]);
     setFull({});
   }, []);
+
+  useHeartbeat(!!account && !sessionExpired && !sessionTaken, () => setTaken(true), () => setExpired(true));
 
   // 대화 이력 (서버 저장, 새 형식 v2 만)
   useEffect(() => {
@@ -335,11 +351,12 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     [account, toast],
   );
   const deleteConvs = useCallback(
-    (ids: string[]) => {
+    async (ids: string[]) => {
+      const r = await api<{ deleted: number }>("/api/conversations", { method: "DELETE", json: { ids } });
       setConvs((prev) => prev.filter((x) => !ids.includes(x.id)));
-      if (account) api("/api/conversations", { method: "DELETE", json: { ids } }).catch(() => toast("대화 이력을 지우지 못했습니다."));
+      return r.deleted;
     },
-    [account, toast],
+    [],
   );
 
   // 체크 — 서버(기관 공용), 20초마다
@@ -542,12 +559,12 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
 
   const value = useMemo<SessionState>(
     () => ({
-      ready, account, login, logout, sessionExpired, cond, setCond, setBase, asking, weather,
+      ready, account, login, logout, sessionExpired, sessionTaken, cond, setCond, setBase, asking, weather,
       reloadWeather: () => setWxTick((t) => t + 1),
       convs, saveConv, deleteConvs, checks, checkInfo, toggleCheck, resetChecks, toast, toastMsg, aimOn, setAimOn, wxRef, setWxRef,
       jobs, jobOrder, medianMs, submit, cancel, full, loadFull, watch, t3qOk, live,
     }),
-    [ready, account, login, logout, sessionExpired, cond, setCond, setBase, asking, weather, convs, saveConv, deleteConvs, checks, checkInfo, toggleCheck, resetChecks, toast, toastMsg, aimOn, setAimOn, wxRef, setWxRef, jobs, jobOrder, medianMs, submit, cancel, full, loadFull, watch, t3qOk, live],
+    [ready, account, login, logout, sessionExpired, sessionTaken, cond, setCond, setBase, asking, weather, convs, saveConv, deleteConvs, checks, checkInfo, toggleCheck, resetChecks, toast, toastMsg, aimOn, setAimOn, wxRef, setWxRef, jobs, jobOrder, medianMs, submit, cancel, full, loadFull, watch, t3qOk, live],
   );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

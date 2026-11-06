@@ -19,7 +19,7 @@ export const BASE_BUSY = "질의·응답이 진행 중이라 기준지역을 바
 
 const cache = new Map<string, AreaPick[]>();
 const loading = new Map<string, Promise<AreaPick[]>>();
-function loadAreas(level: Level, parent: string): Promise<AreaPick[]> {
+export function loadAreas(level: Level, parent: string): Promise<AreaPick[]> {
   const k = `${level}|${parent}`;
   const hit = cache.get(k);
   if (hit) return Promise.resolve(hit);

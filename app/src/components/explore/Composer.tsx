@@ -1,20 +1,24 @@
 "use client";
 import "./composer.css";
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
 import { useSession, type Cond } from "@/lib/session";
 import { DISASTER_TYPES } from "@/lib/config";
 import { baseName } from "@/lib/baseRegion";
 import { useBriefItems, type BriefingItem } from "@/lib/briefing";
 import { COND_ITEMS } from "@/lib/library";
 import { IcChevR } from "@/components/Icons";
+import { openBriefingSettings } from "@/components/briefing/BriefingSettingsModal";
+
+/** 질문 칸에 글을 넣는다(보내지 않음) — 시작 화면 브리핑 타일(개발서버 StartGuide onPick) */
+export const FILL_QUERY_EVENT = "sa:fill-query";
+export const fillQuery = (q: string) => window.dispatchEvent(new CustomEvent(FILL_QUERY_EVENT, { detail: { q } }));
 import type { DisasterType } from "@/lib/contract/agent";
 
 /**
  * 질의 입력 (Figma 201001 하단 · 201003 조건 편집) — 적용 조건 요약 · 입력 2,000자 · [브리핑 세트▾] · [질의]
  * 보낸 뒤 바로 비워 다음 질문을 이어서 보낼 수 있다(비차단, R2).
  */
-export default function Composer({ onAsk, onBriefing, onLibrary, followUpLabel, clearFollowUp, objectRefs = [], onDropRef }: {
+export default function Composer({ onAsk, onBriefing, onLibrary, followUpLabel, clearFollowUp, objectRefs = [], onDropRef, expired = false }: {
   onAsk: (q: string) => Promise<void>;
   onBriefing: () => void;
   onLibrary: () => void;
@@ -23,15 +27,28 @@ export default function Composer({ onAsk, onBriefing, onLibrary, followUpLabel, 
   /** 지도에서 집어 둔 참조 객체(「객체 참조」) — id = 화면 열쇠, name = 받은 이름 */
   objectRefs?: { id: string; name: string }[];
   onDropRef?: (id: string) => void;
+  /** 이어서 물을 수 없는 대화(마지막 활동 24시간 뒤 — 개발서버 QueryBox expired) — 입력·[질의]를 막고 「이 대화는 만료되었습니다」 */
+  expired?: boolean;
 }) {
   const s = useSession();
   const [q, setQ] = useState("");
+  const input = useRef<HTMLTextAreaElement>(null);
+  useEffect(() => {
+    const on = (e: Event) => {
+      const t = (e as CustomEvent<{ q?: string }>).detail?.q;
+      if (typeof t !== "string") return;
+      setQ(t.slice(0, 2000));
+      window.setTimeout(() => input.current?.focus(), 0);
+    };
+    window.addEventListener(FILL_QUERY_EVENT, on);
+    return () => window.removeEventListener(FILL_QUERY_EVENT, on);
+  }, []);
   const [busy, setBusy] = useState(false);
   const [condOpen, setCondOpen] = useState(false);
   const c = s.cond;
   const send = async () => {
     const t = q.trim();
-    if (!t || busy) return;
+    if (!t || busy || expired) return;
     setBusy(true);
     try {
       await onAsk(t);
@@ -76,8 +93,19 @@ export default function Composer({ onAsk, onBriefing, onLibrary, followUpLabel, 
           </ul>
         </div>
       )}
+      {expired && (
+        <div className="query-expired" role="status">
+          <p className="query-expired-head">
+            <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true" focusable="false"><circle cx="10" cy="10" r="8.2" fill="currentColor" /><path d="M10 5.6v5.6" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" /><circle cx="10" cy="14.1" r="1.1" fill="#fff" /></svg>
+            이 대화는 만료되었습니다.
+          </p>
+          <p className="query-expired-sub">새 대화를 시작하세요.</p>
+        </div>
+      )}
       <textarea
+        ref={input}
         className="cmp-input"
+        disabled={expired}
         value={q}
         maxLength={2000}
         rows={2}
@@ -95,7 +123,7 @@ export default function Composer({ onAsk, onBriefing, onLibrary, followUpLabel, 
         <button className="btn sm ghost" onClick={onLibrary}>질문 목록 보기</button>
         <span className="sp" />
         <span className="xs muted">{q.length.toLocaleString()} / 2,000</span>
-        <button className="btn primary" disabled={!q.trim() || busy} onClick={send}>질의</button>
+        <button className="btn primary" disabled={!q.trim() || busy || expired} onClick={send}>질의</button>
       </div>
       {condOpen && <CondModal onClose={() => setCondOpen(false)} />}
     </div>
@@ -141,7 +169,7 @@ function BriefSetMenu({ onBriefing }: { onBriefing: () => void }) {
         <div id="bs-pop" className="bs-pop" role="dialog" aria-label="브리핑 세트">
           <div className="bs-act">
             <button className="bs-start" disabled={!items.length} onClick={() => { setOpen(false); onBriefing(); }}>현재 상황 브리핑 시작</button>
-            <Link className="bs-set" href="/settings/briefing" onClick={() => setOpen(false)}>브리핑 항목 설정 <IcChevR size={14} /></Link>
+            <button type="button" className="bs-set" onClick={() => { setOpen(false); openBriefingSettings(); }}>브리핑 항목 설정 <IcChevR size={14} /></button>
           </div>
           <div className="bs-list">
             <b className="bs-h">내 브리핑 세트</b>

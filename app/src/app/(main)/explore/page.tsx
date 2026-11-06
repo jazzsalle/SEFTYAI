@@ -16,7 +16,8 @@ import { SOURCE_LABEL, receivedAt, type JobSummary, type T3qRef } from "@/lib/jo
 import { basisTime } from "@/lib/summary";
 import { ExploreContext, type ExploreApi, type PanelTab } from "@/components/explore/ExploreCtx";
 import RightPanel from "@/components/explore/RightPanel";
-import Composer from "@/components/explore/Composer";
+import Composer, { fillQuery } from "@/components/explore/Composer";
+import { isExpired } from "@/lib/convList";
 import StartScreen from "@/components/explore/StartScreen";
 import LibraryDrawer from "@/components/explore/LibraryDrawer";
 import BriefBoard, { type BriefGroup } from "@/components/explore/BriefBoard";
@@ -208,6 +209,19 @@ function Explore() {
   }, []);
   const current = (id: string) => latest.current.get(id) ?? (convRef.current?.id === id ? convRef.current : null) ?? sRef.current.convs.find((c) => c.id === id) ?? null;
 
+  // 첫 답에서 상류가 제목(conversation_title)을 주면 그것으로 — 사람이 고친 제목은 덮지 않는다(개발서버 ConversationService.RecordTurn)
+  useEffect(() => {
+    if (!conv || conv.renamed || conv.turns.length !== 1) return;
+    const jid = conv.turns[0].jobId;
+    const t: unknown = jid ? s.full[jid]?.raw?.result?.conversation_title : null;
+    const given = typeof t === "string" ? t.trim() : "";
+    if (!given || given === conv.title) return;
+    const c = current(conv.id) ?? conv;
+    commit({ ...c, title: given.slice(0, 200) }, false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [conv, s.full]);
+
+
   /** 턴 붙이기 — baseId 가 없으면 새 대화. area = 새 대화의 기준지역(이 질문에만 실은 기준지역 — 「이 특보로 질의」, 없으면 세션 기준지역) */
   const appendTurns = useCallback(
     (title: string, add: Turn[], baseId: string | null, area?: BaseRegion | null) => {
@@ -217,7 +231,7 @@ function Explore() {
       const c: Conversation = base
         ? { ...base, turns: [...base.turns, ...add], updatedAt: now }
         : {
-            id: uid("c"), title: title.slice(0, 60), region: own ? basePilot(area) : sRef.current.cond.region, baseName: baseName(own ? area : sRef.current.cond.base),
+            id: uid("c"), title: title.slice(0, 200), region: own ? basePilot(area) : sRef.current.cond.region, baseName: baseName(own ? area : sRef.current.cond.base), baseCode: baseKey(own ? area : sRef.current.cond.base),
             disasterType: sRef.current.cond.disasterType, createdAt: now, updatedAt: now, turns: add, v: 2,
           };
       return commit(c, !baseId);
@@ -552,7 +566,8 @@ function Explore() {
                   title={conv.title}
                   onSave={(title) => {
                     const c = current(conv.id) ?? conv;
-                    commit({ ...c, title: title.slice(0, 60), updatedAt: new Date().toISOString() }, true);
+                    // 사람이 고친 제목 — 상류가 준 제목으로 덮지 않는다(개발서버 RecordTurn). 대화 이력 목록에도 바로 반영
+                    commit({ ...c, title: title.slice(0, 100), renamed: true, updatedAt: new Date().toISOString() }, true);
                   }}
                 />
                 <span className="sp" />
@@ -597,8 +612,7 @@ function Explore() {
             <StartScreen
               regionName={regionName}
               onBriefing={() => startBriefing().catch(toastErr)}
-              onAskBrief={askBrief}
-              onAskLib={askLib}
+              onPick={fillQuery}
             />
           )}
           <Composer
@@ -609,6 +623,7 @@ function Explore() {
             clearFollowUp={() => setFollow(null)}
             objectRefs={picked.map((x) => ({ id: x.eid, name: x.ref.display_name ?? x.ref.ref }))}
             onDropRef={(eid) => setPicked((list) => list.filter((x) => x.eid !== eid))}
+            expired={isExpired(conv)}
           />
         </main>
         {panelOpen && (
@@ -702,7 +717,7 @@ function TitleEdit({ title, onSave }: { title: string; onSave: (t: string) => vo
   };
   return (
     <span className="row" style={{ gap: 6 }}>
-      <input className="input" value={v} maxLength={60} autoFocus onChange={(e) => setV(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") save(); if (e.key === "Escape") setEdit(false); }} aria-label="대화 제목" />
+      <input className="input" value={v} maxLength={100} autoFocus onChange={(e) => setV(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") save(); if (e.key === "Escape") setEdit(false); }} aria-label="대화 제목" />
       <button className="btn xs primary" onClick={save}>저장</button>
       <button className="btn xs" onClick={() => setEdit(false)}>취소</button>
     </span>
