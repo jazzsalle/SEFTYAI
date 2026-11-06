@@ -11,7 +11,7 @@ import type { Advisory, WeatherResponse } from "@/lib/contract/agent";
 import type { BaseRegion } from "@/lib/baseRegion";
 import { SCN_REGIONS, scenarioWeather, type ScenarioState } from "@/lib/scenario";
 import { aimTone } from "@/lib/wxref";
-import { HELP_TOPICS } from "@/lib/help";
+import { HELP_SECTIONS } from "@/lib/help";
 
 const session = vi.hoisted(() => ({ s: {} as Record<string, unknown> }));
 vi.mock("@/lib/session", () => ({ useSession: () => session.s, uid: (p: string) => `${p}x` }));
@@ -155,9 +155,9 @@ describe("특보 줄 — AI 모드를 켠 동안 [특보로 질문] 자리(R46 �
     expect(container.textContent).not.toContain("자동 반영");
   });
 
-  it("도움말 — AI 모드·특보로 질문 항목이 「모든 질문에 자동 반영」이라 하지 않는다", () => {
-    const text = HELP_TOPICS.filter((t) => t.id === "aim" || t.id === "wxref").flatMap((t) => t.body).join(" ");
+  it("도움말 — AI 모드 항목이 「모든 질문에 자동 반영」이라 하지 않는다(글은 개발서버 helpContent — R60)", () => {
+    const text = HELP_SECTIONS.filter((t) => t.id === "aimode").flatMap((t) => t.lines).join(" ");
     expect(text).not.toContain("자동으로 반영");
-    expect(text).toContain("브리핑 질문에 현재 발효 중인 특보가 함께 전달됩니다");
+    expect(text).toContain("기준지역의 기상특보를 10분마다 확인하고 상황을 안내합니다");
   });
 });

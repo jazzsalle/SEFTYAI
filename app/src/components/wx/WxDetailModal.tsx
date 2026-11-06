@@ -19,6 +19,7 @@ const ScnTag = ({ a }: { a: Pick<Advisory, "scenario"> }) => (a.scenario ? <span
 const hm = (iso?: string) => {
   if (!iso) return "";
   const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
   return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
 };
 
@@ -102,12 +103,13 @@ export default function WxDetailModal({ mine, onClose }: { mine: Advisory[]; onC
     return `${r ? baseName(r) : region} 기준으로 바로 묻습니다`;
   };
 
+  // 출처 줄 — 개발서버 AlertDetailModal sourceLine 글(「출처를 아직 확인하지 못했습니다.」·「갱신 기록 없음」, R60)
   const sourceLine = !weather
-    ? "기상특보를 확인하고 있습니다"
+    ? "출처를 아직 확인하지 못했습니다."
     : cut
       ? SCN_CUT_LABEL
       : weather.status.ok
-        ? `기상청 · 기상특보 조회서비스 · ${hm(weather.status.fetchedAt)} 갱신`
+        ? `기상청 · 기상특보 조회서비스 · ${hm(weather.status.fetchedAt) ? `${hm(weather.status.fetchedAt)} 갱신` : "갱신 기록 없음"}`
         : `${weather.status.message} · 최종 시도 ${hm(weather.status.fetchedAt)}`;
 
   return (

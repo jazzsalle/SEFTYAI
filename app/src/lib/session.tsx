@@ -130,6 +130,8 @@ interface SessionState {
   weather: WeatherResponse | null;
   reloadWeather: () => void;
   convs: Conversation[];
+  /** 대화 이력을 서버에서 불러오지 못함(개발서버 ConversationListPage 「대화 이력을 불러오지 못했습니다.」, R60) */
+  convsFailed: boolean;
   saveConv: (c: Conversation) => void;
   /** 고른 대화를 지운다 — 서버가 지운 건수. 못 지우면 거절(화면은 목록을 그대로 둔다) */
   deleteConvs: (ids: string[]) => Promise<number>;
@@ -188,6 +190,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   const [cond, setCondS] = useState<Cond>({ base: null, region: "national" });
   const [weather, setWeather] = useState<WeatherResponse | null>(null);
   const [convs, setConvs] = useState<Conversation[]>([]);
+  const [convsFailed, setConvsFailed] = useState(false);
   const [checkInfo, setCheckInfo] = useState<Record<string, { by: string; at: string }>>({});
   const checks = useMemo(() => Object.fromEntries(Object.keys(checkInfo).map((k) => [k, true])), [checkInfo]);
   const [toastMsg, setToast] = useState<string | null>(null);
@@ -302,8 +305,12 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
 
   // 대화 이력 (서버 저장, 새 형식 v2 만)
   useEffect(() => {
+    setConvsFailed(false);
     if (!account) return setConvs([]);
-    api<Conversation[]>("/api/conversations").then(setConvs).catch(() => setConvs([]));
+    api<Conversation[]>("/api/conversations").then(setConvs).catch(() => {
+      setConvs([]);
+      setConvsFailed(true);
+    });
   }, [account]);
 
   // 기상특보 — 기상청 실시간(시연 시나리오를 켠 시연 계정은 시나리오 특보만 — 서버가 정함, R45), 60초마다. 2xx 가 아니면(세션 끊김 401 등) 오류 본문을 특보로 두지 않고 조회 실패로 — 401 은 세션 만료도 알린다(api() 와 같게).
@@ -413,6 +420,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   const toggleCheck = useCallback(
     (k: string) => {
       const done = !checkInfo[k];
+      const before = checkInfo;
       setCheckInfo((p) => {
         const n = { ...p };
         if (done) n[k] = { by: account?.name ?? "", at: new Date().toISOString() };
@@ -421,7 +429,11 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       });
       api<Record<string, { by: string; at: string }>>("/api/checks", { method: "POST", json: { key: k, done } })
         .then(setCheckInfo)
-        .catch(() => toast("체크를 서버에 저장하지 못했습니다."));
+        // 서버가 받지 않았으면 누른 것을 되돌린다(개발서버 useManual toggleCheck, R60)
+        .catch(() => {
+          setCheckInfo(before);
+          toast("체크를 저장하지 못했습니다. 잠시 뒤 다시 눌러 주세요.");
+        });
     },
     [account, checkInfo, toast],
   );
@@ -604,10 +616,10 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     () => ({
       ready, account, login, logout, sessionExpired, expiresAt, renew, sessionTaken, cond, setCond, setBase, asking, weather,
       reloadWeather: () => setWxTick((t) => t + 1),
-      convs, saveConv, deleteConvs, checks, checkInfo, toggleCheck, resetChecks, toast, toastMsg, aimOn, setAimOn, wxRef, setWxRef,
+      convs, convsFailed, saveConv, deleteConvs, checks, checkInfo, toggleCheck, resetChecks, toast, toastMsg, aimOn, setAimOn, wxRef, setWxRef,
       jobs, jobOrder, medianMs, submit, cancel, full, loadFull, watch, t3qOk, live,
     }),
-    [ready, account, login, logout, sessionExpired, expiresAt, renew, sessionTaken, cond, setCond, setBase, asking, weather, convs, saveConv, deleteConvs, checks, checkInfo, toggleCheck, resetChecks, toast, toastMsg, aimOn, setAimOn, wxRef, setWxRef, jobs, jobOrder, medianMs, submit, cancel, full, loadFull, watch, t3qOk, live],
+    [ready, account, login, logout, sessionExpired, expiresAt, renew, sessionTaken, cond, setCond, setBase, asking, weather, convs, convsFailed, saveConv, deleteConvs, checks, checkInfo, toggleCheck, resetChecks, toast, toastMsg, aimOn, setAimOn, wxRef, setWxRef, jobs, jobOrder, medianMs, submit, cancel, full, loadFull, watch, t3qOk, live],
   );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

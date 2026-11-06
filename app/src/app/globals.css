@@ -1110,3 +1110,5 @@ label.chk input { width: 18px; height: 18px; accent-color: var(--c-primary); }
 .ct-st.info { color: var(--c-primary-dk); }
 .ct-st.danger { color: var(--c-dang); }
 .ct-st.warn { color: var(--c-warn-dk); }
+.help-mode { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0 22px 8px; padding: 8px 12px; border-radius: var(--r-m); background: var(--c-sec-sub); }
+.help-contact { margin-top: 18px; }

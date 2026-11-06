@@ -40,7 +40,7 @@ function useAreas(level: "sido" | "sigungu" | "emd", parent: string | null) {
 }
 
 export default function HistoryPage() {
-  const { convs, deleteConvs } = useSession();
+  const { convs, convsFailed, deleteConvs } = useSession();
   const router = useRouter();
   const [initial] = useState(() => initialForm());
   const [form, setForm] = useState<ConvForm>(initial);
@@ -215,7 +215,14 @@ export default function HistoryPage() {
             </tr>
           </thead>
           <tbody>
-            {view.length === 0 ? (
+            {convsFailed ? (
+              <tr>
+                <td colSpan={5} className="conv-state" role="alert">
+                  <p className="conv-state-head">대화 이력을 불러오지 못했습니다.</p>
+                  <p>잠시 후 다시 조회하세요.</p>
+                </td>
+              </tr>
+            ) : view.length === 0 ? (
               <tr>
                 {/* 「조건에 맞는 것이 없다」와 「아예 없다」는 다른 말이다 — 기본 기간도 조건이다 */}
                 <td colSpan={5} className="conv-state">

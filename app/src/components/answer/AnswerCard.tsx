@@ -1,6 +1,5 @@
 "use client";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { api } from "@/lib/api";
 import { useSession } from "@/lib/session";
 import { isActive, receivedAt, STATE_LABEL, type JobFull, type JobSummary, type T3qRef, type WxSeen } from "@/lib/jobTypes";
 import { ANSWER_FAILED, BRIEF_FAILED, failureText, isAnswerOk } from "@/lib/answerText";
@@ -13,6 +12,7 @@ import { useExplore } from "../explore/ExploreCtx";
 import { IcChevD } from "../Icons";
 import { AnswerMarkdown, entityLabel, mdPlainText } from "./Markdown";
 import DocRefs from "./DocRefs";
+import AnswerFeedback from "./AnswerFeedback";
 import DemoInfoPanel, { hasDemoInfographic } from "./DemoInfographic";
 import AutoInfoPanel from "./AutoInfographic";
 import CompactSummary from "../summary/CompactSummary";
@@ -344,10 +344,9 @@ function Card({ job, full, compact, noActions, brief }: CardProps) {
         <button className="btn xs" onClick={() => x.followUp(job.id, refs.filter((r) => picked.includes(r.ref)))}>
           이어서 묻기{picked.length ? ` (참조 ${picked.length})` : ""}
         </button>
-        <span className="sp" />
-        <Feedback jobId={job.id} />
       </div>
       {showRaw && <pre className="rawbox">{answer ?? JSON.stringify(raw, null, 2)}</pre>}
+      <AnswerFeedback jobId={job.id} />
     </div>
   );
 }
@@ -411,33 +410,5 @@ export function RawFoot({ raw, id }: { raw: NonNullable<JobFull["raw"]>; id?: st
     <div className="gaps" id={id} tabIndex={id ? -1 : undefined}>
       {raw.warnings.map((w, i) => <div key={`w${i}`}>· {w.message}</div>)}
     </div>
-  );
-}
-
-function Feedback({ jobId }: { jobId: string }) {
-  const s = useSession();
-  const [r, setR] = useState<"GOOD" | "BAD" | null>(null);
-  const [ask, setAsk] = useState(false);
-  const [comment, setComment] = useState("");
-  const send = (rating: "GOOD" | "BAD", c?: string) =>
-    api("/api/t3q/feedback", { method: "POST", json: { jobId, rating, comment: c } })
-      .then(() => {
-        setR(rating);
-        setAsk(false);
-        s.toast("평가를 보냈습니다.");
-      })
-      .catch((e) => s.toast((e as Error).message));
-  return (
-    <span className="fb">
-      <span className="xs muted">이 답변이 도움이 됐나요?</span>
-      <button className={`btn xs ${r === "GOOD" ? "on" : ""}`} onClick={() => send("GOOD")}>도움이 됐어요</button>
-      <button className={`btn xs ${r === "BAD" ? "on" : ""}`} onClick={() => setAsk(true)}>아쉬워요</button>
-      {ask && (
-        <span className="fb-ask">
-          <input value={comment} maxLength={1000} onChange={(e) => setComment(e.target.value)} placeholder="아쉬운 점(선택)" />
-          <button className="btn xs primary" onClick={() => send("BAD", comment)}>보내기</button>
-        </span>
-      )}
-    </span>
   );
 }

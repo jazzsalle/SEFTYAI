@@ -65,6 +65,31 @@ export const ID_PATTERN = "^[A-Za-z0-9_\\-]{4,50}$";
 export const ID_PATTERN_TEXT = "영문 대소문자·숫자와 '_' '-'";
 export const PW_MIN = 9;
 export const PW_RULE_TEXT = "9자 이상이며 영문·숫자·특수문자를 모두 포함";
+/** 영문·숫자·인쇄 가능한 기호 밖의 글자(공백·한글 등)가 들어간 비밀번호 — 개발서버 AccountRules.ValidatePassword 문구 그대로(R60) */
+export const PW_CHAR_MSG = "비밀번호에는 공백이나 한글을 쓸 수 없습니다.";
+
+/**
+ * 비밀번호 글자 종류(개발서버 AccountRules.Inspect) — 영문은 ASCII a~z·A~Z 만, 특수문자는 영문·숫자가 아닌 출력 가능한 ASCII(! ~ ~),
+ * 그 밖(공백·한글·제어문자 등)은 other
+ */
+export function inspectPw(pw: string) {
+  let letter = false, digit = false, special = false, other = false;
+  for (const ch of pw) {
+    const c = ch.codePointAt(0)!;
+    if ((c >= 65 && c <= 90) || (c >= 97 && c <= 122)) letter = true;
+    else if (c >= 48 && c <= 57) digit = true;
+    else if (c > 32 && c <= 126) special = true;
+    else other = true;
+  }
+  return { letter, digit, special, other };
+}
+
+/** 비밀번호 규칙(9자 이상 · 영문·숫자·특수문자 모두 · 그 밖 글자 없음) — 화면·서버 같이 쓴다 */
+export function pwRuleOk(pw: string): boolean {
+  if (pw.length < PW_MIN) return false;
+  const k = inspectPw(pw);
+  return k.letter && k.digit && k.special && !k.other;
+}
 export const MEMO_MAX = 1000;
 /** 한 번에 발급할 수 있는 줄 수(개발서버 RequestAccountIssue MaxLength) */
 export const ISSUE_MAX = 200;

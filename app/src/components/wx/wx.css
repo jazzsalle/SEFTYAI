@@ -55,6 +55,11 @@
 .bc-track { grid-area: track; height: 8px; overflow: hidden; border-radius: 999px; background: var(--c-line); }
 .bc-fill { display: block; height: 100%; border-radius: inherit; background: var(--c-primary); }
 .bc-val { grid-area: val; font-size: var(--fs-xs); font-weight: 700; color: var(--c-primary-dk); white-space: nowrap; }
+.bc-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--c-line); }
+.bc-toggle { padding: 4px 10px; font: inherit; font-size: var(--fs-2xs); font-weight: 700; color: var(--c-primary); background: none; border: 1px solid var(--c-primary-bd); border-radius: 999px; cursor: pointer; }
+.bc-toggle:hover { background: var(--c-primary-sub); }
+.bc-source { font-size: var(--fs-2xs); color: var(--c-mute); }
+.bc-raw { margin-top: 8px; }
 .bc-areas { grid-area: areas; font-size: var(--fs-2xs); line-height: 1.6; color: var(--c-sub); white-space: normal; }
 
 @media (max-width: 720px) {

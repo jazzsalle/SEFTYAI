@@ -349,6 +349,12 @@ export default function BriefBoard({ turns, regionName, renderBody, onRetry }: B
     );
   };
 
+  /** 차례를 기다리는 항목·그만둔 항목은 본문 대신 한 줄(개발서버 BriefingItemCard waiting·cancelled 글, R60) */
+  const waitText = (t: Turn): string | null => {
+    const st = t.jobId ? s.jobs[t.jobId]?.state : undefined;
+    return st === "QUEUED" ? "차례를 기다리고 있습니다." : st === "CANCELLED" ? "그만두었습니다." : null;
+  };
+
   /** 접힌 완료 항목의 첫 문단 한 줄 — 크게 보기·[더보기]로 편 항목·원응답을 아직 못 받은 항목은 null(본문을 그린다) */
   const preview = (t: Turn) => {
     if (big?.id === t.id || opened.has(t.id) || !cellOf(t.id)?.answered) return null;
@@ -445,7 +451,7 @@ export default function BriefBoard({ turns, regionName, renderBody, onRetry }: B
             <span className="num">{t.group?.no}</span> <b>{t.q}</b>
             {tools(t)}
           </div>
-          {preview(t) ?? renderBody(t, big?.id === t.id)}
+          {waitText(t) ? <p className="brief-item-wait s muted">{waitText(t)}</p> : (preview(t) ?? renderBody(t, big?.id === t.id))}
         </div>
       ))}
     </div>

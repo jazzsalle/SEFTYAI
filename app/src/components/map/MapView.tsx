@@ -80,6 +80,14 @@ export type Basemap = "Base" | "Satellite" | "gray";
 export type BoundaryStatus = "loading" | "ok" | "nokey" | "failed" | "denied";
 
 /** 지도에 그릴 T3Q 대상 하나 = refs[] 한 건 + EXT-01 도형 */
+/** 답이 가리켰으나 도형을 못 받은 대상 */
+export interface MissingItem {
+  key: string;
+  jobId: string;
+  name: string;
+  entityType: string;
+}
+
 export interface MapFeature {
   key: string; // 화면 고유키 `${jobId}:${ref}`
   ref: string; // T3Q ref (r3)
@@ -138,6 +146,8 @@ interface Props {
   onDetail?: (f: MapFeature) => void;
   /** 답이 가리켰으나 도형을 못 받은 대상 수(지도 대체정보에 적는다) */
   missing?: number;
+  /** 그 대상들(이름·종류) — 지도 대체정보에 「· 공간정보 없음」으로 적는다(개발서버 MapAlt) */
+  missingItems?: MissingItem[];
   /** 조회결과 위치(EXT-01) 상태 — 실패·받는 중 알림 */
   resultStatus?: "loading" | "failed" | null;
   /** OpenLayers 지도 — 요약 보기(MapSummary)가 겹을 얹는다 */
@@ -1327,7 +1337,7 @@ export default function MapView(p: Props) {
     <div className="sa-map olmap" role="region" aria-label="지도">
       <div ref={el} className="sa-map-canvas" />
       <p className="sa-map-sr" aria-live="polite">{sr}</p>
-      <MapAlt features={p.features} activeJobId={p.activeJobId ?? null} selectedKey={p.selectedKey ?? null} missing={p.missing ?? 0} onSelect={p.onSelect} />
+      <MapAlt features={p.features} activeJobId={p.activeJobId ?? null} selectedKey={p.selectedKey ?? null} missing={p.missing ?? 0} missingItems={p.missingItems ?? []} onSelect={p.onSelect} />
       {/* 알림은 지도 영역 맨 위에(개발 서버 설계 슬라이드 57~59) */}
       <div className="sa-map-notices">
         {p.resultStatus === "failed" && <Notice title="조회결과 위치를 불러오지 못했습니다.">잠시 후 같은 질문을 다시 보내세요.</Notice>}
@@ -1389,16 +1399,17 @@ function Notice({ title, children }: { title: string; children: ReactNode }) {
 
 /**
  * 지도 대체정보(개발 서버 MapAlt · 설계 ⑧) — 눈으로는 보이지 않지만 실제로 쓸 수 있는 목록이다. 누르면 그 대상이 지도에서도 선택된다.
- * 도형을 못 받은 수도 적는다(「N건은 공간정보가 없어 표시하지 못했습니다」).
+ * 도형을 못 받은 수도 적고(「N건은 공간정보가 없어 표시하지 못했습니다」), 그 대상도 목록 끝에 「· 공간정보 없음」으로 둔다(개발서버 MapPane MapAlt, R60).
  */
-function MapAlt({ features, activeJobId, selectedKey, missing, onSelect }: { features: MapFeature[]; activeJobId: string | null; selectedKey: string | null; missing: number; onSelect?: (key: string) => void }) {
+function MapAlt({ features, activeJobId, selectedKey, missing, missingItems, onSelect }: { features: MapFeature[]; activeJobId: string | null; selectedKey: string | null; missing: number; missingItems: MissingItem[]; onSelect?: (key: string) => void }) {
   const list = activeJobId ? features.filter((f) => f.jobId === activeJobId) : features;
+  const lost = activeJobId ? missingItems.filter((m) => m.jobId === activeJobId) : missingItems;
   return (
     <div className="sa-map-sr">
       <h3>지도 대체정보</h3>
       <p>지도에 초점이 있으면 방향키로 이동하고, 확대·축소 버튼으로 배율을 바꿉니다. 아래 목록에서 대상을 고르면 지도에서도 같은 대상이 선택됩니다.</p>
       {list.length + missing === 0 ? (
-        <p>지도에 표시된 조회결과가 없습니다.</p>
+        <p>지도에 표시된 조회결과가 없습니다. 기준지역 경계만 보입니다.</p>
       ) : (
         <>
           <p>
@@ -1410,6 +1421,12 @@ function MapAlt({ features, activeJobId, selectedKey, missing, onSelect }: { fea
               <li key={f.key}>
                 <button type="button" aria-current={f.key === selectedKey} onClick={() => onSelect?.(f.key)}>{f.displayName ?? f.ref}</button>
                 {` — ${SYMBOL_NAMES[symbolOf(f.entityType)]}${precisionKo(f.precision) ? ` · ${precisionKo(f.precision)}` : ""}`}
+              </li>
+            ))}
+            {lost.map((m) => (
+              <li key={m.key}>
+                {m.name}
+                {` — ${SYMBOL_NAMES[symbolOf(m.entityType)]} · 공간정보 없음`}
               </li>
             ))}
           </ul>

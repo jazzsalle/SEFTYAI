@@ -7,7 +7,7 @@ import { api } from "@/lib/api";
 import { SYMBOL_NAMES, detailIdOf, hasDetail, sameObject, symbolOf, type MapSymbol, type RefLike } from "@/lib/mapRef";
 import type { PanelTab } from "./ExploreCtx";
 import { useExplore } from "./ExploreCtx";
-import { DEFAULT_LAYERS, type Basemap, type MapFeature, type MapLayers, zoomBy } from "../map/MapView";
+import { DEFAULT_LAYERS, type Basemap, type MapFeature, type MapLayers, type MissingItem, zoomBy } from "../map/MapView";
 import MapLegendPanel from "../map/MapLegendPanel";
 import { useAdminNames } from "../map/useAdminNames";
 import SopPane from "../sop/SopPane";
@@ -35,6 +35,8 @@ interface Props {
   mapScope?: string;
   /** 도형을 못 받은 대상 수 */
   missing?: number;
+  /** 도형을 못 받은 대상(지도 대체정보 「· 공간정보 없음」 줄) */
+  missingItems?: MissingItem[];
   /** 조회결과 위치 상태 */
   resultStatus?: "loading" | "failed" | null;
   /** 「한눈 요약」이 그릴 답 */
@@ -182,6 +184,7 @@ function MapPanel(p: Props) {
         detailOf={detailOf}
         onDetail={onDetail}
         missing={p.missing}
+        missingItems={p.missingItems}
         resultStatus={p.resultStatus}
         onMap={setOlMap}
       >

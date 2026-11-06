@@ -67,6 +67,7 @@
 
 /* ── 첫 문단 미리보기 · 더보기/접기(개발 서버 BriefingItemCard) — 접힌 답은 한 줄만 ── */
 .brief-item-summary { margin: 8px 0 0; font-size: var(--fs-s); line-height: 1.6; color: var(--c-sub); word-break: keep-all; overflow-wrap: anywhere; }
+.brief-item-wait { margin: 8px 0 0; color: var(--c-mute); }
 .brief-more { display: inline-flex; align-items: center; gap: 2px; }
 .brief-more svg { transition: transform .15s; }
 .brief-more svg.up { transform: rotate(180deg); }

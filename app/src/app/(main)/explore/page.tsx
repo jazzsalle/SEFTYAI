@@ -465,6 +465,7 @@ function Explore() {
     const out: MapFeature[] = [];
     const seen = new Set<string>();
     let missing = 0;
+    const missingItems: { key: string; jobId: string; name: string; entityType: string }[] = [];
     let loading = false;
     let failed = false;
     for (const jobId of mapScope.jobs) {
@@ -486,12 +487,13 @@ function Explore() {
         const ft = r.map ? byKV.get(`${r.map.key}|${r.map.value}`) : undefined;
         if (!ft) {
           missing += 1;
+          missingItems.push({ key: `${jobId}:${r.ref}`, jobId, name: r.display_name ?? r.ref, entityType: r.entity_type ?? "" });
           continue;
         }
         out.push({ key: `${jobId}:${r.ref}`, ref: r.ref, jobId, entityType: r.entity_type, displayName: r.display_name, draw: r.map.draw, precision: ft.properties.precision ?? null, geometry: ft.geometry, eid, mapValue: r.map.value, t3qRef: r });
       }
     }
-    return { features: out, missing, status: failed ? ("failed" as const) : loading ? ("loading" as const) : null };
+    return { features: out, missing, missingItems, status: failed ? ("failed" as const) : loading ? ("loading" as const) : null };
   }, [mapScope, s.full, s.jobs]);
   const features = mapData.features;
   /** 「한눈 요약」이 그릴 답 — 지도와 같은 턴(브리핑 묶음 전체를 볼 때는 없음). 개발 서버 summaryOf */
@@ -685,6 +687,7 @@ function Explore() {
             activeJobId={null}
             mapScope={mapScope.key}
             missing={mapData.missing}
+            missingItems={mapData.missingItems}
             resultStatus={mapData.status}
             focusToken={focusToken}
             sopFocus={sopFocus}

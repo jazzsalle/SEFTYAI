@@ -17,7 +17,7 @@ export async function POST(req: Request) {
   const raw = job?.raw as { conversation_id?: string; turn_no?: number; result?: { response_id?: string } } | null;
   const responseId = raw?.result?.response_id;
   if (!job || !responseId) return fail(404, "평가할 답변을 찾을 수 없습니다.");
-  const comment = b.comment?.slice(0, 1000) || null;
+  const comment = b.comment?.slice(0, 500) || null;
   const r = await t3q("POST", "/agent/feedback", {
     response_id: responseId, conversation_id: raw?.conversation_id ?? null, turn_no: raw?.turn_no ?? null, rating: b.rating, comment, rated_at: new Date().toISOString(),
   });

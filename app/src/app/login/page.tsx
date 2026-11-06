@@ -141,6 +141,7 @@ export default function LoginPage() {
           <div className="lgn-foot">
             <p><b>재난안전 업무 담당자 전용 서비스입니다.</b></p>
             <p><b>계정 문의</b>소속 기관 재난안전 담당 부서</p>
+            <p><b>기술지원</b>확정 후 기재</p>
           </div>
         </section>
 

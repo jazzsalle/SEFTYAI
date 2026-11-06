@@ -104,7 +104,8 @@ export default function LibraryDrawer({ regionName, busy = false, onClose, onAsk
       {tab === "show" && onAskShow && (
         <div className="drawer-b">
           <p className="xs muted">미리 받아 둔 답을 그 자리에서 바로 보여 줍니다 — 상류가 준 글 그대로이고, 받은 시각을 함께 적습니다. 받아 둔 답이 있는 질문만 누를 수 있습니다(「저장된 답 없음」은 시연 준비 중).</p>
-          {SHOW_GROUPS.map((g) => {
+          {DEMO_SHOW.length === 0 && <p className="xs muted">시연 질문이 준비되어 있지 않습니다.</p>}
+          {DEMO_SHOW.length > 0 && SHOW_GROUPS.map((g) => {
             const items = DEMO_SHOW.filter((d) => d.group === g.group);
             const ready = items.filter((d) => pinOf(d.id).at);
             return (
@@ -179,6 +180,7 @@ export default function LibraryDrawer({ regionName, busy = false, onClose, onAsk
       {tab === "lib" && (
         <div className="drawer-b">
           <p className="xs muted">{regionName} 기준으로 보냅니다. 하나를 누르면 바로 묻고, 여러 개(최대 4개)를 골라 차례로 보낼 수도 있습니다.</p>
+          {list.length === 0 && <p className="xs muted">이 기준지역에서 쓸 수 있는 질문이 없습니다.</p>}
           {STAGES.map((st) => {
             const qs = list.filter((q) => q.stage === st);
             if (!qs.length) return null;

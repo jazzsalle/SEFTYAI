@@ -15,7 +15,7 @@ import type { AreaPick, BaseRegion } from "@/lib/baseRegion";
 import { Dialog } from "./account/Dialog";
 
 type Level = "sido" | "sigungu" | "emd";
-export const BASE_BUSY = "질의·응답이 진행 중이라 기준지역을 바꿀 수 없습니다";
+export const BASE_BUSY = "답을 기다리는 중에는 기준지역을 바꿀 수 없습니다"; // 개발서버 RegionPicker BusyText(R60)
 
 const cache = new Map<string, AreaPick[]>();
 const loading = new Map<string, Promise<AreaPick[]>>();

@@ -44,7 +44,7 @@
 ## 8. 그 밖
 - 인쇄용 대화 보고서 (`/report`)
 - 대화 저장 전 주민번호·휴대전화·이메일 가리기, 운영자가 남의 질문을 볼 때 개인정보 가림 (`convStore.ts`)
-- 도움말 검색·예시 질문 바로 보내기 (`HelpCenter.tsx`)
+- 도움말 검색·예시 질문 바로 보내기·? 단축키 (`HelpCenter.tsx`) — 글과 짜임은 개발서버 helpContent·HelpModal(R60)
 - 지도 범례 카드·말풍선(답에서 보기·가까이 보기·같은 종류만) (`MapLegendPanel.tsx`, `MapPopup.tsx`) — 개발서버 `map/poc/MapLegendPanel.tsx`는 이것을 가져간 것
 
 ## 9. 1차 보완(2026-11-06)에서 남긴 것

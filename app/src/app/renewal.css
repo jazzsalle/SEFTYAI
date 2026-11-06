@@ -97,10 +97,27 @@
 .acard-h { display: flex; align-items: center; gap: 8px; }
 .acard-body.folded { max-height: 360px; overflow: hidden; -webkit-mask-image: linear-gradient(#000 70%, transparent); mask-image: linear-gradient(#000 70%, transparent); }
 .acard-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--c-line); }
-.fb { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-.fb .btn.on { background: var(--c-primary-sub); border-color: var(--c-primary); color: var(--c-primary-dk); }
-.fb-ask { display: inline-flex; gap: 4px; }
-.fb-ask input { height: 30px; border: 1px solid var(--c-bd); border-radius: var(--r-m); padding: 0 8px; font-size: var(--fs-xs); width: 200px; }
+/* 답변 평가 — 개발서버 AnswerFeedback(index.css · ds-conv.css answer-rate) — 답 끝에 선을 긋고 한 줄로(R60) */
+.answer-rate { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--c-bd); }
+.answer-rate-ask { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.answer-rate-label { font-size: var(--fs-s); color: var(--c-sub); }
+.answer-rate-btn { display: inline-flex; align-items: center; gap: 4px; height: 40px; padding: 0 10px; font: inherit; font-size: var(--fs-s); color: var(--c-text); background: var(--c-white); border: 1px solid var(--c-bd-gray); border-radius: 6px; cursor: pointer; }
+.answer-rate-btn:hover:not(:disabled) { color: var(--c-primary-dk); border-color: var(--c-primary-dk); }
+.answer-rate-btn:disabled { color: var(--c-dis); cursor: default; }
+.answer-rate-btn.is-picked { color: var(--c-primary-dk); background: var(--c-primary-sub); border-color: var(--c-primary-dk); }
+.answer-rate-why { display: flex; flex-direction: column; gap: 6px; }
+.answer-rate-why-label { font-size: calc(14px * var(--fs-scale)); color: var(--c-sub); }
+.answer-rate-why-opt { color: var(--c-dis); }
+.answer-rate-why-input { padding: 8px 10px; font: inherit; font-size: var(--fs-s); line-height: 1.47; color: var(--c-text); border: 1px solid var(--c-bd-gray); border-radius: 6px; resize: vertical; }
+.answer-rate-why-input:focus { outline: 2px solid var(--c-primary-dk); outline-offset: 1px; }
+.answer-rate-why-foot { display: flex; justify-content: flex-end; gap: 8px; }
+.answer-rate-cancel, .answer-rate-send, .answer-rate-again { padding: 5px 14px; font: inherit; font-size: calc(14px * var(--fs-scale)); border-radius: 6px; cursor: pointer; }
+.answer-rate-cancel, .answer-rate-again { color: var(--c-sub); background: var(--c-white); border: 1px solid var(--c-bd-gray); }
+.answer-rate-send { color: var(--c-white); background: var(--c-primary-dk); border: 1px solid var(--c-primary-dk); }
+.answer-rate-send:disabled { background: var(--c-dis); border-color: var(--c-dis); cursor: default; }
+.answer-rate--done { flex-direction: row; align-items: center; gap: 12px; }
+.answer-rate-thanks { font-size: calc(14px * var(--fs-scale)); color: var(--c-sub); }
+.answer-rate-failed { margin: 0; font-size: calc(14px * var(--fs-scale)); color: var(--c-dang); }
 .rawbox { margin-top: 10px; max-height: 420px; overflow: auto; white-space: pre-wrap; font-size: calc(12.5px * var(--fs-scale)); background: var(--c-surface); border: 1px solid var(--c-line); border-radius: var(--r-m); padding: 12px; }
 .gaps { margin-top: 12px; padding: 10px 12px; background: var(--c-surface); border-radius: var(--r-m); font-size: var(--fs-2xs); color: var(--c-sub); line-height: 1.7; }
 .refbox { margin-top: 14px; background: var(--c-sec-sub); border-radius: var(--r-l); padding: 12px 14px; }

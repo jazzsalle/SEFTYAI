@@ -2,7 +2,7 @@ import "server-only";
 import { createHmac, randomBytes, scrypt as _scrypt, timingSafeEqual } from "node:crypto";
 import { promisify } from "node:util";
 import { ACCOUNTS, type Account } from "../config";
-import { issuedAccount } from "../accountRules";
+import { inspectPw, issuedAccount, PW_CHAR_MSG, pwRuleOk } from "../accountRules";
 import { db, ensureSchema } from "./db";
 
 /**
@@ -39,7 +39,8 @@ function secret() {
 export const accountOf = (id: string, grade?: number | null, teamSn?: number | null): Account | null =>
   ACCOUNTS.find((a) => a.id === id) ?? issuedAccount(id, grade, teamSn);
 
-export const pwRule = (pw: string) => pw.length >= 9 && /[A-Za-z]/.test(pw) && /\d/.test(pw) && /[^A-Za-z0-9]/.test(pw);
+/** 비밀번호 규칙 — lib/accountRules pwRuleOk(개발서버 AccountRules.ValidatePassword: 공백·한글 등 거절, R60) */
+export const pwRule = (pw: string) => pwRuleOk(pw);
 
 export async function hashPw(pw: string) {
   const salt = randomBytes(16);
@@ -237,6 +238,7 @@ export async function changePw(id: string, oldPw: string, newPw: string, keepSid
     return "현재 비밀번호가 올바르지 않습니다.";
   }
   if (newPw === oldPw) return "현재 비밀번호와 다른 비밀번호로 바꾸세요.";
+  if (inspectPw(newPw).other) return PW_CHAR_MSG;
   if (!pwRule(newPw)) return "새 비밀번호는 9자 이상이며 영문·숫자·특수문자를 모두 포함해야 합니다.";
   await db().query("update sa_accounts set pw_hash = $2, must_change_pw = false, failed_count = 0 where id = $1", [id, await hashPw(newPw)]);
   await db().query("update sa_sessions set revoked_at = now(), revoked_reason = 'PASSWORD' where account_id = $1 and revoked_at is null and sid <> $2", [id, keepSid ?? ""]);
