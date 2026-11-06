@@ -18,6 +18,7 @@ import SopBar from "./sop/SopBar";
 const SHOW_SOPBAR = false;
 import { openHelp } from "./HelpCenter";
 import AiModeModal from "./explore/AiModeModal";
+import { AUTODEMO_START_EVENT, autoDemoBus, useAutoDemoBus } from "@/lib/autoDemoBus";
 import FontSize from "./FontSize";
 import { PasswordModal } from "./account/PasswordModal";
 import { MyInfoModal } from "./account/MyInfoModal";
@@ -68,6 +69,8 @@ function useReducedMotion() {
  */
 export function WxBar() {
   const { weather, account, cond, wxRef, setWxRef, aimOn } = useSession();
+  // 자동 시연의 가상 특보(R54 — 개발서버 AlertBanner override)가 있으면 특보 줄은 그것만
+  const demoWx = useAutoDemoBus().warnings;
   const router = useRouter();
   // 펼친 목록 — "ask" = [특보로 질문] 고르기, "all" = [모두 보기] 발효 특보 전체
   const [pop, setPop] = useState<"ask" | "all" | null>(null);
@@ -82,7 +85,7 @@ export function WxBar() {
   const bk = baseKey(cond.base);
   const national = !cond.base;
   const target = baseTarget(cond.base);
-  const mine = (weather?.advisories ?? []).filter((a) => a.status !== "해제" && a.status !== "변경" && wxCovers(a.area, target));
+  const mine = (demoWx ?? weather?.advisories ?? []).filter((a) => a.status !== "해제" && a.status !== "변경" && wxCovers(a.area, target));
   // 기준지역이 바뀌면 열려 있던 특보 목록을 닫는다(이전 지역 목록이 남지 않게).
   // 특보가 1건 이하·조회 실패가 되어 목록이 없어져도 닫는다(다시 늘어날 때 저절로 펼쳐지지 않게)
   useEffect(() => setPop(null), [bk]);
@@ -257,6 +260,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const [aimOpen, setAimOpen] = useState(false);
   /** 이 기준지역으로는 AI 모드를 쓸 수 없다(전국·시·도가 아닌 곳) — 개발서버 aiModeDenied */
   const [aimDenied, setAimDenied] = useState(false);
+  /** 자동 시연(R54) — 가상 특보로 받아 둔 AI 모드 점검·창 열림 */
+  const demo = useAutoDemoBus();
 
   useEffect(() => {
     if (ready && !account) router.replace("/login");
@@ -282,6 +287,10 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           {nav.map(([href, label]) => (
             <Link key={href} href={href} className={path?.startsWith(href) ? "on" : ""}>{label}</Link>
           ))}
+          {/* 자동 시연(개발서버 머리 메뉴 [자동 시연] — R54) — 질문 모음을 열지 않고 통합 탐색에서 대본대로 돈다 */}
+          <button type="button" className="gnb-demo" disabled={demo.running} onClick={() => (path?.startsWith("/explore") ? window.dispatchEvent(new CustomEvent(AUTODEMO_START_EVENT)) : router.push("/explore?autodemo=1"))}>
+            자동 시연
+          </button>
         </nav>
         <span className="sp" />
         <BasePicker />
@@ -299,7 +308,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           aria-pressed={aimOn}
           title="AI 모드 — 기상특보 기반 상황 점검"
         >
-          <i /> {aimOn ? "AI 모드 실행 중" : "AI 모드"}
+          <i /> {aimOn || demo.aim ? "AI 모드 실행 중" : "AI 모드"}
         </button>
         <div className="user">
           <button onClick={() => setMenu((m) => !m)} aria-expanded={menu}>
@@ -325,7 +334,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       {/* 대응 단계 바 — 2026-11-03 사용자 지시로 숨김(되살리려면 SHOW_SOPBAR = true) */}
       {SHOW_SOPBAR && <SopBar />}
       {/* AI 모드 — 켜 둔 동안 점검 결과를 읽고(창을 닫아도), 창은 머리줄 단추로 다시 연다(R52) */}
-      {aimOn && <AiModeModal open={aimOpen} onClose={() => setAimOpen(false)} />}
+      {(aimOn || demo.aim) && <AiModeModal open={aimOpen || demo.aimOpen} onClose={() => { setAimOpen(false); autoDemoBus.set({ aimOpen: false }); }} demo={demo.aim} />}
       {aimDenied && (
         <div className="modal-bg" role="dialog" aria-modal="true" aria-label="AI 모드를 실행할 수 없습니다">
           <div className="modal" style={{ width: 480 }}>

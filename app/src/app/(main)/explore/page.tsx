@@ -26,6 +26,9 @@ import AnswerCard from "@/components/answer/AnswerCard";
 import DataCard from "@/components/answer/DataCard";
 import type { MapFeature } from "@/components/map/MapView";
 import { IcChevL } from "@/components/Icons";
+import { AutoDemoBar } from "@/components/autodemo/AutoDemoBar";
+import AimPrep from "@/components/autodemo/AimPrep";
+import { useExploreAutoDemo } from "@/components/autodemo/useExploreAutoDemo";
 
 const SOP_TAB: PanelTab = { key: "sop", kind: "sop", title: "대응절차", pinned: true };
 const MAP_TAB: PanelTab = { key: "map", kind: "map", title: "지도" };
@@ -335,6 +338,13 @@ function Explore() {
     setLibOpen(false);
     for (const d of ds) await ask({ ...demoAsk(d), pinId: d.id, warnings: (d as ShowItem).warnings ?? null }).catch(toastErr);
   };
+  /** 자동 시연(개발서버 features/demoMode — R54) — 받아 둔 답을 대본대로 놓고 음성으로 안내. 시연 배치 = 질의 목록 접고 대화 55% */
+  const autoDemo = useExploreAutoDemo({
+    newConv,
+    ask: (a) => ask(a),
+    layout: () => { setQueueOpen(false); setLibOpen(false); setChatW(55); },
+    open: (what) => { setPanelOpen(true); setActive(what); },
+  });
 
   /** 브리핑 세트 — 항목마다 자리 턴을 먼저 만들고(실패해도 자리 유지) 동시에 보낸다(R2) */
   const startBriefing = async () => {
@@ -661,7 +671,7 @@ function Explore() {
             }}
           />
         )}
-        {libOpen && (
+        {libOpen && autoDemo.phase === "idle" && (
           <LibraryDrawer
             regionName={regionName}
             onClose={() => setLibOpen(false)}
@@ -671,6 +681,7 @@ function Explore() {
             onAskShow={askShow}
           />
         )}
+        <AutoDemoBar demo={autoDemo}><AimPrep /></AutoDemoBar>
       </div>
     </ExploreContext.Provider>
   );

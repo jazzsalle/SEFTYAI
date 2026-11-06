@@ -58,13 +58,28 @@ export const LIBRARY: LibraryQuestion[] = [
 /* ───────── 조건 프리셋 (R11 조건 시나리오) ───────── */
 
 /** 조건 편집 창(Composer)의 수치 칸 — 항목·이름·단위(query_context.detail.conditions 에 이 글자 그대로) */
+/**
+ * 「기상·수문 조건 (직접 입력)」 줄 — 개발서버 conditions.ts MeasureFields 그대로(이름·단위·묶음·차례, R54).
+ * 다만 수위·유량 코드는 T3Q 계약(lib/t3q/schemas ConditionItem — WATER_LEVEL · FLOW)을 따른다(개발서버는 RIVER_LEVEL · RIVER_FLOW 이고 「T3Q 와 확인 필요」라 적어 둠).
+ * label·value·unit 을 함께 보내므로 Agent 가 읽을 것은 같다
+ */
 export const COND_ITEMS = [
-  { item: "RAIN_1H", label: "1시간 강우", unit: "mm" },
-  { item: "RAIN_3H", label: "3시간 누적 강우", unit: "mm" },
-  { item: "RAIN_24H", label: "24시간 누적 강우", unit: "mm" },
-  { item: "WATER_LEVEL", label: "하천 수위", unit: "m" },
-  { item: "WIND_SPEED", label: "풍속", unit: "m/s" },
+  { item: "RAIN_1H", label: "1시간 강우", unit: "mm", group: "RAIN" },
+  { item: "RAIN_3H", label: "3시간 누적", unit: "mm", group: "RAIN" },
+  { item: "RAIN_6H", label: "6시간 누적", unit: "mm", group: "RAIN" },
+  { item: "RAIN_12H", label: "12시간 누적", unit: "mm", group: "RAIN" },
+  { item: "RAIN_24H", label: "24시간 누적", unit: "mm", group: "RAIN" },
+  { item: "WATER_LEVEL", label: "하천 수위", unit: "m", group: "HYDRO" },
+  { item: "FLOW", label: "하천 유량", unit: "m³/s", group: "HYDRO" },
+  { item: "WIND_SPEED", label: "풍속", unit: "m/s", group: "WEATHER" },
+  { item: "HUMIDITY", label: "습도", unit: "%", group: "WEATHER" },
 ] as const;
+/** 묶음 이름(개발서버 MeasureGroupNames) */
+export const COND_GROUPS = { RAIN: "누적강우", HYDRO: "수문", WEATHER: "기상" } as const;
+/** 재난유형 칩(개발서버 DisasterTypes — 첫 칸 「전체」는 고르지 않은 상태) · 특보 종류·단계(WarningKinds · WarningLevels) */
+export const COND_DISASTER_TYPES = ["호우", "홍수", "침수", "태풍", "산사태"] as const;
+export const COND_WARNING_KINDS = ["호우", "대설", "강풍", "풍랑", "태풍", "한파", "폭염", "건조", "황사"] as const;
+export const COND_WARNING_LEVELS = ["주의보", "경보"] as const;
 export type CondItem = (typeof COND_ITEMS)[number]["item"];
 
 /**

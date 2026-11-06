@@ -11,6 +11,10 @@
 .gnb a { height: 56px; display: inline-flex; align-items: center; padding: 0 12px; font-size: var(--fs-s); font-weight: 600; color: var(--c-sub); border-bottom: 3px solid transparent; }
 .gnb a.on { color: var(--c-navy); border-bottom-color: var(--c-navy); font-weight: 800; }
 .gnb a:hover { color: var(--c-primary-dk); }
+/* 머리 메뉴 끝 [자동 시연](R54 — 개발서버 demo-mode-btn 처럼 흐리게) */
+.gnb .gnb-demo { height: 56px; padding: 0 10px; border: 0; background: none; font-size: var(--fs-xs); font-weight: 600; color: #8a949e; cursor: pointer; white-space: nowrap; }
+.gnb .gnb-demo:hover:not(:disabled) { color: var(--c-primary-dk); }
+.gnb .gnb-demo:disabled { opacity: 0.5; cursor: default; }
 .gh.one .scope { display: flex; align-items: center; gap: 6px; min-width: 0; flex: 0 1 auto; }
 /* 기준지역 고르기 셋(시·도·시·군·구·읍·면·동)이 들어가도 머리줄 한 줄 — 고르기가 먼저 줄어든다 */
 .gh.one .logo, .gh.one .gnb a, .gh.one .scope > span, .gh.one .hbtn, .gh.one .ai-pill, .gh.one .user > button { white-space: nowrap; }

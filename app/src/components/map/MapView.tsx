@@ -55,6 +55,8 @@ import {
   type LegendEntry, type Look,
 } from "./mapStyle";
 import MapPopup from "./MapPopup";
+import MapBrowserEvent from "ol/MapBrowserEvent";
+import { MAP_CLICK_EVENT, MAP_FIND_EVENT, type MapHit, type MapQuery } from "@/lib/autoDemoMap";
 
 const VW_KEY = process.env.NEXT_PUBLIC_VWORLD_KEY ?? "";
 
@@ -1042,6 +1044,66 @@ export default function MapView(p: Props) {
       v.animate({ zoom: (v.getZoom() ?? 10) + Number((ev as CustomEvent<number>).detail || 0), duration: 200 });
     };
     window.addEventListener("sa-map-zoom", onZoom);
+    // ── 자동 시연(R54 · lib/autoDemoMap) — 캔버스에 그린 묶음·점·구 이름표가 화면 어디에 있는지 알려 주고, 그 자리 누르기를 받는다
+    const onDemoFind = (ev: Event) => {
+      const { q, box } = (ev as CustomEvent<{ q: MapQuery; box: { hit: MapHit | null } }>).detail;
+      if (box.hit) return;
+      const size = m.getSize();
+      const rect = m.getViewport().getBoundingClientRect();
+      if (!size || rect.width === 0) return;
+      const inView = (px: number[] | null | undefined): px is number[] => !!px && px[0] >= 8 && px[1] >= 8 && px[0] <= size[0] - 8 && px[1] <= size[1] - 8;
+      const at = (px: number[], s: number, name: string): MapHit => ({ x: rect.left + px[0], y: rect.top + px[1], size: s, name });
+      if (q.kind === "cluster") {
+        let best: { px: number[]; n: number } | null = null;
+        for (const f of clSrc.getFeatures()) {
+          const g = f.getGeometry() as Point | undefined;
+          const px = g ? m.getPixelFromCoordinate(g.getCoordinates()) : null;
+          const n = Number(f.get("n")) || 0;
+          if (inView(px) && (!best || n > best.n)) best = { px, n };
+        }
+        if (best) box.hit = at(best.px, 44, String(best.n));
+        return;
+      }
+      if (q.kind === "pin") {
+        const P = propsRef.current;
+        if (!P.layers.features || P.summaryOn) return;
+        for (const f of src.getFeatures()) {
+          const r = recs.get(f);
+          if (!r || !r.primary || !shownRec(r) || clustered.has(r.mf.key) || (q.exact && r.approx)) continue;
+          const name = nameOf(r) ?? "";
+          if (q.text && !name.includes(q.text) && !(r.mf.displayName ?? "").includes(q.text)) continue;
+          const px = m.getPixelFromCoordinate(r.anchor.getCoordinates());
+          if (inView(px)) {
+            box.hit = at(px, 36, r.mf.displayName ?? name);
+            return;
+          }
+        }
+        return;
+      }
+      // 요약 보기의 구 이름표(MapSummary 가 얹은 겹 — 이름·곳 수·이름표 자리를 단 구 도형)
+      for (const l of m.getLayers().getArray()) {
+        if (!(l instanceof VectorLayer) || !l.getVisible()) continue;
+        for (const f of (l.getSource() as VectorSource | null)?.getFeatures() ?? []) {
+          const label = f.get("label") as Point | undefined;
+          const name = f.get("name");
+          if (!label || typeof name !== "string" || !(Number(f.get("n")) > 0) || (q.text && !name.includes(q.text))) continue;
+          const px = m.getPixelFromCoordinate(label.getCoordinates());
+          if (inView(px)) {
+            box.hit = at(px, 40, name);
+            return;
+          }
+        }
+      }
+    };
+    const onDemoClick = (ev: Event) => {
+      const { x, y } = (ev as CustomEvent<{ x: number; y: number }>).detail;
+      const rect = m.getViewport().getBoundingClientRect();
+      if (x < rect.left || x > rect.right || y < rect.top || y > rect.bottom) return;
+      const pe = new PointerEvent("pointerup", { clientX: x, clientY: y, bubbles: true });
+      m.dispatchEvent(new MapBrowserEvent("singleclick", m, pe));
+    };
+    window.addEventListener(MAP_FIND_EVENT, onDemoFind);
+    window.addEventListener(MAP_CLICK_EVENT, onDemoClick);
     const ro = new ResizeObserver(() => {
       m.updateSize();
       const s = m.getSize();
@@ -1083,6 +1145,8 @@ export default function MapView(p: Props) {
     return () => {
       ro.disconnect();
       window.removeEventListener("sa-map-zoom", onZoom);
+      window.removeEventListener(MAP_FIND_EVENT, onDemoFind);
+      window.removeEventListener(MAP_CLICK_EVENT, onDemoClick);
       vp.removeEventListener("pointerleave", onLeave);
       vp.removeEventListener("wheel", onWheel);
       propsRef.current.onMap?.(null);

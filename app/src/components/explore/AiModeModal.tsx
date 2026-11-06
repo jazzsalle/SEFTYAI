@@ -21,7 +21,7 @@ const RUNNING_POLL_MS = 5000;
  * 배경 점검 지역(lib/aiMode AIM_GROUPS)은 서버가 지역 공용으로 10분마다 돌고 화면은 2분마다 읽기만,
  * 그 밖의 지역은 켤 때 한 번·그 뒤 10분마다 점검을 건다(특보가 그대로이고 답이 60분 안이면 서버가 상류를 부르지 않음).
  */
-function useAiMode() {
+function useAiMode(enabled = true) {
   const s = useSession();
   const wire = useMemo(() => baseWire(s.cond.base), [s.cond.base]);
   const [resp, setResp] = useState<AimResponse | null>(null);
@@ -31,7 +31,7 @@ function useAiMode() {
 
   const call = useCallback(
     async (kind: "check" | "read") => {
-      if (!wire || inflight.current) return null;
+      if (!enabled || !wire || inflight.current) return null;
       inflight.current = true;
       setBusy(true);
       try {
@@ -51,7 +51,7 @@ function useAiMode() {
         setBusy(false);
       }
     },
-    [wire],
+    [wire, enabled],
   );
 
   // 켤 때 한 번 — 배경 지역은 읽기(서버가 막는다), 그 밖은 점검
@@ -96,11 +96,13 @@ const markOf = (level: string) => (level === "주의보" ? "!" : null);
  * 발효 특보마다 카드 한 장(경보 먼저, 최근 발효 순), 여럿이면 3초마다 저절로 넘김(정지·이전·다음). 카드의 「AI 안내」 = 그 특보만 실어 물은 답 글 그대로.
  * [확인]·✕ 는 창만 닫고 AI 모드는 켜 둔다(머리줄 「AI 모드 실행 중」을 누르면 다시 연다). [AI 모드 종료]는 끈다.
  */
-export default function AiModeModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+export default function AiModeModal({ open, onClose, demo = null }: { open: boolean; onClose: () => void; demo?: AimView | null }) {
   const s = useSession();
   const router = useRouter();
   const path = usePathname();
-  const { view, checking, failed } = useAiMode();
+  // 자동 시연(R54) — 가상 특보로 받아 둔 점검이 있으면 서버 점검 대신 그것을 그린다(개발서버 status={demoAiMode ?? aiMode.status})
+  const live = useAiMode(!demo);
+  const { view, checking, failed } = demo ? { view: demo, checking: false, failed: false } : live;
   const set = useBriefingSet();
   const items = set.checked;
   const regionName = baseName(s.cond.base);
