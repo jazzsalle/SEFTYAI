@@ -16,6 +16,8 @@ import DocRefs from "./DocRefs";
 import DemoInfoPanel, { hasDemoInfographic } from "./DemoInfographic";
 import AutoInfoPanel from "./AutoInfographic";
 import CompactSummary from "../summary/CompactSummary";
+import SimilarSummary from "../summary/SimilarSummary";
+import { wantsSimilarSummary, withDisasterType } from "@/lib/similarCases";
 import { useSummary } from "../summary/useSummary";
 import { basisTime } from "@/lib/summary";
 import "./answer.css";
@@ -122,6 +124,13 @@ function Card({ job, full, compact, noActions, brief }: CardProps) {
   // 한눈 요약(개발 서버 시안 1) — 같은 refs 는 한 번만 받는다(CompactSummary 와 같은 캐시)
   const sm = useSummary(brief ? null : refs);
   const regionName = (full?.request as { query_context?: { region?: { name?: string } | null } } | undefined)?.query_context?.region?.name ?? null;
+  // 유사사례 한눈 요약(개발서버 AnswerPanel caseCtx) — 사례를 물은 답이면 그 답을 보낸 조건(+ 질문에서 읽은 재난유형)으로 T3Q-04 를 부른다
+  const similarCtx = useMemo(() => {
+    const text = typeof res?.answer === "string" ? res.answer : "";
+    if (brief || !text || !wantsSimilarSummary(job.question_user, text)) return null;
+    const qc = (full?.request as { query_context?: Record<string, unknown> | null } | undefined)?.query_context;
+    return qc && typeof qc === "object" ? withDisasterType(qc, job.question_user) : null;
+  }, [brief, res, job.question_user, full?.request]);
   const seen = seenAdvisories(job, full);
   const after = useMemo(() => advisoriesAfter(s.weather, region, at, seen), [s.weather, region, at, seen]);
 
@@ -279,11 +288,13 @@ function Card({ job, full, compact, noActions, brief }: CardProps) {
       {/* 그림을 먼저(11/2 행안부 회의 코멘트, 사용자 승인 2026-11-02) — 시연 탭 항목은 미리 만든 시연 자료, 그 밖은 받은 대상·조회 값으로 그린 답변 그림. 답 글·대상은 그대로 */}
       {hasDemoInfographic(job) ? <DemoInfoPanel job={job} /> : <AutoInfoPanel job={job} full={full} noTargets={sm.kind !== "none"} />}
       {/* 답 글 위 한눈 요약 카드(개발 서버 CompactSummary) — 대상 그림은 이 카드가 맡는다(답변 그림의 「답변 대상」은 접는다) */}
-      {!brief && <CompactSummary refs={refs} regionName={regionName} basisAt={basisTime(at ?? job.created_at)} onEntity={(r) => x.showOnMap(job.id, r.ref)} onExpand={() => x.showSummary(job.id)} />}
+      {!brief && <CompactSummary refs={refs} regionName={regionName} basisAt={basisTime(at ?? job.created_at)} onEntity={(r) => x.openEntity(job.id, r)} onExpand={() => x.showSummary(job.id)} />}
+      {/* 유사사례 답 — refs 가 없어 위 요약이 안 붙는다. 순위·1위 사건·답에 나온 수치(개발서버 SimilarSummary). 사건을 누르면 사건 상세 탭 */}
+      {similarCtx && answer && <SimilarSummary ctx={similarCtx} answer={answer} regionName={regionName} onEvent={(ev) => x.openDetail("T3Q-10", ev.id, ev.label, ev.ctx)} />}
 
       {answer ? (
         <div ref={bodyRef} className={fold ? "acard-body folded" : "acard-body"}>
-          <AnswerMarkdown text={answer} refs={refs} activeRef={activeRef} onRef={(r) => x.showOnMap(job.id, r.ref)} />
+          <AnswerMarkdown text={answer} refs={refs} activeRef={activeRef} onRef={(r) => x.openEntity(job.id, r)} />
         </div>
       ) : (
         <div className="s muted" style={{ marginTop: 8 }}>{ANSWER_FAILED}</div>
@@ -313,10 +324,11 @@ function Card({ job, full, compact, noActions, brief }: CardProps) {
                 <label className="pick">
                   <input type="checkbox" aria-label={`${r.display_name ?? r.ref} — 이어서 묻기에 참조`} checked={picked.includes(r.ref)} onChange={() => togglePick(r.ref)} />
                 </label>
-                <button className="lnk" onClick={() => x.showOnMap(job.id, r.ref)}>{r.display_name ?? r.ref}</button>
+                <button className="lnk" onClick={() => x.openEntity(job.id, r)}>{r.display_name ?? r.ref}</button>
                 <span className="xs muted">{entityLabel(r.entity_type)}</span>
                 <span className="sp" />
-                <button className="lnk xs" onClick={() => x.showOnMap(job.id, r.ref)}>지도에서 보기</button>
+                {/* 개발서버 AnswerTargets 「상세 보기」(ans-lnk--xs) — 이름과 같이 상세 탭을 만들고 지도로 */}
+                <button className="lnk xs ref-detail" onClick={() => x.openEntity(job.id, r)}>상세 보기</button>
               </li>
             ))}
           </ul>

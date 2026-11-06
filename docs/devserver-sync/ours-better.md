@@ -69,7 +69,7 @@
 - 말풍선 「답변에서 보기」(그 대상이 든 답변으로 이동)·「같은 종류만 보기」 — 개발서버 말풍선에는 「상세 보기」만 있다. 「상세 보기」는 개발서버대로 더함 (`components/map/MapPopup.tsx`)
 - 배경지도 VWorld 가 연속 실패하면 OpenStreetMap 으로 바꾸고 한 줄 안내 · 배경지도 일반/영상/회색·행정경계/답변 대상 켜고 끄기 (`components/map/MapView.tsx`, `explore/RightPanel.tsx`)
 - 지도 범례 카드(종류별 곳 수·거르기) — 요약 보기 중에는 숨김 (`MapLegendPanel.tsx`)
-- 답변 그림(질문 모음 문항)의 큰 숫자 타일·유사사례 연대기·시설 카드 — 한눈 요약 카드가 나오는 답에서는 겹치는 「답변 대상」 묶음만 빼고 남김 (`components/answer/AutoInfographic.tsx`)
+- 답변 그림(질문 모음 문항)의 큰 숫자 타일·시설 카드 — 한눈 요약 카드가 나오는 답에서는 겹치는 「답변 대상」 묶음만 빼고 남김 (`components/answer/AutoInfographic.tsx`). 유사사례 연대기는 R59 에서 지움(개발서버 유사사례 한눈 요약이 그 자리)
 - 「시연 자료」 미리 만든 인포그래픽(`DemoInfographic.tsx`)은 그대로, 한눈 요약 카드는 그 아래에 함께
 - 개발서버 반영 시 참고: 개발서버 MapPane 말풍선에 「답변에서 보기」를 붙이려면 SearchPage 의 턴 DOM id 로 scrollIntoView 하면 된다. 배경지도 대체(OSM)는 타일 오류 이벤트를 세어 바꾸는 방식(`MapView.tsx` tileloaderror)
 

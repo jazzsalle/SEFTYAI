@@ -10,7 +10,7 @@ import { api } from "@/lib/api";
 import type { Citation } from "@/lib/contract/agent";
 import { activeAdvisories, advName, warningsPayload } from "@/lib/wxref";
 import { baseKey, baseName, basePilot, baseTarget, type BaseRegion } from "@/lib/baseRegion";
-import { entityKey, objectIdOf, type RefLike } from "@/lib/mapRef";
+import { detailIdOf, entityKey, objectIdOf, type RefLike } from "@/lib/mapRef";
 import { WX_ASK_EVENT, takeWxAsk, wxAskQuestion, type WxAskRequest } from "@/lib/wxAsk";
 import { SOURCE_LABEL, receivedAt, type JobSummary, type T3qRef } from "@/lib/jobTypes";
 import { basisTime } from "@/lib/summary";
@@ -512,6 +512,13 @@ function Explore() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [summary?.jobId]);
 
+  const showOnMap = (jobId: string, ref?: string) => {
+    setMapJob(jobId);
+    setSelectedKey(ref ? `${jobId}:${ref}` : null);
+    setFocusToken((n) => n + 1);
+    setActive("map");
+    setPanelOpen(true);
+  };
   const openTab = (t: PanelTab) => {
     setTabs((p) => (p.some((x) => x.key === t.key) ? p : [...p, t]));
     setActive(t.key);
@@ -520,12 +527,14 @@ function Explore() {
   const x: ExploreApi = {
     openCitation: (c: Citation) => openTab({ key: `doc:${c.docId}:${c.page ?? ""}`, kind: "doc", title: c.title, citation: c }),
     openDetail: (api, id, label, ctx) => openTab({ key: `d:${api}:${id}`, kind: "detail", title: label, detail: { api, id, label, ctx } }),
-    showOnMap: (jobId, ref) => {
-      setMapJob(jobId);
-      setSelectedKey(ref ? `${jobId}:${ref}` : null);
-      setFocusToken((n) => n + 1);
-      setActive("map");
-      setPanelOpen(true);
+    showOnMap: (jobId, ref) => showOnMap(jobId, ref),
+    openEntity: (jobId, r) => {
+      // 개발서버 usePanel.openEntity — 탭은 만들되(열쇠가 없어도 — 상세 탭이 「지역 단위로 가리킨 것」을 알린다) 보이는 것은 지도
+      const id = detailIdOf(r);
+      const label = r.display_name ?? r.ref;
+      const key = `d:T3Q-15:${id ?? `${jobId}:${r.ref}`}`;
+      setTabs((p) => (p.some((t) => t.key === key) ? p : [...p, { key, kind: "detail", title: label, detail: { api: "T3Q-15", id: id ?? "", label, ctx: { mapJob: jobId, mapRef: r.ref } } }]));
+      showOnMap(jobId, r.ref);
     },
     selectOnMap: (key) => {
       // 지도에서 누름 — 고른 표시만(지도는 MapView 가 배율 그대로 가운데로 옮긴다)

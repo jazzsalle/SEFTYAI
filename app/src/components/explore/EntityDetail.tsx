@@ -17,11 +17,12 @@ import "./entity.css";
  * 머리: 분류 아이콘 원 + 이름, 오른쪽 [지도에서 보기](지도에 찍을 수 있을 때)·[참조](근거가 있을 때) → 머리 칩(분류·행정구역·지정일) → 「출처 · 자료 기준」
  * → 요약 타일(위험등급·지정일·지정면적·연장·취약속성) → 기본정보 · 위험·취약정보(점검·정비 기록 표 + 주의) · 피해 이력 · 관리정보 · 근거 → 원본 항목 전체 보기.
  * 내용이 없는 영역은 세우지 않고, 값은 받은 글자 그대로(lib/riskObject).
- * ctx: mapJob·mapRef = 지도 대상(지도에서 열었을 때), hasGeometry = 위치 유무(false 면 위치 없음 주의).
+ * ctx: mapJob·mapRef = 지도 대상(답 속 이름·대상 목록·지도 말풍선에서 열었을 때). hasGeometry = 위치 유무(패널이 지도 대상으로 셈 — true 면 [지도에서 보기], false 면 위치 없음 주의).
  */
-export default function EntityDetail({ id, label, ctx }: { id: string; label: string; ctx?: Record<string, unknown> | null }) {
+export default function EntityDetail({ id, label, ctx, hasGeometry: known }: { id: string; label: string; ctx?: Record<string, unknown> | null; hasGeometry?: boolean | null }) {
   const x = useExplore();
-  const q = useT3qData<T3qEnvelope<RiskObject>>({ api: "T3Q-15", id });
+  // 열쇠가 없는 대상(지역 단위로 가리킨 것)은 묻지 않는다 — 「nokey」 문구(개발서버 useRiskObject)
+  const q = useT3qData<T3qEnvelope<RiskObject>>(id ? { api: "T3Q-15", id } : null);
   const state = riskStateOf(id, id ? q : null, label);
   const basisRef = useRef<HTMLElement>(null);
 
@@ -38,7 +39,8 @@ export default function EntityDetail({ id, label, ctx }: { id: string; label: st
 
   const mapJob = typeof ctx?.mapJob === "string" ? ctx.mapJob : null;
   const mapRef = typeof ctx?.mapRef === "string" ? ctx.mapRef : null;
-  const hasGeometry: boolean | null = ctx?.hasGeometry === false ? false : mapJob && mapRef ? true : null;
+  // 지도에 찍을 수 있는지 — 패널이 지도 대상 목록으로 알려 준다(개발서버 SidePanel geometryKnown). 모르면 null
+  const hasGeometry: boolean | null = known !== undefined ? known : ctx?.hasGeometry === false ? false : mapJob && mapRef ? true : null;
 
   return (
     <div className="dpane entity-tab evd fadein">
@@ -101,7 +103,7 @@ const CATEGORY_ICONS: [RegExp, (p: IconProps) => ReactElement][] = [
   [/야영|캠핑|숙박|펜션/, IcCamp],
   [/시설|건물|교량/, IcFacility],
 ];
-function CategoryIcon({ label, size }: { label: string; size: number }) {
+export function CategoryIcon({ label, size }: { label: string; size: number }) {
   const Ic = CATEGORY_ICONS.find(([re]) => re.test(label))?.[1] ?? IcWarning;
   return <>{Ic({ size })}</>;
 }
@@ -126,7 +128,7 @@ function Summary({ object }: { object: RiskObject }) {
 }
 
 /** 띠 위 알약 제목 한 칸 — 늘 펼쳐 둔다 */
-function Sec({ title, tone, secRef, children }: { title: string; tone?: "t-b" | "t-c"; secRef?: Ref<HTMLElement>; children: ReactNode }) {
+export function Sec({ title, tone, secRef, children }: { title: string; tone?: "t-b" | "t-c"; secRef?: Ref<HTMLElement>; children: ReactNode }) {
   return (
     <section className="ev-sec" ref={secRef}>
       <h3 className={`di-pill${tone ? ` ${tone}` : ""}`}>{title}</h3>
@@ -179,7 +181,7 @@ function BasisSection({ object }: { object: RiskObject }) {
 }
 
 /** 키·값 줄 — 값이 없는 줄은 그리지 않는다 */
-function Rows({ rows }: { rows: Row[] }) {
+export function Rows({ rows }: { rows: Row[] }) {
   const shown = rows.filter((r) => r.value !== null);
   if (!shown.length) return <p className="xs muted">{NOT_PROVIDED}</p>;
   return (
@@ -195,7 +197,7 @@ function Rows({ rows }: { rows: Row[] }) {
 }
 
 /** 「대상 원본 항목 전체 보기」 — 받은 결과 전부(화면에 고른 항목 밖의 것 포함) */
-function RawView({ name, v }: { name: string; v: unknown }) {
+export function RawView({ name, v }: { name: string; v: unknown }) {
   const [open, setOpen] = useState(false);
   return (
     <div className="ev-raw">

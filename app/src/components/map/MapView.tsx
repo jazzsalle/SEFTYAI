@@ -33,6 +33,8 @@ import VectorSource from "ol/source/Vector";
 import XYZ from "ol/source/XYZ";
 import OSM from "ol/source/OSM";
 import TileWMS from "ol/source/TileWMS";
+import TileState from "ol/TileState";
+import type ImageTile from "ol/ImageTile";
 import Point from "ol/geom/Point";
 import MultiPoint from "ol/geom/MultiPoint";
 import LineString from "ol/geom/LineString";
@@ -74,6 +76,8 @@ const VW_WMS_URL = "/api/map/wms";
 const VW_WMS_LAYERS = "lt_c_adsido,lt_c_adsigg,lt_c_ademd";
 
 export type Basemap = "Base" | "Satellite" | "gray";
+/** 행정경계 상태 — 개발서버 useMapLayers BoundaryStatus(idle 은 우리 경계가 늘 전국 WMS 라 없음) */
+export type BoundaryStatus = "loading" | "ok" | "nokey" | "failed" | "denied";
 
 /** 지도에 그릴 T3Q 대상 하나 = refs[] 한 건 + EXT-01 도형 */
 export interface MapFeature {
@@ -500,8 +504,8 @@ export default function MapView(p: Props) {
   // OSM 대체 중(위성 단추 막음) · 위성지도를 못 불러와 일반지도로 돌아옴(안내 한 줄)
   const [osmOn, setOsmOn] = useState(false);
   const [satFailed, setSatFailed] = useState(false);
-  // 행정경계(WMS)만 못 받음 — 배경지도·표식은 그대로
-  const [bndFailed, setBndFailed] = useState(false);
+  // 행정경계 상태(개발서버 useMapLayers BoundaryStatus) — 받는 중 · 받음 · 못 받음 · 서버에 키 없음 · 기준지역 밖이라 거절
+  const [bnd, setBnd] = useState<BoundaryStatus>("loading");
 
   // 초기화 (한 번)
   useEffect(() => {
@@ -539,6 +543,41 @@ export default function MapView(p: Props) {
     let wmsFailed = false;
     let wmsOk = 0;
     let wmsErr = 0;
+    /**
+     * 경계 상태 — 우리 경계는 WMS 타일이라 한 번에 받는 개발서버(boundary API)와 달리 타일마다 온다. 그래서
+     * 받는 중 = 지도를 처음 열거나 기준지역을 옮긴 뒤 그 화면의 타일이 다 그려질 때까지(rendercomplete),
+     * 못 받음 = 이미지 오류 수(처음 4장 연속 · 또는 12장 넘게 오류가 성공보다 많음),
+     * 키 없음 · 거절 = 서버 대리(/api/map/wms)의 응답(x-map-status: nokey · 403)으로 가린다 — 타일을 fetch 로 받아 응답 코드를 본다.
+     */
+    let bndState: BoundaryStatus = "loading";
+    const setBndState = (next: BoundaryStatus) => {
+      if (bndState === next) return;
+      bndState = next;
+      setBnd(next);
+    };
+    const bndStop = (next: "failed" | "nokey" | "denied") => {
+      if (wmsFailed) return;
+      wmsFailed = true;
+      bnd.setVisible(false);
+      setBndState(next);
+    };
+    wms.setTileLoadFunction((tile, src) => {
+      const img = (tile as ImageTile).getImage() as HTMLImageElement;
+      fetch(src, { credentials: "same-origin" })
+        .then((r) => {
+          if (r.status === 403) bndStop("denied");
+          else if (r.headers.get("x-map-status") === "nokey") bndStop("nokey");
+          if (!r.ok) throw new Error(String(r.status));
+          return r.blob();
+        })
+        .then((b) => {
+          const url = URL.createObjectURL(b);
+          img.addEventListener("load", () => URL.revokeObjectURL(url), { once: true });
+          img.addEventListener("error", () => URL.revokeObjectURL(url), { once: true });
+          img.src = url;
+        })
+        .catch(() => tile.setState(TileState.ERROR));
+    });
 
     // ── T3Q 공간정보: 면 < 선 < 핀 < 이름표
     const src = new VectorSource();
@@ -751,12 +790,8 @@ export default function MapView(p: Props) {
     });
     wms.on("tileloaderror", () => {
       wmsErr += 1;
-      if (!wmsFailed && ((wmsOk === 0 && wmsErr >= 4) || (wmsErr >= 12 && wmsErr > wmsOk))) {
-        wmsFailed = true;
-        bnd.setVisible(false);
-        // 배경지도(타일)는 멀쩡하고 행정경계만 못 받은 경우 — 배경지도 고장과 따로 알린다(개발 서버 boundaryStatus failed)
-        setBndFailed(true);
-      }
+      // 배경지도(타일)는 멀쩡하고 행정경계만 못 받은 경우 — 배경지도 고장과 따로 알린다(개발 서버 boundaryStatus failed)
+      if ((wmsOk === 0 && wmsErr >= 4) || (wmsErr >= 12 && wmsErr > wmsOk)) bndStop("failed");
     });
 
     // ── 범위 맞춤
@@ -874,6 +909,8 @@ export default function MapView(p: Props) {
     };
     const toRegion = () => {
       const r = REGIONS[propsRef.current.region] ?? REGIONS.national;
+      // 기준지역을 옮기면 그 지역 경계를 다시 받는다(개발서버 adminCode 가 바뀌면 loading)
+      if (bndState === "ok") setBndState("loading");
       waitUntil = 0;
       waitSize = false;
       const v = m.getView();
@@ -1140,6 +1177,10 @@ export default function MapView(p: Props) {
       refit,
     };
     P0.onMap?.(m);
+    // 경계 받는 중 → 그 화면의 타일이 다 그려지면 받음
+    m.on("rendercomplete", () => {
+      if (bndState === "loading") setBndState("ok");
+    });
     applyLayers();
     if (osmMode) {
       setOsmOn(true);
@@ -1281,6 +1322,7 @@ export default function MapView(p: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [popKey, detailOf]);
 
+  const basemapFailed = osmOn || bnd === "nokey";
   return (
     <div className="sa-map olmap" role="region" aria-label="지도">
       <div ref={el} className="sa-map-canvas" />
@@ -1289,9 +1331,14 @@ export default function MapView(p: Props) {
       {/* 알림은 지도 영역 맨 위에(개발 서버 설계 슬라이드 57~59) */}
       <div className="sa-map-notices">
         {p.resultStatus === "failed" && <Notice title="조회결과 위치를 불러오지 못했습니다.">잠시 후 같은 질문을 다시 보내세요.</Notice>}
-        {bndFailed && !osmOn && <Notice title="행정경계를 불러오지 못했습니다.">배경지도와 표식은 그대로 볼 수 있습니다.</Notice>}
+        {/* 개발서버 MapPane — 서버에 키가 없으면 배경지도 고장으로(basemapFailed). 배경지도가 OSM 으로 물러섰으면 그 안내(패널)가 대신한다 */}
+        {bnd === "nokey" && !osmOn && <Notice title="배경지도를 불러오지 못했습니다.">잠시 후 다시 확인하세요.</Notice>}
+        {!basemapFailed && bnd === "failed" && <Notice title="행정경계를 불러오지 못했습니다.">배경지도와 표식은 그대로 볼 수 있습니다.</Notice>}
+        {!basemapFailed && bnd === "denied" && (
+          <Notice title="이 지역의 행정경계는 볼 수 없습니다.">로그인한 계정의 기준지역 밖이라 서버가 경계를 주지 않습니다. 배경지도와 표식은 그대로 볼 수 있습니다.</Notice>
+        )}
       </div>
-      {p.resultStatus === "loading" && <p className="sa-map-loading" role="status">지도를 불러오는 중입니다…</p>}
+      {((bnd === "loading" && p.layers.boundary) || p.resultStatus === "loading") && <p className="sa-map-loading" role="status">지도를 불러오는 중입니다…</p>}
       {p.children}
       {p.onBasemap && (
         <button

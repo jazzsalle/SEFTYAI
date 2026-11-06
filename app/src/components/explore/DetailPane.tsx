@@ -1,50 +1,66 @@
 "use client";
-import { useEffect, useState } from "react";
-import { api } from "@/lib/api";
-import { API_KO, fieldKo, gapName, GAP_KO, QUALITY_KO, statusKo } from "@/lib/labels";
+import { API_KO, fieldKo, gapName, GAP_KO } from "@/lib/labels";
 import { fmtValue } from "@/lib/format";
+import { useT3qData, type T3qEnvelope } from "@/lib/t3qData";
+import { groupedStateOf } from "@/lib/detailGroups";
+import { text, UNAVAILABLE } from "@/lib/riskObject";
+import { IcCalendar, IcMapPin } from "../answer/infoIcons";
 import EventDetail from "./EventDetail";
-import EntityDetail from "./EntityDetail";
+import EntityDetail, { CategoryIcon, RawView, Rows, Sec } from "./EntityDetail";
 import "./tree.css";
 
 /**
- * T3Q Data API 상세 — 봉투의 result 를 키·값 그대로 펼쳐 보인다(값 가공 없음, R0).
- * 키 이름은 T3Q 필드명 그대로 두고, 값이 객체·배열이면 들여 써서 보인다.
+ * T3Q Data API 상세 탭 — 사건(T3Q-10) · 위험·취약 대상(T3Q-15, 개발서버 EntityTab) · 그 밖(같은 묶음 문법, R59).
+ * 값은 받은 그대로(가공 없음, R0) — 칸 이름만 한국어 필드 사전으로.
  */
-type Env = { status?: string; result?: unknown; data_gaps?: { component: string; reason: string }[]; warnings?: { code: string; message: string }[]; meta?: { base_time?: string; quality_status?: string } };
+type Env = { data_gaps?: { component: string; reason: string }[]; warnings?: { code: string; message: string }[] };
 
-export default function DetailPane({ apiId, id, label, ctx }: { apiId: string; id: string; label: string; ctx?: Record<string, unknown> | null }) {
+export default function DetailPane({ apiId, id, label, ctx, hasGeometry }: { apiId: string; id: string; label: string; ctx?: Record<string, unknown> | null; hasGeometry?: boolean | null }) {
   if (apiId === "T3Q-10") return <EventDetail id={id} label={label} ctx={ctx} />;
-  // 위험·취약 대상 — 개발서버 EntityTab 그대로(갈래별 묶음·이름 견줌·예외 문구). 그 밖의 상세(계획 등)는 받은 값 나무
-  if (apiId === "T3Q-15") return <EntityDetail id={id} label={label} ctx={ctx} />;
-  return <GenericDetail apiId={apiId} id={id} label={label} />;
+  // 위험·취약 대상 — 개발서버 EntityTab 그대로(갈래별 묶음·이름 견줌·예외 문구)
+  if (apiId === "T3Q-15") return <EntityDetail id={id} label={label} ctx={ctx} hasGeometry={hasGeometry} />;
+  return <GroupedDetail apiId={apiId} id={id} label={label} />;
 }
 
-function GenericDetail({ apiId, id, label }: { apiId: string; id: string; label: string }) {
-  const [env, setEnv] = useState<Env | null>(null);
-  const [err, setErr] = useState<string | null>(null);
-  useEffect(() => {
-    setEnv(null);
-    setErr(null);
-    api<{ envelope: Env }>("/api/t3q/data", { method: "POST", json: { api: apiId, id } })
-      .then((r) => setEnv(r.envelope))
-      .catch((e) => setErr((e as Error).message));
-  }, [apiId, id]);
+/**
+ * 그 밖의 상세(계획문서 T3Q-17 · 하천 계획지식 T3Q-16 등) — 개발서버에는 이 탭이 없고 상세는 모두 EntityTab 묶음 문법으로 선다 →
+ * 같은 머리·칩·알약 제목 묶음·원본 항목 전체 보기로(R59, lib/detailGroups). 예외 문구도 EntityTab 그대로
+ */
+function GroupedDetail({ apiId, id, label }: { apiId: string; id: string; label: string }) {
+  const q = useT3qData<T3qEnvelope>({ api: apiId, id });
+  const state = groupedStateOf(q);
+  const d = state.kind === "ok" ? state.detail : null;
+  const name = d?.name ?? label ?? id;
+  const env = q.state === "ok" ? q.data : null;
+  const asOf = text(env?.meta?.base_time);
   return (
-    <div className="dpane gdp fadein">
-      <div className="gdp-hero">
-        <div className="xs muted gdp-kind">{API_KO[apiId] ?? "상세"} · {id}</div>
-        <h2 className="gdp-title">{label}</h2>
-      </div>
-      {err && <div className="notice danger" style={{ marginTop: 12 }}>{err}</div>}
-      {!env && !err && <div className="muted s" style={{ marginTop: 12 }}>불러오는 중…</div>}
-      {env && (
+    <div className="dpane entity-tab evd fadein">
+      <header className="evd-hero">
+        <span className="evd-hero-ic"><CategoryIcon label={`${d?.kind ?? ""} ${name}`} size={28} /></span>
+        <div className="evd-hero-t">
+          <div className="evd-id">{[API_KO[apiId] ?? "상세", d?.objectId ?? id].filter(Boolean).join(" · ")}</div>
+          <h2 className="evd-title">{name}</h2>
+        </div>
+      </header>
+      {d && (d.kind || d.area || d.year) && (
+        <div className="ev-chips">
+          {d.kind && <span className="di-tag evd-type"><CategoryIcon label={`${d.kind} ${name}`} size={13} />{d.kind}</span>}
+          {d.area && <span className="di-tag t-b evd-type"><IcMapPin size={12} />{d.area}</span>}
+          {d.year && <span className="di-chip"><IcCalendar size={12} />기준 {d.year}</span>}
+        </div>
+      )}
+      {asOf && <div className="xs muted evd-sub">자료 기준 {asOf}</div>}
+      {state.kind === "loading" && <p className="xs muted">상세 정보를 불러오는 중입니다…</p>}
+      {(state.kind === "none" || state.kind === "failed") && <p className="xs muted">{UNAVAILABLE[state.kind]}</p>}
+      {d && (
         <>
-          <div className="xs muted gdp-meta">
-            {statusKo(env.status)} · 데이터 기준 {env.meta?.base_time ?? "—"}{env.meta?.quality_status ? ` · ${QUALITY_KO[env.meta.quality_status] ?? env.meta.quality_status}` : ""}
-          </div>
-          {env.result != null && <Tree v={env.result} />}
-          <Gaps env={env} />
+          {d.groups.map((g, i) => (
+            <Sec key={`${g.title}-${i}`} title={g.title}>
+              {g.rows.some((r) => r.value !== null) && <Rows rows={g.rows} />}
+              {g.tree !== undefined && <Tree v={g.tree} />}
+            </Sec>
+          ))}
+          {env?.result != null && <RawView name="상세" v={env.result} />}
         </>
       )}
     </div>

@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 // 하네스 — 답변 그림(자동 인포그래픽, LLM 없음): 정의된 질문(library_id)의 답에만 · 재료(공간정보·자동 조회)가 있을 때만 ·
-// 번호 = 답 글 등장 순 · 같은 좌표는 표지 하나 · 유사사례 연대기는 받은 순서·받은 날짜 · 큰 숫자는 받은 값(조건·특보·전체 건수)만 · 영어 없음
+// 번호 = 답 글 등장 순 · 같은 좌표는 표지 하나 · 유사사례 연대기는 없음(R59 — 개발서버 유사사례 한눈 요약이 그 자리) · 큰 숫자는 받은 값(조건·특보·전체 건수)만 · 영어 없음
 // npx vitest run harness/render/autoInfographic
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
@@ -61,7 +61,7 @@ const makeFull = (job: JobSummary, over: Partial<JobFull> = {}): JobFull => ({ .
 
 let x: ExploreApi;
 const wrap = (ui: ReactNode) => render(<ExploreContext.Provider value={x}>{ui}</ExploreContext.Provider>);
-beforeEach(() => { x = { openCitation: vi.fn(), openDetail: vi.fn(), showOnMap: vi.fn(), selectOnMap: vi.fn(), showSummary: vi.fn(), selectedKey: null, followUp: vi.fn(), retry: vi.fn() }; });
+beforeEach(() => { x = { openCitation: vi.fn(), openDetail: vi.fn(), showOnMap: vi.fn(), openEntity: vi.fn(), selectOnMap: vi.fn(), showSummary: vi.fn(), selectedKey: null, followUp: vi.fn(), retry: vi.fn() }; });
 afterEach(cleanup);
 
 describe("답변 그림 — 순수 계산(infoMap)", () => {
@@ -118,7 +118,8 @@ describe("답변 그림 — 패널", () => {
     expect(panel.querySelector("svg.im-map")).toBeNull(); // 지도 형식 그림은 뺐다(2026-11-03)
     expect(panel.querySelector(".ai-targets li .ai-tg-num")!.textContent).toBe("1");
     fireEvent.click(panel.querySelector(".ai-targets li button")!);
-    expect(x.showOnMap).toHaveBeenCalledWith("job-1", "r3");
+    // 개발서버 openEntity — 상세 탭을 만들고 지도로(R59)
+    expect(x.openEntity).toHaveBeenCalledWith("job-1", expect.objectContaining({ ref: "r3" }));
   });
 
   it("큰 숫자 타일: 함께 보낸 특보 · 요청 조건 · 받은 전체 건수만(센 값 없음)", () => {
@@ -134,19 +135,11 @@ describe("답변 그림 — 패널", () => {
     expect(container.textContent).not.toContain("4곳"); // 지도 대상 수를 세어 적지 않는다
   });
 
-  it("유사사례 연대기: 받은 순서 그대로 · 날짜 없는 건은 빼고 · 자리는 받은 발생일 · 사건을 누르면 사건 상세(비교 조건 포함)", () => {
+  it("유사사례 연대기는 그리지 않는다(R59 — 개발서버에 없는 그림, 그 자리는 답 카드의 유사사례 한눈 요약)", () => {
     const job = makeJob();
     const { container } = wrap(<AutoInfoPanel job={job} full={makeFull(job, { preview: [similar] })} />);
-    const rows = [...container.querySelectorAll(".ai-chron-row")];
-    expect(rows).toHaveLength(2);
-    expect(rows[0].textContent).toContain("2020년 7.23 호우");
-    expect(rows[0].textContent).toContain("유사도 90.91");
-    expect(rows[1].textContent).toContain("대표지역 부산 금정구");
-    const bars = rows.map((r) => (r.querySelector(".ai-chron-bar") as HTMLElement).style.left);
-    expect(parseFloat(bars[1])).toBeLessThan(parseFloat(bars[0])); // 2014 가 2020 보다 왼쪽
-    expect(container.querySelector(".ai-chron-axis")!.textContent).toContain("2014");
-    fireEvent.click(rows[0].querySelector("button.lnk")!);
-    expect(x.openDetail).toHaveBeenCalledWith("T3Q-10", "T10107-20200723-0001", "2020년 7.23 호우", REQ.query_context);
+    expect(container.querySelector(".ai-chron")).toBeNull();
+    expect(container.textContent).not.toContain("연대기");
   });
 
   it("시설 카드: 받은 항목 그대로(이름·분류·등급) · 누르면 시설 상세", () => {

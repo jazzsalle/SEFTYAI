@@ -9,8 +9,8 @@
 // - 질문 원문은 바꾸지 않는다(질문은 대화에 말풍선으로 그대로 보인다).
 //
 // SEFTYAI 로 옮기며(R54): 장면·자막(label·intro·say·outro)·질문 id·걸음 차례는 개발서버와 글자까지 같다.
-// 화면 요소만 우리 화면(통합 탐색)의 것으로 바꿨다 — 아래 UI·장면 위 상수. 개발서버에 없던 것은 「집을 요소가 없으면 orElse」 걸음뿐이다
-// (우리 답 속 이름은 지도로만 옮겨 가고 상세 탭을 열지 않아, 탭이 없으면 지도 말풍선 [상세 보기]로 연다).
+// 화면 요소만 우리 화면(통합 탐색)의 것으로 바꿨다 — 아래 UI·장면 위 상수. 걸음(orElse 포함)도 개발서버와 같다
+// (R59 — 답 속 이름이 개발서버처럼 상세 탭을 만들고 지도로 옮겨 가, R54 에 더했던 「말풍선 [상세 보기]로 여는 걸음」은 되돌림).
 // 지도 점·묶음·구 이름표는 캔버스라 "@map:…" 로 지도에게 묻는다(lib/autoDemoMap).
 import type { BaseRegion } from "@/lib/baseRegion"
 
@@ -184,8 +184,10 @@ const MapCluster = "@map:cluster"
 const MapArea = "@map:area"
 /** 지도 말풍선 [상세 보기] — 상세가 없으면(회색) 누르지 않고 다른 길로 */
 const PopDetail = ".sa-map-pop .mp-btn.pri:not(:disabled)"
-/** 답 글 속 이름(지도로 옮겨 감 — 개발서버 .answer-md-entity) */
+/** 답 글 속 이름(상세 탭을 만들고 지도로 옮겨 감 — 개발서버 .answer-md-entity) */
 const Entity = `${LastTurn} .ref-link`
+/** 답변 대상 목록의 [상세 보기](개발서버 .ans-lnk--xs) */
+const RefDetail = `${LastTurn} .refbox .ref-detail`
 /** 답 글의 표·문단·인용 */
 const MdTable = `${BodyBox} .md-table`
 const MdP = `${BodyBox} p`
@@ -195,8 +197,8 @@ const MdQuote = `${BodyBox} blockquote, ${BodyBox} p`
 const DetailRecord = `${UI.detailPane} .evd-record, ${UI.detailPane} .ev-sec .kv`
 const DetailField = `${UI.detailPane} .di-pill, ${UI.detailPane} .kv > *`
 /** 유사사례 카드·첫 사례 열기·사건 상세 타임라인(개발서버 .sim-card · .sim-open · .evp-tl) */
-const SimCard = `${LastTurn} .datacard-sec.sim`
-const SimOpen = `${LastTurn} .sim-top`
+const SimCard = `${LastTurn} .sim-card`
+const SimOpen = `${LastTurn} .sim-open`
 const EventTimeline = ".ev-tl-list"
 /** AI 모드 창 브리핑 줄·[브리핑 시작](개발서버 .aim-brief · .aim-brief-go) */
 const AimBrief = UI.aimBrief
@@ -269,7 +271,7 @@ export const AutoScript: AutoScene[] = [
         // 지도 말풍선이 없으면(다시 그려져 닫힘 등) 답에서 급경사지 이름을 눌러 같은 상세를 연다.
         orElse: [
           { click: { sel: Entity, text: "온천" }, wait: 600 },
-          { click: { sel: Tab, text: "온천" }, orElse: [{ click: { sel: PopDetail } }] },
+          { click: { sel: Tab, text: "온천" } },
         ],
         focus: ["panel"],
         say: "위험등급뿐 아니라 어떤 이유로 위험지역에 지정되었는지, 관련 자료에는 어떤 내용이 담겨 있는지도 확인합니다.",
@@ -292,7 +294,7 @@ export const AutoScript: AutoScene[] = [
       { click: { sel: Entity, text: "안락2" }, wait: 600 },
       {
         click: { sel: Tab, text: "안락2" },
-        orElse: [{ click: { sel: PopDetail } }],
+        orElse: [{ click: { sel: RefDetail } }],
         focus: ["panel"],
         say: "목록에서 지구 이름을 누르면, 그 지구의 지정 사유와 상세정보를 바로 확인할 수 있습니다.",
       },
@@ -331,7 +333,7 @@ export const AutoScript: AutoScene[] = [
         // 지도에 그 점이 안 보이면(작은 화면 등) 답에서 같은 급경사지 이름을 눌러 상세를 연다.
         orElse: [
           { click: { sel: Entity, text: "동래문화회관" }, wait: 600 },
-          { click: { sel: Tab, text: "동래문화회관" }, orElse: [{ click: { sel: PopDetail } }] },
+          { click: { sel: Tab, text: "동래문화회관" } },
         ],
         focus: ["panel"],
         say: "위치와 상세정보를 확인합니다.",
@@ -473,7 +475,6 @@ export const AutoScript: AutoScene[] = [
       },
       {
         click: { sel: Tab, text: "초량제1" },
-        orElse: [{ click: { sel: PopDetail } }],
         focus: ["panel"],
         say: "시설의 위치와 상세정보도 바로 확인할 수 있습니다.",
       },
@@ -646,7 +647,7 @@ export const AutoScript: AutoScene[] = [
       { click: { sel: Entity, text: "진동6지구" }, wait: 600 },
       {
         click: { sel: Tab, text: "진동6지구" },
-        orElse: [{ click: { sel: PopDetail } }],
+        orElse: [{ click: { sel: RefDetail } }],
         focus: ["panel"],
         say: "이름을 눌러 위험등급과 상세정보를 확인하고,",
       },

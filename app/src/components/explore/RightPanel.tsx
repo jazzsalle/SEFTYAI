@@ -49,8 +49,8 @@ interface Props {
 export default function RightPanel(p: Props) {
   const x = useExplore();
   const tab = p.tabs.find((t) => t.key === p.active) ?? p.tabs[0];
-  // 요약 이름을 누르면 지도에서 그 자리로(개발 서버 openEntity)
-  const onEntity = (r: RefLike) => p.summary && x.showOnMap(p.summary.jobId, r.ref);
+  // 요약 이름을 누르면 상세 탭을 만들고 지도에서 그 자리로(개발 서버 openEntity)
+  const onEntity = (r: RefLike) => p.summary && x.openEntity(p.summary.jobId, r);
   return (
     <aside className="rpanel" aria-label="우측 패널">
       <div className="rtabs" role="tablist">
@@ -75,11 +75,23 @@ export default function RightPanel(p: Props) {
           {tab.kind === "summary" && <PosterSummary source={p.summary ?? null} onEntity={onEntity} />}
           {tab.kind === "sop" && <SopPane focus={p.sopFocus} />}
           {tab.kind === "doc" && tab.citation && <DocPane c={tab.citation} />}
-          {tab.kind === "detail" && tab.detail && <DetailPane apiId={tab.detail.api} id={tab.detail.id} label={tab.detail.label} ctx={tab.detail.ctx} />}
+          {tab.kind === "detail" && tab.detail && <DetailPane apiId={tab.detail.api} id={tab.detail.id} label={tab.detail.label} ctx={tab.detail.ctx} hasGeometry={geometryKnown(p, tab.detail.ctx)} />}
         </div>
       )}
     </aside>
   );
+}
+
+/**
+ * 상세 탭의 대상이 지도에 찍히는지 — 개발서버 SidePanel geometryKnown: 위치를 받는 중·실패면 모름(null),
+ * 지도가 그리는 그 답의 대상 가운데 있으면 true, 그 답의 대상은 그렸는데 이것만 없으면(도형 없음) false, 그 답을 안 그리면 모름
+ */
+export function geometryKnown(p: Pick<Props, "features" | "resultStatus">, ctx: Record<string, unknown> | null | undefined): boolean | null {
+  const job = ctx?.mapJob;
+  const ref = ctx?.mapRef;
+  if (typeof job !== "string" || typeof ref !== "string" || p.resultStatus) return null;
+  if (p.features.some((f) => f.jobId === job && f.ref === ref)) return true;
+  return p.features.some((f) => f.jobId === job) ? false : null;
 }
 
 /** 상세(T3Q-15) 유무 — 객체 ID 마다 한 번 묻는다. 못 물으면(통신 실패) 다음에 다시 */

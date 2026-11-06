@@ -12,7 +12,8 @@ import { IcCalendar, IcCamp, IcFacility, IcGate, IcHouseFlood, IcMapPin, IcPump,
 
 /**
  * 답변 그림 — 받은 값만으로 규칙으로 그리는 인포그래픽(LLM 없음). 11/2 회의 코멘트(그림을 먼저, 사건 중심)에 따라 모든 답에 붙는다(사용자 승인 2026-11-02).
- * 재료는 셋뿐: ① 답변 대상(refs)+공간정보(geo) → 번호 카드 ② 자동 조회(preview) 유사사례 → 연대기, 시설 목록 → 카드 ③ 요청 조건·특보·받은 전체 건수 → 큰 숫자 타일.
+ * 재료는 셋뿐: ① 답변 대상(refs)+공간정보(geo) → 번호 카드 ② 자동 조회(preview) 시설 목록 → 카드 ③ 요청 조건·특보·받은 전체 건수 → 큰 숫자 타일.
+ * 유사사례 연대기는 지움(R59) — 개발서버에서 그 자리는 답 카드의 유사사례 한눈 요약(components/summary/SimilarSummary)이다.
  * 답 글 속 숫자는 꺼내지 않는다(글은 그대로 아래에). 유엔이가 세거나 고르거나 정렬하지 않는다 — 순서는 받은 순서·답 글 등장 순.
  */
 
@@ -45,7 +46,6 @@ export default function AutoInfoPanel({ job, full, noTargets = false }: { job: J
       <div className="viz demo-info-body">
         <Tiles full={full} />
         {targets && <AnswerTargets job={job} refs={f.refs} shapes={f.shapes} order={f.order} />}
-        {f.similar.length > 0 && <SimilarChronicle items={f.similar} full={full} />}
         {f.facility.length > 0 && <FacilityCards items={f.facility} p={previewOf(full, "RISK_FACILITY")!} />}
       </div>
     </details>
@@ -112,7 +112,7 @@ function AnswerTargets({ job, refs, shapes, order }: { job: JobSummary; refs: T3
           const s = shapes.find((q) => q.ref === r);
           return (
             <li key={r} className={`t-${TONE[type] ?? "a"}`}>
-              <button type="button" onClick={() => x.showOnMap(job.id, r)} aria-label={`${i + 1} ${name} 지도에서 보기`}>
+              <button type="button" onClick={() => (ref ? x.openEntity(job.id, ref) : x.showOnMap(job.id, r))} aria-label={`${i + 1} ${name} 지도에서 보기`}>
                 <span className="ai-tg-num">{i + 1}</span>
                 <span className="ai-tg-ic" aria-hidden="true">{iconOf(type, name)}</span>
                 <span className="ai-tg-body">
@@ -124,48 +124,6 @@ function AnswerTargets({ job, refs, shapes, order }: { job: JobSummary; refs: T3
           );
         })}
       </ol>
-    </Fig>
-  );
-}
-
-// ── 유사사례 연대기 — T3Q-04 받은 목록 그대로, 자리는 받은 날짜 ──
-function SimilarChronicle({ items, full }: { items: Item[]; full: JobFull | null | undefined }) {
-  const x = useExplore();
-  const ctx = (full?.request as { query_context?: Record<string, unknown> } | undefined)?.query_context ?? null;
-  const rows = items.map((it) => ({
-    id: typeof it.event_master_id === "string" ? it.event_master_id : null,
-    name: cellText(it.display_name),
-    from: Date.parse(String(it.started_at ?? "")),
-    to: Date.parse(String(it.ended_at ?? it.started_at ?? "")),
-    score: pick("similarity.score")(it),
-    rank: pick("similarity.rank")(it),
-    area: pick("representative_admin_area.name")(it),
-    types: Array.isArray(it.disaster_types) ? it.disaster_types.join("·") : null,
-  }));
-  const dated = rows.filter((r) => Number.isFinite(r.from));
-  if (!dated.length) return null;
-  const lo = Math.min(...dated.map((r) => r.from)), hi = Math.max(...dated.map((r) => (Number.isFinite(r.to) ? r.to : r.from)));
-  const span = Math.max(hi - lo, 1000 * 60 * 60 * 24 * 365);
-  const left = (t: number) => `${((t - lo) / span) * 100}%`;
-  const width = (a: number, b: number) => `${Math.max(((Math.max(b, a) - a) / span) * 100, 0.8)}%`;
-  const yLo = new Date(lo).getFullYear(), yHi = new Date(hi).getFullYear();
-  const years: number[] = [];
-  for (let y = yLo; y <= yHi; y += Math.max(1, Math.ceil((yHi - yLo) / 6))) years.push(y);
-  return (
-    <Fig title="과거 유사사례 연대기" src="유사재난 사례 조회 · 받은 순서 · 자리는 받은 발생일" label={`유사사례 ${dated.length}건을 발생일 순 시간축에 놓은 그림`} foot="사건을 누르면 사건 상세(요약·피해·복구·타임라인)가 열린다. 유사도·순위는 받은 값.">
-      <div className="ai-chron">
-        {dated.map((r, i) => (
-          <div key={i} className="ai-chron-row">
-            <div className="ai-chron-lb">
-              <span className="di-chip t-a"><IcCalendar size={14} />{cellText(items[dated.indexOf(r)]?.started_at ?? "")}</span>
-              {r.id ? <button type="button" className="lnk" onClick={() => x.openDetail("T3Q-10", r.id!, r.name, ctx)}>{r.name}</button> : <span>{r.name}</span>}
-              <span className="xs muted">{[r.types, r.area ? `대표지역 ${cellText(r.area)}` : null, r.rank != null ? `순위 ${cellText(r.rank, false, "rank")}` : null, r.score != null ? `유사도 ${cellText(r.score, false, "score")}` : null].filter(Boolean).join(" · ")}</span>
-            </div>
-            <div className="ai-chron-track"><span className="ai-chron-bar" style={{ left: left(r.from), width: width(r.from, r.to) }} /></div>
-          </div>
-        ))}
-        <div className="ai-chron-axis">{years.map((y) => <span key={y} style={{ left: left(Date.UTC(y, 0, 1)) }}>{y}</span>)}</div>
-      </div>
     </Fig>
   );
 }

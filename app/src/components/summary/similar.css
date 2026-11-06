@@ -1,0 +1,94 @@
+/* 유사사례 한눈 요약 — 개발서버 styles/renewal/similar.css(kjw 998facb) 「유사도 순위 · 1위 사건」 부분(R59).
+   개발서버 .sim-rank·.sim-top 은 우리 자동 조회 카드(answer/cards/similar.css)와 이름이 겹쳐 .sims-rank·.sims-top 으로 쓴다.
+   치수는 개발서버 rem(1rem = 10px) → px, 글자 크기는 토큰만(R58). 사건 상세(evp-*)는 우리 EventDetail 이 따로 있어 옮기지 않는다. */
+
+/* ── 유사도 순위 ───────────────────────────────────────────────────── */
+.sims-rank {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 2px;
+  font-size: var(--fs-2xs);
+}
+.sims-rank button {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr) minmax(40px, 30%) 32px;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 5px 4px;
+  border: 0;
+  border-radius: var(--r-m);
+  background: none;
+  font: inherit;
+  text-align: left;
+  color: var(--c-text);
+  cursor: pointer;
+}
+.sims-rank button:hover:not(:disabled) { background: var(--c-primary-sub); }
+.sims-rank button:focus-visible { outline: 2px solid var(--c-primary); outline-offset: 1px; }
+.sims-rank button:disabled { cursor: default; }
+.sim-rank-n {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: var(--r-s);
+  background: var(--c-line);
+  font-size: var(--fs-2xs);
+  font-weight: 700;
+  color: var(--c-sub);
+}
+.sim-rank-n.is-top { background: var(--c-primary); color: #fff; }
+.sim-rank-name {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: #131416;
+}
+.sim-rank-name small { font-size: var(--fs-2xs); color: var(--c-mute); }
+.sim-rank-v { text-align: right; font-weight: 700; color: var(--c-primary-dk); }
+
+.sim-more,
+.sim-open {
+  margin-top: 8px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: var(--fs-2xs);
+  font-weight: 700;
+  color: var(--c-primary-dk);
+  cursor: pointer;
+}
+.sim-more:hover,
+.sim-open:hover { text-decoration: underline; }
+
+/* ── 1위 사건 ──────────────────────────────────────────────────────── */
+.sim-top-name { margin: 0; font-size: var(--fs-s); font-weight: 700; color: #131416; }
+.sim-top-meta { margin: 2px 0 10px; font-size: var(--fs-2xs); color: var(--c-mute); }
+.sim-top-sum {
+  margin: 10px 0 0;
+  font-size: var(--fs-2xs);
+  line-height: 1.6;
+  color: var(--c-sub);
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.sim-sub-h {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin: 16px 0 8px;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  color: #131416;
+}

@@ -29,7 +29,7 @@ const baseId = (id: string) => id.replace(/__[a-z0-9]+$/, "");
 const jsonRes = (status: number, body: unknown) => ({ status, ok: status >= 200 && status < 300, json: async () => body }) as unknown as Response;
 const okRes = (envelope: unknown, http = 200) => jsonRes(200, { api: "T3Q-10", http, ms: 1, envelope });
 
-const mockExplore = (): ExploreApi => ({ openCitation: vi.fn(), openDetail: vi.fn(), showOnMap: vi.fn(), selectOnMap: vi.fn(), showSummary: vi.fn(), selectedKey: null, followUp: vi.fn(), retry: vi.fn() });
+const mockExplore = (): ExploreApi => ({ openCitation: vi.fn(), openDetail: vi.fn(), showOnMap: vi.fn(), openEntity: vi.fn(), selectOnMap: vi.fn(), showSummary: vi.fn(), selectedKey: null, followUp: vi.fn(), retry: vi.fn() });
 const show = (p: PreviewItem, x = mockExplore()) => ({
   x,
   ...render(

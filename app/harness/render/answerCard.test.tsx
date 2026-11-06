@@ -63,7 +63,7 @@ const wrap = (ui: ReactNode) => render(<ExploreContext.Provider value={x}>{ui}</
 const writeText = vi.fn((t: string) => Promise.resolve(t));
 
 beforeEach(() => {
-  x = { openCitation: vi.fn(), openDetail: vi.fn(), showOnMap: vi.fn(), selectOnMap: vi.fn(), showSummary: vi.fn(), selectedKey: null, followUp: vi.fn(), retry: vi.fn() };
+  x = { openCitation: vi.fn(), openDetail: vi.fn(), showOnMap: vi.fn(), openEntity: vi.fn(), selectOnMap: vi.fn(), showSummary: vi.fn(), selectedKey: null, followUp: vi.fn(), retry: vi.fn() };
   session.weather = null;
   session.toast.mockClear();
   writeText.mockClear();
@@ -228,7 +228,7 @@ describe("답변 카드 — 받은 값만, 센 값·설명 없음", () => {
     expect(writeText).toHaveBeenLastCalledWith(text);
   });
 
-  it("답 글 속 대상 이름을 누르면 지도가 그 대상으로 — 번호가 다른 이름에 붙은 링크는 글자", () => {
+  it("답 글 속 대상 이름을 누르면 상세 탭을 만들고 지도가 그 대상으로(개발서버 openEntity, R59) — 번호가 다른 이름에 붙은 링크는 글자", () => {
     const job = makeJob();
     const text = "[초량제1지하차도](#ref:r1) 와 [엉뚱한 곳](#ref:r3) · [#ref:r2](#ref:r2)";
     const { container } = wrap(<AnswerCard job={job} full={makeFull(job, makeRaw({ result: { answer: text, refs } }))} />);
@@ -236,9 +236,10 @@ describe("답변 카드 — 받은 값만, 센 값·설명 없음", () => {
     expect(links.map((b) => b.textContent)).toEqual(["초량제1지하차도", "범일2"]);
     expect(container.querySelector(".md")!.textContent).toContain("엉뚱한 곳");
     fireEvent.click(links[0]);
-    expect(x.showOnMap).toHaveBeenLastCalledWith("job-1", "r1");
+    expect(x.openEntity).toHaveBeenLastCalledWith("job-1", expect.objectContaining({ ref: "r1" }));
     fireEvent.click(links[1]);
-    expect(x.showOnMap).toHaveBeenLastCalledWith("job-1", "r2");
+    expect(x.openEntity).toHaveBeenLastCalledWith("job-1", expect.objectContaining({ ref: "r2" }));
+    expect(x.showOnMap).not.toHaveBeenCalled();
   });
 });
 

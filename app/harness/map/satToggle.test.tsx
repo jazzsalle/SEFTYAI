@@ -85,7 +85,7 @@ describe("지도 — 일반 ↔ 위성 단추", () => {
     expect(set).not.toHaveBeenCalled();
     fire("Satellite", "tileloaderror", 1);
     expect(set).toHaveBeenCalledWith("Base");
-    expect(screen.getByRole("status").textContent).toContain("위성지도를 불러오지 못해 일반지도로 돌아왔습니다");
+    expect(screen.getByText(/위성지도를 불러오지 못해 일반지도로 돌아왔습니다/).getAttribute("role")).toBe("status");
     expect(tile).not.toHaveBeenCalledWith("osm");
   });
 
