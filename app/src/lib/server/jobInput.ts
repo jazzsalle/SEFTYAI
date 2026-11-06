@@ -36,12 +36,12 @@ export function objectRefsOf(refs: JobBody["objectRefs"]): { objectIds: string[]
  */
 export function jobInputOf(who: Account, b: JobBody | null | undefined, question: string, source: JobSource): SubmitInput {
   const lib = b?.libraryId ? libById(b.libraryId) : undefined;
-  // 질문 글은 R33(임시) 판단에만 넘긴다 — 보내는 질문은 그대로. 특보는 weather_warnings 로 따로
+  // 특보는 weather_warnings 로 따로
   const c = b?.condition;
   const picked = source === "AI_MODE" ? { objectIds: [], names: [] } : objectRefsOf(b?.objectRefs);
   let cond: ClientCondition | undefined = source === "AI_MODE" ? (c ? { base: c.base, region: c.region, sub: c.sub } : undefined) : c;
   if (picked.names.length) cond = { ...(cond ?? {}), keywords: [...new Set([...(cond?.keywords ?? []), ...picked.names])] } as ClientCondition;
-  const queryContext = buildQueryContext(who, cond, source === "AI_MODE" ? undefined : lib?.disasterTypes, question);
+  const queryContext = buildQueryContext(who, cond, source === "AI_MODE" ? undefined : lib?.disasterTypes);
   return {
     question, source, libraryId: b?.libraryId ?? null, convId: b?.convId ?? null, turnNo: b?.turnNo ?? null,
     queryContext, weatherWarnings: b?.warnings ?? null, briefing: b?.briefing ?? null, quickQueryId: b?.quickQueryId ?? null,

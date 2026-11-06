@@ -22,7 +22,7 @@ describe("브리핑 예열 ↔ 화면 브리핑 — 같은 질문 글·같은 qu
         // 화면(explore startBriefing → session.submit): 질의문 그대로, 조건 = 기본 조건 그대로 보내는 모양(재난유형 「전체」 = 빈 목록) · 문항 없음
         const screenQ = briefRequest(it, i, set.length, baseName(base)).question;
         const condition = { base: baseWire(base), disasterTypes: [], referenceTime: null, period: null, warningKind: null, warningLevel: null, keywords: [], conditions: [] };
-        const screenQc = buildQueryContext(acc, condition, undefined, screenQ);
+        const screenQc = buildQueryContext(acc, condition);
         // 예열(api/admin/warm): 같은 briefRequest, 조건 = 시범 지역만
         const warmQ = briefRequest(it, i, set.length, PILOT_T3Q[r].name).question;
         const warmQc = { region: PILOT_T3Q[r] };

@@ -55,7 +55,7 @@ export async function POST(req: Request) {
     recent.set(dupKey, Date.now());
   }
 
-  // 문항 재난유형 · R33(임시) · R39(AI 모드 점검은 기준지역만 — 특보는 weather_warnings 로 따로) — lib/server/jobInput
+  // 문항 재난유형 · R39(AI 모드 점검은 기준지역만 — 특보는 weather_warnings 로 따로) — lib/server/jobInput
   const input = jobInputOf(who, b, question, source);
   // R3 — 정의된 질문(라이브러리·브리핑·특보)만 Data API 자동 조회. 자유 질문은 하지 않는다
   const previewP = b?.libraryId ? runPreview(who.id, b.libraryId, input.queryContext ?? {}).catch(() => undefined) : Promise.resolve(undefined);

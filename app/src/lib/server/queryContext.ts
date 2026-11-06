@@ -41,22 +41,10 @@ export function regionOfCondition(acc: Account, c?: ClientCondition | null): T3q
 }
 
 /**
- * R33 — 임시 규칙(사용자 결정 2026-10-28). 지울 때: R33_SEOUL·R33_OUR_REGION·r33Seoul 과 buildQueryContext 의 「R33」 줄,
- * harness/region/region.test.ts 의 「R33」 묶음, 00_decisions.md R33 을 함께 지운다.
- * 기본 기준지역이 전국인 계정(지자체가 아닌 계정)이 기준지역을 전국으로 둔 채 「우리 지역…」으로 시작하는 질문을 보내면
- * query_context.region 을 서울특별시로 보낸다. 질문 글은 바꾸지 않는다(모든 경로 — 입력창·질문 모음·브리핑·AI 모드).
- */
-export const R33_SEOUL: T3qRegion = { admin_code: "1100000000", level: "SIDO", name: "서울특별시" };
-export const R33_OUR_REGION = /^\s*우리\s*지역/;
-export const r33Seoul = (acc: Account, question?: string | null) => acc.role !== "지자체" && !!question && R33_OUR_REGION.test(question);
-
-/**
  * defaultTypes = 정의된 질문(라이브러리)의 재난유형 — 사용자가 재난유형을 고르지 않았을 때만 쓴다.
- * question = 사용자가 보낸 질문 글(R33 임시 규칙 판단에만 쓴다, 고치지 않는다)
  */
-export function buildQueryContext(acc: Account, c?: ClientCondition | null, defaultTypes?: string[], question?: string | null) {
-  let t3qRegion = regionOfCondition(acc, c);
-  if (!t3qRegion && r33Seoul(acc, question)) t3qRegion = { ...R33_SEOUL }; // R33 임시
+export function buildQueryContext(acc: Account, c?: ClientCondition | null, defaultTypes?: string[]) {
+  const t3qRegion = regionOfCondition(acc, c);
   const qc: Record<string, unknown> = {};
   if (c?.referenceTime) qc.reference_time = c.referenceTime;
   if (t3qRegion) qc.region = t3qRegion;

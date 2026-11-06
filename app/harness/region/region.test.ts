@@ -1,6 +1,6 @@
-// 하네스 — 전국 기준지역(R32)·임시 서울 규칙(R33)
+// 하네스 — 전국 기준지역(R32)·임시 서울 규칙(R33) 끝냄 확인
 //  · 화면 조건 → T3Q query_context.region(buildQueryContext): 시·도·시·군·구·읍·면·동 코드 10자리·단계, 전국, 지자체도 고른 지역 그대로, 틀린 값, 예전 호출
-//  · R33(임시): 전국 기본 계정 + 전국 + 「우리 지역…」 → 서울특별시, 질문 글은 그대로
+//  · R33 끝냄(2026-11-07): 전국이면 「우리 지역…」이어도 region 없이
 //  · 질의 접수 라우트(실제 SQL — PGlite, T3Q 재생): 질문 글 그대로·틀린 기준지역 400
 //  · 기상특보 구역 ↔ 기준지역(lib/wxMatch) — 기상청 실응답 발효 현황 원문(kma_t6_samples.json)으로
 //  · 재사용 기준(D5)이 같은 함수로 작업의 기준지역을 본다
@@ -14,7 +14,7 @@ import type { Advisory } from "@/lib/contract/agent";
 import { ACCOUNTS } from "@/lib/config";
 import { baseKey, baseName, basePilot, baseQuestionPilot, baseTarget, baseToT3q, baseWire, defaultBase, parseBaseWire, type BaseRegion } from "@/lib/baseRegion";
 import { kmaAdvId, kmaSidoNames, parseArea, seenArea, sggShort, splitTop, wxCovers, wxTargetOfT3q, type WxTarget } from "@/lib/wxMatch";
-import { buildQueryContext, R33_OUR_REGION, R33_SEOUL } from "@/lib/server/queryContext";
+import { buildQueryContext } from "@/lib/server/queryContext";
 import { parseStatusText } from "@/lib/server/kma";
 
 // 재사용 기준(D5)의 기상청 조회 — 실응답 원문(gale)을 파싱한 특보를 돌려준다
@@ -97,32 +97,16 @@ describe("기준지역 → query_context.region (buildQueryContext, R32)", () =>
   });
 });
 
-describe("R33 임시 — 전국 기본 계정이 전국으로 「우리 지역…」을 물으면 서울특별시(질문 글은 그대로)", () => {
-  const SEOUL = { admin_code: "1100000000", level: "SIDO", name: "서울특별시" };
-  it("중앙정부·운영자 + 전국 + 「우리 지역은…」·「우리지역에서…」·앞 빈칸 → 서울특별시", () => {
-    expect(R33_SEOUL).toEqual(SEOUL);
-    for (const q of ["우리 지역은 어디가 위험한가요?", "우리지역에서 먼저 점검할 곳은?", "  우리  지역 침수 이력", "우리 지역에서 먼저 점검해야 할 위험·취약지역은 어디인가요?"]) {
-      expect(buildQueryContext(MOIS, { base: null }, undefined, q).region).toEqual(SEOUL);
-      expect(buildQueryContext(ADMIN, { base: null }, undefined, q).region).toEqual(SEOUL);
+describe("R33 끝냄(2026-11-07) — 전국이면 「우리 지역…」 질문도 지역 없이(v0.4 region null = 전국)", () => {
+  it("중앙정부·운영자 + 전국 + 「우리 지역…」 → region 없음, 질문 글은 보내지 않음", () => {
+    for (const q of ["우리 지역은 어디가 위험한가요?", "우리지역에서 먼저 점검할 곳은?", "  우리  지역 침수 이력"]) {
+      for (const a of [MOIS, ADMIN]) expect(buildQueryContext(a, { base: null })).not.toHaveProperty("region");
+      expect(JSON.stringify(buildQueryContext(MOIS, { base: null }))).not.toContain(q.trim());
     }
-    // 예전 호출(전국)·조건 없음도
-    expect(buildQueryContext(MOIS, { region: "national" }, undefined, "우리 지역은?").region).toEqual(SEOUL);
-    expect(buildQueryContext(MOIS, null, ["호우"], "우리 지역은?")).toEqual({ region: SEOUL, disaster_types: ["호우"] });
+    expect(buildQueryContext(MOIS, null, ["호우"])).toEqual({ disaster_types: ["호우"] });
   });
-  it("「우리 지역」으로 시작하지 않으면 전국 그대로", () => {
-    for (const q of ["부산의 우리 지역 위험지구", "우리 동네는?", "우리 지 역", "", undefined]) expect(buildQueryContext(MOIS, { base: null }, undefined, q)).not.toHaveProperty("region");
-  });
-  it("지자체 계정이 전국을 고르면 서울로 보내지 않는다", () => {
-    for (const a of [YC, IJ, BS]) expect(buildQueryContext(a, { base: null }, undefined, "우리 지역은 어디가 위험한가요?")).not.toHaveProperty("region");
-  });
-  it("전국 기본 계정이라도 기준지역을 고르면 그 지역(서울 아님)", () => {
-    expect(buildQueryContext(MOIS, { base: wire("26", "부산광역시", "SIDO") }, undefined, "우리 지역은 어디가 위험한가요?").region).toEqual({ admin_code: "2600000000", level: "SIDO", name: "부산광역시" });
-  });
-  it("질문 글은 손대지 않는다(받은 문자열 그대로 판단만)", () => {
-    const q = "우리 지역은 어디가 위험한가요?";
-    const qc = buildQueryContext(MOIS, { base: null }, undefined, q);
-    expect(JSON.stringify(qc)).not.toContain(q);
-    expect(q).toBe("우리 지역은 어디가 위험한가요?");
+  it("전국 기본 계정이라도 기준지역을 고르면 그 지역", () => {
+    expect(buildQueryContext(MOIS, { base: wire("26", "부산광역시", "SIDO") }).region).toEqual({ admin_code: "2600000000", level: "SIDO", name: "부산광역시" });
   });
 });
 
@@ -312,7 +296,7 @@ describe("기상특보 구역 ↔ 기준지역 (lib/wxMatch) — 기상청 실�
     expect(wxTargetOfT3q(undefined)).toBeNull();
     expect(wxTargetOfT3q(null)).toBeNull();
     expect(wxTargetOfT3q({})).toBeNull();
-    expect(wxTargetOfT3q(R33_SEOUL)).toEqual(T("서울특별시"));
+    expect(wxTargetOfT3q({ admin_code: "1100000000", level: "SIDO", name: "서울특별시" })).toEqual(T("서울특별시"));
     expect(wxTargetOfT3q({ admin_code: "4111100000", level: "SIGUNGU", name: "경기도 수원시 장안구" })).toEqual(T("경기도", "수원시 장안구"));
     expect(wxTargetOfT3q({ admin_code: "4111112900", level: "EMD", name: "경기도 수원시 장안구 파장동" })).toEqual(T("경기도", "수원시 장안구"));
     expect(wxTargetOfT3q({ admin_code: "3611010100", level: "EMD", name: "세종특별자치시 반곡동" })).toEqual(T("세종특별자치시"));
@@ -361,15 +345,15 @@ const post = (id: string, body: Record<string, unknown>) =>
   R.POST(new Request("http://x/api/agent/jobs", { method: "POST", headers: { cookie: cookies[id], "content-type": "application/json" }, body: JSON.stringify(body) }));
 const row = async (id: string) => (await sql.query("select * from sa_agent_jobs where id = $1", [id]))[0];
 
-describe("질의 접수 라우트 — 기준지역·R33 이 실제로 보내는 요청에", () => {
-  it("중앙정부 + 전국 + 「우리 지역은…」 → query_context.region = 서울특별시, 질문 글은 그대로(보낸 글·저장 글 모두)", async () => {
+describe("질의 접수 라우트 — 기준지역이 실제로 보내는 요청에", () => {
+  it("중앙정부 + 전국 + 「우리 지역은…」 → query_context.region 없음(R33 끝냄), 질문 글은 그대로(보낸 글·저장 글 모두)", async () => {
     const q = "우리 지역은 지금 어디가 가장 위험한가요?";
     const res = await post("hang", { question: q, source: "USER", condition: { base: null, disasterTypes: [] } });
     expect(res.status).toBe(201);
     const { job } = (await res.json()) as { job: { id: string; question_user: string; question_sent: string } };
     const r = await row(job.id);
     const req = r.request as { question: string; query_context: { region?: unknown } };
-    expect(req.query_context.region).toEqual({ admin_code: "1100000000", level: "SIDO", name: "서울특별시" });
+    expect(req.query_context).not.toHaveProperty("region");
     expect(req.question).toBe(q);
     expect(r.question_user).toBe(q);
     expect(r.question_sent).toBe(q);
@@ -431,9 +415,8 @@ describe("질의 접수 라우트 — AI 모드 점검은 기준지역만(R39)",
     for (const k of ["region", "detail", "period", "reference_time", "disaster_types"]) expect(req.query_context).toHaveProperty(k);
   });
 
-  it("R33 영향 없음 — 점검 질문은 「우리 지역」으로 시작하지 않아 전국 기본 계정이 전국으로 보내도 서울로 바뀌지 않는다", async () => {
+  it("전국 기본 계정이 전국으로 점검을 보내면 query_context 는 비어 있다", async () => {
     expect(AIM_Q).toBeTruthy();
-    expect(R33_OUR_REGION.test(AIM_Q!)).toBe(false);
     const req = await sent("hang", { question: AIM_Q, source: "AI_MODE", condition: { ...FULL, base: null } });
     expect(req.query_context).toEqual({});
   });
