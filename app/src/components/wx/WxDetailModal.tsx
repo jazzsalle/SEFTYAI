@@ -9,7 +9,7 @@ import { baseName, baseTarget } from "@/lib/baseRegion";
 import { advLabel, advTime, advTone } from "@/lib/wxref";
 import { isSeaArea } from "@/lib/wxMatch";
 import { SCN_CUT_LABEL, SCN_LABEL } from "@/lib/scenario";
-import { BULLETIN_LIMIT, STEP_LIMIT, stepState, stepsFor, type WxBulletin, type WxBulletinHead, type WxDetailResponse } from "@/lib/wxBulletin";
+import { BULLETIN_LIMIT, STEP_LIMIT, countAdvisories, stepState, stepsFor, type WxBulletin, type WxBulletinHead, type WxDetailResponse } from "@/lib/wxBulletin";
 import { requestWxAsk } from "@/lib/wxAsk";
 import { Portal } from "@/components/account/Dialog";
 import { IcChevD, IcX } from "@/components/Icons";
@@ -27,7 +27,7 @@ const hm = (iso?: string) => {
  * 줄은 한 줄로 첫 특보만 말한다. 이 창은 요구사항의 네 가지를 모두 보인다 — 종류·단계 · 발령·변경·해제시각(상태 이력) · 대상지역·발령기관 · 출처·갱신.
  *  · 발효 중 특보 = 특보 줄과 같은 목록(mine — 지금 기준지역을 덮는 것, lib/wxMatch). 고른 특보만 [조건에 반영] · [이 특보로 질의](그 특보가 걸린 행정구역으로 바로 묻는다)
  *  · 상태 이력 = 최근 24시간 통보문의 해당구역·발효시각 줄 가운데 기준지역을 덮는 것(lib/wxBulletin stepsFor). 특보가 모두 풀린 직후가 가장 바쁜 시간이라 둔다
- *  · 전국 발효 현황 = 받은 특보 전체, 받은 순서·이름 그대로(유엔이가 센 건수·묶음 없음 — R25)
+ *  · 전국 발효 현황 = 받은 특보를 종류·단계(뭍·바다 따로)별로 센 칩, 머리에 모두 더한 건수(개발 서버 AlertDetailModal, 사용자 결정 2026-11-06 「개발서버대로」 — lib/wxBulletin countAdvisories)
  *  · 최근 통보문 = 기준지역을 맡는 지방청·본청 통보문 제목. 누르면 그때 본문을 가져온다(한 번 가져온 글은 다시 묻지 않는다 — 발표된 통보문은 고쳐지지 않는다)
  * 시연 시나리오를 켠 시연 계정(R45)은 기상청을 부르지 않는다 — 통보문·상태 이력 자리에 「기상청 실시간 특보 끊음」(「없음」이라 하지 않는다).
  * 열 때 한 번 묻고, 그다음은 [새로고침]을 누를 때만 — 상세는 1분마다 긁을 값이 아니다
@@ -74,6 +74,8 @@ export default function WxDetailModal({ mine, onClose }: { mine: Advisory[]; onC
   const cut = !!weather?.realtimeCut || !!detail?.realtimeCut;
   const all = (weather?.advisories ?? []).filter((a) => a.status !== "해제");
   const steps = detail ? stepsFor(detail.steps, target) : [];
+  const counts = countAdvisories(all);
+  const total = counts.reduce((n, c) => n + c.count, 0);
 
   const apply = (a: Advisory) => {
     // 조건 창의 특보 단계는 주의보·경보만 고른다 — 그 밖(예비특보)은 종류만 넣는다
@@ -181,21 +183,22 @@ export default function WxDetailModal({ mine, onClose }: { mine: Advisory[]; onC
 
             {/* ── 전국 ── */}
             <section className="wxd-sec">
-              <h3>전국 발효 현황</h3>
+              <h3>
+                전국 발효 현황
+                <span className="wxd-count">{weather ? `${total}건` : "—"}</span>
+              </h3>
               {!weather ? (
                 <p className="wxd-empty">불러오는 중입니다.</p>
               ) : !all.length ? (
                 <p className="wxd-empty">{cut ? SCN_CUT_LABEL : weather.status.ok ? "전국에 발효 중인 기상특보가 없습니다." : "발효 중인 특보를 확인할 수 없습니다."}</p>
               ) : (
-                <ul className="wxd-all">
-                  {all.map((a) => (
-                    <li key={a.id}>
-                      <span className="lvb">{advLabel(a)}</span>
-                      <span className="ar">
-                        {a.area}
-                        {isSeaArea(a.area) && <span className="wxd-tag">해상</span>}
-                        <ScnTag a={a} />
-                      </span>
+                <ul className="wxd-chips">
+                  {counts.map((c) => (
+                    <li key={`${c.type}|${c.level}|${c.sea}|${c.scenario}`} className="wxd-chip">
+                      {advLabel(c)}
+                      {c.sea && <span className="wxd-tag">해상</span>}
+                      <ScnTag a={c} />
+                      <b>{c.count}</b>
                     </li>
                   ))}
                 </ul>

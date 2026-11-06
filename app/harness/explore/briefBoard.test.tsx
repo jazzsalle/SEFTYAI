@@ -87,19 +87,23 @@ describe("브리핑 항목 카드 — 취소 · 다시 시도 · 크게 보기",
     expect(onRetry.mock.calls[0][0].id).toBe("b");
   });
 
-  it("크게 보기 — 그 항목만 크게(본문 large), 현황판·다른 항목은 숨김, 「브리핑 전체 보기」로 돌아온다", () => {
+  it("크게 보기 — 그 항목만 크게(본문 large), 현황판·다른 항목은 숨김, 「브리핑 전체 보기」로 돌아온다(다시 첫 문단 한 줄)", () => {
     const { item, body } = setup(["DONE", "DONE", "DONE"]);
-    expect(screen.getByTestId("body-b").textContent).toBe("작게");
+    // 처음에는 본문 없이 첫 문단 한 줄(답 글이 비면 「답변이 비어 있습니다.」)
+    expect(screen.queryByTestId("body-b")).toBeNull();
+    expect(item("b").querySelector(".brief-item-summary")!.textContent).toBe("답변이 비어 있습니다.");
     fireEvent.click(screen.getByRole("button", { name: "2번 피해 크게 보기" }));
     expect(screen.getByTestId("body-b").textContent).toBe("크게");
-    expect(body).toHaveBeenLastCalledWith(expect.objectContaining({ id: "c" }), false);
+    expect(item("b").querySelector(".brief-item-summary")).toBeNull();
+    expect(body).toHaveBeenCalledTimes(1);
     expect(item("a").hidden).toBe(true);
     expect(item("c").hidden).toBe(true);
     expect(item("b").hidden).toBe(false);
     expect(document.querySelector<HTMLElement>(".bb")!.hidden).toBe(true);
     expect(within(item("b")).queryByRole("button", { name: /크게 보기/ })).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: /브리핑 전체 보기/ }));
-    expect(screen.getByTestId("body-b").textContent).toBe("작게");
+    expect(screen.queryByTestId("body-b")).toBeNull();
+    expect(item("b").querySelector(".brief-item-summary")).not.toBeNull();
     expect(item("a").hidden).toBe(false);
     expect(document.querySelector<HTMLElement>(".bb")!.hidden).toBe(false);
   });
@@ -116,5 +120,61 @@ describe("브리핑 항목 카드 — 취소 · 다시 시도 · 크게 보기",
     expect(within(cells).getByText("완료")).toBeTruthy();
     expect(within(cells).getByText("생성 중")).toBeTruthy();
     expect(within(cells).getByText("오류")).toBeTruthy();
+  });
+});
+
+// 일부 제공(PARTIAL_SUCCESS) 등 SUCCESS 가 아닌 응답 — 개발 서버 useBriefing(isSuccess)처럼 받지 못한 답(오류 · 다시 시도, 크게 보기 없음)
+describe("브리핑 — SUCCESS 가 아닌 응답은 받지 못한 답", () => {
+  it.each(["PARTIAL_SUCCESS", "NO_RESULT", "DATA_NOT_AVAILABLE"])("%s → 「오류」, 답이 온 것으로 치지 않는다", (st) => {
+    const j = job({ cached_from: null, t3q_status: st });
+    const c = briefCell(turn, 0, j, { ...full(j), raw: { status: st, result: { answer: "일부 글" } } }, NOW);
+    expect([c.kind, c.text, c.answered]).toEqual(["err", "오류", false]);
+  });
+  it("상태가 없거나 SUCCESS 면 완료", () => {
+    const j = job({ cached_from: null, t3q_status: null });
+    expect(briefCell(turn, 0, j, { ...full(j), raw: { result: { answer: "글" } } }, NOW).kind).toBe("done");
+  });
+});
+
+// 첫 문단 미리보기 · 더보기/접기(개발 서버 BriefingItemCard)
+describe("브리핑 항목 카드 — 첫 문단 한 줄 · 더보기 · 접기", () => {
+  afterEach(cleanup);
+  const ANS = "### 결론\n\n부산 **도심 저지대**는 [초량제1지하차도](#ref:r1)부터 점검합니다.<br>추가\n\n- 둘째 줄";
+  const setup = (answer: string, refs: unknown[] = []) => {
+    const t = { ...turn, id: "a", jobId: "job-a", group: { id: "g", no: 1, total: 1, title: "현재 상황 브리핑", label: "기상" } } as Turn;
+    const j = job({ id: "job-a", cached_from: null });
+    h.sess = { jobs: { [j.id]: j }, full: { [j.id]: { ...full(j), raw: { status: "SUCCESS", result: { answer, refs } } } }, cancel: vi.fn(), toast: vi.fn() };
+    const body = vi.fn((x: Turn, large?: boolean) => <div data-testid={`body-${x.id}`}>{large ? "크게" : "작게"}</div>);
+    render(<BriefBoard turns={[t]} regionName="부산광역시" renderBody={body} onRetry={vi.fn()} />);
+    return document.querySelector<HTMLElement>('[data-brief-item="a"]')!;
+  };
+
+  it("처음에는 제목을 건너뛴 첫 문단 한 줄만 — 마크다운 표식 없이 글자만, 본문은 그리지 않는다", () => {
+    const item = setup(ANS);
+    expect(item.querySelector(".brief-item-summary")!.textContent).toBe("부산 도심 저지대는 초량제1지하차도부터 점검합니다. 추가");
+    expect(screen.queryByTestId("body-a")).toBeNull();
+  });
+
+  it("[더보기] → 본문 전체(미리보기 줄은 거둔다) · [접기] → 다시 한 줄", () => {
+    const item = setup(ANS);
+    fireEvent.click(within(item).getByRole("button", { name: "더보기" }));
+    expect(screen.getByTestId("body-a").textContent).toBe("작게");
+    expect(item.querySelector(".brief-item-summary")).toBeNull();
+    const fold = within(item).getByRole("button", { name: "접기" });
+    expect(fold.getAttribute("aria-expanded")).toBe("true");
+    fireEvent.click(fold);
+    expect(screen.queryByTestId("body-a")).toBeNull();
+    expect(item.querySelector(".brief-item-summary")).not.toBeNull();
+  });
+
+  it("답변 대상이 있으면 「n건 더보기」", () => {
+    const item = setup(ANS, [{ ref: "r1" }, { ref: "r2" }]);
+    expect(within(item).getByRole("button", { name: "2건 더보기" })).toBeTruthy();
+  });
+
+  it("더 보여 줄 것이 없으면(한 문단뿐) [더보기] 없음", () => {
+    const item = setup("한 줄 답입니다.");
+    expect(item.querySelector(".brief-item-summary")!.textContent).toBe("한 줄 답입니다.");
+    expect(within(item).queryByRole("button", { name: /더보기/ })).toBeNull();
   });
 });

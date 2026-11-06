@@ -65,6 +65,13 @@
 .brief-item-tools { flex: none; display: inline-flex; align-items: center; gap: 6px; margin-left: auto; }
 .brief-item-tools .btn { white-space: nowrap; }
 
+/* ── 첫 문단 미리보기 · 더보기/접기(개발 서버 BriefingItemCard) — 접힌 답은 한 줄만 ── */
+.brief-item-summary { margin: 8px 0 0; font-size: var(--fs-s); line-height: 1.6; color: var(--c-sub); word-break: keep-all; overflow-wrap: anywhere; }
+.brief-more { display: inline-flex; align-items: center; gap: 2px; }
+.brief-more svg { transition: transform .15s; }
+.brief-more svg.up { transform: rotate(180deg); }
+@media (prefers-reduced-motion: reduce) { .brief-more svg { transition: none; } }
+
 /* ── 크게 보기(개발 서버 BriefingAnswer) — 그 항목 하나만, 묶음으로 돌아가는 줄은 위에 붙인다 ── */
 .brief-big-bar { position: sticky; top: calc(0px - var(--thread-pt, 0px)); z-index: 4; display: flex; align-items: center; gap: 10px; padding: 8px 22px; background: #fff; border-bottom: 1px solid var(--c-bd); }
 .brief-item.big { padding-top: 20px; scroll-margin-top: 56px; }

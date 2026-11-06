@@ -3,8 +3,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { api } from "@/lib/api";
 import { useSession } from "@/lib/session";
 import { isActive, receivedAt, STATE_LABEL, type JobFull, type JobSummary, type T3qRef, type WxSeen } from "@/lib/jobTypes";
-import { statusKo } from "@/lib/labels";
-import { ANSWER_FAILED, failureText } from "@/lib/answerText";
+import { ANSWER_FAILED, BRIEF_FAILED, failureText, isAnswerOk } from "@/lib/answerText";
 import { fmtAgo, fmtElapsed, fmtRunning } from "@/lib/format";
 import { activeAdvisories, advLabel, advTime } from "@/lib/wxref";
 import { legacyAdvIds, seenArea, wxCovers, wxTargetOfT3q, type WxTarget } from "@/lib/wxMatch";
@@ -25,6 +24,7 @@ export { entityLabel } from "./Markdown";
  * 주의(재사용 D5 · 받은 뒤 특보 C9 · 경고 바로가기 — 있을 때만) · 마크다운 · 답변 대상(refs 순서 그대로, 종류 거르기 C3) ·
  * 경고(제자리, 문구 그대로 — 정보 부족·한계는 개발서버처럼 내지 않음) · 원문 보기·복사(C10, 받은 글 그대로) · 평가 · 이어서 묻기.
  * 받지 못한 답은 정해 둔 안내 문구만(개발서버 agentRun describe — 기술 사유는 내지 않음).
+ * 응답 상태가 SUCCESS 가 아니면(일부 제공·결과 없음 등) 답 글이 와도 받지 못한 답으로 — 안내 문구 · 다시 질의 · 원문 보기·마크다운 원문 복사(받은 그대로)만(개발서버 isSuccess, 2026-11-06).
  * 유엔이가 센 값·설명 문구는 두지 않는다.
  */
 
@@ -86,15 +86,15 @@ const advText = (a: Advisory) => `${a.area} ${advLabel(a)} ${advTime(a.issuedAt)
 /** 「이전 답변 재사용」 띠·머리의 처리 시간 — 끔(사용자 지시 2026-11-02 — 시연) */
 const SHOW_REUSE = false;
 
-/** noActions — 브리핑 항목 카드처럼 머리에 취소·다시 시도 단추가 따로 있는 자리에서는 카드 안 단추를 뺀다 */
-type CardProps = { job: JobSummary; full: JobFull | undefined; compact?: boolean; noActions?: boolean };
+/** noActions — 브리핑 항목 카드처럼 머리에 취소·다시 시도 단추가 따로 있는 자리에서는 카드 안 단추를 뺀다 · brief — 브리핑 항목(받지 못한 답 문구가 대화창과 다르다) */
+type CardProps = { job: JobSummary; full: JobFull | undefined; compact?: boolean; noActions?: boolean; brief?: boolean };
 
 /** 작업이 바뀌면(다시 질의·새로 받기) 카드 상태를 새로 시작한다 */
 export default function AnswerCard(props: CardProps) {
   return <Card key={props.job.id} {...props} />;
 }
 
-function Card({ job, full, compact, noActions }: CardProps) {
+function Card({ job, full, compact, noActions, brief }: CardProps) {
   const s = useSession();
   const x = useExplore();
   const raw = full?.raw ?? null;
@@ -195,6 +195,22 @@ function Card({ job, full, compact, noActions }: CardProps) {
     setTimeout(() => setRenewing(false), 5000);
   };
 
+  // 성공이 아닌 응답(일부 제공 등) — 답 글을 그리지 않고 안내 문구만(개발서버 useConversation·useBriefing). 원문 보기·복사는 받은 그대로 남긴다
+  if (!isAnswerOk(raw.status)) {
+    return (
+      <div className="acard err">
+        <div className="acard-h"><b>재난안전 AI</b></div>
+        <div className="s" style={{ marginTop: 8 }} role="alert">{brief ? BRIEF_FAILED : ANSWER_FAILED}</div>
+        <div className="row" style={{ marginTop: 10 }}>
+          {!noActions && <button className="btn sm pri" onClick={() => x.retry(job.id)}>다시 질의</button>}
+          <button className="btn xs" onClick={() => setShowRaw((v) => !v)}>{showRaw ? "원문 닫기" : "원문 보기"}</button>
+          {answer && <button className="btn xs" onClick={copyMd}>마크다운 원문 복사</button>}
+        </div>
+        {showRaw && <pre className="rawbox">{answer ?? JSON.stringify(raw, null, 2)}</pre>}
+      </div>
+    );
+  }
+
   return (
     <div className="acard ans">
       <div className="acard-h">
@@ -202,7 +218,6 @@ function Card({ job, full, compact, noActions }: CardProps) {
         <span className="xs muted">
           {[
             raw.meta?.base_time ? `${raw.meta.base_time} 기준` : null,
-            raw.status && raw.status !== "SUCCESS" ? statusKo(raw.status) : null,
             SHOW_REUSE && typeof elapsed === "number" ? `처리 ${fmtElapsed(elapsed)}` : null,
             sentWithScenario(full?.request) ? SCN_SENT_LABEL : null,
           ]

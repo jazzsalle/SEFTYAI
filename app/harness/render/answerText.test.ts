@@ -4,7 +4,7 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { cleanEntityLinks, displayAnswer, dropHiddenColumns, failureText, hideDbNames, isRefId, mappable, sameThing } from "@/lib/answerText";
+import { cleanEntityLinks, displayAnswer, dropHiddenColumns, failureText, headlineOf, hideDbNames, isAnswerOk, isRefId, mappable, sameThing } from "@/lib/answerText";
 import type { T3qRef } from "@/lib/jobTypes";
 
 describe("내부 DB 표 이름 걷기(hideDbNames)", () => {
@@ -97,5 +97,26 @@ describe("녹화 답 전체 — 화면 처리 뒤", () => {
   it("처리할 것이 없는 글은 그대로", () => {
     const t = "### 결론\n\n부산 **도심 저지대)**입니다. [초량제1지하차도](#ref:r1)\n\n| 구분 | 길이 |\n|---|---|\n| 가<br>나 | 125m |";
     expect(displayAnswer(t)).toBe(t);
+  });
+});
+
+describe("응답 상태 판정(isAnswerOk — 개발서버 agentRun isSuccess)", () => {
+  it("상태가 없거나 SUCCESS 만 답 — 일부 제공·결과 없음·데이터 없음 등은 받지 못한 답", () => {
+    expect([undefined, null, "", "SUCCESS"].map(isAnswerOk)).toEqual([true, true, true, true]);
+    expect(["PARTIAL_SUCCESS", "NO_RESULT", "DATA_NOT_AVAILABLE", "UPSTREAM_ERROR"].map(isAnswerOk)).toEqual([false, false, false, false]);
+  });
+});
+
+describe("브리핑 첫 문단 미리보기(headlineOf — 개발서버 answerMarkdown headlineOf)", () => {
+  it("제목·구분선을 건너뛴 처음으로 말이 되는 줄 — 굵게·대상 링크·문서 링크·<br> 표식은 걷고 글자만", () => {
+    const t = "### 결론\n---\n**부산** [[부산진구] 문현1지구](#ref:r6) 점검<br>필요 [지침 p.3](https://x.example/d)\n\n- 다음";
+    const h = headlineOf(t);
+    expect(h.headline).toBe("부산 부산진구 문현1지구 점검 필요 지침 p.3");
+    expect(h.rest).toBe("### 결론\n---\n\n- 다음");
+  });
+  it("한 줄뿐이면 rest 는 비고, 제목뿐인 답은 첫 줄을 글자만", () => {
+    expect(headlineOf("한 줄")).toEqual({ headline: "한 줄", rest: "" });
+    expect(headlineOf("## 결론\n---")).toEqual({ headline: "결론", rest: "" });
+    expect(headlineOf("")).toEqual({ headline: "", rest: "" });
   });
 });

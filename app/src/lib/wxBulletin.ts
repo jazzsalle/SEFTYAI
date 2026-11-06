@@ -9,7 +9,7 @@
  * 이 파일은 import 가 타입·순수 함수뿐이라 화면·서버·하네스가 함께 쓴다.
  */
 import type { BaseRegion } from "./baseRegion";
-import { splitTop, wxCovers, type WxTarget } from "./wxMatch";
+import { isSeaArea, splitTop, wxCovers, type WxTarget } from "./wxMatch";
 
 /** 통보문을 내는 지점 하나 — sido = 맡는 시·도 법정동 코드 앞 두 자리(옛 코드·새 코드 함께). 비어 있으면 전국 */
 export interface WxStation {
@@ -211,3 +211,57 @@ export function stepsFor(steps: WxStep[], target: WxTarget | null): WxStep[] {
 
 /** 상태 이력 단계의 종류 — 화면 색(해제 = 회색, 그 밖 = 노랑) */
 export const stepState = (title: string) => (/해제/.test(title) ? "ended" : /변경/.test(title) ? "changed" : "raised");
+
+// ── 특보 상세 창의 집계(개발 서버 AlertDetailModal 「전국 발효 현황」 칩 · BulletinCard 「특보발효현황」 막대, 사용자 결정 2026-11-06 「개발서버대로」) ──
+
+/** 전국 발효 현황 칩 하나 — 종류·단계(뭍·바다 따로)별 발효 구역 수 */
+export interface WxCount {
+  type: string;
+  level: string;
+  sea: boolean;
+  /** 시연 시나리오 특보(R43) 묶음이면 참 — 기상청 특보와 섞어 세지 않는다 */
+  scenario: boolean;
+  count: number;
+}
+
+/**
+ * 받은 특보를 종류·단계·뭍/바다별로 센다 — 많은 것부터, 같으면 종류 이름 순(개발 서버 WeatherService Nationwide).
+ * 한 건 = 특보 현황 글의 구역 하나(「경상북도(영천, 경산)」 = 1, 괄호 하나가 구역 하나 — 통보문 막대와 같은 셈). 해제는 세지 않는다.
+ * 개발 서버는 특보코드(getPwnCd) 표의 구역 코드마다 세므로 같은 날 값이 더 클 수 있다(여기에는 그 표가 없다)
+ */
+export function countAdvisories(list: { type: string; level: string; area: string; status: string; scenario?: boolean }[]): WxCount[] {
+  const map = new Map<string, WxCount>();
+  for (const a of list) {
+    if (a.status === "해제") continue;
+    const sea = isSeaArea(a.area);
+    const scenario = !!a.scenario;
+    const key = `${a.type}|${a.level}|${sea}|${scenario}`;
+    const c = map.get(key);
+    if (c) c.count++;
+    else map.set(key, { type: a.type, level: a.level, sea, scenario, count: 1 });
+  }
+  return [...map.values()].sort((x, y) => y.count - x.count || x.type.localeCompare(y.type, "ko"));
+}
+
+/** 통보문 특보발효현황 한 줄 — 종류(「호우경보」)와 그 구역들 */
+export interface WxStatusBar {
+  kind: string;
+  areas: string[];
+}
+
+/**
+ * 특보발효현황 글(t6)「o 호우경보 : 부산, 울산」 줄들을 종류·구역으로 나눈다(개발 서버 BulletinCard parseStatus).
+ * 줄이 넘어가 이어 적힌 구역은 앞 줄에 붙인다. 괄호 안 쉼표(「경상남도(김해, 양산)」)는 나누지 않는다 — 괄호 하나가 구역 하나.
+ * 글이 그 꼴이 아니면 빈 목록(화면은 막대 없이 글 그대로) — 값을 지어내지 않고 적힌 구역을 세기만 한다
+ */
+export function parseStatusBars(text: string | null | undefined): WxStatusBar[] {
+  const t = text?.trim();
+  if (!t) return [];
+  const rows: { kind: string; rest: string }[] = [];
+  for (const line of t.split(/\r?\n/)) {
+    const m = /^\s*[oO○ㅇ·-]\s*([^:：]+?)\s*[:：]\s*(.*)$/.exec(line);
+    if (m) rows.push({ kind: m[1].trim(), rest: m[2] });
+    else if (rows.length > 0 && line.trim()) rows[rows.length - 1].rest += " " + line.trim();
+  }
+  return rows.map((r) => ({ kind: r.kind, areas: splitTop(r.rest) })).filter((r) => r.kind && r.areas.length > 0);
+}

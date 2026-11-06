@@ -139,3 +139,44 @@ export function failureText(state: string): string {
   if (state === "CANCELLED") return "질의를 취소했습니다.";
   return ANSWER_FAILED;
 }
+
+/**
+ * 답을 믿고 그릴 응답인가(개발서버 lib/agentRun.ts isSuccess, 사용자 결정 2026-11-06 「개발서버대로」) — 상태가 없거나 SUCCESS 일 때만.
+ * 그 밖(일부 제공 PARTIAL_SUCCESS·결과 없음·데이터 없음 등)은 답 글이 와도 받지 못한 답으로 본다(T3Q 공통 규약 — 성공이 아니면 result 를 믿지 않는다)
+ */
+export const isAnswerOk = (status: string | null | undefined) => !status || status === "SUCCESS";
+/** 브리핑 항목에서 받지 못한 답의 안내(개발서버 useBriefing — 대화창 문구와 다르다) */
+export const BRIEF_FAILED = "결과를 불러오지 못했습니다.";
+
+// ── 브리핑 카드 첫 문단 미리보기(개발서버 lib/answerMarkdown.ts headlineOf) ──
+const HEADING = /^(#{1,6})\s+(.*)$/;
+const RULE = /^\s*(?:-{3,}|\*{3,}|_{3,})\s*$/;
+
+/** 한 줄의 마크다운 표식을 걷어 글자만 — 제목 표지·굵게·대상 링크·문서 링크·<br> */
+function plainLine(line: string): string {
+  return line
+    .replace(/<br\s*\/?>/gi, " ")
+    .replace(HEADING, "$2")
+    .replace(ENTITY_LINK, (_m, lead: string, name: string, _id: string, tail: string) => {
+      const wrapped = lead === "[" && tail === "]";
+      return `${wrapped ? "" : lead}${plainName(name)}${wrapped ? "" : tail}`;
+    })
+    .replace(/\[([^\]]+)\]\(<?https?:\/\/[^)\s>]+>?\)/g, "$1")
+    .replace(/\*\*(?!\s*\*\*)(.+?)\*\*/g, "$1")
+    .trim();
+}
+
+/**
+ * 답을 한 줄 요약과 나머지로 가른다(브리핑 항목 카드). 요약은 제목·구분선을 건너뛴 처음으로 말이 되는 줄 —
+ * 「### 결론」처럼 제목으로 시작하는 답에서 「결론」 한 낱말만 보이지 않게. rest 는 「더 보여 줄 것이 있는가」를 가리는 데만 쓴다
+ * (본문으로 그리면 앞 제목이 뒤로 밀린다 — 펼치면 원문 전체를 그린다). 제목·구분선뿐인 답이면 첫 줄을 글자만 남겨 쓴다
+ */
+export function headlineOf(text: string): { headline: string; rest: string } {
+  const lines = text.replace(/\r\n?/g, "\n").split("\n");
+  const at = lines.findIndex((l) => {
+    const t = l.trim();
+    return t !== "" && !HEADING.test(t) && !RULE.test(t);
+  });
+  if (at < 0) return { headline: plainLine(lines.find((l) => l.trim() !== "") ?? ""), rest: "" };
+  return { headline: plainLine(lines[at]), rest: [...lines.slice(0, at), ...lines.slice(at + 1)].join("\n").trim() };
+}

@@ -15,6 +15,8 @@ export const IcList = (p: P) => (<S {...p}><path d="M4 6h16M4 12h16M4 18h16" /><
 export const IcPlus = (p: P) => (<S {...p}><path d="M12 5v14M5 12h14" /></S>);
 export const IcEdit = (p: P) => (<S {...p}><path d="M4 20h4L19 9l-4-4L4 16z" /></S>);
 export const IcX = (p: P) => (<S {...p}><path d="M6 6l12 12M18 6 6 18" /></S>);
+export const IcPause = (p: P) => (<S {...p}><path d="M8 5v14M16 5v14" /></S>);
+export const IcPlay = (p: P) => (<S {...p}><path d="M7 4.5v15L19 12z" /></S>);
 export const IcMap = (p: P) => (<S {...p}><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2z" /><path d="M9 4v14M15 6v14" /></S>);
 export const IcDoc = (p: P) => (<S {...p}><path d="M6 3h9l4 4v14H6z" /><path d="M14 3v5h5M9 13h7M9 17h5" /></S>);
 export const IcRefresh = (p: P) => (<S {...p}><path d="M20 11a8 8 0 1 0-2.3 5.7" /><path d="M20 4v7h-7" /></S>);

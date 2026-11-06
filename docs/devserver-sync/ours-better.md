@@ -41,3 +41,9 @@
 - 대화 저장 전 주민번호·휴대전화·이메일 가리기, 운영자가 남의 질문을 볼 때 개인정보 가림 (`convStore.ts`)
 - 도움말 검색·예시 질문 바로 보내기 (`HelpCenter.tsx`)
 - 지도 범례 카드·말풍선(답에서 보기·가까이 보기·같은 종류만) (`MapLegendPanel.tsx`, `MapPopup.tsx`) — 개발서버 `map/poc/MapLegendPanel.tsx`는 이것을 가져간 것
+
+## 9. 1차 보완(2026-11-06)에서 남긴 것
+- 받지 못한 답(응답 상태가 SUCCESS가 아님)에도 [원문 보기]·[마크다운 원문 복사]를 둔다 — 일부 제공으로 온 글을 담당자가 직접 확인할 길이 남는다 (`components/answer/AnswerCard.tsx`)
+- SUCCESS가 아닌 답은 24시간 재사용·시연 고정 대상에서 뺀다 — 실패로 보이는 답이 다음 질문에 다시 붙지 않게 (`lib/server/jobs.ts`)
+- 특보 띠가 돌아가는 동안에도 [모두 보기]로 발효 특보 전체를 한 번에 본다, [정지] 단추는 좁은 화면에서도 남는다 (`components/AppShell.tsx` `WxBar`)
+- 개발서버 반영 시 참고: 개발서버 `AnswerPanel` 실패 알럿에 원문 보기를 붙이려면 `turn.envelope`가 이미 있으니 그대로 쓰면 된다. 캐시는 백엔드 `AgentJobs` 재사용 조건에 상태 SUCCESS를 거는 것으로 같다.

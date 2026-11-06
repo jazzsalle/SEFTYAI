@@ -571,7 +571,7 @@ function TurnBody({ t, compact, inBrief, onRetry }: { t: Turn; compact?: boolean
   return (
     <>
       {full?.preview && full.preview.length > 0 && <DataCard items={full.preview} />}
-      <AnswerCard job={job} full={full} compact={compact} noActions={inBrief} />
+      <AnswerCard job={job} full={full} compact={compact} noActions={inBrief} brief={inBrief} />
     </>
   );
 }

@@ -171,6 +171,37 @@ describe("답변 카드 — 받은 값만, 센 값·설명 없음", () => {
     expect(container.textContent).toContain("답변을 불러오지 못했습니다.");
   });
 
+  // 개발서버 useConversation — error: isSuccess(envelope) ? null : AnswerFailed (상태가 없거나 SUCCESS 일 때만 답으로 그린다)
+  it.each(["PARTIAL_SUCCESS", "NO_RESULT", "DATA_NOT_AVAILABLE"])("응답 상태 %s — 답 글이 와도 그리지 않고 「답변을 불러오지 못했습니다.」 · 다시 질의 · 원문 보기·복사는 받은 그대로", (st) => {
+    const job = makeJob({ t3q_status: st });
+    const raw = makeRaw({ status: st });
+    const { container } = wrap(<AnswerCard job={job} full={makeFull(job, raw)} />);
+    const card = container.querySelector(".acard.err")!;
+    expect(card.querySelector("[role=alert]")!.textContent).toBe("답변을 불러오지 못했습니다.");
+    expect(container.querySelector(".md")).toBeNull();
+    expect(container.querySelector(".refbox")).toBeNull();
+    expect(container.textContent).not.toContain("일부 제공");
+    fireEvent.click(screen.getByRole("button", { name: "다시 질의" }));
+    expect(x.retry).toHaveBeenCalledWith("job-1");
+    fireEvent.click(screen.getByRole("button", { name: "원문 보기" }));
+    expect(container.querySelector(".rawbox")!.textContent).toBe(ANSWER);
+    fireEvent.click(screen.getByRole("button", { name: "마크다운 원문 복사" }));
+    expect(writeText).toHaveBeenLastCalledWith(ANSWER);
+  });
+
+  it("브리핑 항목(brief)이면 「결과를 불러오지 못했습니다.」 — 카드 안 다시 질의 없음(머리의 다시 시도)", () => {
+    const job = makeJob({ t3q_status: "PARTIAL_SUCCESS" });
+    const { container } = wrap(<AnswerCard job={job} full={makeFull(job, makeRaw({ status: "PARTIAL_SUCCESS" }))} noActions brief />);
+    expect(container.querySelector("[role=alert]")!.textContent).toBe("결과를 불러오지 못했습니다.");
+    expect(screen.queryByRole("button", { name: "다시 질의" })).toBeNull();
+  });
+
+  it("상태 칸이 없는 응답은 답으로 그린다(개발서버 isSuccess — !status)", () => {
+    const job = makeJob({ t3q_status: null });
+    const { container } = wrap(<AnswerCard job={job} full={makeFull(job, makeRaw({ status: undefined }))} />);
+    expect(container.querySelector(".md")!.textContent).toContain("도심 저지대");
+  });
+
   it("답 글은 화면 처리(DB 표 이름·정비 내용 칸), 원문 보기·마크다운 원문 복사는 받은 글 그대로", async () => {
     const job = makeJob();
     const text = "침수흔적(`flood.trace`) 기준입니다.\n\n| 지구 | 주요 정비 내용 | 등급 |\n|---|---|---|\n| [범일2](#ref:r2) | 우수관로 정비 | 가 |";

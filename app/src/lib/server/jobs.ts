@@ -192,11 +192,12 @@ export async function submitJob(acc: Account, input: SubmitInput): Promise<Job> 
   }
   if (!input.noCache && !input.pinId) {
     // 원래 받은 답(재사용 사본이 아닌 행)만 찾는다 — 사본의 시각으로 재사용 기간이 이어서 늘어나지 않게.
+    // 답 카드는 SUCCESS 만 답으로 그린다(lib/answerText isAnswerOk, 2026-11-06) — 일부 제공 등은 재사용하지 않는다. AI 모드 점검은 R39(같은 10분 구간 한 번)대로 일부 제공도 그대로
     // AI 모드 점검은 같은 계정의 원래 점검만(R47 — 사용자별 독립: 다른 계정의 점검을 가져오지 않는다. 같은 계정 같은 10분 구간은 R39 ②)
     const aim = input.source === "AI_MODE";
     let hit: Job | undefined = (
       await q(
-        `select * from sa_agent_jobs where cache_key = $1 and cached_from is null and state = 'DONE' and t3q_status in ('SUCCESS','PARTIAL_SUCCESS') and finished_at > $2
+        `select * from sa_agent_jobs where cache_key = $1 and cached_from is null and state = 'DONE' and t3q_status in (${aim ? "'SUCCESS','PARTIAL_SUCCESS'" : "'SUCCESS'"}) and finished_at > $2
          ${aim ? "and account_id = $3 " : ""}order by finished_at desc limit 1`,
         aim ? [cacheKey, new Date(Date.now() - CACHE_TTL_MS), acc.id] : [cacheKey, new Date(Date.now() - CACHE_TTL_MS)],
       )
@@ -248,7 +249,8 @@ async function ensurePins() {
   await q(`create table if not exists sa_demo_pins (item_id text primary key, job_id text, pending_job_id text, updated_at timestamptz default now())`);
   pinsReady = true;
 }
-const okDone = (j?: Job) => !!j && j.state === "DONE" && (j.t3q_status === "SUCCESS" || j.t3q_status === "PARTIAL_SUCCESS");
+// 성공(SUCCESS)만 — 일부 제공 등은 화면이 받지 못한 답으로 그리므로(lib/answerText isAnswerOk, 2026-11-06) 재사용·고정하지 않는다
+const okDone = (j?: Job) => !!j && j.state === "DONE" && j.t3q_status === "SUCCESS";
 
 /** 항목별 고정 상태 — 받는 중인 작업이 성공으로 끝났으면 고정으로 올린다 */
 export async function demoPins(): Promise<Record<string, { job: Job | null; pending: Job | null }>> {

@@ -1,4 +1,4 @@
-/* 기상특보 상세 창 (components/wx/WxDetailModal) — 특보는 노랑(주의) 계열, 경보 빨강은 기존 특보 표지(.lvb.w)만 */
+/* 기상특보 상세 창 (components/wx/WxDetailModal) — 특보는 노랑(주의) 계열, 경보 빨강은 기존 특보 표지(.lvb.w)와 통보문 막대의 경보 종류 이름(.bc-kind.alarm)만 */
 .modal.wxd { width: min(860px, 100%); }
 .wxd .modal-hd { gap: 8px; }
 .wxd-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px 12px; border-radius: var(--r-m); background: var(--c-surface); border: 1px solid var(--c-line); }
@@ -11,7 +11,7 @@
 .wxd-note { margin-top: 6px; font-size: var(--fs-2xs); color: var(--c-mute); }
 .wxd-alarm { margin-top: 4px; padding: 8px 10px; border-radius: var(--r-s); background: var(--c-warn-sub); color: var(--c-warn-dk); font-size: var(--fs-xs); }
 .wxd-tag { margin-left: 6px; font-size: 11px; font-weight: 700; color: var(--c-sub); border: 1px solid var(--c-bd); border-radius: 3px; padding: 0 4px; background: #fff; }
-.wxd-list, .wxd-steps, .wxd-all, .wxd-msgs { list-style: none; margin: 0; padding: 0; }
+.wxd-list, .wxd-steps, .wxd-msgs { list-style: none; margin: 0; padding: 0; }
 .wxd-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 4px; border-bottom: 1px solid var(--c-line); }
 .wxd-item .lvb { margin-top: 2px; }
 .wxd-body { flex: 1; min-width: 0; }
@@ -23,8 +23,12 @@
 .wxd-state.ended { background: var(--c-sec-sub); color: var(--c-sub); }
 .wxd-step-area { line-height: 1.5; word-break: keep-all; overflow-wrap: anywhere; }
 .wxd-step-at { grid-column: 2; font-size: var(--fs-2xs); color: var(--c-mute); }
-.wxd-all li { display: flex; align-items: flex-start; gap: 8px; padding: 6px 4px; font-size: var(--fs-xs); border-bottom: 1px solid var(--c-line); }
-.wxd-all .ar { flex: 1; line-height: 1.5; word-break: keep-all; overflow-wrap: anywhere; }
+/* 전국 발효 현황 — 종류·단계별 건수 칩(개발 서버 AlertDetailModal), 머리 오른쪽에 모두 더한 건수 */
+.wxd-sec > h3 .wxd-count { margin-left: 8px; font-weight: 500; font-size: var(--fs-xs); color: var(--c-mute); }
+.wxd-chips { list-style: none; margin: 0; padding: 4px 0 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.wxd-chip { display: inline-flex; align-items: center; gap: 4px; height: 30px; padding: 0 10px; border: 1px solid var(--c-line); border-radius: 999px; background: #fff; font-size: var(--fs-xs); }
+.wxd-chip .wxd-tag { margin-left: 0; }
+.wxd-chip b { margin-left: 2px; font-variant-numeric: tabular-nums; }
 .wxd-msg { border-bottom: 1px solid var(--c-line); }
 .wxd-msg-hd { display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 4px; border: 0; background: none; text-align: left; font-size: var(--fs-xs); cursor: pointer; }
 .wxd-msg-hd:hover { background: var(--c-surface); }
@@ -44,6 +48,15 @@
 .bc-fields dt { font-size: 11px; font-weight: 700; color: var(--c-warn-dk); }
 .bc-fields dd { margin: 2px 0 0; font-size: var(--fs-xs); line-height: 1.6; white-space: pre-line; word-break: keep-all; overflow-wrap: anywhere; }
 .bc-fields dd.none { color: var(--c-mute); }
+/* 특보발효현황 막대(개발 서버 BulletinCard) — 종류 · 막대 · 구역 수 / 아래 줄에 구역들. 막대는 파랑, 경보 종류 이름만 빨강 */
+.bc-bars { list-style: none; margin: 4px 0 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.bc-bar { display: grid; grid-template-columns: minmax(80px, auto) 1fr auto; grid-template-areas: "kind track val" "areas areas areas"; align-items: center; column-gap: 10px; row-gap: 4px; }
+.bc-kind { grid-area: kind; justify-self: start; padding: 2px 8px; border-radius: 999px; background: var(--c-primary-sub); color: var(--c-primary-dk); font-size: var(--fs-2xs); font-weight: 700; white-space: nowrap; }
+.bc-kind.alarm { background: var(--c-dang-sub); color: var(--c-dang); }
+.bc-track { grid-area: track; height: 8px; overflow: hidden; border-radius: 999px; background: var(--c-line); }
+.bc-fill { display: block; height: 100%; border-radius: inherit; background: var(--c-primary); }
+.bc-val { grid-area: val; font-size: var(--fs-xs); font-weight: 700; color: var(--c-primary-dk); white-space: nowrap; }
+.bc-areas { grid-area: areas; font-size: var(--fs-2xs); line-height: 1.6; color: var(--c-sub); white-space: normal; }
 
 @media (max-width: 720px) {
   .wxd-item { flex-wrap: wrap; }

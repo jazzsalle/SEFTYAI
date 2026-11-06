@@ -3,7 +3,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useSession } from "@/lib/session";
-import { GovLogo, IcChevR, IcSiren } from "./Icons";
+import { GovLogo, IcChevR, IcPause, IcPlay, IcSiren } from "./Icons";
 import type { Advisory } from "@/lib/contract/agent";
 import { advLabel, advName, advTime, advTone, aimTone } from "@/lib/wxref";
 import { SCN_CUT_LABEL, SCN_LABEL } from "@/lib/scenario";
@@ -31,11 +31,38 @@ const fmtT = (iso?: string) => {
   return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
 };
 
+/** 특보 줄 자동 넘김 간격 — 설계 ② 「간격 5초 이상」(개발 서버 AlertBanner RotateMs) */
+export const WX_ROTATE_MS = 5_000;
+/** 넘기는 특보 수 — 설계 ② 「최대 5건」. 나머지는 [모두 보기]·[특보 상세]로 본다 */
+export const WX_ROTATE_MAX = 5;
+
+/** 넘김 차례 — 설계 ② 「경보 먼저, 같으면 최근 발표 순」, 최대 5건(개발 서버 AlertBanner rotation) */
+export function wxRotation(list: Advisory[]): Advisory[] {
+  return [...list].sort((a, b) => Number(b.level === "경보") - Number(a.level === "경보") || b.issuedAt.localeCompare(a.issuedAt)).slice(0, WX_ROTATE_MAX);
+}
+
+/** 운영체제의 「움직임 줄이기」 — 켜져 있으면 저절로 넘기지 않는다(설계 ③) */
+function useReducedMotion() {
+  const [reduced, setReduced] = useState(false);
+  useEffect(() => {
+    const mq = typeof window.matchMedia === "function" ? window.matchMedia("(prefers-reduced-motion: reduce)") : null;
+    if (!mq) return;
+    setReduced(mq.matches);
+    const on = (e: MediaQueryListEvent) => setReduced(e.matches);
+    mq.addEventListener?.("change", on);
+    return () => mq.removeEventListener?.("change", on);
+  }, []);
+  return reduced;
+}
+
 /**
  * 특보 바 (목업 SCR-UNE-101001 : 긴급 · 지역 특보 발효 중 · 발표/갱신 · 특보로 질문)
  * 지금 기준지역을 덮는 특보만(R32 — lib/wxMatch). 기준지역이 바뀌면 그 지역으로 다시 보인다(특보 참조는 setBase 가 뗀다). 전국이면 모든 특보
  * 시연 시나리오 특보(R43 — 서버가 시연 계정에만 줌)는 이름 옆에 「시연 시나리오」, 시각은 켠 시각. 켠 동안 그 계정은 기상청 실시간 특보를 받지 않아(R45)
  * 갱신 칸은 「HH:MM 켬 · 기상청 실시간 특보 끊음」, 기준지역이 시나리오 구역 밖이면 「실시간 끊음」 꼬리표(회색)·갱신 칸 「기상청 실시간 특보 끊음」 — 「특보 없음」이라 하지 않는다
+ * 2건 이상이면 5초마다 한 건씩 넘긴다(개발 서버 AlertBanner, 사용자 결정 2026-11-06 「개발서버대로」) — 경보 먼저·최근 발표 순 최대 5건,
+ * 「특보 N건 발효 중 · 구역 특보」 · 「i / N」 · [정지]/[다시 시작]. 마우스를 올리거나 초점이 들어가면 멈추고, 움직임 줄이기 설정이면 돌지 않는다.
+ * 특보가 줄어 보던 자리가 목록 밖이면 첫 건으로. 5초마다 바뀌는 자리라 aria-live 를 걸지 않는다(낭독기가 읽던 것을 끊음) — 낱낱은 [모두 보기]에서
  */
 export function WxBar() {
   const { weather, account, cond, wxRef, setWxRef, aimOn } = useSession();
@@ -45,6 +72,11 @@ export function WxBar() {
   // 기상특보 상세 창(components/wx/WxDetailModal — 발효 특보·상태 이력·전국·통보문, [조건에 반영]·[이 특보로 질의])
   const [detail, setDetail] = useState(false);
   const barRef = useRef<HTMLDivElement>(null);
+  // 자동 넘김 — 담당자가 멈춘 것(stopped)과 잠깐 올려 둔 것(hover)은 다르다: 손을 떼면 다시 돈다
+  const [at, setAt] = useState(0);
+  const [stopped, setStopped] = useState(false);
+  const [hover, setHover] = useState(false);
+  const reduced = useReducedMotion();
   const bk = baseKey(cond.base);
   const national = !cond.base;
   const target = baseTarget(cond.base);
@@ -56,6 +88,18 @@ export function WxBar() {
   useEffect(() => {
     if (!many) setPop(null);
   }, [many]);
+  const items = wxRotation(mine);
+  const n = items.length;
+  const rolling = n > 1 && !stopped && !hover && !reduced;
+  // 특보가 줄면 보던 자리가 목록 밖으로 나갈 수 있다 — 첫 건으로
+  useEffect(() => {
+    setAt((i) => (i >= n ? 0 : i));
+  }, [n]);
+  useEffect(() => {
+    if (!rolling) return;
+    const id = window.setInterval(() => setAt((i) => (i + 1) % n), WX_ROTATE_MS);
+    return () => window.clearInterval(id);
+  }, [rolling, n]);
   // 펼친 목록은 바깥을 누르거나 Esc 로 닫는다
   useEffect(() => {
     if (!pop) return;
@@ -73,11 +117,9 @@ export function WxBar() {
     };
   }, [pop]);
   if (!account) return null;
-  const top = [...mine].sort((a, b) => (b.level === "경보" ? 1 : 0) - (a.level === "경보" ? 1 : 0))[0];
-  // 나머지 특보는 지역·전국 모두 받은 이름 그대로, 받은 순서대로 · 로 잇는다(유엔이가 센 「외 n건」 없음, R25·R40). 길면 한 줄 말줄임, [모두 보기] = 전체 목록
-  // 이름은 첫 특보와 같이 「구역 + 특보」 — 특보 이름만 이으면 구역이 다른 특보가 「강풍주의보 · 강풍주의보」로 같아 보인다
-  const rest = top ? mine.filter((a) => a !== top) : [];
-  const restText = rest.map((a) => `${a.area} ${advName(a)}`).join(" · ");
+  // 지금 보이는 특보 — 1건이면 그것, 여럿이면 넘김 차례의 i 번째. [모두 보기] = 발효 특보 전체(받은 순서)
+  const top = n ? items[Math.min(at, n - 1)] : undefined;
+  const anyAlarm = items.some((a) => a.level === "경보");
   // 시연 시나리오를 켠 시연 계정(R45) — 서버가 기상청 실시간을 부르지 않고 시나리오 특보만 준다. 기상청 시각 자리에 끊음을 알리고 「특보 없음」이라 하지 않는다
   const cut = !!weather?.realtimeCut;
   let tag: React.ReactNode, title: React.ReactNode, meta = "";
@@ -90,7 +132,11 @@ export function WxBar() {
     meta = `${weather.status.message} · 최종 시도 ${fmtT(weather.status.fetchedAt)}`;
   } else if (top) {
     tag = <span className={`tag ${top.level === "경보" ? "" : "warn"}`}><IcSiren size={16} /> {top.level === "경보" ? "긴급" : "주의"}</span>;
-    title = <>{top.area} {top.type}{top.level} 발효 중{top.scenario && <> <ScnTag a={top} /></>}</>;
+    title = many ? (
+      <><b>특보 {mine.length}건 발효 중</b> · {top.area} {advLabel(top)}{top.scenario && <> <ScnTag a={top} /></>}</>
+    ) : (
+      <>{top.area} {top.type}{top.level} 발효 중{top.scenario && <> <ScnTag a={top} /></>}</>
+    );
     meta = [
       `${fmtT(top.issuedAt)} ${top.scenario ? "켬" : "발표"}`,
       cut ? SCN_CUT_LABEL : weather.status.ok ? `기상청 ${fmtT(weather.status.fetchedAt)} 갱신` : `${weather.status.message} · 최종 시도 ${fmtT(weather.status.fetchedAt)}`,
@@ -120,12 +166,28 @@ export function WxBar() {
     setPop((v) => (v === "ask" ? null : "ask"));
   };
   return (
-    <div ref={barRef} className={`wxbar ${top && top.level === "경보" ? "danger" : ""}`}>
+    <div
+      ref={barRef}
+      className={`wxbar ${anyAlarm ? "danger" : ""}`}
+      // 설계 ② 「마우스를 올리거나 초점이 들어가면 넘김 멈춤」
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      onFocusCapture={() => setHover(true)}
+      onBlurCapture={() => setHover(false)}
+    >
       {tag}
-      <span className="tit">{title}</span>
-      {rest.length > 0 && (
+      {many && top && (
         <>
-          <span className="more" title={restText}>· {restText}</span>
+          <button type="button" className="wxstop" aria-pressed={stopped} onClick={() => setStopped((v) => !v)} aria-label={stopped ? "자동 넘김 다시 시작" : "자동 넘김 정지"} title={stopped ? "자동 넘김 다시 시작" : "자동 넘김 정지"}>
+            {stopped ? <IcPlay size={14} /> : <IcPause size={14} />}
+          </button>
+          {/* 설계 ④ 「위치 i / N」 */}
+          <span className="wxat">{Math.min(at, n - 1) + 1} / {n}</span>
+        </>
+      )}
+      <span className="tit">{title}</span>
+      {many && (
+        <>
           <span className="wxall">
             <button type="button" className="lnk xs" onClick={() => setPop((v) => (v === "all" ? null : "all"))} aria-expanded={pop === "all"}>모두 보기</button>
             {pop === "all" && (

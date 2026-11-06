@@ -232,13 +232,14 @@ label.chk input { width: 18px; height: 18px; accent-color: var(--c-primary); }
 .wxbar .tag.fail { background: var(--c-sec-sub); color: var(--c-sub); }
 .wxbar .tit { font-weight: 800; }
 .wxbar .meta { color: var(--c-sub); font-size: var(--fs-xs); }
-/* 나머지 특보 이름(R40) — 빨강 쓰지 않음, 길면 한 줄 말줄임 */
-.wxbar .more { flex: 0 100 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--c-text); font-weight: 700; font-size: var(--fs-xs); }
-@media (min-width: 901px) {
-  /* 첫 특보 제목은 줄지 않고(상한에서만 말줄임), 넘치는 폭은 나머지 줄이 받는다 */
-  .wxbar:has(.more) .tit { flex: 0 0 auto; max-width: 45%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .wxbar:has(.more) .meta, .wxbar:has(.more) .tag { flex: none; white-space: nowrap; }
-}
+/* 2건 이상 — 5초 자동 넘김(개발 서버 AlertBanner): [정지]/[다시 시작] · 「i / N」. 제목은 한 줄 말줄임 */
+.wxbar .wxstop { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; padding: 0; border: 1px solid var(--c-bd); border-radius: 50%; background: #fff; color: var(--c-text); cursor: pointer; }
+.wxbar .wxstop:hover { border-color: var(--c-primary-bd); background: var(--c-surface); }
+.wxbar .wxstop[aria-pressed="true"] { border-color: var(--c-primary); color: var(--c-primary-dk); }
+.wxbar .wxat { flex: none; margin-left: -8px; font-size: var(--fs-xs); color: var(--c-sub); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.wxbar:has(.wxstop) .tit { flex: 0 1 auto; min-width: 0; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wxbar:has(.wxstop) .tit b { font-weight: 800; }
+.wxbar:has(.wxstop) .meta, .wxbar:has(.wxstop) .tag { flex: none; white-space: nowrap; }
 .wxbar .wxall { position: relative; flex: none; }
 .wxall .lnk { font-size: var(--fs-xs); white-space: nowrap; }
 .wxall .wxpick { width: min(480px, 92vw); max-height: 60vh; overflow: auto; }

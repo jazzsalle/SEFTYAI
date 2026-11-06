@@ -3,20 +3,24 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useSession, type Turn } from "@/lib/session";
 import { isActive, receivedAt, type JobFull, type JobState, type JobSummary } from "@/lib/jobTypes";
 import { libById } from "@/lib/library";
-import { statusKo } from "@/lib/labels";
+import { headlineOf, isAnswerOk } from "@/lib/answerText";
 import { fmtAgo, fmtElapsed, fmtRunning } from "@/lib/format";
 import { SCN_SENT_LABEL, sentWithScenario } from "@/lib/scenario";
+import { IcChevD } from "../Icons";
 import "./brief.css";
 
 /**
  * 현재 상황 브리핑 카드 — 현황판(D1) + 항목(질문 순서, 답은 접지 않음).
  * 현황판 칸: 번호 · 항목 이름 / 상태(기호 + 글) · 처리 시간(제공처 meta.elapsed_ms) 또는 진행 중 시계(「n분 n초째」) /
  *   「정보 부족 있음」(답 data_gaps 있음) · 「경고 있음」(답 warnings 있음) · 「재사용 · n시간 전」(원래 답을 받은 시각 기준 — 답 카드와 같은 receivedAt·fmtAgo) / 「새로 도착」(D2).
- * 상태는 작업 상태를 합치지 않고 그대로(대기 중·보내는 중·생성 중·완료·일부 제공·오류·시간 초과·유실·취소됨·접수 실패).
+ * 상태는 작업 상태를 합치지 않고 그대로(대기 중·보내는 중·생성 중·완료·오류·시간 초과·유실·취소됨·접수 실패). 응답 상태가 SUCCESS 가 아니면(일부 제공 등)
+ *   답이 와도 「오류」 — 받지 못한 답으로 본다(개발서버 useBriefing isSuccess, 2026-11-06).
  * 유엔이가 센 값·설명 문구·핵심 결과 한 줄·공통 한계 줄 없음(R25).
  * 칸을 누르면 그 항목으로 간다. 현황판이 위로 지나가면 40px 한 줄이 붙는다. 답이 오면 aria-live 로 한 번 알린다.
  * 항목 카드 머리(개발 서버 BriefingItemCard 이식) — 진행 중이면 [취소](그 항목 하나만), 오류·취소됨이면 [다시 시도](그 항목 하나만),
- *   답이 오면 [크게 보기] — 그 항목 하나만 펼쳐 읽는 자리(개발 서버 BriefingAnswer). 답 글은 카드 안에서 마크다운 그대로(AnswerCard).
+ *   답이 오면 [크게 보기] — 그 항목 하나만 펼쳐 읽는 자리(개발 서버 BriefingAnswer).
+ *   답은 처음에 첫 문단 한 줄만(개발 서버 BriefingItemCard — 「초기 브리핑 결과에는 상세를 과도하게 표출하지 않음」), 더 있으면 [더보기]·[n건 더보기](답변 대상 수)로
+ *   카드 전체(AnswerCard)를 펴고 [접기]로 다시 한 줄. 펼치면 미리보기 줄을 거둔다(첫 줄이 두 번 보이지 않게).
  *   모든 항목이 실패하면 머리에 [다시 시도](실패한 것 모두 — 개발 서버 BriefingPanel).
  */
 
@@ -24,7 +28,7 @@ import "./brief.css";
 export type BriefGroup = NonNullable<Turn["group"]> & { label?: string; region?: string };
 const groupOf = (t: Turn | undefined) => t?.group as BriefGroup | undefined;
 
-type Kind = "run" | "wait" | "done" | "part" | "err" | "off";
+type Kind = "run" | "wait" | "done" | "err" | "off";
 export interface BriefCell {
   /** 턴 ID */
   id: string;
@@ -70,9 +74,8 @@ export function briefCell(t: Turn, i: number, job: JobSummary | undefined, full:
     reuse: SHOW_DONE_META && job.cached_from ? (ago ? `재사용 · ${ago}` : "재사용") : null,
   };
   if (job.state === "DONE") {
-    const st = job.t3q_status ?? raw?.status ?? null;
-    const ok = !st || st === "SUCCESS";
-    return { ...base, ...got, answered: true, kind: ok ? "done" : "part", text: ok ? "완료" : statusKo(st) };
+    if (isAnswerOk(job.t3q_status ?? raw?.status ?? null)) return { ...base, ...got, answered: true, kind: "done", text: "완료" };
+    return { ...base, ...got, kind: "err", text: "오류" };
   }
   return { ...base, ...got, kind: job.state === "CANCELLED" ? "off" : "err", text: END_TEXT[job.state] ?? job.state };
 }
@@ -101,7 +104,6 @@ const Svg = ({ children }: { children: ReactNode }) => (
 function StIcon({ kind }: { kind: Kind }) {
   if (kind === "run" || kind === "wait") return <span className="bb-spin" aria-hidden="true" />;
   if (kind === "done") return <Svg><path d="m3 8.5 3.2 3.2L13 5" /></Svg>;
-  if (kind === "part") return <Svg><circle cx="8" cy="8" r="5.6" /><path d="M8 2.4a5.6 5.6 0 0 1 0 11.2z" fill="currentColor" /></Svg>;
   if (kind === "off") return <Svg><path d="m4.5 4.5 7 7M11.5 4.5l-7 7" /></Svg>;
   return <Svg><path d="M8 2.2 14.3 13H1.7z" /><path d="M8 6.4v3.1M8 11.3v.1" /></Svg>;
 }
@@ -135,6 +137,8 @@ export default function BriefBoard({ turns, regionName, renderBody, onRetry }: B
   const s = useSession();
   // 「크게 보기」로 연 항목(턴 ID) — 그 항목이 묶음에서 빠지면 저절로 풀린다
   const [bigId, setBigId] = useState<string | null>(null);
+  // [더보기]로 편 항목(턴 ID) — 처음에는 모두 접혀 첫 문단 한 줄만
+  const [opened, setOpened] = useState<ReadonlySet<string>>(() => new Set());
   const big = bigId ? turns.find((t) => t.id === bigId) ?? null : null;
   const [now, setNow] = useState(() => Date.now());
   const [stuck, setStuck] = useState(false);
@@ -270,12 +274,30 @@ export default function BriefBoard({ turns, regionName, renderBody, onRetry }: B
     });
   };
 
-  /** 항목 머리 오른쪽 단추 — 상태마다 하나(개발 서버 BriefingItemCard) */
+  /** 받은 답 글(완료 항목) — 미리보기 줄·더보기에 쓴다. 원응답을 아직 못 받았으면 null */
+  const answerOf = (t: Turn): string | null => {
+    const raw = t.jobId ? s.full[t.jobId]?.raw : undefined;
+    if (!raw) return null;
+    return typeof raw.result?.answer === "string" ? raw.result.answer.trim() : "";
+  };
+  const refCount = (t: Turn) => (t.jobId ? (s.full[t.jobId]?.raw?.result?.refs?.length ?? 0) : 0);
+  const toggle = (id: string) =>
+    setOpened((p) => {
+      const n = new Set(p);
+      if (n.has(id)) n.delete(id);
+      else n.add(id);
+      return n;
+    });
+
+  /** 항목 머리 오른쪽 단추 — 상태마다 하나(개발 서버 BriefingItemCard) + 답이 길면 [더보기]·[접기] */
   const tools = (t: Turn) => {
     const c = cellOf(t.id);
     if (!c) return null;
     const job = t.jobId ? s.jobs[t.jobId] : undefined;
     const label = `${c.no}번${c.label ? ` ${c.label}` : ""}`;
+    const text = c.answered ? answerOf(t) : null;
+    const more = !!text && big?.id !== t.id && headlineOf(text).rest.length > 0;
+    const isOpen = opened.has(t.id);
     return (
       <span className="brief-item-tools">
         {c.kind === "run" && job && isActive(job.state) && (
@@ -287,8 +309,22 @@ export default function BriefBoard({ turns, regionName, renderBody, onRetry }: B
         {c.answered && big?.id !== t.id && (
           <button type="button" className="btn xs line" onClick={() => open(t.id)} aria-label={`${label} 크게 보기`}>크게 보기</button>
         )}
+        {more && (
+          <button type="button" className="btn xs brief-more" aria-expanded={isOpen} onClick={() => toggle(t.id)}>
+            {isOpen ? "접기" : refCount(t) > 0 ? `${refCount(t)}건 더보기` : "더보기"}
+            <IcChevD size={12} className={isOpen ? "up" : undefined} />
+          </button>
+        )}
       </span>
     );
+  };
+
+  /** 접힌 완료 항목의 첫 문단 한 줄 — 크게 보기·[더보기]로 편 항목·원응답을 아직 못 받은 항목은 null(본문을 그린다) */
+  const preview = (t: Turn) => {
+    if (big?.id === t.id || opened.has(t.id) || !cellOf(t.id)?.answered) return null;
+    const text = answerOf(t);
+    if (text === null) return null;
+    return <p className="brief-item-summary">{headlineOf(text).headline || "답변이 비어 있습니다."}</p>;
   };
 
   return (
@@ -369,7 +405,7 @@ export default function BriefBoard({ turns, regionName, renderBody, onRetry }: B
             <span className="num">{t.group?.no}</span> <b>{t.q}</b>
             {tools(t)}
           </div>
-          {renderBody(t, big?.id === t.id)}
+          {preview(t) ?? renderBody(t, big?.id === t.id)}
         </div>
       ))}
     </div>
