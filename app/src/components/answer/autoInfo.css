@@ -6,10 +6,10 @@
 .ai-tile:first-child { border-left: 0; }
 .ai-tile-ic { grid-row: 1 / span 2; display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 50%; background: #fff; color: var(--ig-blue); box-shadow: inset 0 0 0 1.5px var(--ig-blue-line); }
 .ai-tile-ic svg { width: 22px; height: 22px; }
-.ai-tile b { font-size: 26px; font-weight: 800; line-height: 1.1; color: var(--ig-navy); font-variant-numeric: tabular-nums; letter-spacing: -0.04em; word-break: keep-all; overflow-wrap: anywhere; }
-.ai-tile > span:not(.ai-tile-ic) { font-size: 11.5px; color: var(--ig-muted); margin-top: 3px; line-height: 1.35; }
+.ai-tile b { font-size: calc(26px * var(--fs-scale)); font-weight: 800; line-height: 1.1; color: var(--ig-navy); font-variant-numeric: tabular-nums; letter-spacing: -0.04em; word-break: keep-all; overflow-wrap: anywhere; }
+.ai-tile > span:not(.ai-tile-ic) { font-size: calc(11.5px * var(--fs-scale)); color: var(--ig-muted); margin-top: 3px; line-height: 1.35; }
 .ai-tile.warn .ai-tile-ic { color: var(--ig-amber-dk); background: var(--ig-amber-sub); box-shadow: inset 0 0 0 1.5px var(--ig-amber-line); }
-.ai-tile.warn b { color: var(--ig-amber-dk); font-size: 19px; letter-spacing: -0.03em; }
+.ai-tile.warn b { color: var(--ig-amber-dk); font-size: var(--fs-hs); letter-spacing: -0.03em; }
 .ai-tile.cond b { color: var(--ig-blue); }
 
 /* 정적 지도 — 땅색 바탕 · 가는 격자 · 물빛 면 · 흰 말풍선 */
@@ -28,20 +28,20 @@
 .im-mk.t-c rect, .im-mk.t-c circle { fill: var(--ig-amber); }
 .im-mk rect.im-call { fill: #fff; stroke: var(--ig-line); stroke-width: 1; filter: drop-shadow(0 1px 1.5px rgba(18, 41, 74, 0.14)); }
 .im-mk line.im-lead { stroke: var(--ig-ink-2); stroke-width: 1; }
-.im-mk text { font-size: 12px; font-weight: 800; fill: #fff; pointer-events: none; font-variant-numeric: tabular-nums; }
+.im-mk text { font-size: var(--fs-2xs); font-weight: 800; fill: #fff; pointer-events: none; font-variant-numeric: tabular-nums; }
 .im-mk.t-c text { fill: #3a2a00; }
-.im-mk text.im-name { font-size: 10.5px; font-weight: 800; fill: var(--ig-ink); letter-spacing: -0.02em; }
+.im-mk text.im-name { font-size: calc(10.5px * var(--fs-scale)); font-weight: 800; fill: var(--ig-ink); letter-spacing: -0.02em; }
 .im-mk { cursor: pointer; }
 .im-scale rect.im-scale-a { fill: var(--ig-ink); }
 .im-scale rect.im-scale-b { fill: #fff; stroke: var(--ig-ink); stroke-width: 1; }
-.im-scale text { font-size: 10px; font-weight: 700; fill: var(--ig-ink-2); }
+.im-scale text { font-size: calc(10px * var(--fs-scale)); font-weight: 700; fill: var(--ig-ink-2); }
 .im-compass path { fill: var(--ig-navy); }
-.im-north { font-size: 10px; font-weight: 800; fill: var(--ig-navy); }
+.im-north { font-size: calc(10px * var(--fs-scale)); font-weight: 800; fill: var(--ig-navy); }
 
 .im-legend { margin: 0; padding: 0; list-style: none; flex: 1; min-width: 0; max-height: 420px; overflow: auto; font-size: var(--fs-2xs); color: var(--ig-ink-2); line-height: 1.5; }
 .im-legend li { display: grid; grid-template-columns: 28px 1fr auto; gap: 8px; align-items: center; padding: 7px 0; border-bottom: 1px solid var(--ig-line); }
 .im-legend li:last-child { border-bottom: 0; }
-.im-num { width: 24px; height: 24px; border-radius: 50%; border: 0; background: var(--ig-violet); color: #fff; font-size: 11.5px; font-weight: 800; cursor: pointer; font-variant-numeric: tabular-nums; }
+.im-num { width: 24px; height: 24px; border-radius: 50%; border: 0; background: var(--ig-violet); color: #fff; font-size: calc(11.5px * var(--fs-scale)); font-weight: 800; cursor: pointer; font-variant-numeric: tabular-nums; }
 .im-num:hover, .im-num:focus-visible { outline: 2px solid var(--ig-navy); outline-offset: 2px; }
 .im-num.t-b { background: var(--ig-teal); }
 .im-num.t-c { background: var(--ig-amber); color: #3a2a00; }
@@ -56,7 +56,7 @@
 .ai-chron-lb .lnk:hover { color: var(--ig-blue); }
 .ai-chron-track { position: relative; height: 16px; background: var(--ig-soft); border-radius: 3px; }
 .ai-chron-bar { position: absolute; top: 3px; height: 10px; border-radius: 5px; background: var(--ig-blue); min-width: 10px; box-shadow: 0 0 0 2px #fff; }
-.ai-chron-axis { position: relative; height: 18px; margin-left: calc(38% + 14px); font-size: 10px; color: var(--ig-muted); border-top: 2px solid var(--ig-navy); font-variant-numeric: tabular-nums; font-weight: 700; }
+.ai-chron-axis { position: relative; height: 18px; margin-left: calc(38% + 14px); font-size: calc(10px * var(--fs-scale)); color: var(--ig-muted); border-top: 2px solid var(--ig-navy); font-variant-numeric: tabular-nums; font-weight: 700; }
 .ai-chron-axis span { position: absolute; top: 3px; transform: translateX(-50%); }
 
 /* 시설 카드 */
@@ -71,7 +71,7 @@
   .im-legend { max-height: none; width: 100%; }
   .ai-tile { flex-basis: 45%; padding: 0 10px; }
   .ai-tile:nth-child(odd) { border-left: 0; }
-  .ai-tile b { font-size: 22px; }
+  .ai-tile b { font-size: calc(22px * var(--fs-scale)); }
   .ai-chron-row { grid-template-columns: 1fr; gap: 6px; }
   .ai-chron-axis { margin-left: 0; }
 }
@@ -82,7 +82,7 @@
 .ai-targets li button:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(11, 42, 85, 0.1); }
 .ai-targets li.t-b button { border-top-color: var(--series-2); }
 .ai-targets li.t-c button { border-top-color: var(--series-4); }
-.ai-tg-num { width: 26px; height: 26px; border-radius: 50%; background: #0b2a55; color: #fff; font-size: 12px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; font-variant-numeric: tabular-nums; }
+.ai-tg-num { width: 26px; height: 26px; border-radius: 50%; background: #0b2a55; color: #fff; font-size: var(--fs-2xs); font-weight: 800; display: inline-flex; align-items: center; justify-content: center; font-variant-numeric: tabular-nums; }
 .ai-tg-ic { width: 40px; height: 40px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: #efecfb; color: var(--series-3); }
 .ai-targets li.t-b .ai-tg-ic { background: #e6f6f0; color: var(--series-2); }
 .ai-targets li.t-c .ai-tg-ic { background: #fdf3dc; color: #9a6a00; }

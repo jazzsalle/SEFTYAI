@@ -53,7 +53,7 @@
 .acm-err { display: flex; align-items: flex-start; gap: 6px; margin: 8px 0 0; font-size: var(--fs-xs); color: var(--c-dang-dk); }
 .acm-err::before {
   content: "!"; flex: none; display: inline-grid; place-items: center; width: 16px; height: 16px; margin-top: 1px;
-  border-radius: 50%; background: var(--c-dang); color: #fff; font-size: 11px; font-weight: 800;
+  border-radius: 50%; background: var(--c-dang); color: #fff; font-size: calc(11px * var(--fs-scale)); font-weight: 800;
 }
 .acm-rules { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 8px; font-size: var(--fs-xs); color: var(--c-mute); }
 .acm-rules li { display: inline-flex; align-items: center; gap: 4px; }

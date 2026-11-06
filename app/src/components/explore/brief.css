@@ -15,10 +15,10 @@
 .bb-cell { position: relative; flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 7px; padding: 10px 12px 11px; border: 1px solid var(--c-line); border-radius: 10px; background: #fff; color: var(--c-text); font: inherit; text-align: left; cursor: pointer; }
 .bb-cell:hover { border-color: var(--c-primary-bd); background: var(--c-surface); }
 .bb-cell.new { border-color: var(--c-primary); box-shadow: inset 0 0 0 1px var(--c-primary); }
-.bb-head { display: flex; align-items: flex-start; gap: 7px; min-width: 0; max-width: 100%; font-size: var(--fs-xs); font-weight: 700; line-height: 22px; }
-.bb-no { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 4px; background: var(--c-primary); color: #fff; font-size: 12px; font-weight: 800; line-height: 1; }
+.bb-head { display: flex; align-items: flex-start; gap: 7px; min-width: 0; max-width: 100%; font-size: var(--fs-xs); font-weight: 700; line-height: calc(22px * var(--fs-scale)); }
+.bb-no { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 4px; background: var(--c-primary); color: #fff; font-size: var(--fs-2xs); font-weight: 800; line-height: 1; }
 .bb-lab { min-width: 0; overflow-wrap: anywhere; }
-.bb-new { position: absolute; top: -10px; right: 10px; height: 19px; padding: 0 8px; border-radius: 999px; background: var(--c-primary); color: #fff; font-size: 11px; font-weight: 700; line-height: 19px; white-space: nowrap; }
+.bb-new { position: absolute; top: -10px; right: 10px; height: 19px; padding: 0 8px; border-radius: 999px; background: var(--c-primary); color: #fff; font-size: calc(11px * var(--fs-scale)); font-weight: 700; line-height: 19px; white-space: nowrap; }
 
 /* 상태 — 기호 + 글(색만으로 뜻을 전하지 않음) */
 .bb-st { display: inline-flex; align-items: center; gap: 5px; max-width: 100%; font-size: var(--fs-xs); font-weight: 700; color: var(--c-text); white-space: nowrap; }
@@ -42,13 +42,13 @@
 .bb-mini-in { flex: 1; min-width: 0; height: 100%; display: flex; align-items: center; gap: 6px; padding-right: 16px; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; }
 .bb-mini-in::-webkit-scrollbar { display: none; }
 .bb-mini.ovf::after { content: ""; position: absolute; top: 0; right: 0; bottom: 0; width: 32px; background: linear-gradient(90deg, rgba(255, 255, 255, 0), #fff 85%); pointer-events: none; }
-.bb-pill { flex: none; display: inline-flex; align-items: center; gap: 5px; height: 28px; padding: 0 9px 0 3px; border: 1px solid var(--c-line); border-radius: 999px; background: #fff; color: var(--c-text); font: inherit; font-size: 12.5px; white-space: nowrap; cursor: pointer; }
+.bb-pill { flex: none; display: inline-flex; align-items: center; gap: 5px; height: 28px; padding: 0 9px 0 3px; border: 1px solid var(--c-line); border-radius: 999px; background: #fff; color: var(--c-text); font: inherit; font-size: calc(12.5px * var(--fs-scale)); white-space: nowrap; cursor: pointer; }
 .bb-pill:hover { border-color: var(--c-primary-bd); }
 .bb-pill.new { border-color: var(--c-primary); background: var(--c-primary-sub); }
-.bb-pill .bb-no { width: 20px; height: 20px; border-radius: 50%; font-size: 11px; }
-.bb-pill .bb-st { font-size: 12.5px; }
+.bb-pill .bb-no { width: 20px; height: 20px; border-radius: 50%; font-size: calc(11px * var(--fs-scale)); }
+.bb-pill .bb-st { font-size: calc(12.5px * var(--fs-scale)); }
 .bb-pill .bb-new-t { color: var(--c-primary-dk); font-weight: 700; }
-.bb-pill .bb-mark { height: 20px; padding: 0 6px; font-size: 11.5px; }
+.bb-pill .bb-mark { height: 20px; padding: 0 6px; font-size: calc(11.5px * var(--fs-scale)); }
 
 /* ── 항목 — 칸을 누르면 그 항목 머리가 붙은 한 줄 아래에 오게 ── */
 .brief-item { scroll-margin-top: 48px; }

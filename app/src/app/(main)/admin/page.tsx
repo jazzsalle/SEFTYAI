@@ -505,7 +505,7 @@ function WarmTab({ jobs, warm, setWarm, onOpen }: { jobs: JobsHook; warm: WarmRe
   return (
     <>
       <section className="panel">
-        <h2 style={{ fontSize: 19 }}>브리핑 예열</h2>
+        <h2 style={{ fontSize: "var(--fs-hs)" }}>브리핑 예열</h2>
         <p className="xs muted" style={{ margin: "6px 0 0", lineHeight: 1.7 }}>
           부산·인제·영천 × 기본 브리핑 세트 {BRIEF_SET.length}문항을 각 지역의 시연 대상 계정 명의로 미리 질의합니다(그 지역에 대상 계정이 없으면 건너뜁니다).{" "}
           <b>예열한 답은 시연 모드를 켠 동안 대상 계정에 12시간까지 같은 질문에 즉시 표시됩니다.</b> 시연 모드가 꺼져 있으면 받은 답을 다시 쓰지 않아(늘 새로 질의) 예열할 수 없습니다.
@@ -648,7 +648,7 @@ function DemoModePanel() {
   const hm = `${Math.floor(left / 3_600_000)}시간 ${Math.floor((left % 3_600_000) / 60_000)}분`;
   return (
     <section className="panel" aria-label="시연 모드" style={{ marginBottom: 16 }}>
-      <h2 style={{ fontSize: 19 }}>시연 모드</h2>
+      <h2 style={{ fontSize: "var(--fs-hs)" }}>시연 모드</h2>
       <p className="xs muted" style={{ margin: "6px 0 0", lineHeight: 1.7 }}>
         <b>평소에는 받은 답을 다시 쓰지 않고 늘 에이전트에 새로 묻습니다</b>(응답이 바뀌면 바로 보이게 — RAG 검증). 켜 둔 동안만 조회 응답과, 켠 뒤 받은 첫 질문 답(시·도·영천·인제, 성공한 답, 12시간까지)을 다시 써서 시연을 빠르게 합니다.
         브리핑의 받아 둔 답(질문 모음 「한눈 요약 질의」)도 켠 동안만 씁니다. 켤 때와 끌 때 들고 있던 응답을 모두 비우고, 켠 뒤 48시간이 지나면 저절로 꺼집니다.
@@ -758,7 +758,7 @@ function ScenarioPanel() {
   const name = (r: ScnRegion) => PILOT_T3Q[r].name;
   return (
     <section className="panel" aria-label="시연 시나리오 특보">
-      <h2 style={{ fontSize: 19 }}>시연 시나리오 특보</h2>
+      <h2 style={{ fontSize: "var(--fs-hs)" }}>시연 시나리오 특보</h2>
       <p className="xs muted" style={{ margin: "6px 0 0", lineHeight: 1.7 }}>
         켜 둔 동안 켠 지역의 시연 계정은 <b>기상청 실시간 특보를 받지 않고</b> 아래 가상 특보만 받습니다(특보 줄·AI 모드·브리핑·대응절차 단계 추천). 화면에는 「{SCN_LABEL}」, 에이전트 질의에는 출처 「{SCN_SOURCE}」로 표시됩니다.{" "}
         <b>끝나는 시각이 지나면 저절로 꺼집니다</b>(최대 {SCN_MAX_HOURS}시간). 끄면 다시 실시간입니다. 다른 계정은 지금처럼 실시간이고, 받은 답을 다시 쓰는지는 위 「시연 모드」만 정합니다.
@@ -1099,7 +1099,7 @@ function TraceTab() {
         {sel && (
           <div className="panel">
             <div className="row">
-              <h3 style={{ fontSize: 16 }}>추적로그 상세</h3>
+              <h3 style={{ fontSize: "calc(16px * var(--fs-scale))" }}>추적로그 상세</h3>
               <span className="sp" />
               <button type="button" className="btn xs ghost" onClick={() => setSel(null)}>닫기</button>
             </div>

@@ -27,11 +27,11 @@
 
 /* 지도에서 집어 둔 객체(개발 서버 query-refs) — 질문 칸 바로 위 한 줄, 많으면 접힌다(끝에 무엇이 있는지 모른 채 묻지 않게) */
 .query-refs { display: flex; align-items: flex-start; gap: 8px; padding: 8px 0 0; }
-.query-refs-label { flex: none; padding-top: 4px; font-size: 14px; color: #58616a; }
+.query-refs-label { flex: none; padding-top: 4px; font-size: calc(14px * var(--fs-scale)); color: #58616a; }
 .query-refs-list { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
 .query-ref {
   display: inline-flex; align-items: center; gap: 4px; max-width: 240px; padding: 2px 4px 2px 10px;
-  font-size: 14px; line-height: 22px; color: #0b50d0; background: #ecf2fe; border: 1px solid #b1cefb; border-radius: 14px;
+  font-size: calc(14px * var(--fs-scale)); line-height: calc(22px * var(--fs-scale)); color: #0b50d0; background: #ecf2fe; border: 1px solid #b1cefb; border-radius: 14px;
 }
 .query-ref-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .query-ref-drop {
@@ -46,8 +46,8 @@
 
 /* 대화 만료 안내 (SCR-UNE-203001 「대화 만료」, 개발서버 index.css .query-expired) — 상류가 대화 문맥을 마지막 활동으로부터 24시간만 들고 있다 */
 .query-expired { margin: 0 0 12px; padding: 12px 16px; background: #fdf6e4; border: 1px solid #f0d9a8; border-radius: 6px; }
-.query-expired-head { display: flex; gap: 6px; align-items: center; margin: 0; font-size: 16px; font-weight: 700; line-height: 24px; color: #8a6116; }
-.query-expired-sub { margin: 2px 0 0 26px; font-size: 15px; line-height: 23px; color: #6d5a2e; }
+.query-expired-head { display: flex; gap: 6px; align-items: center; margin: 0; font-size: calc(16px * var(--fs-scale)); font-weight: 700; line-height: calc(24px * var(--fs-scale)); color: #8a6116; }
+.query-expired-sub { margin: 2px 0 0 26px; font-size: var(--fs-s); line-height: calc(23px * var(--fs-scale)); color: #6d5a2e; }
 .cmp-input:disabled { background: var(--c-surface, #f4f5f6); cursor: not-allowed; }
 
 /* 조건 딱지의 × (개발서버 QueryBox cond-clear) */

@@ -8,11 +8,11 @@
 .evd .ev-chips .di-tag svg, .evd .ev-chips .di-chip svg { flex: none; }
 /* 점검·정비 기록 — 그때의 기록(현재 상태 아님) */
 .evd .evd-record { margin-top: 12px; padding: 10px 12px 4px; border: 1px solid var(--g-line); border-left: 4px solid var(--g-amber); border-radius: 0 8px 8px 0; background: #fffdf6; }
-.evd .evd-record-h { font-size: 13px; font-weight: 800; color: var(--g-amber); margin: 0 0 2px; }
+.evd .evd-record-h { font-size: var(--fs-xs); font-weight: 800; color: var(--g-amber); margin: 0 0 2px; }
 .evd .evd-record .ev-kv { border-top-color: var(--g-amber); }
 /* 상류가 «없다» 고 밝힌 값 */
 .evd .entity-card-missing { color: var(--g-mute); font-weight: 500; }
-.evd .di-head-item.missing .di-head-v b { font-size: 15px; color: var(--g-mute); font-weight: 600; }
+.evd .di-head-item.missing .di-head-v b { font-size: var(--fs-s); color: var(--g-mute); font-weight: 600; }
 .evd .ev-head .di-head-item.missing { --tile: var(--g-mute); --tile-sub: var(--g-paper); --tile-line: var(--g-line); }
 @container evd (max-width: 520px) {
   .evd .evd-hero { flex-wrap: wrap; }

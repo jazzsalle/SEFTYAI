@@ -10,7 +10,7 @@
 .wxd-empty { padding: 8px 2px; font-size: var(--fs-xs); color: var(--c-sub); }
 .wxd-note { margin-top: 6px; font-size: var(--fs-2xs); color: var(--c-mute); }
 .wxd-alarm { margin-top: 4px; padding: 8px 10px; border-radius: var(--r-s); background: var(--c-warn-sub); color: var(--c-warn-dk); font-size: var(--fs-xs); }
-.wxd-tag { margin-left: 6px; font-size: 11px; font-weight: 700; color: var(--c-sub); border: 1px solid var(--c-bd); border-radius: 3px; padding: 0 4px; background: #fff; }
+.wxd-tag { margin-left: 6px; font-size: calc(11px * var(--fs-scale)); font-weight: 700; color: var(--c-sub); border: 1px solid var(--c-bd); border-radius: 3px; padding: 0 4px; background: #fff; }
 .wxd-list, .wxd-steps, .wxd-msgs { list-style: none; margin: 0; padding: 0; }
 .wxd-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 4px; border-bottom: 1px solid var(--c-line); }
 .wxd-item .lvb { margin-top: 2px; }
@@ -44,7 +44,7 @@
 .bc-cond { font-size: var(--fs-2xs); color: var(--c-mute); }
 .bc-title { margin-top: 4px; font-size: var(--fs-s); }
 .bc-fields { margin: 8px 0 0; display: grid; gap: 8px; }
-.bc-fields dt { font-size: 11px; font-weight: 700; color: var(--c-warn-dk); }
+.bc-fields dt { font-size: calc(11px * var(--fs-scale)); font-weight: 700; color: var(--c-warn-dk); }
 .bc-fields dd { margin: 2px 0 0; font-size: var(--fs-xs); line-height: 1.6; white-space: pre-line; word-break: keep-all; overflow-wrap: anywhere; }
 .bc-fields dd.none { color: var(--c-mute); }
 /* 특보발효현황 막대(개발 서버 BulletinCard) — 종류 · 막대 · 구역 수 / 아래 줄에 구역들. 막대는 파랑, 경보 종류 이름만 빨강 */

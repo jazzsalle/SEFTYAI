@@ -79,11 +79,11 @@
 
 /* 근거 문서 줄(개발서버 answer-tools.css .ans-docs — T3Q v0.4.5 doc_refs) */
 .ans-docs { display: flex; align-items: flex-start; gap: 12px; margin-top: 16px; padding: 12px 16px; border: 1px solid #cdd1d5; border-radius: 8px; background: #f4f5f6; }
-.ans-docs-h { flex: none; padding-top: 5px; font-size: 15px; color: #464c53; }
+.ans-docs-h { flex: none; padding-top: 5px; font-size: var(--fs-s); color: #464c53; }
 .ans-docs-list { display: flex; flex-wrap: wrap; gap: 6px 8px; margin: 0; padding: 0; list-style: none; }
 .ans-docs-list li { display: inline-flex; align-items: center; gap: 6px; }
-.ans-doc { display: inline-flex; align-items: center; gap: 4px; min-height: 32px; padding: 0 10px; border: 1px solid #b1b8be; border-radius: 6px; background: #fff; color: #1e2124; font-size: 14px; text-decoration: none; }
+.ans-doc { display: inline-flex; align-items: center; gap: 4px; min-height: 32px; padding: 0 10px; border: 1px solid #b1b8be; border-radius: 6px; background: #fff; color: #1e2124; font-size: calc(14px * var(--fs-scale)); text-decoration: none; }
 a.ans-doc:hover { border-color: #256ef4; color: #256ef4; background: #ecf2fe; }
 .ans-doc--off { color: #6d7882; }
 .ans-doc-t { max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.ans-doc-src { font-size: 13px; color: #6d7882; }
+.ans-doc-src { font-size: var(--fs-xs); color: #6d7882; }

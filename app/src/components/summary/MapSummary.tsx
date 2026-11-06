@@ -13,6 +13,7 @@ import type Geometry from "ol/geom/Geometry";
 import { createEmpty, extend as extendExtent, isEmpty as isEmptyExtent } from "ol/extent";
 import { Fill, Stroke, Style, Text } from "ol/style";
 import { api } from "@/lib/api";
+import { onScaleChange, scaledPx } from "@/lib/fontScale";
 import { entityKey } from "@/lib/mapRef";
 import { districtCounts, districtLine, shortDate, sigunguOf, type SummaryGroup, type Tone } from "@/lib/summary";
 import type { SummarySource } from "./PosterSummary";
@@ -139,7 +140,7 @@ export default function MapSummary({ map, source, onActive, onRegion }: {
         if (n > 0) out.push(new Style({
           geometry: ft.get("label"),
           text: new Text({
-            text: `${ft.get("name")} ${n}곳`, font: "600 11px Pretendard, sans-serif", fill: new Fill({ color: "#fff" }),
+            text: `${ft.get("name")} ${n}곳`, font: `600 ${scaledPx(11)}px Pretendard, sans-serif`, fill: new Fill({ color: "#fff" }),
             backgroundFill: new Fill({ color: "rgba(19,20,22,0.78)" }), padding: [2, 6, 2, 6], overflow: true,
           }),
         }));
@@ -164,7 +165,9 @@ export default function MapSummary({ map, source, onActive, onRegion }: {
       };
       map.on("singleclick", onClick);
       map.on("pointermove", onMove);
+      const offScale = onScaleChange(() => lyr.changed()); // [글자 크기] 바꾸면 구 이름표 다시(R58)
       off = () => {
+        offScale();
         map.un("singleclick", onClick);
         map.un("pointermove", onMove);
         map.getTargetElement()?.classList.remove("sm-hover");

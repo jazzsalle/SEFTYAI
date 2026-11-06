@@ -57,6 +57,7 @@ import {
 import MapPopup from "./MapPopup";
 import MapBrowserEvent from "ol/MapBrowserEvent";
 import { MAP_CLICK_EVENT, MAP_FIND_EVENT, type MapHit, type MapQuery } from "@/lib/autoDemoMap";
+import { currentScale, onScaleChange, scaledPx } from "@/lib/fontScale";
 
 /** 배경지도 타일·경계는 서버가 대신 받는다 — 인증키를 브라우저에 두지 않는다(개발서버 MapController tiles · app/api/map/tiles·wms) */
 const VW_TILE_URL = "/api/map/tiles";
@@ -361,36 +362,40 @@ function areaStyles(e: LegendEntry, st: St, range: boolean, held = false): Style
   return out;
 }
 
-/** 상시 이름표 — display_name 그대로(행정구역 중심점이면 그 지역 이름), 대표점 아래. 지역 이름이 늦게 오면 글이 바뀌므로 글마다 하나 */
+/** 상시 이름표 — display_name 그대로(행정구역 중심점이면 그 지역 이름), 대표점 아래. 지역 이름이 늦게 오면 글이 바뀌므로 글마다 하나.
+ *  글자 크기는 [글자 크기] 배율을 따른다(R58) — 배율마다 따로 담아 둔다 */
 const labelCache = new Map<string, Style>();
 function labelStyle(text: string): Style {
-  const hit = labelCache.get(text);
+  const sc = currentScale();
+  const key = `${sc}|${text}`;
+  const hit = labelCache.get(key);
   if (hit) return hit;
   const st = new Style({
     geometry: anchorOf,
     text: new Text({
       text,
-      font: `700 12px ${FONT}`,
+      font: `700 ${scaledPx(12, sc)}px ${FONT}`,
       fill: new Fill({ color: MAP_COLOR.navyDk }),
       stroke: new Stroke({ color: "rgba(255,255,255,0.96)", width: 4 }),
       textBaseline: "top",
       offsetY: 7,
     }),
   });
-  labelCache.set(text, st);
+  labelCache.set(key, st);
   return st;
 }
 
 /** 묶음 원 — 개수만큼 크게(개발 서버 map-cluster 34·40·48px), 개수 글자 */
 function clusterStyle(n: number): Style {
-  const k = `c|${n}`;
+  const sc = currentScale();
+  const k = `c|${n}|${sc}`;
   const hit = styleCache.get(k);
   if (hit) return hit[0];
   const size = n >= 50 ? 48 : n >= 10 ? 40 : 34;
   const st = new Style({
     zIndex: 60,
     image: new CircleStyle({ radius: size / 2, fill: new Fill({ color: "rgba(86,70,194,0.92)" }), stroke: new Stroke({ color: "rgba(86,70,194,0.22)", width: 10 }) }),
-    text: new Text({ text: String(n), font: `800 13px ${FONT}`, fill: new Fill({ color: "#fff" }) }),
+    text: new Text({ text: String(n), font: `800 ${scaledPx(13, sc)}px ${FONT}`, fill: new Fill({ color: "#fff" }) }),
   });
   styleCache.set(k, [st]);
   return st;
@@ -1142,8 +1147,14 @@ export default function MapView(p: Props) {
     }
     setPopEl(popBox);
     setReady(true);
+    // [글자 크기]를 바꾸면 캔버스 이름표·묶음 숫자를 새 크기로 다시 그린다(R58)
+    const offScale = onScaleChange(() => {
+      label.changed();
+      clLayer.changed();
+    });
 
     return () => {
+      offScale();
       ro.disconnect();
       window.removeEventListener("sa-map-zoom", onZoom);
       window.removeEventListener(MAP_FIND_EVENT, onDemoFind);

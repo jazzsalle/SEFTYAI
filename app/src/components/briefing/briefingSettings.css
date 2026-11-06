@@ -4,34 +4,34 @@
 .bset-toast { z-index: 1200; }
 
 .briefing-set-head { display: flex; align-items: center; justify-content: space-between; margin-top: 16px; }
-.briefing-set-count { font-size: 15px; font-weight: 700; line-height: 22px; color: #1e2124; }
-.briefing-set-add { padding: 0; font-family: inherit; font-size: 15px; line-height: 22px; color: #1e2124; background: none; border: 0; cursor: pointer; }
+.briefing-set-count { font-size: var(--fs-s); font-weight: 700; line-height: calc(22px * var(--fs-scale)); color: #1e2124; }
+.briefing-set-add { padding: 0; font-family: inherit; font-size: var(--fs-s); line-height: calc(22px * var(--fs-scale)); color: #1e2124; background: none; border: 0; cursor: pointer; }
 .briefing-set-add:disabled { color: #8a949e; cursor: not-allowed; }
-.briefing-set-loading { margin: 16px 0 0; font-size: 15px; color: #6d7882; }
+.briefing-set-loading { margin: 16px 0 0; font-size: var(--fs-s); color: #6d7882; }
 
 /* 항목이 여덟이면 창이 화면을 넘는다 — 목록만 구르고 머리·단추는 늘 보이게 */
 .briefing-set-list { display: flex; flex-direction: column; max-height: min(460px, calc(100vh - 320px)); margin-top: 8px; overflow-y: auto; }
 .briefing-set-row { display: flex; flex-direction: column; gap: 6px; padding: 14px 0; border-bottom: 1px solid #e1e3e6; }
 .briefing-set-line { display: flex; align-items: center; gap: 12px; }
-.briefing-set-check { display: inline-flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 700; line-height: 24px; color: #1e2124; cursor: pointer; }
+.briefing-set-check { display: inline-flex; align-items: center; gap: 8px; font-size: calc(16px * var(--fs-scale)); font-weight: 700; line-height: calc(24px * var(--fs-scale)); color: #1e2124; cursor: pointer; }
 .briefing-set-check input { width: 20px; height: 20px; margin: 0; cursor: pointer; }
 .briefing-set-actions { display: flex; gap: 12px; margin-left: auto; }
-.briefing-set-actions button { padding: 0; font-family: inherit; font-size: 15px; line-height: 22px; color: #1e2124; background: none; border: 0; cursor: pointer; }
+.briefing-set-actions button { padding: 0; font-family: inherit; font-size: var(--fs-s); line-height: calc(22px * var(--fs-scale)); color: #1e2124; background: none; border: 0; cursor: pointer; }
 .briefing-set-actions button:disabled { color: #b1b8be; cursor: not-allowed; }
-.briefing-set-question { margin: 0 0 0 28px; font-size: 15px; line-height: 22px; color: #464c53; word-break: keep-all; }
-.briefing-set-error { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; padding: 14px 16px; font-size: 15px; line-height: 22px; color: #bd2c0f; background: #fdf2f0; border-radius: 6px; word-break: keep-all; }
+.briefing-set-question { margin: 0 0 0 28px; font-size: var(--fs-s); line-height: calc(22px * var(--fs-scale)); color: #464c53; word-break: keep-all; }
+.briefing-set-error { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; padding: 14px 16px; font-size: var(--fs-s); line-height: calc(22px * var(--fs-scale)); color: #bd2c0f; background: #fdf2f0; border-radius: 6px; word-break: keep-all; }
 .briefing-set-error svg { flex: none; }
 
 /* ── 항목 고치기 ── */
 .briefing-set-editor { display: flex; flex-direction: column; gap: 8px; margin-left: 28px; padding: 12px 0 4px; }
 .briefing-set-field { display: flex; flex-direction: column; gap: 6px; }
-.briefing-set-field-name { font-size: 14px; line-height: 20px; color: #464c53; }
-.bset-input { width: 100%; box-sizing: border-box; padding: 11px 16px; font-family: inherit; font-size: 16px; line-height: 24px; color: #1e2124; background: #fff; border: 1px solid #58616a; border-radius: 6px; }
+.briefing-set-field-name { font-size: calc(14px * var(--fs-scale)); line-height: calc(20px * var(--fs-scale)); color: #464c53; }
+.bset-input { width: 100%; box-sizing: border-box; padding: 11px 16px; font-family: inherit; font-size: calc(16px * var(--fs-scale)); line-height: calc(24px * var(--fs-scale)); color: #1e2124; background: #fff; border: 1px solid #58616a; border-radius: 6px; }
 .bset-input::placeholder { color: #8a949e; }
 .bset-input[aria-invalid="true"] { border-color: #de3730; }
 .briefing-set-textarea { min-height: 110px; resize: vertical; }
-.bset-invalid { margin: 0; font-size: 13px; line-height: 20px; color: #de3730; }
+.bset-invalid { margin: 0; font-size: var(--fs-xs); line-height: calc(20px * var(--fs-scale)); color: #de3730; }
 .briefing-set-editor-actions { display: flex; justify-content: flex-end; gap: 8px; padding-top: 4px; }
-.bset-btn { min-width: 72px; height: 40px; padding: 0 16px; font-family: inherit; font-size: 15px; line-height: 22px; color: #1e2124; background: #fff; border: 1px solid #58616a; border-radius: 6px; cursor: pointer; }
+.bset-btn { min-width: 72px; height: 40px; padding: 0 16px; font-family: inherit; font-size: var(--fs-s); line-height: 22px; color: #1e2124; background: #fff; border: 1px solid #58616a; border-radius: 6px; cursor: pointer; }
 /* [적용]은 채운 단추가 아니라 파란 테두리 — 저장은 아래 [저장]이 한다 */
 .bset-btn.apply { color: #0b50d0; background: #f0f5ff; border-color: #a8c3f7; }

@@ -2,8 +2,8 @@
 .gov-masthead { flex: none; display: flex; align-items: center; height: var(--masthead-h); padding: 0 24px; background: #eef2f7; }
 .gov-masthead .masthead-inner { display: flex; align-items: center; gap: 8px; min-width: 0; }
 .gov-masthead .masthead-flag { display: block; flex: none; }
-.gov-masthead .masthead-text { font-size: 15px; line-height: 22px; color: #1e2124; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gov-masthead .masthead-text { font-size: var(--fs-s); line-height: calc(22px * var(--fs-scale)); color: #1e2124; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 @media (max-width: 640px) {
   .gov-masthead { padding: 0 16px; }
-  .gov-masthead .masthead-text { font-size: 13px; }
+  .gov-masthead .masthead-text { font-size: var(--fs-xs); }
 }

@@ -10,7 +10,7 @@
   flex: none; height: 64px; display: flex; align-items: center; gap: 14px; padding: 0 132px 0 24px;
   background: #fff; border-bottom: 1px solid var(--c-line); min-width: 0;
 }
-.lgn-hd .brand { display: flex; align-items: center; gap: 10px; font-size: 21px; font-weight: 700; color: #33363d; white-space: nowrap; }
+.lgn-hd .brand { display: flex; align-items: center; gap: 10px; font-size: calc(21px * var(--fs-scale)); font-weight: 700; color: #33363d; white-space: nowrap; }
 .lgn-hd .bar { flex: none; width: 1px; height: 18px; background: var(--c-bd); }
 .lgn-hd .svc { min-width: 0; font-size: var(--fs-m); font-weight: 600; color: var(--c-sub); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .lgn ~ .help-btn { top: calc(var(--masthead-h) + 20px); } /* 누리집 띠(32) 아래 머리(64) 가운데 */
@@ -30,7 +30,7 @@
 }
 .lgn-intro > * { position: relative; z-index: 1; }
 .lgn-eyebrow { margin: 0; font-size: var(--fs-s); font-weight: 700; color: #b8c7dc; }
-.lgn-intro h1 { margin-top: 18px; font-size: 44px; line-height: 1.5; color: #fff; }
+.lgn-intro h1 { margin-top: 18px; font-size: calc(44px * var(--fs-scale)); line-height: 1.5; color: #fff; }
 .lgn-lead { margin: 22px 0 0; font-size: var(--fs-m); line-height: 1.55; color: #eef3fa; }
 .lgn-foot { margin-top: auto; padding-top: 26px; border-top: 1px solid rgba(255, 255, 255, .7); font-size: var(--fs-xs); line-height: 1.6; }
 .lgn-foot p { margin: 0 0 8px; }
@@ -50,7 +50,7 @@
 .lgn-alert.info { background: var(--c-info-sub); border-color: #b9dcf6; }
 .lgn-alert .ic {
   flex: none; display: grid; place-items: center; width: 20px; height: 20px; margin-top: 3px; border-radius: 50%;
-  color: #fff; font-size: 12px; font-weight: 800; font-style: normal;
+  color: #fff; font-size: var(--fs-2xs); font-weight: 800; font-style: normal;
 }
 .lgn-alert.danger .ic { background: var(--c-dang); }
 .lgn-alert.info .ic { background: var(--c-info); }
@@ -97,7 +97,7 @@
 }
 .lgn-acct:hover { border-color: var(--c-primary); }
 .lgn-acct[aria-pressed="true"] { border-color: var(--c-primary); background: var(--c-primary-sub); box-shadow: inset 0 0 0 1px var(--c-primary); }
-.lgn-acct .av { flex: none; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 8px; color: #fff; font-size: 11px; font-weight: 800; }
+.lgn-acct .av { flex: none; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 8px; color: #fff; font-size: calc(11px * var(--fs-scale)); font-weight: 800; }
 .lgn-acct .tx { min-width: 0; display: flex; flex-direction: column; }
 .lgn-acct .nm { font-size: var(--fs-s); font-weight: 700; line-height: 1.3; }
 .lgn-acct .id { font-family: ui-monospace, "SFMono-Regular", Consolas, monospace; font-size: var(--fs-xs); color: var(--c-sub); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -106,7 +106,7 @@
   .lgn-body { grid-template-columns: minmax(0, 1fr); }
   .lgn-intro { padding: 32px 24px 28px; }
   .lgn-intro::after { display: none; }
-  .lgn-intro h1 { margin-top: 10px; font-size: 30px; }
+  .lgn-intro h1 { margin-top: 10px; font-size: calc(30px * var(--fs-scale)); }
   .lgn-lead { margin-top: 12px; font-size: var(--fs-s); }
   .lgn-foot { margin-top: 24px; padding-top: 16px; }
   .lgn-main { align-items: flex-start; padding: 32px 16px 56px; }

@@ -1,8 +1,8 @@
 /* 사용자 메뉴 「로그아웃까지 남은 시간」 — 개발서버 index.css user-menu-session* (1rem=10px → px) */
-.user-menu-session-label { margin: 8px 0 0; white-space: nowrap; font-size: 15px; line-height: 22px; color: #464c53; }
+.user-menu-session-label { margin: 8px 0 0; white-space: nowrap; font-size: var(--fs-s); line-height: calc(22px * var(--fs-scale)); color: #464c53; }
 .user-menu-session-row { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
 /* 남은 시간은 눈에 먼저 들어와야 한다 — 시안이 유일하게 색을 준 값 */
-.user-menu-time { display: inline-flex; align-items: center; gap: 2px; font-size: 15px; line-height: 22px; color: #0b50d0; }
-.menu .user-menu-extend { display: inline; width: auto; padding: 0 2px; font-family: inherit; font-size: 15px; line-height: 22px; color: #1e2124;
+.user-menu-time { display: inline-flex; align-items: center; gap: 2px; font-size: var(--fs-s); line-height: calc(22px * var(--fs-scale)); color: #0b50d0; }
+.menu .user-menu-extend { display: inline; width: auto; padding: 0 2px; font-family: inherit; font-size: var(--fs-s); line-height: calc(22px * var(--fs-scale)); color: #1e2124;
   background: none; border: 0; border-radius: 4px; cursor: pointer; }
 .menu .user-menu-extend:disabled { color: #8a949e; cursor: not-allowed; }

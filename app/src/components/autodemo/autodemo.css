@@ -10,7 +10,7 @@
   background: rgba(19, 27, 43, 0.92);
   color: #fff;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
-  font-size: 14px;
+  font-size: calc(14px * var(--fs-scale));
 }
 .autodemo-head {
   display: flex;
@@ -22,7 +22,7 @@
   padding: 2px 8px;
   border-radius: 10px;
   background: #256ef4;
-  font-size: 12px;
+  font-size: var(--fs-2xs);
   font-weight: 700;
 }
 .autodemo-title {
@@ -35,7 +35,7 @@
 .autodemo-size {
   flex: none;
   color: #8a949e;
-  font-size: 11px;
+  font-size: calc(11px * var(--fs-scale));
 }
 /* 접기·숨기기(사용자 요청 2026-11-04) — 접으면 제목 한 줄, 숨기면 작은 단추만. */
 .autodemo-bar.is-fold {
@@ -50,7 +50,7 @@
   border-radius: 4px;
   background: rgba(255, 255, 255, 0.12);
   color: #fff;
-  font-size: 13px;
+  font-size: var(--fs-xs);
   line-height: 1;
   cursor: pointer;
 }
@@ -72,7 +72,7 @@
   border-radius: 18px;
   background: rgba(19, 27, 43, 0.85);
   color: #fff;
-  font-size: 13px;
+  font-size: var(--fs-xs);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
   cursor: pointer;
   opacity: 0.75;
@@ -88,7 +88,7 @@
 }
 .autodemo-caption {
   margin: 8px 0 0;
-  font-size: 16px;
+  font-size: calc(16px * var(--fs-scale));
   line-height: 1.5;
 }
 .autodemo-ctrl {
@@ -104,7 +104,7 @@
   border-radius: 4px;
   background: rgba(255, 255, 255, 0.12);
   color: #fff;
-  font-size: 13px;
+  font-size: var(--fs-xs);
   cursor: pointer;
 }
 .autodemo-ctrl button:disabled {
@@ -124,7 +124,7 @@
   border-radius: 4px;
   background: rgba(255, 255, 255, 0.12);
   color: #fff;
-  font-size: 13px;
+  font-size: var(--fs-xs);
   cursor: pointer;
 }
 .autodemo-ctrl .autodemo-voice option {
@@ -152,7 +152,7 @@
 .autodemo-skip {
   margin: 6px 0 0;
   color: #ffb4a8;
-  font-size: 12px;
+  font-size: var(--fs-2xs);
 }
 .autodemo-dim {
   position: fixed;

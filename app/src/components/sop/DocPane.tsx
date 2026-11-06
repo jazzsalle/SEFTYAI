@@ -15,7 +15,7 @@ export function DocPane({ c }: { c: Citation }) {
   return (
     <div className="dpane fadein">
       <span className="badge ok sq">{c.kind}</span>
-      <h2 style={{ fontSize: 19, marginTop: 8 }}>{d?.title ?? c.title}</h2>
+      <h2 style={{ fontSize: "var(--fs-hs)", marginTop: 8 }}>{d?.title ?? c.title}</h2>
       <div className="xs muted" style={{ marginTop: 4 }}>{d?.region}</div>
       <div className="row" style={{ margin: "14px 0", paddingBottom: 10, borderBottom: "1px solid var(--c-line)" }}>
         <span className="xs muted">{d?.heading ?? c.locator ?? ""}</span>

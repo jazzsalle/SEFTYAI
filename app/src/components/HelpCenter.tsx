@@ -102,7 +102,7 @@ export default function HelpCenter() {
           <div className="ovl help-ovl" onClick={close} />
           <aside className="drawer help-drawer" role="dialog" aria-label="도움말">
             <div className="hd">
-              <h2 style={{ fontSize: 19 }}>도움말</h2>
+              <h2 style={{ fontSize: "var(--fs-hs)" }}>도움말</h2>
               <span className="xs mute2">지금 화면 : {screen}</span>
               <span className="sp" />
               <button className="btn xs ghost" onClick={close} aria-label="도움말 닫기">닫기 (Esc)</button>

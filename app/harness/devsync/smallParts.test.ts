@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import { docLabel, docLinks, docRows } from "@/lib/docRefs";
 import { queueBad, queueCounts, queueFilter, QUEUE_EMPTY, QUEUE_FILTERS } from "@/lib/queueList";
 import { failureText, REOPENED_FAILED } from "@/lib/answerText";
-import { applyScale, FONT_SCALES, readScaleKey } from "@/lib/fontScale";
+import { applyScale, currentScale, FONT_SCALES, readScaleKey, scaledPx } from "@/lib/fontScale";
 import { tileUrl, wmsUrl } from "@/lib/server/vworldTiles";
 import type { JobState } from "@/lib/jobTypes";
 
@@ -65,15 +65,19 @@ describe("글자 크기 5단계(개발서버 fontScale)", () => {
     expect(readScaleKey(mem({ "sa.font-scale": "huge" }))).toBe("normal");
     expect(readScaleKey(mem({ "sa.font": "xl" }))).toBe("larger");
   });
-  it("루트 % 와 글자 토큰을 같이 키우고, 보통이면 지운다", () => {
+  it("루트 % 와 배율 변수(--fs-scale)를 같이 걸고, 보통이면 지운다(R58)", () => {
     const props = new Map<string, string>();
-    const el = { style: { fontSize: "", setProperty: (k: string, v: string) => props.set(k, v), removeProperty: (k: string) => props.delete(k) } } as unknown as HTMLElement;
+    const el = { style: { fontSize: "", setProperty: (k: string, v: string) => props.set(k, v), removeProperty: (k: string) => props.delete(k), getPropertyValue: (k: string) => props.get(k) ?? "" } } as unknown as HTMLElement;
     applyScale("larger", el);
     expect(el.style.fontSize).toBe("130%");
-    expect(props.get("--fs-s")).toBe("19.5px");
+    expect(props.get("--fs-scale")).toBe("1.3");
+    expect(currentScale(el)).toBe(1.3);
+    expect(scaledPx(15, currentScale(el))).toBe(19.5); // 캔버스 글자(지도 이름표)
     applyScale("normal", el);
     expect(el.style.fontSize).toBe("");
     expect(props.size).toBe(0);
+    expect(currentScale(el)).toBe(1);
+    expect(scaledPx(12, 1)).toBe(12);
   });
 });
 

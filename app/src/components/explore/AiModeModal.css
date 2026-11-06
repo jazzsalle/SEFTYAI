@@ -9,7 +9,7 @@
 .aimx-card.t-none { background: var(--c-sec-sub); }
 .aimx-card-h { display: flex; align-items: flex-start; gap: 14px; }
 .aimx-card-n { flex: 1; min-width: 0; }
-.aimx-card-t { margin: 0; font-size: 22px; font-weight: 800; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.aimx-card-t { margin: 0; font-size: calc(22px * var(--fs-scale)); font-weight: 800; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .aimx-card-s { margin: 4px 0 0; font-size: var(--fs-xs, 13px); color: var(--c-sub); }
 .aimx-card-b { margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(0, 0, 0, 0.08); }
 .aimx-level { font-style: normal; }
@@ -19,7 +19,7 @@
 .aimx-lamp { flex: none; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: #12b76a; box-shadow: 0 0 0 5px rgba(18, 183, 106, 0.18); }
 .aimx-lamp.t-danger { background: #e0301e; box-shadow: 0 0 0 5px rgba(224, 48, 30, 0.18); }
 .aimx-lamp.t-caution { background: #f5a400; box-shadow: 0 0 0 5px rgba(245, 164, 0, 0.2); }
-.aimx-lamp b { color: #c4201a; font-size: 20px; font-weight: 900; line-height: 1; }
+.aimx-lamp b { color: #c4201a; font-size: calc(20px * var(--fs-scale)); font-weight: 900; line-height: 1; }
 
 .aimx-label { margin: 0 0 4px; font-size: var(--fs-xs, 13px); font-weight: 700; color: var(--c-navy); }
 .aimx-guide { margin: 0; font-size: var(--fs-s, 15px); line-height: 1.6; white-space: pre-wrap; }
@@ -32,7 +32,7 @@
 .aimx-slide { flex: 0 0 100%; min-width: 0; }
 @media (prefers-reduced-motion: reduce) { .aimx-track { transition: none; } }
 .aimx-pager { flex: none; display: flex; align-items: center; gap: 4px; }
-.aimx-pg { width: 30px; height: 30px; border: 1px solid var(--c-line); border-radius: 8px; background: #fff; cursor: pointer; font-size: 13px; }
+.aimx-pg { width: 30px; height: 30px; border: 1px solid var(--c-line); border-radius: 8px; background: #fff; cursor: pointer; font-size: var(--fs-xs); }
 .aimx-pg:focus-visible { outline: 2px solid var(--c-primary); outline-offset: 2px; }
 .aimx-pg-at { min-width: 44px; text-align: center; font-size: var(--fs-xs, 13px); }
 
