@@ -9,6 +9,7 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vite
 import type { Account } from "@/lib/config";
 import type { WeatherResponse } from "@/lib/contract/agent";
 import type { WxBulletin, WxDetailResponse } from "@/lib/wxBulletin";
+import { countPwn, parsePwnCd, replayPwn, type PwnRow } from "@/lib/wxPwn";
 import sample from "./kma_wrnmsg_sample.json";
 
 const who = vi.hoisted(() => ({ acc: null as Account | null }));
@@ -44,14 +45,35 @@ const live: WeatherResponse = {
   preliminary: [],
 };
 let calls: string[] = [];
+/** 특보코드조회(getPwnCd) 응답 — 따로 센다. pwnFail 이면 500 */
+let pwnCalls: string[] = [];
+let pwnFail = false;
+const pwnItem = (areaCode: string, areaName: string, warnVar: number, warnStress: number, tmFc: number, start: number, end = 0, cancel = 0) =>
+  ({ areaCode, areaName, warnVar, warnStress, command: start ? 1 : 3, startTime: start, endTime: end, tmFc, tmSeq: tmFc % 100, cancel });
+const PWN = { response: { header: { resultCode: "00" }, body: { items: { item: [
+  pwnItem("L1051000", "인제평지", 3, 0, 202611061100, 202611062100),
+  pwnItem("L1051100", "인제산지", 3, 0, 202611061100, 202611062100),
+  pwnItem("S1131100", "동해중부안쪽먼바다", 6, 1, 202611061100, 202611061100),
+  // 해제된 구역 · 취소된 특보 · 현황(특보발효현황)에 없는 종류는 세지 않는다
+  pwnItem("L1100100", "부산동부", 2, 0, 202611050900, 202611050900),
+  pwnItem("L1100100", "부산동부", 2, 0, 202611051500, 0, 202611051500),
+  pwnItem("L1100200", "부산서부", 1, 0, 202611061000, 202611061000, 0, 1),
+  pwnItem("L1020100", "서울동남권", 12, 0, 202611061000, 202611061000),
+] } } } };
 const fetchOk = (stn: string) => (stn === "108" ? sample : { response: { header: { resultCode: "00" }, body: { items: { item: [{ stnId: stn, tmFc: 202611061330, tmSeq: 9, t1: `${stn} 강풍주의보 발표`, t2: "(1) 강풍주의보 발표 : 부산", t3: "(1) 강풍주의보 발표 : 2026년 11월 06일 14시 00분" }] } } } });
 beforeEach(() => {
   calls = [];
   vi.useFakeTimers({ now: NOW, toFake: ["Date"] });
   who.acc = ACC;
   wx.w = live;
+  pwnCalls = [];
+  pwnFail = false;
   vi.stubGlobal("fetch", async (u: string) => {
     const url = new URL(u);
+    if (url.pathname.endsWith("/getPwnCd")) {
+      pwnCalls.push(`${url.searchParams.get("fromTmFc")}-${url.searchParams.get("toTmFc")}`);
+      return pwnFail ? new Response("오류", { status: 500 }) : Response.json(PWN);
+    }
     const stn = url.searchParams.get("stnId")!;
     calls.push(`${stn}:${url.searchParams.get("fromTmFc")}-${url.searchParams.get("toTmFc")}`);
     if (stn === "105") return new Response("오류", { status: 500 });
@@ -110,6 +132,52 @@ describe("GET /api/weather/detail", () => {
     const r = await bulletinGET(new Request("http://t/api/weather/bulletin?key=108%7C202611061200%7C35"));
     expect(r.status).toBe(409);
     expect(calls).toEqual([]);
+    expect(pwnCalls).toEqual([]);
+    expect(body.counts).toBeUndefined();
+  });
+});
+
+// 전국 발효 현황 — 특보코드조회(getPwnCd)를 되짚어 (종류·단계·해상 여부)별 구역 수(개발 서버 WX_POLL·WarningLedger·Nationwide)
+describe("GET /api/weather/detail — 특보코드 셈(counts)", () => {
+  it("최근 60일 사건을 되짚는다 · 해제·취소·특보발효현황에 없는 종류는 빼고 · 해상은 따로 · 같은 분 안에는 다시 부르지 않는다", async () => {
+    vi.setSystemTime(NOW + 10 * 60_000);
+    const { body } = await get("?sido=26");
+    expect(pwnCalls).toEqual(["20260908-20261106"]);
+    expect(body.counts).toEqual([
+      { type: "한파", level: "주의보", sea: false, count: 2 },
+      { type: "풍랑", level: "경보", sea: true, count: 1 },
+    ]);
+    await get("?sido=51");
+    expect(pwnCalls).toHaveLength(1);
+  });
+  it("부르지 못하면 counts 없이(화면이 특보 현황 글로 센다) — 통보문은 그대로", async () => {
+    vi.setSystemTime(NOW + 20 * 60_000);
+    pwnFail = true;
+    const { body } = await get("?sido=26");
+    expect(pwnCalls).toHaveLength(1);
+    expect(body.counts).toBeUndefined();
+    expect(body.ok).toBe(true);
+  });
+});
+
+describe("특보코드 되짚기(lib/wxPwn)", () => {
+  const row = (o: Partial<PwnRow>): PwnRow => ({ areaCode: "L1", areaName: "가", warnVar: 2, warnStress: 0, start: "202611060900", end: null, announced: "202611060900", seq: 1, cancelled: false, ...o });
+  it("격상 — 같은 구역·종류에 단계가 바뀐 발표가 오면 앞의 것을 닫고 새로 연다", () => {
+    const open = replayPwn([row({}), row({ warnStress: 1, announced: "202611061400", start: "202611061400", seq: 2 })], null);
+    expect(open.map((w) => w.kind + w.level)).toEqual(["호우경보"]);
+  });
+  it("해제는 단계와 무관하게 그 구역·종류를 닫는다 · 시간순으로 되짚는다(받은 순서와 무관)", () => {
+    const end = row({ start: null, end: "202611061500", announced: "202611061500", seq: 3 });
+    expect(replayPwn([end, row({ warnStress: 1 })], null)).toEqual([]);
+  });
+  it("특보발효현황을 읽지 못했으면(understood 거짓) 닫지 않는다", () => {
+    expect(replayPwn([row({})], { understood: false, labels: new Set() })).toHaveLength(1);
+    expect(replayPwn([row({})], { understood: true, labels: new Set() })).toHaveLength(0);
+  });
+  it("모르는 코드는 지어내지 않는다 · 결과 코드 03(자료 없음)은 빈 목록, 그 밖은 던진다", () => {
+    expect(countPwn(replayPwn([row({ warnVar: 99 })], null))).toEqual([{ type: "기타 특보(99)", level: "주의보", sea: false, count: 1 }]);
+    expect(parsePwnCd({ response: { header: { resultCode: "03" } } })).toEqual([]);
+    expect(() => parsePwnCd({ response: { header: { resultCode: "30" } } })).toThrow();
   });
 });
 

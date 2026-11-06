@@ -1,5 +1,5 @@
 import type { Advisory, WeatherResponse } from "./contract/agent";
-import { wxCovers, type WxTarget } from "./wxMatch";
+import { isSeaArea, wxCovers, type WxTarget } from "./wxMatch";
 import { SCN_LABEL, SCN_SOURCE } from "./scenario";
 
 /** [특보로 질문] 빠른질의 (목업 QQ-01~03) — 참조 특보와 함께 전송, presetKey 로 의도 고정 */
@@ -12,6 +12,12 @@ export const WX_QQ = [
 export const WX_INFO_Q = { k: "advisory", nm: "특보 기준·경과", q: "이 특보는 어떤 기준이고 언제 격상됐나요?" };
 
 export const advLabel = (a: { type: string; level: string }) => `${a.type}${a.level}`;
+/**
+ * 특보 띠·상세 창의 특보 이름 — 해상 구역이면 「풍랑주의보(해상)」(개발 서버 WarningCodes.LabelOf, 사용자 결정 2026-11-06 「특보도 개발서버를 따른다」).
+ * 바다 특보는 육상 기준지역에 잡히지 않아, 이름이 스스로 바다 것이라고 말하게 한다. sea 를 주면 그것을, 없으면 구역 글로 가린다(lib/wxMatch isSeaArea)
+ */
+export const wxLabel = (a: { type: string; level: string; area?: string; sea?: boolean }) =>
+  `${a.type}${a.level}${(a.sea ?? (a.area ? isSeaArea(a.area) : false)) ? "(해상)" : ""}`;
 /** 글로 잇는 곳(특보 줄 나머지·AI 모드 띠·대응절차 추천·상황전파 초안·참조 특보)의 특보 이름 — 시연 시나리오 특보면 「(시연 시나리오)」를 붙인다(R43) */
 export const advName = (a: { type: string; level: string; scenario?: boolean }) => `${advLabel(a)}${a.scenario ? ` (${SCN_LABEL})` : ""}`;
 export const advTime = (iso: string) => {

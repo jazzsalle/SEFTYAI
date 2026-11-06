@@ -38,13 +38,15 @@ const DETAIL: WxDetailResponse = {
   askRegions: { [HAN.id]: INJE, [SEA.id]: null, [BUSAN.id]: { sido: { code: "26", name: "부산광역시" } } },
 };
 let fetched: string[] = [];
+let detailOverride: WxDetailResponse | null = null;
 beforeEach(() => {
   fetched = [];
+  detailOverride = null;
   nav.push.mockClear();
   wxAsk.req.mockClear();
   vi.stubGlobal("fetch", async (u: string) => {
     fetched.push(u);
-    if (u.startsWith("/api/weather/detail")) return Response.json(DETAIL);
+    if (u.startsWith("/api/weather/detail")) return Response.json(detailOverride ?? DETAIL);
     if (u.startsWith("/api/weather/bulletin")) return Response.json(rows.find((b) => u.includes(encodeURIComponent(b.key)))!);
     return Response.json({}, { status: 404 });
   });
@@ -72,9 +74,16 @@ describe("기상특보 상세 창", () => {
     expect([...sec(/발효 중 특보/).querySelectorAll(".wxd-area")].map((x) => x.textContent)).toEqual(["강원도(인제평지, 인제산지)"]);
     expect([...sec(/상태 이력/).querySelectorAll(".wxd-state")].map((x) => x.textContent)).toEqual(["한파주의보 발표"]);
     expect(sec(/상태 이력/).querySelector(".wxd-step-at")!.textContent).toContain("2026년 11월 06일 21시 00분 · 서울 제34호");
-    // 건수가 같으면 종류 이름 순(개발 서버 Nationwide), 바다 구역은 이름에 붙이지 않고 「해상」 표지
-    expect([...sec(/전국 발효 현황/).querySelectorAll(".wxd-chip")].map((x) => x.textContent)).toEqual(["강풍주의보1", "풍랑경보해상1", "한파주의보1"]);
+    // 특보코드 셈(detail.counts)이 없으면 특보 현황 글로 — 건수가 같으면 종류 이름 순(개발 서버 Nationwide), 바다는 이름에 「(해상)」
+    expect([...sec(/전국 발효 현황/).querySelectorAll(".wxd-chip")].map((x) => x.textContent)).toEqual(["강풍주의보1", "풍랑경보(해상)1", "한파주의보1"]);
     expect(sec(/전국 발효 현황/).querySelector(".wxd-count")!.textContent).toBe("3건");
+  });
+
+  it("전국 발효 현황 — 서버가 특보코드로 센 값(counts)이 오면 그것을 그대로(구역 코드마다, 해상 따로)", async () => {
+    detailOverride = { ...DETAIL, counts: [{ type: "한파", level: "주의보", sea: false, count: 7 }, { type: "풍랑", level: "경보", sea: true, count: 3 }] };
+    const { sec } = await open();
+    expect([...sec(/전국 발효 현황/).querySelectorAll(".wxd-chip")].map((x) => x.textContent)).toEqual(["한파주의보7", "풍랑경보(해상)3"]);
+    expect(sec(/전국 발효 현황/).querySelector(".wxd-count")!.textContent).toBe("10건");
   });
 
   it("통보문 — 누르면 그때 본문을 가져와 칸 그대로(내용이 비면 그 사실을 적는다), 다시 접고 펴도 다시 묻지 않는다", async () => {
@@ -117,10 +126,12 @@ describe("기상특보 상세 창", () => {
     expect(screen.queryByRole("dialog")).toBeNull();
   });
 
-  it("바다 구역 — 「해상」 표지, 기준지역을 정할 수 없어 지금 기준지역 그대로", async () => {
+  it("바다 구역 — 이름에 「(해상)」(개발 서버 WarningCodes.LabelOf), 기준지역을 정할 수 없어 지금 기준지역 그대로", async () => {
     const { sec } = await open({ base: null });
     const item = [...sec(/발효 중 특보/).querySelectorAll(".wxd-item")][1];
-    expect(item.querySelector(".wxd-area")!.textContent).toBe("동해중부안쪽먼바다해상");
+    expect(item.querySelector(".wxd-area")!.textContent).toBe("동해중부안쪽먼바다");
+    expect(item.querySelector(".lvb")!.textContent).toBe("풍랑경보(해상)");
+    expect(item.querySelector(".wxd-tag")).toBeNull();
     const ask = [...item.querySelectorAll("button")].find((b) => b.textContent === "이 특보로 질의")!;
     expect(ask.title).toBe("전국 기준으로 바로 묻습니다");
     fireEvent.click(ask);

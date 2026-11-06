@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { useSession } from "@/lib/session";
 import { GovLogo, IcChevR, IcPause, IcPlay, IcSiren } from "./Icons";
 import type { Advisory } from "@/lib/contract/agent";
-import { advLabel, advName, advTime, advTone, aimTone } from "@/lib/wxref";
+import { advName, advTime, advTone, aimTone, wxLabel } from "@/lib/wxref";
 import { SCN_CUT_LABEL, SCN_LABEL } from "@/lib/scenario";
 import { wxCovers } from "@/lib/wxMatch";
 import { baseKey, baseName, baseTarget } from "@/lib/baseRegion";
@@ -133,9 +133,9 @@ export function WxBar() {
   } else if (top) {
     tag = <span className={`tag ${top.level === "경보" ? "" : "warn"}`}><IcSiren size={16} /> {top.level === "경보" ? "긴급" : "주의"}</span>;
     title = many ? (
-      <><b>특보 {mine.length}건 발효 중</b> · {top.area} {advLabel(top)}{top.scenario && <> <ScnTag a={top} /></>}</>
+      <><b>특보 {mine.length}건 발효 중</b> · {top.area} {wxLabel(top)}{top.scenario && <> <ScnTag a={top} /></>}</>
     ) : (
-      <>{top.area} {top.type}{top.level} 발효 중{top.scenario && <> <ScnTag a={top} /></>}</>
+      <>{top.area} {wxLabel(top)} 발효 중{top.scenario && <> <ScnTag a={top} /></>}</>
     );
     meta = [
       `${fmtT(top.issuedAt)} ${top.scenario ? "켬" : "발표"}`,
@@ -197,7 +197,7 @@ export function WxBar() {
                 {mine.map((a) => (
                   <div key={a.id} role="listitem" className="row">
                     {/* 읽기만 하는 목록 — 단계 색(빨강) 없이 받은 이름 그대로 */}
-                    <span className="lvb">{advLabel(a)}</span>
+                    <span className="lvb">{wxLabel(a)}</span>
                     <span className="ar">{a.area}{a.scenario && <> <ScnTag a={a} /></>}</span>
                     <span className="t">{advTime(a.issuedAt)} {a.scenario ? "켬" : "발표"}</span>
                   </div>
@@ -229,7 +229,7 @@ export function WxBar() {
             <div className="hd">질문에 참조할 특보를 고르세요</div>
             {cands.map((a) => (
               <button key={a.id} role="menuitem" className={wxRef?.id === a.id ? "on" : ""} onClick={() => attach(a)}>
-                <span className={`lvb ${advTone(a)}`}>{advLabel(a)}</span>
+                <span className={`lvb ${advTone(a)}`}>{wxLabel(a)}</span>
                 <span className="ar">{a.area}{a.scenario && <> <ScnTag a={a} /></>}</span>
                 <span className="t">{advTime(a.issuedAt)} {a.scenario ? "켬" : "발표"}</span>
               </button>

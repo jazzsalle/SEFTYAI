@@ -10,6 +10,7 @@
  */
 import type { BaseRegion } from "./baseRegion";
 import { isSeaArea, splitTop, wxCovers, type WxTarget } from "./wxMatch";
+import type { PwnCount } from "./wxPwn";
 
 /** 통보문을 내는 지점 하나 — sido = 맡는 시·도 법정동 코드 앞 두 자리(옛 코드·새 코드 함께). 비어 있으면 전국 */
 export interface WxStation {
@@ -118,6 +119,8 @@ export interface WxDetailResponse {
   steps: WxStep[];
   /** 특보 id → 「이 특보로 질의」에 쓸 기준지역. null = 정할 수 없음(바다 구역 등 — 지금 기준지역 그대로) */
   askRegions: Record<string, BaseRegion | null>;
+  /** 전국 발효 현황 — 특보코드조회(getPwnCd)를 되짚어 센 (종류·단계·해상 여부)별 구역 수(lib/wxPwn). 부르지 못했으면 없다(화면이 countAdvisories 로 센다) */
+  counts?: PwnCount[];
 }
 
 export const DETAIL_HOURS = 24;

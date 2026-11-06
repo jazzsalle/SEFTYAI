@@ -12,7 +12,7 @@ import type { BaseRegion } from "@/lib/baseRegion";
 import { parseStatusText } from "@/lib/server/kma";
 import { wxCovers } from "@/lib/wxMatch";
 import { baseTarget } from "@/lib/baseRegion";
-import { advLabel } from "@/lib/wxref";
+import { wxLabel } from "@/lib/wxref";
 
 const session = vi.hoisted(() => ({ s: {} as Record<string, unknown> }));
 vi.mock("@/lib/session", () => ({ useSession: () => session.s, uid: (p: string) => `${p}x` }));
@@ -85,7 +85,7 @@ describe("특보 줄 — 5초 자동 넘김(개발 서버 AlertBanner, 2026-11-0
     const bar = c.querySelector(".wxbar")!;
     const order = wxRotation(mine(null));
     expect(order).toHaveLength(WX_ROTATE_MAX);
-    expect(bar.querySelector(".tit")!.textContent).toBe(`특보 ${mine(null).length}건 발효 중 · ${order[0].area} ${advLabel(order[0])}`);
+    expect(bar.querySelector(".tit")!.textContent).toBe(`특보 ${mine(null).length}건 발효 중 · ${order[0].area} ${wxLabel(order[0])}`);
     expect(bar.querySelector(".wxat")!.textContent).toBe("1 / 5");
     expect(bar.querySelector(".more")).toBeNull();
   });
@@ -98,7 +98,9 @@ describe("특보 줄 — 5초 자동 넘김(개발 서버 AlertBanner, 2026-11-0
     expect(rows).toHaveLength(mine(null).length);
     // 받은 순서 그대로(유엔이가 다시 늘어세우지 않음)
     expect([...rows].map((r) => r.querySelector(".ar")!.textContent)).toEqual(mine(null).map((a) => a.area));
-    expect([...rows].map((r) => r.querySelector(".lvb")!.textContent)).toEqual(mine(null).map(advLabel));
+    // 해상 구역은 이름에 「(해상)」(개발 서버 WarningCodes.LabelOf)
+    expect([...rows].map((r) => r.querySelector(".lvb")!.textContent)).toEqual(mine(null).map(wxLabel));
+    expect(mine(null).some((a) => wxLabel(a).endsWith("(해상)"))).toBe(true);
     expect(list.querySelector(".hd")!.textContent).toBe("발효 중인 특보");
   });
 
