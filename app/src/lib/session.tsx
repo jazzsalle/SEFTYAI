@@ -2,7 +2,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import type { Advisory, DisasterType, RegionId, WeatherResponse } from "./contract/agent";
 import { api, ApiError } from "./api";
-import { endReason, useHeartbeat } from "./heartbeat";
+import { endReason, ping, useHeartbeat } from "./heartbeat";
 import type { Account } from "./config";
 import { isActive, locksBase, sourceLocksBase, type JobFull, type JobSource, type JobSummary, type T3qRef } from "./jobTypes";
 import { basePilot, baseWire, defaultBase, type BaseRegion } from "./baseRegion";
@@ -111,6 +111,10 @@ interface SessionState {
   login: (id: string, password: string, force?: boolean) => Promise<void>;
   logout: () => Promise<void>;
   sessionExpired: boolean;
+  /** 이 접속이 끝나는 시각(epoch ms) — 로그인·[시간 연장]부터 240분(개발서버 AuthProvider expiresAt — R57). 사용자 메뉴 「로그아웃까지 남은 시간」 */
+  expiresAt: number | null;
+  /** [시간 연장] — 수명을 지금부터 다시 센다(개발서버 renew). 성공하면 true */
+  renew: () => Promise<boolean>;
   /** 다른 곳에서 같은 계정으로 로그인해 이 접속이 끊겼다(SCR-UNE-101004) */
   sessionTaken: boolean;
   cond: Cond;
@@ -170,11 +174,17 @@ const condFor = (acc: Account): Cond => {
   const base = defaultBase(acc);
   return { base, region: basePilot(base) };
 };
+/** 받은 끝나는 시각(ISO) → epoch ms. 알아볼 수 없으면 null(남은 시간을 그리지 않음) */
+const msOf = (iso: string | null | undefined): number | null => {
+  const t = iso ? new Date(iso).getTime() : NaN;
+  return Number.isFinite(t) ? t : null;
+};
 export function SessionProvider({ children }: { children: React.ReactNode }) {
   const [ready, setReady] = useState(false);
   const [account, setAccount] = useState<Account | null>(null);
   const [sessionExpired, setExpired] = useState(false);
   const [sessionTaken, setTaken] = useState(false);
+  const [expiresAt, setExpiresAtS] = useState<number | null>(null);
   const [cond, setCondS] = useState<Cond>({ base: null, region: "national" });
   const [weather, setWeather] = useState<WeatherResponse | null>(null);
   const [convs, setConvs] = useState<Conversation[]>([]);
@@ -220,9 +230,10 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
 
   // 세션 확인 — 쿠키 세션(서버)이 정본
   useEffect(() => {
-    api<{ account: Account }>("/api/auth/me")
+    api<{ account: Account; expiresAt?: string }>("/api/auth/me")
       .then((r) => {
         setAccount(r.account);
+        setExpiresAtS(msOf(r.expiresAt));
         setCondS(condFor(r.account));
       })
       .catch(() => setAccount(null))
@@ -236,8 +247,9 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const login = useCallback(async (id: string, password: string, force = false) => {
-    const r = await api<{ account: Account }>("/api/auth/login", { method: "POST", json: { id, password, force } });
+    const r = await api<{ account: Account; expiresAt?: string }>("/api/auth/login", { method: "POST", json: { id, password, force } });
     setAccount(r.account);
+    setExpiresAtS(msOf(r.expiresAt));
     setExpired(false);
     setTaken(false);
     setCondS(condFor(r.account));
@@ -247,6 +259,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   const logout = useCallback(async () => {
     await api("/api/auth/logout", { method: "POST" }).catch(() => {});
     setAccount(null);
+    setExpiresAtS(null);
     setAimOnS(false);
     setWeather(null);
     setWxRef(null);
@@ -255,7 +268,37 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     setFull({});
   }, []);
 
-  useHeartbeat(!!account && !sessionExpired && !sessionTaken, () => setTaken(true), () => setExpired(true));
+  useHeartbeat(!!account && !sessionExpired && !sessionTaken, () => setTaken(true), () => setExpired(true), (iso) => setExpiresAtS(msOf(iso)));
+
+  // [시간 연장](개발서버 renew → /auth/refresh?extend=true) — 이미 끝난 접속이면 만료로
+  const renew = useCallback(async () => {
+    try {
+      const r = await api<{ expiresAt: string }>("/api/auth/extend", { method: "POST" });
+      setExpiresAtS(msOf(r.expiresAt));
+      return true;
+    } catch {
+      const why = await endReason();
+      if (why === "taken") setTaken(true);
+      else setExpired(true);
+      return false;
+    }
+  }, []);
+
+  /*
+    남은 시간이 다하면 그 자리에서 서버에 묻는다 — 두드림(20초)을 기다리지 않는다. 끝내는 판정은 서버가 한다(개발서버 AuthProvider·JwtBearer OnTokenValidated):
+    다른 창에서 [시간 연장]을 눌렀으면 살아 있다는 답과 새 시각이 오고, 아니면 만료로 로그인 화면(/login?expired=1)
+  */
+  useEffect(() => {
+    if (!account || expiresAt === null || sessionExpired || sessionTaken) return;
+    const t = window.setTimeout(() => {
+      void ping().then((r) => {
+        if (r.reason === "taken") setTaken(true);
+        else if (r.reason === "expired") setExpired(true);
+        else if (r.reason === "ok" && r.expiresAt) setExpiresAtS(msOf(r.expiresAt));
+      });
+    }, Math.max(0, expiresAt - Date.now()) + 1000);
+    return () => window.clearTimeout(t);
+  }, [account, expiresAt, sessionExpired, sessionTaken]);
 
   // 대화 이력 (서버 저장, 새 형식 v2 만)
   useEffect(() => {
@@ -559,12 +602,12 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
 
   const value = useMemo<SessionState>(
     () => ({
-      ready, account, login, logout, sessionExpired, sessionTaken, cond, setCond, setBase, asking, weather,
+      ready, account, login, logout, sessionExpired, expiresAt, renew, sessionTaken, cond, setCond, setBase, asking, weather,
       reloadWeather: () => setWxTick((t) => t + 1),
       convs, saveConv, deleteConvs, checks, checkInfo, toggleCheck, resetChecks, toast, toastMsg, aimOn, setAimOn, wxRef, setWxRef,
       jobs, jobOrder, medianMs, submit, cancel, full, loadFull, watch, t3qOk, live,
     }),
-    [ready, account, login, logout, sessionExpired, sessionTaken, cond, setCond, setBase, asking, weather, convs, saveConv, deleteConvs, checks, checkInfo, toggleCheck, resetChecks, toast, toastMsg, aimOn, setAimOn, wxRef, setWxRef, jobs, jobOrder, medianMs, submit, cancel, full, loadFull, watch, t3qOk, live],
+    [ready, account, login, logout, sessionExpired, expiresAt, renew, sessionTaken, cond, setCond, setBase, asking, weather, convs, saveConv, deleteConvs, checks, checkInfo, toggleCheck, resetChecks, toast, toastMsg, aimOn, setAimOn, wxRef, setWxRef, jobs, jobOrder, medianMs, submit, cancel, full, loadFull, watch, t3qOk, live],
   );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

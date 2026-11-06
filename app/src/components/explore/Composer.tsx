@@ -14,9 +14,9 @@ export const fillQuery = (q: string) => window.dispatchEvent(new CustomEvent(FIL
 
 /**
  * 질의 입력 (Figma 201001 하단 · 201003 조건 편집) — 적용 조건 요약 · 입력 2,000자 · [브리핑 세트▾] · [질의]
- * 보낸 뒤 바로 비워 다음 질문을 이어서 보낼 수 있다(비차단, R2).
+ * 보낸 뒤 바로 비운다. 개별 질문은 넷까지 함께 돌고, 넷이 다 돌거나 브리핑 세트가 도는 동안은 입력·[질의]를 막는다(개발서버 QueryBox busy · SearchPage askLocked — R57).
  */
-export default function Composer({ onAsk, onBriefing, onLibrary, followUpLabel, clearFollowUp, objectRefs = [], onDropRef, expired = false }: {
+export default function Composer({ onAsk, onBriefing, onLibrary, followUpLabel, clearFollowUp, objectRefs = [], onDropRef, expired = false, locked = false, briefDisabled = false }: {
   onAsk: (q: string) => Promise<void>;
   onBriefing: () => void;
   onLibrary: () => void;
@@ -27,6 +27,10 @@ export default function Composer({ onAsk, onBriefing, onLibrary, followUpLabel, 
   onDropRef?: (id: string) => void;
   /** 이어서 물을 수 없는 대화(마지막 활동 24시간 뒤 — 개발서버 QueryBox expired) — 입력·[질의]를 막고 「이 대화는 만료되었습니다」 */
   expired?: boolean;
+  /** 질문을 더 받을 수 없다(개별 질문 넷이 다 돌거나 브리핑 세트가 도는 중 — 개발서버 askLocked). 입력을 막고 단추는 「질의 중…」 */
+  locked?: boolean;
+  /** [브리핑 세트▾]를 막는다 — 질문이 하나라도 돌거나 브리핑 세트가 도는 중(개발서버 BriefingSetMenu disabled) */
+  briefDisabled?: boolean;
 }) {
   const s = useSession();
   const [q, setQ] = useState("");
@@ -46,7 +50,7 @@ export default function Composer({ onAsk, onBriefing, onLibrary, followUpLabel, 
   const c = s.cond;
   const send = async () => {
     const t = q.trim();
-    if (!t || busy || expired) return;
+    if (!t || busy || expired || locked) return;
     setBusy(true);
     try {
       await onAsk(t);
@@ -109,11 +113,11 @@ export default function Composer({ onAsk, onBriefing, onLibrary, followUpLabel, 
       <textarea
         ref={input}
         className="cmp-input"
-        disabled={expired}
+        disabled={locked || expired}
         value={q}
         maxLength={2000}
         rows={2}
-        placeholder="질문을 입력하세요. 답을 기다리는 동안 다른 질문도 이어서 보낼 수 있습니다."
+        placeholder="질문을 입력하세요."
         onChange={(e) => setQ(e.target.value)}
         onKeyDown={(e) => {
           if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
@@ -123,11 +127,11 @@ export default function Composer({ onAsk, onBriefing, onLibrary, followUpLabel, 
         }}
       />
       <div className="cmp-row">
-        <BriefSetMenu onBriefing={onBriefing} />
+        <BriefSetMenu onBriefing={onBriefing} disabled={briefDisabled} />
         <button className="btn sm ghost" onClick={onLibrary}>질문 목록 보기</button>
         <span className="sp" />
         <span className="xs muted">{q.length.toLocaleString()} / 2,000</span>
-        <button className="btn primary" disabled={!q.trim() || busy || expired} onClick={send}>질의</button>
+        <button className="btn primary" disabled={!q.trim() || busy || expired || locked} onClick={send}>{locked ? "질의 중…" : "질의"}</button>
       </div>
       {condOpen && <CondModal onClose={() => setCondOpen(false)} />}
     </div>
@@ -153,13 +157,17 @@ function ClearButton({ what, onClick }: { what: string; onClick: () => void }) {
  * [브리핑 세트▾] 2단 패널 — 왼쪽: 브리핑 시작·항목 설정, 오른쪽: 내 브리핑 세트 질문 전체(설정에서 체크한 항목, 최대 8개 — 개발서버 BriefingSetMenu).
  * 질문을 누르면 그 질문만 보낸다(시작 화면·AI 모드 타일과 같은 sa:ask-brief). 바깥을 누르거나 Esc 로 닫는다.
  */
-function BriefSetMenu({ onBriefing }: { onBriefing: () => void }) {
+function BriefSetMenu({ onBriefing, disabled = false }: { onBriefing: () => void; disabled?: boolean }) {
   const s = useSession();
   const items = useBriefItems();
   const regionName = baseName(s.cond.base);
   const [open, setOpen] = useState(false);
   const box = useRef<HTMLDivElement>(null);
   const btn = useRef<HTMLButtonElement>(null);
+  // 막히면 열린 패널도 닫는다
+  useEffect(() => {
+    if (disabled) setOpen(false);
+  }, [disabled]);
   useEffect(() => {
     if (!open) return;
     const down = (e: PointerEvent) => {
@@ -183,7 +191,7 @@ function BriefSetMenu({ onBriefing }: { onBriefing: () => void }) {
   };
   return (
     <div className="dd" ref={box}>
-      <button ref={btn} className="btn sm" onClick={() => setOpen((v) => !v)} aria-expanded={open} aria-controls="bs-pop">브리핑 세트 ▾</button>
+      <button ref={btn} className="btn sm" disabled={disabled} onClick={() => setOpen((v) => !v)} aria-expanded={open} aria-controls="bs-pop">브리핑 세트 ▾</button>
       {open && (
         <div id="bs-pop" className="bs-pop" role="dialog" aria-label="브리핑 세트">
           <div className="bs-act">

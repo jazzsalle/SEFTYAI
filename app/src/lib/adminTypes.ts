@@ -109,7 +109,7 @@ export interface AdminAccountRow {
   locked: boolean;
   last_login_at: string | null;
   created_at: string | null;
-  /** 살아 있는 세션의 마지막 활동(유휴 4시간 안) */
+  /** 살아 있는 세션(수명 240분 안 — R57)의 마지막 활동 */
   session_seen_at: string | null;
 }
 

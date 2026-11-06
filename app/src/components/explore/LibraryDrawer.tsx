@@ -28,8 +28,10 @@ function clock(iso: string): string {
   return `${p(at.getMonth() + 1)}.${p(at.getDate())} ${p(at.getHours())}:${p(at.getMinutes())}`;
 }
 
-export default function LibraryDrawer({ regionName, onClose, onAsk, onAskMany, onAskDemo, onAskShow }: {
+export default function LibraryDrawer({ regionName, busy = false, onClose, onAsk, onAskMany, onAskDemo, onAskShow }: {
   regionName: string;
+  /** 질문을 더 받을 수 없다(개별 질문 넷이 다 돌거나 브리핑 세트가 도는 중 — 개발서버 QuestionLibrary busy · R57). 보내는 단추를 막는다(받아 두기는 그대로) */
+  busy?: boolean;
   onClose: () => void;
   onAsk: (q: LibraryQuestion) => void;
   onAskMany: (qs: LibraryQuestion[]) => void;
@@ -115,7 +117,7 @@ export default function LibraryDrawer({ regionName, onClose, onAsk, onAskMany, o
                     <div key={d.id} className="lib-q day-q">
                       <span className="badge neutral">{d.scene}</span>
                       <div className="day-b">
-                        <button className="lnk day-btn" disabled={!p.at} onClick={() => onAskShow([d])}><b>{d.title}</b><span>{d.text}</span></button>
+                        <button className="lnk day-btn" disabled={busy || !p.at} onClick={() => onAskShow([d])}><b>{d.title}</b><span>{d.text}</span></button>
                         <div className="xs muted">
                           {p.at ? <>저장된 답 · {p.at} 받음</> : <>저장된 답 없음</>}
                           {/* 가정 특보가 실리는 질문 — 이 표가 없으면 실제 특보로 읽힌다 */}
@@ -127,7 +129,7 @@ export default function LibraryDrawer({ regionName, onClose, onAsk, onAskMany, o
                 })}
                 <div className="drawer-f">
                   <span className="sp" />
-                  <button className="btn primary sm" disabled={!ready.length} onClick={() => onAskShow(ready)}>이 묶음 차례로 보내기</button>
+                  <button className="btn primary sm" disabled={busy || !ready.length} onClick={() => onAskShow(ready)}>이 묶음 차례로 보내기</button>
                 </div>
               </section>
             );
@@ -144,7 +146,7 @@ export default function LibraryDrawer({ regionName, onClose, onAsk, onAskMany, o
               <div key={d.id} className="lib-q day-q">
                 <span className="badge neutral">{i + 1}</span>
                 <div className="day-b">
-                  <button className="lnk day-btn" disabled={p.busy} onClick={() => askDay(d)}><b>{d.title}</b><span>{d.text}</span></button>
+                  <button className="lnk day-btn" disabled={busy || p.busy} onClick={() => askDay(d)}><b>{d.title}</b><span>{d.text}</span></button>
                   <div className="xs muted">
                     붙는 조건 · {presetLines(d.cond).join(" · ") || "없음"}
                     {presetManual(d.cond) && <> <span className="badge neutral xs" title="사람이 적어 넣은 값입니다. 실시간 관측도 실제 특보도 아닙니다.">직접 입력 조건</span></>}
@@ -186,7 +188,7 @@ export default function LibraryDrawer({ regionName, onClose, onAsk, onAskMany, o
                 {qs.map((q) => (
                   <div key={q.id} className="lib-q">
                     <input type="checkbox" checked={sel.includes(q.id)} disabled={!sel.includes(q.id) && sel.length >= 4} onChange={() => toggle(q.id)} aria-label={`${fillText(q, regionName)} 고르기`} />
-                    <button className="lnk" onClick={() => onAsk(q)}>{fillText(q, regionName)}</button>
+                    <button className="lnk" disabled={busy} onClick={() => onAsk(q)}>{fillText(q, regionName)}</button>
                     <span className="xs muted">{q.category}</span>
                   </div>
                 ))}
@@ -196,7 +198,7 @@ export default function LibraryDrawer({ regionName, onClose, onAsk, onAskMany, o
           <div className="drawer-f">
             <span className="xs muted">{sel.length}개 고름</span>
             <span className="sp" />
-            <button className="btn primary" disabled={!sel.length} onClick={() => { onAskMany(list.filter((q) => sel.includes(q.id))); setSel([]); }}>고른 질문 차례로 보내기</button>
+            <button className="btn primary" disabled={busy || !sel.length} onClick={() => { onAskMany(list.filter((q) => sel.includes(q.id))); setSel([]); }}>고른 질문 차례로 보내기</button>
           </div>
         </div>
       )}

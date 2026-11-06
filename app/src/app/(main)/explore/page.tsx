@@ -29,6 +29,7 @@ import { IcChevL } from "@/components/Icons";
 import { AutoDemoBar } from "@/components/autodemo/AutoDemoBar";
 import AimPrep from "@/components/autodemo/AimPrep";
 import { useExploreAutoDemo } from "@/components/autodemo/useExploreAutoDemo";
+import { askLockBus, askLockOf, countRunning } from "@/lib/askLock";
 
 const SOP_TAB: PanelTab = { key: "sop", kind: "sop", title: "대응절차", pinned: true };
 const MAP_TAB: PanelTab = { key: "map", kind: "map", title: "지도" };
@@ -195,6 +196,14 @@ function Explore() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [conv, s.jobs]);
+
+  /*
+    질문 칸 잠금(개발서버 SearchPage askLocked — R57). 개별 질문은 넷까지 함께 돌고, 브리핑 세트가 도는 동안은 개별 질문을 받지 않는다.
+    특보 상세 창·머리줄 [자동 시연](AppShell)도 같은 값을 본다(lib/askLock).
+  */
+  const lock = useMemo(() => askLockOf(countRunning(conv?.turns ?? [], (id) => s.jobs[id]?.state)), [conv?.turns, s.jobs]);
+  useEffect(() => askLockBus.set(lock), [lock]);
+  useEffect(() => () => askLockBus.reset(), []);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
@@ -428,7 +437,8 @@ function Explore() {
 
   const askMany = async (qs: LibraryQuestion[]) => {
     setLibOpen(false);
-    for (const q of qs) await askLib(q);
+    // 넷까지 함께 — 빈 자리만큼만 보낸다(개발서버 useConversation ask 는 넷이 차면 더 보내지 않음)
+    for (const q of qs.slice(0, lock.free)) await askLib(q);
   };
 
   // ── 지도: 지금 보는 답(턴 기준 표시 — 개발 서버 mapRefs)의 refs + 서버가 미리 받은 도형(geo) ──
@@ -640,6 +650,8 @@ function Explore() {
             objectRefs={picked.map((x) => ({ id: x.eid, name: x.ref.display_name ?? x.ref.ref }))}
             onDropRef={(eid) => setPicked((list) => list.filter((x) => x.eid !== eid))}
             expired={isExpired(conv)}
+            locked={lock.locked}
+            briefDisabled={lock.running || lock.briefingRunning}
           />
         </main>
         {panelOpen && (
@@ -680,6 +692,7 @@ function Explore() {
         {libOpen && autoDemo.phase === "idle" && (
           <LibraryDrawer
             regionName={regionName}
+            busy={lock.locked}
             onClose={() => setLibOpen(false)}
             onAsk={(q) => { setLibOpen(false); askLib(q); }}
             onAskMany={askMany}

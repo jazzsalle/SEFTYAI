@@ -148,7 +148,6 @@ function Card({ job, full, compact, noActions, brief }: CardProps) {
             <AnswerMarkdown text={lv.text} refs={lv.refs} />
           </div>
         )}
-        {ms > 600_000 && <div className="notice warn" style={{ marginTop: 8 }}>10분이 지났습니다. 계속 기다리거나 취소할 수 있습니다(15분이 지나면 자동으로 끝냅니다).</div>}
         {!noActions && <div className="row" style={{ marginTop: 10 }}>
           <button className="btn sm" onClick={() => s.cancel(job.id).catch(() => s.toast("취소하지 못했습니다."))}>질의 취소</button>
         </div>}

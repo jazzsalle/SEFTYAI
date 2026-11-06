@@ -14,7 +14,7 @@ export async function POST(req: Request) {
   if (!body?.id || !body.password) return fail(400, "아이디와 비밀번호를 입력하세요.");
   const r = await login(body.id.trim(), body.password, req.headers.get("user-agent") ?? "", { force: body.force === true, currentSid: currentSid(req) });
   if (!r.ok) return fail(r.status, r.error, r.code ? { code: r.code } : undefined);
-  const res = json({ account: r.account });
+  const res = json({ account: r.account, expiresAt: r.expiresAt });
   res.headers.append("set-cookie", r.cookie);
   return res;
 }

@@ -28,8 +28,7 @@ export async function GET(req: Request) {
               (a.locked_until is not null and a.locked_until > now()) as locked,
               a.last_login_at, a.created_at,
               (select max(s.last_seen_at) from sa_sessions s
-                where s.account_id = a.id and s.revoked_at is null and s.expires_at > now()
-                  and s.last_seen_at > now() - interval '4 hours') as session_seen_at
+                where s.account_id = a.id and s.revoked_at is null and s.expires_at > now()) as session_seen_at
          from sa_accounts a
         order by a.id`,
     )) as Row[];

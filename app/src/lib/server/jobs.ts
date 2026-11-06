@@ -78,8 +78,13 @@ const GLOBAL = () => Number(process.env.T3Q_MAX_GLOBAL || 8);
 const POLL_THROTTLE_MS = 2500;
 const POLL_TIMEOUT_MS = 8000;
 const SUBMIT_TIMEOUT_MS = 12000;
-const HARD_TIMEOUT_MS = 15 * 60_000;
-const QUEUE_MAX_MS = 15 * 60_000;
+/**
+ * 작업 한도 8분 — 질문한 때(created_at)부터 센다(개발서버 appsettings T3Q:AgentJobs MaxDurationMinutes 8 · AgentJobPoller job.CreatedAt — R57).
+ * 대기열(QUEUED)에서 기다린 시간도 같은 시계에 든다(개발서버는 대기열 없이 바로 보냄). 넘기면 TIMEOUT, 기록은 개발서버 글자 그대로
+ */
+export const HARD_TIMEOUT_MS = 8 * 60_000;
+const QUEUE_MAX_MS = HARD_TIMEOUT_MS;
+export const TIMEOUT_ERROR = `${HARD_TIMEOUT_MS / 60_000}분 안에 끝나지 않았습니다.`;
 const LOST_RETRY_WINDOW_MS = 90_000;
 const CANCEL_COOLDOWN_MS = 120_000;
 /** 개발서버 T3Q:AgentCache:TtlHours */
@@ -438,7 +443,7 @@ async function advance(job: Job): Promise<Job> {
     // 스트림으로 받기로 한 작업은 화면이 스트림을 열 시간을 준다(그 뒤에도 안 열면 ASYNC 로 제출)
     if ((job.request as { response_mode?: string } | null)?.response_mode === "STREAM" && Date.now() - new Date(job.created_at).getTime() < STREAM_GRACE_MS) return job;
     // 너무 오래 기다린 대기 작업은 끝낸다(슬롯이 계속 막혀 있는 경우)
-    if (Date.now() - new Date(job.created_at).getTime() > QUEUE_MAX_MS) return (await finish(job.id, "TIMEOUT", { error: "QUEUE_TIMEOUT" })) ?? job;
+    if (Date.now() - new Date(job.created_at).getTime() > QUEUE_MAX_MS) return (await finish(job.id, "TIMEOUT", { error: TIMEOUT_ERROR })) ?? job;
     return (await dispatch(job)) ?? job;
   }
   if (job.state === "DONE") return retryGeo(job);
@@ -450,14 +455,14 @@ async function advance(job: Job): Promise<Job> {
     [job.id, new Date(Date.now() - POLL_THROTTLE_MS)],
   );
   if (!claimed) return job;
-  const overdue = Date.now() - new Date(claimed.submitted_at ?? claimed.created_at).getTime() > HARD_TIMEOUT_MS;
+  const overdue = Date.now() - new Date(claimed.created_at).getTime() > HARD_TIMEOUT_MS;
   const r = await t3q<{ status?: string; conversation_id?: string; result?: { job_status?: string; refs?: unknown[] } }>("GET", `/agent/query/${claimed.t3q_request_id}`, undefined, { timeoutMs: POLL_TIMEOUT_MS });
   await q("update sa_agent_jobs set last_polled_at = now() where id = $1 and state in ('SUBMITTED','RUNNING')", [job.id]);
-  // 아직 진행 중이거나 일시 장애 — 15분을 넘겼을 때만 취소·시간 초과(답이 이미 있으면 위에서 받았다)
+  // 아직 진행 중이거나 일시 장애 — 8분을 넘겼을 때만 취소·시간 초과(답이 이미 있으면 위에서 받았다 — T3Q 에 먼저 묻는다, R22)
   if (r.http === 202 || r.http === 0 || !r.envelope) {
     if (!overdue) return { ...claimed, last_polled_at: new Date().toISOString() };
     await t3q("POST", `/agent/query/${claimed.t3q_request_id}/cancel`, { reason: "TIMEOUT" }, { timeoutMs: POLL_TIMEOUT_MS });
-    return (await finish(job.id, "TIMEOUT", { error: "TIMEOUT" })) ?? claimed;
+    return (await finish(job.id, "TIMEOUT", { error: TIMEOUT_ERROR })) ?? claimed;
   }
   const js = r.body?.result?.job_status;
   if (js === "NOT_FOUND") {

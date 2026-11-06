@@ -1,4 +1,5 @@
 "use client";
+import { useAskLock } from "@/lib/askLock";
 import "./wx.css";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
@@ -36,6 +37,8 @@ const hm = (iso?: string) => {
 export default function WxDetailModal({ mine, onClose }: { mine: Advisory[]; onClose: () => void }) {
   const s = useSession();
   const { weather, cond, aimOn } = s;
+  // 질문을 더 받을 수 없을 때(넷이 다 돌거나 브리핑 중 — 개발서버 AlertDetailModal askDisabled · R57)
+  const askLocked = useAskLock().locked;
   const router = useRouter();
   const path = usePathname();
   const [detail, setDetail] = useState<WxDetailResponse | null>(null);
@@ -94,6 +97,7 @@ export default function WxDetailModal({ mine, onClose }: { mine: Advisory[]; onC
   };
   const askTitle = (a: Advisory) => {
     if (aimOn) return "AI 모드에서는 브리핑 질문에 현재 특보가 함께 전달됩니다. 이 특보로 물으려면 AI 모드를 끄세요.";
+    if (askLocked) return "진행 중인 질문이 끝난 뒤 보낼 수 있습니다";
     const r = detail?.askRegions[a.id];
     return `${r ? baseName(r) : region} 기준으로 바로 묻습니다`;
   };
@@ -148,7 +152,7 @@ export default function WxDetailModal({ mine, onClose }: { mine: Advisory[]; onC
                       </div>
                       <div className="wxd-acts">
                         <button type="button" className="btn ghost xs" onClick={() => apply(a)}>조건에 반영</button>
-                        <button type="button" className="btn xs" disabled={aimOn || (loading && !detail)} title={askTitle(a)} onClick={() => ask(a)}>이 특보로 질의</button>
+                        <button type="button" className="btn xs" disabled={aimOn || askLocked || (loading && !detail)} title={askTitle(a)} onClick={() => ask(a)}>이 특보로 질의</button>
                       </div>
                     </li>
                   ))}

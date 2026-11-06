@@ -13,7 +13,7 @@
 .lgn-hd .brand { display: flex; align-items: center; gap: 10px; font-size: 21px; font-weight: 700; color: #33363d; white-space: nowrap; }
 .lgn-hd .bar { flex: none; width: 1px; height: 18px; background: var(--c-bd); }
 .lgn-hd .svc { min-width: 0; font-size: var(--fs-m); font-weight: 600; color: var(--c-sub); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.lgn ~ .help-btn { top: 20px; }
+.lgn ~ .help-btn { top: calc(var(--masthead-h) + 20px); } /* 누리집 띠(32) 아래 머리(64) 가운데 */
 
 .lgn-body { flex: 1; display: grid; grid-template-columns: minmax(380px, 40%) minmax(0, 1fr); }
 

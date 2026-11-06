@@ -103,6 +103,20 @@ describe("질의 작업 엔진", () => {
     expect(r.t3q_request_id).not.toBe("lost-request-id");
   });
 
+  it("작업 한도 8분(R57 — 개발서버 AgentJobs MaxDurationMinutes) — 질문한 때부터 세고, 넘기면 시간 초과 · 기록은 개발서버 글자 그대로", async () => {
+    expect(J.HARD_TIMEOUT_MS).toBe(8 * 60_000);
+    expect(J.TIMEOUT_ERROR).toBe("8분 안에 끝나지 않았습니다.");
+    const j = await J.submitJob(inje, { question: "8분 시험", source: "USER", noCache: true });
+    await sql.query("update sa_agent_jobs set state = 'QUEUED', t3q_request_id = null, submitted_at = null, created_at = now() - interval '7 minutes 50 seconds' where id = $1", [j.id]);
+    await J.getJob(inje, j.id);
+    expect((await row(j.id)).state).not.toBe("TIMEOUT"); // 8분 안 — 보낸다
+    await sql.query("update sa_agent_jobs set state = 'QUEUED', t3q_request_id = null, submitted_at = null, created_at = now() - interval '8 minutes 10 seconds' where id = $1", [j.id]);
+    await J.getJob(inje, j.id);
+    const r = await row(j.id);
+    expect(r.state).toBe("TIMEOUT");
+    expect(r.error_code).toBe("8분 안에 끝나지 않았습니다.");
+  });
+
   it("다시 질의는 같은 요청(문맥 포함)으로 새 작업을 만든다", async () => {
     const j = await J.submitJob(inje, { question: "다시 질의 시험", source: "BRIEFING", briefing: { item_no: 2, item_total: 4 }, noCache: true });
     const again = await J.retryJob(inje, j.id);

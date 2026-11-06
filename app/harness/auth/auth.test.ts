@@ -51,21 +51,47 @@ describe("로그인·세션", () => {
     await A.unlock("unes");
   });
 
-  it("세션: 활동 표시가 있을 때만 유휴 시간을 연장한다", async () => {
+  it("세션 수명 240분(R57 — 개발서버 Jwt:AccessTokenMinutes): 조작·폴링은 늘리지 않고, 다하면 끝난다", async () => {
     const r = await A.login("inje", PW, "ua", { force: true });
     if (!r.ok) throw new Error("login");
     const ck = cookieOf(r.cookie);
+    expect(r.cookie).toContain(`Max-Age=${240 * 60}`);
+    expect(new Date(r.expiresAt).getTime() - Date.now()).toBeGreaterThan(239 * 60_000);
     await sql.query("update sa_sessions set last_seen_at = now() - interval '10 minutes'");
     expect(await A.sessionAccount(req(ck))).not.toBeNull();
     const [s1] = await sql.query("select last_seen_at from sa_sessions where revoked_at is null and account_id = 'inje'");
-    expect(Date.now() - new Date(String(s1.last_seen_at)).getTime()).toBeGreaterThan(9 * 60_000); // 폴링은 연장 안 함
+    expect(Date.now() - new Date(String(s1.last_seen_at)).getTime()).toBeGreaterThan(9 * 60_000); // 폴링은 조작 기록도 안 남김
+    const before = (await A.sessionInfo(req(ck)))?.expiresAt;
     await A.sessionAccount(req(ck, true));
     const [s2] = await sql.query("select last_seen_at from sa_sessions where revoked_at is null and account_id = 'inje'");
-    expect(Date.now() - new Date(String(s2.last_seen_at)).getTime()).toBeLessThan(60_000); // 사용자 조작은 연장
-    await sql.query("update sa_sessions set last_seen_at = now() - interval '239 minutes'");
-    expect(await A.sessionAccount(req(ck))).not.toBeNull(); // 유휴 4시간 안 — 아직 유효
-    await sql.query("update sa_sessions set last_seen_at = now() - interval '241 minutes'");
-    expect(await A.sessionAccount(req(ck))).toBeNull(); // 유휴 4시간 만료(R34)
+    expect(Date.now() - new Date(String(s2.last_seen_at)).getTime()).toBeLessThan(60_000); // 조작은 기록만
+    expect((await A.sessionInfo(req(ck)))?.expiresAt).toBe(before); // 수명은 그대로
+    // 로그인 239분 뒤 — 아직 유효, 241분 뒤 — 끝(조작이 있었어도)
+    await sql.query("update sa_sessions set expires_at = now() + interval '1 minute', last_seen_at = now() where account_id = 'inje' and revoked_at is null");
+    expect(await A.sessionAccount(req(ck))).not.toBeNull();
+    await sql.query("update sa_sessions set expires_at = now() - interval '1 minute', last_seen_at = now() where account_id = 'inje' and revoked_at is null");
+    expect(await A.sessionAccount(req(ck, true))).toBeNull();
+    expect(await A.beat(req(ck))).toEqual({ code: A.SESSION_EXPIRED });
+  });
+
+  it("[시간 연장]은 수명을 지금부터 240분으로 다시 세고, 끝난 접속은 되살리지 않는다", async () => {
+    const r = await A.login("inje", PW, "ua", { force: true });
+    if (!r.ok) throw new Error("login");
+    const ck = cookieOf(r.cookie);
+    await sql.query("update sa_sessions set expires_at = now() + interval '5 minutes' where account_id = 'inje' and revoked_at is null");
+    const E = await import("@/app/api/auth/extend/route");
+    const res = await E.POST(new Request("http://x/api/auth/extend", { method: "POST", headers: { cookie: ck } }));
+    expect(res.status).toBe(200);
+    expect(res.headers.get("set-cookie")).toContain(`Max-Age=${240 * 60}`);
+    const body = (await res.json()) as { expiresAt: string };
+    expect(new Date(body.expiresAt).getTime() - Date.now()).toBeGreaterThan(239 * 60_000);
+    const b = await A.beat(req(ck));
+    expect("expiresAt" in b && b.expiresAt).toBe(body.expiresAt); // 두드림이 같은 시각을 돌려준다(다른 창이 따라감)
+    await sql.query("update sa_sessions set expires_at = now() - interval '1 second' where account_id = 'inje' and revoked_at is null");
+    const late = await E.POST(new Request("http://x/api/auth/extend", { method: "POST", headers: { cookie: ck } }));
+    expect(late.status).toBe(401);
+    expect(((await late.json()) as { code?: string }).code).toBe("AUTH_SESSION_EXPIRED");
+    expect(await A.sessionAccount(req(ck))).toBeNull();
   });
 
   it("비밀번호 변경: 같은 비밀번호 거절, 바꾸면 다른 세션은 끊긴다", async () => {

@@ -16,6 +16,7 @@ import { useSession } from "@/lib/session";
 import { GovLogo, IcEye, IcEyeOff, IcX } from "@/components/Icons";
 import { Dialog } from "@/components/account/Dialog";
 import { SESSION_EXISTS } from "@/lib/heartbeat";
+import GovMasthead from "@/components/GovMasthead";
 
 /** 계정 카드 순서 — 부산·부산2·인제·영천·정부기관·운영자·계정 발급자 */
 const CARD_IDS = ["busan", "busan2", "inje", "01000", "hang", "unes", "issuer"];
@@ -111,6 +112,8 @@ export default function LoginPage() {
 
   return (
     <main className="lgn">
+      {/* 공식 누리집 띠 — 개발서버 LoginPage GovHeader masthead(R57) */}
+      <GovMasthead />
       <header className="lgn-hd">
         <span className="brand">
           <GovLogo size={34} />

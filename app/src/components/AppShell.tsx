@@ -19,10 +19,12 @@ const SHOW_SOPBAR = false;
 import { openHelp } from "./HelpCenter";
 import AiModeModal from "./explore/AiModeModal";
 import { AUTODEMO_START_EVENT, autoDemoBus, useAutoDemoBus } from "@/lib/autoDemoBus";
+import { useAskLock } from "@/lib/askLock";
 import FontSize from "./FontSize";
 import { PasswordModal } from "./account/PasswordModal";
 import { MyInfoModal } from "./account/MyInfoModal";
 import { SessionExpiredModal } from "./account/SessionExpiredModal";
+import { SessionCountdown } from "./account/SessionCountdown";
 import { BriefingSettingsHost, openBriefingSettings } from "./briefing/BriefingSettingsModal";
 
 /** 시연 시나리오 특보 표지(R43) — 특보 이름 옆에. 기상청 특보가 아님을 보이는 것이라 좁은 화면에서도 숨기지 않는다 */
@@ -251,7 +253,7 @@ export function WxBar() {
  * 로고 · 메인 메뉴 · 기준지역 · 도움말 · 글자 크기 · AI 모드 · 사용자. KRDS 공식 배너 띠는 생략(허용됨).
  */
 export default function AppShell({ children }: { children: React.ReactNode }) {
-  const { ready, account, logout, cond, toastMsg, aimOn, setAimOn, weather, t3qOk } = useSession();
+  const { ready, account, logout, cond, toastMsg, aimOn, setAimOn, weather, t3qOk, expiresAt, renew } = useSession();
   const router = useRouter();
   const path = usePathname();
   const [menu, setMenu] = useState(false);
@@ -262,6 +264,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const [aimDenied, setAimDenied] = useState(false);
   /** 자동 시연(R54) — 가상 특보로 받아 둔 AI 모드 점검·창 열림 */
   const demo = useAutoDemoBus();
+  // 질문 칸이 막혀 있으면(개별 넷·브리핑 중) 자동 시연도 시작하지 않는다(개발서버 SearchPage — R57)
+  const askLocked = useAskLock().locked;
 
   useEffect(() => {
     if (ready && !account) router.replace("/login");
@@ -288,7 +292,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             <Link key={href} href={href} className={path?.startsWith(href) ? "on" : ""}>{label}</Link>
           ))}
           {/* 자동 시연(개발서버 머리 메뉴 [자동 시연] — R54) — 질문 모음을 열지 않고 통합 탐색에서 대본대로 돈다 */}
-          <button type="button" className="gnb-demo" disabled={demo.running} onClick={() => (path?.startsWith("/explore") ? window.dispatchEvent(new CustomEvent(AUTODEMO_START_EVENT)) : router.push("/explore?autodemo=1"))}>
+          <button type="button" className="gnb-demo" disabled={demo.running || askLocked} onClick={() => (path?.startsWith("/explore") ? window.dispatchEvent(new CustomEvent(AUTODEMO_START_EVENT)) : router.push("/explore?autodemo=1"))}>
             자동 시연
           </button>
         </nav>
@@ -317,8 +321,10 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           {menu && (
             <div className="menu" onMouseLeave={() => setMenu(false)}>
               <div className="mh">
-                <b className="s">{account.name}</b>
+                <b className="s">{account.name}님</b>
                 <div className="xs muted">{account.org} {account.dept}</div>
+                {/* 로그아웃까지 남은 시간·[시간 연장](개발서버 UserMenu — R57) */}
+                <SessionCountdown expiresAt={expiresAt} onExtend={renew} />
               </div>
               <Link href="/contacts" onClick={() => setMenu(false)}>연락망·상황전파</Link>
               <button onClick={() => { setMenu(false); openBriefingSettings(); }}>브리핑 설정</button>
