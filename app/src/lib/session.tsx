@@ -77,6 +77,13 @@ export interface SubmitArgs {
   /** 시연 고정 답 항목(질문 모음 「시연」) · 새로 받기 */
   pinId?: string | null;
   pinFresh?: boolean;
+  /**
+   * 이 질문에만 싣는 기준지역 — 특보 상세 「이 특보로 질의」가 그 특보가 걸린 행정구역으로 묻는다(개발 서버 kjw 998facb, lib/wxAskRegion).
+   * 없으면(undefined) 세션 기준지역. 세션 기준지역은 바꾸지 않는다
+   */
+  base?: BaseRegion | null;
+  /** 이 질문에 얹는 조건(특보 종류·단계 — 「이 특보로 질의」). 프리셋(cond)이 없을 때 세션 조건 위에 덮는다 */
+  condPatch?: Pick<Cond, "warningKind" | "warningLevel">;
   /** 고정 답을 바로 받았을 때 화면에 내보이기까지 기다리는 시간(ms) — AI 모드 점검·브리핑 시연(사용자 지시 2026-11-02). 요청에는 넣지 않는다 */
   revealMs?: number;
 }
@@ -86,9 +93,10 @@ export interface SubmitArgs {
  * 프리셋(a.cond)이 있으면 기준지역만 세션 값, 나머지 조건은 프리셋 값만 — 세션 조건(c)은 읽기만 한다
  */
 export function submitBody(c: Cond, a: SubmitArgs) {
-  const { cond: preset, ...rest } = a;
+  const { cond: preset, base, condPatch, ...rest } = a;
   delete rest.revealMs; // 화면 쪽 값 — 요청에 넣지 않는다
-  return { ...rest, condition: preset ? presetCondition(baseWire(c.base), preset) : wireCondition(baseWire(c.base), c) };
+  const b = base !== undefined ? base : c.base;
+  return { ...rest, condition: preset ? presetCondition(baseWire(b), preset) : wireCondition(baseWire(b), { ...c, ...condPatch }) };
 }
 
 interface SessionState {

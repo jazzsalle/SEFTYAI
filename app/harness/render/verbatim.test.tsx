@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
-// 하네스 ③ 무가공 테스트 — 렌더된 글자 = 원문 마크다운의 글자(공백 정규화), 대상 링크 수 = refs 에 있는 고유 표지 수.
+// 하네스 ③ 렌더 테스트 — 렌더된 글자 = 화면 처리(lib/answerText displayAnswer — 개발서버 규칙, 사용자 결정 2026-11-06)를 거친 마크다운의 글자(공백 정규화),
+// 대상 링크 수 = refs 에 있고 본문 이름이 그 대상 이름과 맞는 표지 수(개발서버 refMatch). 화면 처리 규칙 자체는 answerText.test.ts.
 // 굵게(G5, remark-cjk-friendly): 별표가 글자로 남지 않음(가림 이름 「여**」 제외) · remark-gfm 단독과는 별표만 다름.
 // <br> 만 줄바꿈, 그 밖의 HTML 은 글자. 표 도구(data-ui)는 답 글이 아니므로 비교에서 뺀다.
 // npx vitest run harness/render
@@ -12,6 +13,7 @@ import remarkParse from "remark-parse";
 import { unified } from "unified";
 import { describe, expect, it } from "vitest";
 import { AnswerMarkdown, mdPlainText, REMARK_PLUGINS, tableTsv } from "@/components/answer/Markdown";
+import { displayAnswer, isRefId, sameThing } from "@/lib/answerText";
 
 const REC = join(__dirname, "..", "recordings");
 type Ref = { ref: string; entity_type: string | null; display_name: string | null; map: { key: string | null; value: string; draw: string | null } };
@@ -41,7 +43,8 @@ const BR = /<br\s*\/?>/gi;
  * cjk = 앱과 같은 플러그인 목록(REMARK_PLUGINS: remark-gfm + remark-cjk-friendly), 아니면 remark-gfm 단독
  */
 type MdNode = { type: string; value?: string; children?: MdNode[] };
-const plainOf = (md: string, cjk: boolean) => {
+const plainOf = (raw: string, cjk: boolean) => {
+  const md = displayAnswer(raw);
   const p = cjk ? unified().use(remarkParse).use(REMARK_PLUGINS as never) : unified().use(remarkParse).use(remarkGfm, { singleTilde: false });
   const tree = p.runSync(p.parse(md)) as MdNode;
   const strip = (n: MdNode) => {
@@ -65,7 +68,7 @@ const visible = (text: string, refs: Ref[] = []) => domOf(render(text, refs)).te
 /** 가림 이름(여** 등) — 원문이 별표를 이스케이프(\*)해 글자로 쓴 것 */
 const MASKED = /[가-힣]\*{2,}/g;
 
-describe("답변 무가공 렌더", () => {
+describe("답변 렌더 — 화면 처리 뒤 글자 그대로", () => {
   it("녹화 답변이 있다", () => expect(answers.length).toBeGreaterThan(1));
   for (const a of answers) {
     it(`${a.name} — 글자 동일`, () => {
@@ -80,13 +83,17 @@ describe("답변 무가공 렌더", () => {
       expect(v.replace(MASKED, "")).not.toContain("**");
       for (const m of v.match(MASKED) ?? []) expect(a.text).toContain(m[0] + "\\*".repeat(m.length - 1));
     });
-    it(`${a.name} — 대상 링크 수 = refs 에 있는 고유 표지`, () => {
+    it(`${a.name} — 대상 링크 수 = refs 에 있고 본문 이름이 그 대상과 맞는 표지`, () => {
       const html = render(a.text, a.refs);
       const links = (html.match(/class="ref-link/g) ?? []).length;
-      const have = new Set(a.refs.map((r) => r.ref));
+      const have = new Map(a.refs.map((r) => [r.ref, r]));
       // 코드(백틱) 안의 표지는 마크다운 규칙상 글자 그대로라 링크가 아니다
-      const noCode = a.text.replace(/```[\s\S]*?```/g, "").replace(/`[^`\n]*`/g, "");
-      const marks = [...noCode.matchAll(/\]\(#ref:(r\d+)\)/g)].map((m) => m[1]).filter((r) => have.has(r));
+      const noCode = displayAnswer(a.text).replace(/```[\s\S]*?```/g, "").replace(/`[^`\n]*`/g, "");
+      const marks = [...noCode.matchAll(/\[([^[\]]*)\]\(#ref:(r\d+)\)/g)].filter(([, label, id]) => {
+        const r = have.get(id);
+        const shown = label.replace(/\*/g, "");
+        return !!r && (isRefId(shown) || sameThing(shown, r));
+      });
       expect(links).toBe(marks.length);
     });
   }

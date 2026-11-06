@@ -9,7 +9,8 @@ import { REGIONS } from "@/lib/config";
 import { api } from "@/lib/api";
 import type { Citation } from "@/lib/contract/agent";
 import { activeAdvisories, advName, warningsPayload } from "@/lib/wxref";
-import { baseName, baseTarget, type BaseRegion } from "@/lib/baseRegion";
+import { baseName, basePilot, baseTarget, type BaseRegion } from "@/lib/baseRegion";
+import { WX_ASK_EVENT, takeWxAsk, wxAskQuestion, type WxAskRequest } from "@/lib/wxAsk";
 import { SOURCE_LABEL, type JobSummary, type T3qRef } from "@/lib/jobTypes";
 import { ExploreContext, type ExploreApi, type PanelTab } from "@/components/explore/ExploreCtx";
 import RightPanel from "@/components/explore/RightPanel";
@@ -173,15 +174,16 @@ function Explore() {
   }, []);
   const current = (id: string) => latest.current.get(id) ?? (convRef.current?.id === id ? convRef.current : null) ?? sRef.current.convs.find((c) => c.id === id) ?? null;
 
-  /** 턴 붙이기 — baseId 가 없으면 새 대화 */
+  /** 턴 붙이기 — baseId 가 없으면 새 대화. area = 새 대화의 기준지역(이 질문에만 실은 기준지역 — 「이 특보로 질의」, 없으면 세션 기준지역) */
   const appendTurns = useCallback(
-    (title: string, add: Turn[], baseId: string | null) => {
+    (title: string, add: Turn[], baseId: string | null, area?: BaseRegion | null) => {
       const now = new Date().toISOString();
       const base = baseId ? current(baseId) : null;
+      const own = area !== undefined;
       const c: Conversation = base
         ? { ...base, turns: [...base.turns, ...add], updatedAt: now }
         : {
-            id: uid("c"), title: title.slice(0, 60), region: sRef.current.cond.region, baseName: baseName(sRef.current.cond.base),
+            id: uid("c"), title: title.slice(0, 60), region: own ? basePilot(area) : sRef.current.cond.region, baseName: baseName(own ? area : sRef.current.cond.base),
             disasterType: sRef.current.cond.disasterType, createdAt: now, updatedAt: now, turns: add, v: 2,
           };
       return commit(c, !baseId);
@@ -217,11 +219,13 @@ function Explore() {
   const ask = useCallback(
     async (a: AskArgs, extra?: Partial<Turn>, newConv = false) => {
       const open = convRef.current;
-      const moved = !newConv && otherBase(open, sRef.current.cond.base);
+      // 이 질문에만 실은 기준지역(「이 특보로 질의」 — a.base)이 있으면 그 지역으로 대화를 가린다(R32 대화 하나는 기준지역 하나)
+      const area = a.base !== undefined ? a.base : sRef.current.cond.base;
+      const moved = !newConv && otherBase(open, area);
       if (moved) sRef.current.toast(`기준지역이 이 대화(${open?.baseName})와 달라 새 대화로 보냅니다.`);
       const tid = uid("t");
       const t: Turn = { id: tid, jobId: "", pending: true, q: a.question, source: a.source, libraryId: a.libraryId ?? null, at: new Date().toISOString(), args: a, ...extra };
-      const c = appendTurns(a.question, [t], newConv || moved ? null : open?.id ?? null);
+      const c = appendTurns(a.question, [t], newConv || moved ? null : open?.id ?? null, a.base);
       return submitInto(c.id, tid, a, c.turns.length);
     },
     [appendTurns, submitInto],
@@ -248,6 +252,19 @@ function Explore() {
       { question: q, source: still ? "QUICK" : "USER", warnings: still ? warningsPayload(s.weather, [still]) : null },
       still ? { refAdv: { type: still.type, level: still.level, area: still.area, issuedAt: still.issuedAt, ...(still.scenario ? { scenario: true } : {}) } } : undefined,
     );
+  };
+  /**
+   * 특보 상세 「이 특보로 질의」(lib/wxAsk) — 특보 종류·단계를 조건에 넣고(세션 조건에도 남긴다) 그 특보가 걸린 행정구역으로 바로 묻는다(개발 서버 kjw 998facb).
+   * 세션 기준지역은 바꾸지 않는다 — 그 질문 하나에만 싣는다(r.base 가 없으면 지금 기준지역). 특보는 원문 그대로 함께 보낸다(특보로 질문과 같은 QUICK)
+   */
+  const askWx = (r: WxAskRequest) => {
+    const a = r.adv;
+    const patch = { warningKind: a.type, warningLevel: a.level === "경보" || a.level === "주의보" ? a.level : undefined };
+    s.setCond(patch);
+    return ask(
+      { question: wxAskQuestion(a), source: "QUICK", warnings: warningsPayload(s.weather, [a]), condPatch: patch, ...(r.base !== undefined ? { base: r.base } : {}) },
+      { refAdv: { type: a.type, level: a.level, area: a.area, issuedAt: a.issuedAt, ...(a.scenario ? { scenario: true } : {}) } },
+    ).catch(toastErr);
   };
   const askLib = (q: LibraryQuestion, source: "LIBRARY" | "BRIEFING" = "LIBRARY") =>
     ask({ question: fillText(q, regionName), source, libraryId: q.id, quickQueryId: q.quickQueryId ?? null, warnings: source === "BRIEFING" && s.aimOn ? liveWarnings() : null }, undefined, source === "BRIEFING").catch(toastErr);
@@ -299,7 +316,7 @@ function Explore() {
         if (!t.args) return;
         const c = current(convId);
         // 지금 기준지역으로 보내게 되므로 — 이 대화를 시작한 기준지역과 다르면 다시 보내지 않는다(R32 대화 하나는 기준지역 하나)
-        if (otherBase(c, sRef.current.cond.base)) return sRef.current.toast(`기준지역이 이 대화(${c?.baseName})와 달라 다시 보낼 수 없습니다.`);
+        if (otherBase(c, t.args.base !== undefined ? t.args.base : sRef.current.cond.base)) return sRef.current.toast(`기준지역이 이 대화(${c?.baseName})와 달라 다시 보낼 수 없습니다.`);
         patchTurn(convId, t.id, { pending: true, error: undefined });
         await submitInto(convId, t.id, t.args, (c?.turns.findIndex((x) => x.id === t.id) ?? 0) + 1).catch(toastErr);
         return;
@@ -323,12 +340,18 @@ function Explore() {
   askBriefRef.current = askBrief;
   const askRef = useRef(ask);
   askRef.current = ask;
+  const askWxRef = useRef(askWx);
+  askWxRef.current = askWx;
   useEffect(() => {
     const onBrief = () => briefRef.current().catch(toastErr);
     const onAsk = (e: Event) => { const d = (e as CustomEvent<{ q: string; preset?: string }>).detail; askBriefRef.current(d.q, d.preset); };
+    // 특보 상세 「이 특보로 질의」 — 다른 화면에서 맡기고 옮겨 왔으면 처음 그릴 때 받아 간다
+    const onWx = () => { const r = takeWxAsk(); if (r) void askWxRef.current(r); };
+    onWx();
     window.addEventListener("sa:briefing", onBrief);
     window.addEventListener("sa:ask-brief", onAsk);
-    return () => { window.removeEventListener("sa:briefing", onBrief); window.removeEventListener("sa:ask-brief", onAsk); };
+    window.addEventListener(WX_ASK_EVENT, onWx);
+    return () => { window.removeEventListener("sa:briefing", onBrief); window.removeEventListener("sa:ask-brief", onAsk); window.removeEventListener(WX_ASK_EVENT, onWx); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const handledQ = useRef<string | null>(null);
@@ -450,7 +473,8 @@ function Explore() {
                     <BriefBoard
                       turns={b.turns}
                       regionName={conv.baseName ?? (conv.region === "national" ? "전국" : (REGIONS[conv.region]?.name ?? regionName))}
-                      renderBody={(t) => <TurnBody t={t} compact onRetry={() => retryTurn(conv.id, t)} />}
+                      renderBody={(t, large) => <TurnBody t={t} compact={!large} inBrief onRetry={() => retryTurn(conv.id, t)} />}
+                      onRetry={(t) => retryTurn(conv.id, t)}
                     />
                   </section>
                 ) : (
@@ -530,14 +554,14 @@ function Explore() {
 }
 
 /** 한 턴의 본문 — 보내는 중 · 접수 실패 · 자동 조회 데이터(있으면) + 에이전트 답 */
-function TurnBody({ t, compact, onRetry }: { t: Turn; compact?: boolean; onRetry: () => void }) {
+function TurnBody({ t, compact, inBrief, onRetry }: { t: Turn; compact?: boolean; inBrief?: boolean; onRetry: () => void }) {
   const s = useSession();
   if (t.error)
     return (
       <div className="acard err">
         <div className="acard-h"><b>재난안전 AI</b> <span className="badge danger">접수 실패</span></div>
         <div className="s" style={{ marginTop: 8 }}>{t.error}</div>
-        <div className="row" style={{ marginTop: 10 }}><button className="btn sm primary" onClick={onRetry}>다시 보내기</button></div>
+        {!inBrief && <div className="row" style={{ marginTop: 10 }}><button className="btn sm primary" onClick={onRetry}>다시 보내기</button></div>}
       </div>
     );
   if (t.pending || !t.jobId) return <div className="acard loading" aria-busy="true"><span className="ai-dot spin" /> 질문을 보내는 중…</div>;
@@ -547,7 +571,7 @@ function TurnBody({ t, compact, onRetry }: { t: Turn; compact?: boolean; onRetry
   return (
     <>
       {full?.preview && full.preview.length > 0 && <DataCard items={full.preview} />}
-      <AnswerCard job={job} full={full} compact={compact} />
+      <AnswerCard job={job} full={full} compact={compact} noActions={inBrief} />
     </>
   );
 }

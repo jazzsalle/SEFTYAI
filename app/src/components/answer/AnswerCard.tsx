@@ -3,7 +3,8 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { api } from "@/lib/api";
 import { useSession } from "@/lib/session";
 import { isActive, receivedAt, STATE_LABEL, type JobFull, type JobSummary, type T3qRef, type WxSeen } from "@/lib/jobTypes";
-import { gapName, GAP_KO, statusKo } from "@/lib/labels";
+import { statusKo } from "@/lib/labels";
+import { ANSWER_FAILED, failureText } from "@/lib/answerText";
 import { fmtAgo, fmtElapsed, fmtRunning } from "@/lib/format";
 import { activeAdvisories, advLabel, advTime } from "@/lib/wxref";
 import { legacyAdvIds, seenArea, wxCovers, wxTargetOfT3q, type WxTarget } from "@/lib/wxMatch";
@@ -19,10 +20,11 @@ import "./answer.css";
 export { entityLabel } from "./Markdown";
 
 /**
- * 에이전트 답 카드 (Figma 203001 · 시각 설계 08 C·D — 적용 범위 R25) — T3Q 원응답(raw)을 그대로 보인다(R0·R5).
+ * 에이전트 답 카드 (Figma 203001 · 시각 설계 08 C·D — 적용 범위 R25) — 답 글은 개발서버와 같은 화면 처리를 거쳐 그린다(lib/answerText, 사용자 결정 2026-11-06).
  * 진행 중: 경과 시계(「1분 45초째」)·취소 / 완료: 머리(처리 시간 = 제공처 meta.elapsed_ms · 도구: 답변 대상 거르기·답변 복사) ·
- * 주의(재사용 D5 · 받은 뒤 특보 C9 · 경고·정보 부족 바로가기 — 있을 때만) · 마크다운 · 답변 대상(refs 순서 그대로, 종류 거르기 C3) ·
- * 경고·정보 부족·한계(제자리, 문구 그대로) · 원문 보기·복사(C10) · 평가 · 이어서 묻기.
+ * 주의(재사용 D5 · 받은 뒤 특보 C9 · 경고 바로가기 — 있을 때만) · 마크다운 · 답변 대상(refs 순서 그대로, 종류 거르기 C3) ·
+ * 경고(제자리, 문구 그대로 — 정보 부족·한계는 개발서버처럼 내지 않음) · 원문 보기·복사(C10, 받은 글 그대로) · 평가 · 이어서 묻기.
+ * 받지 못한 답은 정해 둔 안내 문구만(개발서버 agentRun describe — 기술 사유는 내지 않음).
  * 유엔이가 센 값·설명 문구는 두지 않는다.
  */
 
@@ -84,14 +86,15 @@ const advText = (a: Advisory) => `${a.area} ${advLabel(a)} ${advTime(a.issuedAt)
 /** 「이전 답변 재사용」 띠·머리의 처리 시간 — 끔(사용자 지시 2026-11-02 — 시연) */
 const SHOW_REUSE = false;
 
-type CardProps = { job: JobSummary; full: JobFull | undefined; compact?: boolean };
+/** noActions — 브리핑 항목 카드처럼 머리에 취소·다시 시도 단추가 따로 있는 자리에서는 카드 안 단추를 뺀다 */
+type CardProps = { job: JobSummary; full: JobFull | undefined; compact?: boolean; noActions?: boolean };
 
 /** 작업이 바뀌면(다시 질의·새로 받기) 카드 상태를 새로 시작한다 */
 export default function AnswerCard(props: CardProps) {
   return <Card key={props.job.id} {...props} />;
 }
 
-function Card({ job, full, compact }: CardProps) {
+function Card({ job, full, compact, noActions }: CardProps) {
   const s = useSession();
   const x = useExplore();
   const raw = full?.raw ?? null;
@@ -136,9 +139,9 @@ function Card({ job, full, compact }: CardProps) {
           </div>
         )}
         {ms > 600_000 && <div className="notice warn" style={{ marginTop: 8 }}>10분이 지났습니다. 계속 기다리거나 취소할 수 있습니다(15분이 지나면 자동으로 끝냅니다).</div>}
-        <div className="row" style={{ marginTop: 10 }}>
+        {!noActions && <div className="row" style={{ marginTop: 10 }}>
           <button className="btn sm" onClick={() => s.cancel(job.id).catch(() => s.toast("취소하지 못했습니다."))}>질의 취소</button>
-        </div>
+        </div>}
       </div>
     );
   }
@@ -146,22 +149,21 @@ function Card({ job, full, compact }: CardProps) {
   // 완료됐지만 원응답을 아직 못 받은 경우 — 실패가 아니라 불러오는 중
   if (job.state === "DONE" && !raw) return <div className="acard loading" aria-busy="true"><span className="ai-dot spin" /> 답변을 불러오는 중…</div>;
   if (job.state !== "DONE" || !raw) {
-    const msg = job.state === "LOST" ? "에이전트 서버가 다시 시작되어 작업이 사라졌습니다." : job.state === "TIMEOUT" ? "15분 안에 답을 받지 못해 끝냈습니다." : job.state === "CANCELLED" ? "취소한 질의입니다." : "답변을 받지 못했습니다.";
+    // 정해 둔 문구만(개발서버와 같은 문장) — 서버가 준 사유·경고 글은 기술 용어가 섞여 내지 않는다
     return (
       <div className="acard err">
         <div className="acard-h"><b>재난안전 AI</b> <span className="badge danger">{STATE_LABEL[job.state]}</span></div>
-        <div className="s" style={{ marginTop: 8 }}>{msg}</div>
-        {raw && <RawFoot raw={raw} />}
-        <div className="row" style={{ marginTop: 10 }}>
+        <div className="s" style={{ marginTop: 8 }}>{failureText(job.state)}</div>
+        {!noActions && <div className="row" style={{ marginTop: 10 }}>
           <button className="btn sm pri" onClick={() => x.retry(job.id)}>다시 질의</button>
-        </div>
+        </div>}
       </div>
     );
   }
 
   const answer = typeof res?.answer === "string" ? res.answer : null;
   const elapsed = raw.meta?.elapsed_ms;
-  const hasNotice = !!(raw.warnings?.length || raw.data_gaps?.length);
+  const hasNotice = !!raw.warnings?.length;
   const noticeId = `notices-${job.id}`;
   const refsId = `refs-${job.id}`;
   const shown = typeF === null ? refs : refs.filter((r) => (r.entity_type ?? "") === typeF);
@@ -248,7 +250,7 @@ function Card({ job, full, compact }: CardProps) {
         </div>
       )}
       {after.length > 0 && <div className="ans-caution" role="note">⚠ 답변을 받은 뒤 특보 발표: {after.map(advText).join(" · ")}</div>}
-      {hasNotice && <button type="button" className="ans-jump" onClick={() => goTo(noticeId, "center")}>경고·정보 부족 보기 ↓</button>}
+      {hasNotice && <button type="button" className="ans-jump" onClick={() => goTo(noticeId, "center")}>경고 보기 ↓</button>}
 
       {/* 그림을 먼저(11/2 행안부 회의 코멘트, 사용자 승인 2026-11-02) — 시연 탭 항목은 미리 만든 시연 자료, 그 밖은 받은 대상·조회 값으로 그린 답변 그림. 답 글·대상은 그대로 */}
       {hasDemoInfographic(job) ? <DemoInfoPanel job={job} /> : <AutoInfoPanel job={job} full={full} />}
@@ -258,7 +260,7 @@ function Card({ job, full, compact }: CardProps) {
           <AnswerMarkdown text={answer} refs={refs} activeRef={activeRef} onRef={(r) => x.showOnMap(job.id, r.ref)} />
         </div>
       ) : (
-        <div className="s muted" style={{ marginTop: 8 }}>답변 글이 없습니다({statusKo(raw.status)}).</div>
+        <div className="s muted" style={{ marginTop: 8 }}>{ANSWER_FAILED}</div>
       )}
       {fold && <button className="lnk s" onClick={() => setFold(false)}>전체 보기 ▼</button>}
 
@@ -358,18 +360,16 @@ function Menu({ label, children }: { label: string; children: (close: () => void
   );
 }
 
-/** 띄우지 않는 T3Q 고정 안내문(사용자 지시 2026-10-28 — 모든 답의 limitations 에 같은 글로 붙어 온다). 다른 한계 문구는 그대로 보인다 */
-const HIDDEN_LIMITATIONS = new Set(["유사사례는 예측·위험판단이 아닌 참고 정보"]);
-
-/** 경고·정보 부족·한계 — T3Q 문구 그대로(제자리). id 를 주면 「경고·정보 부족 보기」 바로가기 대상 */
+/**
+ * 답 아래 경고 — T3Q 문구 그대로(제자리). id 를 주면 「경고 보기」 바로가기 대상.
+ * 정보 부족(data_gaps)·한계(limitations)는 내지 않는다(개발서버 AnswerPanel, 사용자 지시 2026-11-03) — 거의 모든 답에 같은 줄
+ * (「행동매뉴얼 — 원자료에 없음」·「유사사례는 예측·위험판단이 아닌 참고 정보」)이 붙어 읽히지 않고 자리만 차지한다. 원문 보기에는 남는다
+ */
 export function RawFoot({ raw, id }: { raw: NonNullable<JobFull["raw"]>; id?: string }) {
-  const lim = (raw.result?.limitations ?? []).filter((l) => !HIDDEN_LIMITATIONS.has(l.trim()));
-  if (!raw.warnings?.length && !raw.data_gaps?.length && !lim.length) return null;
+  if (!raw.warnings?.length) return null;
   return (
     <div className="gaps" id={id} tabIndex={id ? -1 : undefined}>
-      {raw.warnings?.map((w, i) => <div key={`w${i}`}>· {w.message}</div>)}
-      {raw.data_gaps?.map((g, i) => <div key={`g${i}`}>· 정보 부족: {gapName(g.component)} — {GAP_KO[g.reason] ?? g.reason}</div>)}
-      {lim.map((l, i) => <div key={`l${i}`}>· {l}</div>)}
+      {raw.warnings.map((w, i) => <div key={`w${i}`}>· {w.message}</div>)}
     </div>
   );
 }

@@ -8,6 +8,8 @@
  * - 이름은 T3Q display_name 그대로. 위치 정밀도(precision)가 행정구역 중심이면 점선 원으로 «근사 위치» 표시.
  * - 행정경계는 VWorld WMS. 실패하면 경계 없이 배경지도만 보인다.
  * - 배경지도 VWorld WMTS 가 연속 실패하면 OSM 으로 바꾸고 onTileStatus("osm").
+ * - 일반 ↔ 위성 단추(개발 서버 MapPane 이식, onBasemap 을 줄 때) — 위성은 VWorld Satellite(jpeg) + 이름 겹 Hybrid(png).
+ *   위성 타일이 연속 실패하면 일반지도로 돌아오고 안내 한 줄(OSM 으로 넘기지 않음). OSM 대체 중에는 단추를 막는다.
  * - 설명서 7.5-2: activeJobId 의 대상은 진하게, 다른 답변의 대상은 흐리게.
  * - 범례 거르기(filter): 그 종류만 그리고 그 범위로 맞춤. 선택한 대상은 거르기와 상관없이 보인다.
  * - 선택한 대상은 말풍선 카드(MapPopup)로 — 받은 유형·이름·위치 정밀도만, 동작은 이미 있는 것(답변 목록으로 이동·확대·같은 종류만)만.
@@ -95,6 +97,18 @@ interface Props {
   onFilter?: (key: string | null) => void;
   /** 말풍선의 「답변에서 보기」 — 그 대상이 든 답변으로 이동 */
   onLocate?: (f: MapFeature) => void;
+  /** 주면 지도 위에 일반 ↔ 위성 단추를 둔다(위성 실패 시 "Base" 로 되돌림) */
+  onBasemap?: (b: Basemap) => void;
+}
+
+/** 위성지도 단추 기호 (개발 서버 MapPane SatIcon) */
+function SatIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeWidth="1.8" />
+      <path d="M3 12h18M12 3c2.6 2.6 3.8 5.6 3.8 9s-1.2 6.4-3.8 9c-2.6-2.6-3.8-5.6-3.8-9S9.4 5.6 12 3Z" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+    </svg>
+  );
 }
 
 /* ─── 표식 스타일 ─────────────────────────────────────────────────────────── */
@@ -402,6 +416,9 @@ export default function MapView(p: Props) {
   const [closedKey, setClosedKey] = useState<string | null>(null);
   const closedRef = useRef<string | null>(null);
   closedRef.current = closedKey;
+  // OSM 대체 중(위성 단추 막음) · 위성지도를 못 불러와 일반지도로 돌아옴(안내 한 줄)
+  const [osmOn, setOsmOn] = useState(false);
+  const [satFailed, setSatFailed] = useState(false);
 
   // 초기화 (한 번)
   useEffect(() => {
@@ -422,6 +439,11 @@ export default function MapView(p: Props) {
     let tileOk = 0;
     let tileErr = 0;
     let vwReported = false;
+    // 위성 타일 — 따로 센다. 위성만 안 오면 OSM 이 아니라 일반지도로 돌아간다
+    let satOk = 0;
+    let satErr = 0;
+    let satGaveUp = false;
+    let lastBasemap: Basemap | null = null;
 
     // ── 행정경계: VWorld WMS (실패하면 숨김 → 배경지도만)
     const wms = new TileWMS({
@@ -561,6 +583,15 @@ export default function MapView(p: Props) {
 
     const applyLayers = () => {
       const P = propsRef.current;
+      if (P.basemap !== lastBasemap) {
+        lastBasemap = P.basemap;
+        // 위성을 다시 켜면 처음부터 다시 센다
+        if (P.basemap === "Satellite") {
+          satOk = 0;
+          satErr = 0;
+          satGaveUp = false;
+        }
+      }
       base.setVisible(!osmMode && P.basemap === "Base");
       white.setVisible(!osmMode && P.basemap === "gray");
       sat.setVisible(!osmMode && P.basemap === "Satellite");
@@ -580,7 +611,20 @@ export default function MapView(p: Props) {
       if ((tileOk === 0 && tileErr >= 6) || (tileErr >= 20 && tileErr > tileOk * 2)) {
         osmMode = true;
         applyLayers();
+        setOsmOn(true);
         propsRef.current.onTileStatus?.("osm");
+      }
+    };
+    // 위성 실패 → 일반지도로 (처음 6장 연속 실패, 또는 실패가 성공의 2배를 넘을 때). 되돌릴 길(onBasemap)이 없으면 예전처럼 OSM 판단에 넘긴다
+    const onSatErr = () => {
+      const P = propsRef.current;
+      if (!P.onBasemap) return onTileErr();
+      if (osmMode || satGaveUp || P.basemap !== "Satellite") return;
+      satErr += 1;
+      if ((satOk === 0 && satErr >= 6) || (satErr >= 20 && satErr > satOk * 2)) {
+        satGaveUp = true;
+        setSatFailed(true);
+        P.onBasemap("Base");
       }
     };
     const onTileOk = () => {
@@ -590,11 +634,16 @@ export default function MapView(p: Props) {
         propsRef.current.onTileStatus?.("vworld");
       }
     };
-    for (const l of [base, white, sat]) {
+    for (const l of [base, white]) {
       const s = l.getSource();
       s?.on("tileloaderror", onTileErr);
       s?.on("tileloadend", onTileOk);
     }
+    sat.getSource()?.on("tileloaderror", onSatErr);
+    sat.getSource()?.on("tileloadend", () => {
+      satOk += 1;
+      onTileOk();
+    });
     // 행정경계 실패 → 숨김 (VWorld 는 키 오류도 HTTP 200 + XML 이라 이미지 오류로 잡힌다)
     wms.on("tileloadend", () => {
       wmsOk += 1;
@@ -787,7 +836,10 @@ export default function MapView(p: Props) {
       zoomTo,
     };
     applyLayers();
-    if (osmMode) P0.onTileStatus?.("osm");
+    if (osmMode) {
+      setOsmOn(true);
+      P0.onTileStatus?.("osm");
+    }
     setPopEl(popBox);
     setReady(true);
 
@@ -871,13 +923,40 @@ export default function MapView(p: Props) {
     return `지도 표시 대상 ${list.length}건${list.length < all.length ? `(전체 ${all.length}건 중)` : ""}: ${names.join(", ")}${list.length > 12 ? " 외" : ""}.${selText}`;
   }, [p.features, p.activeJobId, p.selectedKey]);
 
+  // 위성 안내 한 줄 — 8초 뒤 거둔다(다시 위성을 켜도 거둔다)
+  useEffect(() => {
+    if (!satFailed) return;
+    const t = window.setTimeout(() => setSatFailed(false), 8000);
+    return () => window.clearTimeout(t);
+  }, [satFailed]);
+
   const selFeature = p.selectedKey ? p.features.find((f) => f.key === p.selectedKey) : undefined;
+  const satOn = p.basemap === "Satellite";
   const popOpen = !!selFeature && closedKey !== selFeature.key && p.layers.features;
 
   return (
     <div className="sa-map olmap" role="region" aria-label="지도">
       <div ref={el} className="sa-map-canvas" />
       <p className="sa-map-sr" aria-live="polite">{sr}</p>
+      {p.onBasemap && (
+        <button
+          type="button"
+          className={`sa-map-sat${satOn && !osmOn ? " is-on" : ""}`}
+          aria-pressed={satOn && !osmOn}
+          disabled={osmOn}
+          title={osmOn ? "배경지도를 대체 지도로 보이는 중이라 위성지도를 쓸 수 없습니다" : satOn ? "일반지도로 보기" : "위성지도로 보기"}
+          onClick={() => {
+            setSatFailed(false);
+            p.onBasemap?.(satOn ? "Base" : "Satellite");
+          }}
+        >
+          <SatIcon />
+          <span>위성</span>
+        </button>
+      )}
+      {satFailed && (
+        <p className="sa-map-msg" role="status">위성지도를 불러오지 못해 일반지도로 돌아왔습니다. 잠시 후 다시 확인하세요.</p>
+      )}
       {popEl && popOpen && selFeature && createPortal(
         <MapPopup
           key={selFeature.key}

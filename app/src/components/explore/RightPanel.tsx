@@ -96,6 +96,7 @@ function MapPanel(p: Props) {
         filter={filter}
         onFilter={setFilter}
         onLocate={locate}
+        onBasemap={setBasemap}
       />
       {tile === "osm" && <div className="map-note">배경지도(VWorld)를 불러오지 못해 OpenStreetMap 으로 표시합니다.</div>}
       <div className="map-tools">

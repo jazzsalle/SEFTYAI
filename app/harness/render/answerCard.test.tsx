@@ -122,12 +122,14 @@ describe("답변 카드 — 받은 값만, 센 값·설명 없음", () => {
     expect(container.querySelector("[title*='24시간']")).toBeNull();
   });
 
-  it("경고·정보 부족이 있으면 답 위에 바로가기(개수 없음) — 알림은 제자리(답변 대상 아래), T3Q 고정 안내문 한 줄은 띄우지 않음(사용자 지시)", () => {
+  it("경고가 있으면 답 위에 바로가기(개수 없음) — 경고는 제자리(답변 대상 아래), 정보 부족·한계는 내지 않음(개발서버와 같이)", () => {
     const job = makeJob();
-    const { container } = wrap(<AnswerCard job={job} full={makeFull(job)} />);
-    const jump = screen.getByRole("button", { name: "경고·정보 부족 보기 ↓" });
+    const full = makeFull(job, makeRaw({ warnings: [{ code: "W1", message: "일부 자료는 지난달 기준입니다" }] }));
+    const { container } = wrap(<AnswerCard job={job} full={full} />);
+    const jump = screen.getByRole("button", { name: "경고 보기 ↓" });
     const gaps = container.querySelector(".gaps")!;
-    expect(gaps.textContent).toContain("정보 부족: 행동매뉴얼 — 원자료에 없음");
+    expect(gaps.textContent).toBe("· 일부 자료는 지난달 기준입니다");
+    expect(container.textContent).not.toContain("정보 부족");
     expect(container.textContent).not.toContain("유사사례는 예측·위험판단이 아닌 참고 정보");
     expect(container.querySelector(".refbox")!.compareDocumentPosition(gaps) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(jump.compareDocumentPosition(container.querySelector(".md")!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
@@ -136,10 +138,65 @@ describe("답변 카드 — 받은 값만, 센 값·설명 없음", () => {
     expect(document.activeElement).toBe(gaps);
   });
 
-  it("한계만 있으면(경고·정보 부족 없음) 바로가기를 두지 않는다", () => {
+  it("정보 부족·한계만 있으면(경고 없음) 바로가기도 알림 줄도 두지 않는다 — 원문 보기에는 남는다", () => {
     const job = makeJob();
-    wrap(<AnswerCard job={job} full={makeFull(job, makeRaw({ data_gaps: [] }))} />);
-    expect(screen.queryByRole("button", { name: /경고·정보 부족 보기/ })).toBeNull();
+    const lim = makeRaw();
+    lim.result!.limitations = ["이 답은 2025년 자료까지만 봅니다"];
+    const { container } = wrap(<AnswerCard job={job} full={makeFull(job, lim)} />);
+    expect(screen.queryByRole("button", { name: /경고 보기/ })).toBeNull();
+    expect(container.querySelector(".gaps")).toBeNull();
+    expect(container.textContent).not.toContain("2025년 자료까지만");
+  });
+
+  it("받지 못한 답은 정해 둔 문구만 — 시간 초과·취소·그 밖(유실 등)", () => {
+    for (const [state, msg] of [
+      ["TIMEOUT", "질의가 제한 시간을 넘겼습니다. 조건을 좁혀 다시 시도하세요."],
+      ["CANCELLED", "질의를 취소했습니다."],
+      ["LOST", "답변을 불러오지 못했습니다."],
+      ["FAILED", "답변을 불러오지 못했습니다."],
+    ] as const) {
+      const job = makeJob({ state: state as JobSummary["state"] });
+      const raw = makeRaw({ status: "UPSTREAM_ERROR", warnings: [{ code: "E", message: "upstream HTTP 502" }] });
+      const { container } = wrap(<AnswerCard job={job} full={makeFull(job, raw)} />);
+      expect(container.querySelector(".acard.err")!.textContent).toContain(msg);
+      expect(container.textContent).not.toContain("502");
+      cleanup();
+    }
+  });
+
+  it("완료됐는데 답 글이 없으면 「답변을 불러오지 못했습니다.」", () => {
+    const job = makeJob();
+    const raw = makeRaw({ status: "NO_RESULT", result: { refs: [] } });
+    const { container } = wrap(<AnswerCard job={job} full={makeFull(job, raw)} />);
+    expect(container.textContent).toContain("답변을 불러오지 못했습니다.");
+  });
+
+  it("답 글은 화면 처리(DB 표 이름·정비 내용 칸), 원문 보기·마크다운 원문 복사는 받은 글 그대로", async () => {
+    const job = makeJob();
+    const text = "침수흔적(`flood.trace`) 기준입니다.\n\n| 지구 | 주요 정비 내용 | 등급 |\n|---|---|---|\n| [범일2](#ref:r2) | 우수관로 정비 | 가 |";
+    const raw = makeRaw({ result: { answer: text, refs } });
+    const { container } = wrap(<AnswerCard job={job} full={makeFull(job, raw)} />);
+    const md = container.querySelector(".md")!;
+    expect(md.textContent).toContain("침수흔적 기준입니다.");
+    expect(md.textContent).not.toContain("flood.trace");
+    expect([...md.querySelectorAll("th")].map((t) => t.textContent)).toEqual(["지구", "등급"]);
+    fireEvent.click(screen.getByRole("button", { name: "원문 보기" }));
+    expect(container.querySelector(".rawbox")!.textContent).toBe(text);
+    fireEvent.click(screen.getByRole("button", { name: "마크다운 원문 복사" }));
+    expect(writeText).toHaveBeenLastCalledWith(text);
+  });
+
+  it("답 글 속 대상 이름을 누르면 지도가 그 대상으로 — 번호가 다른 이름에 붙은 링크는 글자", () => {
+    const job = makeJob();
+    const text = "[초량제1지하차도](#ref:r1) 와 [엉뚱한 곳](#ref:r3) · [#ref:r2](#ref:r2)";
+    const { container } = wrap(<AnswerCard job={job} full={makeFull(job, makeRaw({ result: { answer: text, refs } }))} />);
+    const links = [...container.querySelectorAll(".md button.ref-link")];
+    expect(links.map((b) => b.textContent)).toEqual(["초량제1지하차도", "범일2"]);
+    expect(container.querySelector(".md")!.textContent).toContain("엉뚱한 곳");
+    fireEvent.click(links[0]);
+    expect(x.showOnMap).toHaveBeenLastCalledWith("job-1", "r1");
+    fireEvent.click(links[1]);
+    expect(x.showOnMap).toHaveBeenLastCalledWith("job-1", "r2");
   });
 });
 

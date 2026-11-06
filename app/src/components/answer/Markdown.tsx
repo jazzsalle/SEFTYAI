@@ -5,14 +5,17 @@ import remarkGfm from "remark-gfm";
 // 읽기(마크다운 → 나무)만 쓴다 — 같은 꾸러미의 읽기 전용 입구(쓰기 확장은 번들에 넣지 않음)
 import remarkCjkFriendly from "remark-cjk-friendly/parseOnly";
 import type { T3qRef } from "@/lib/jobTypes";
+import { displayAnswer, isRefId, mappable, sameThing } from "@/lib/answerText";
 import "./answer.css";
 
 /**
- * T3Q 답변 마크다운 무가공 렌더러 (R0·R5, 설계 §6 · 시각 설계 08 C — 적용 범위 R25)
- * - 글자는 한 자도 바꾸지 않는다. 마크다운 뜻대로만 그린다(GFM 표·목록·인용·코드).
+ * T3Q 답변 마크다운 렌더러 (R5, 설계 §6 · 시각 설계 08 C — 적용 범위 R25)
+ * - 그리기 전에 개발서버와 같은 화면 처리(lib/answerText displayAnswer — 사용자 결정 2026-11-06): 내부 DB 표 이름·표의 「정비 내용」 칸·대상 링크 이름의 대괄호를 걷는다.
+ *   그 밖의 글자는 바꾸지 않고 마크다운 뜻대로만 그린다(GFM 표·목록·인용·코드). 받은 글 그대로는 카드의 원문 보기·마크다운 원문 복사에서.
  * - 굵게·기울임은 CJK 친화 구분자 규칙(remark-cjk-friendly, G5) — 「…저지대)**입니다」처럼 한글 옆 별표도 글쓴이 뜻대로 굵게. 글자는 그대로.
  * - raw HTML 가운데 <br>·<br/>·<br /> 만 줄바꿈으로 그린다. 그 밖의 HTML 은 태그로 실행하지 않고 글자 그대로 보인다(rehype-raw 없음).
  * - `[이름](#ref:rN)` 은 refs 에 rN 이 있을 때만 대상 링크(파랑 글자 + 1px 점선 밑줄, 기호 없음, 고르면 옅은 바탕). 없으면 링크 아닌 글자(설명서 7.3 — 서버도 미리 벗김).
+ *   개발서버처럼 본문 이름과 refs 이름이 같은 것일 때만 링크(번호를 엉뚱하게 단 링크는 글자로), 위치 없음으로 짚힌 대상도 글자. 본문이 번호 그 자체(#ref:r1)면 그 대상 이름으로 적는다.
  * - http(s) 링크만 새 창. 그 밖의 링크·이미지는 글자로.
  * - 물결 한 개(~)는 취소선으로 바꾸지 않는다(0~20점 같은 범위 표기 보존) — 취소선은 ~~ 두 개만.
  * - 번호 목록은 T3Q 가 쓴 번호를 그대로(공동 순위 "6. … 9." 가 브라우저 번호로 바뀌지 않게).
@@ -211,16 +214,20 @@ const MdCtx = createContext<MdCtxValue | null>(null);
 
 const refTitle = (r: T3qRef) => [r.display_name, r.entity_type ? ENTITY_LABEL[r.entity_type] : null].filter(Boolean).join(" · ") || undefined;
 
-function MdLink({ href, children }: ComponentProps<"a"> & ExtraProps) {
+function MdLink({ node, href, children }: ComponentProps<"a"> & ExtraProps) {
   const c = useContext(MdCtx);
-  const m = href?.match(/^#ref:(r\d+)$/);
+  const m = href?.match(/^#ref:([A-Za-z0-9_-]+)$/);
   if (m) {
     const r = c?.byRef.get(m[1]);
-    if (!r) return <>{children}</>;
+    if (!r || !mappable(r)) return <>{children}</>;
+    // 본문 글자와 번호가 가리키는 대상이 같은 것일 때만 — 어긋나면 눌렀을 때 다른 곳이 열린다(개발서버 refMatch)
+    const label = node ? textOf(node as HNode) : "";
+    const asId = isRefId(label);
+    if (!asId && !sameThing(label, r)) return <>{children}</>;
     const on = c?.activeRef === r.ref;
     return (
       <button type="button" className={`ref-link${on ? " on" : ""}`} data-ref={r.ref} aria-pressed={on} title={refTitle(r)} onClick={() => c?.onRef(r)}>
-        {children}
+        {asId ? (r.display_name ?? children) : children}
       </button>
     );
   }
@@ -320,7 +327,9 @@ export function AnswerMarkdown({ text, refs, onRef, activeRef }: { text: string;
   });
   const fire = useCallback((r: T3qRef) => onRefNow.current?.(r), []);
   const byRef = useMemo(() => new Map(refs.map((r) => [r.ref, r])), [refs]);
-  const ctx = useMemo<MdCtxValue>(() => ({ byRef, activeRef: activeRef ?? null, onRef: fire, text }), [byRef, activeRef, fire, text]);
+  // 화면 처리를 거친 글 — 목록 표지(MdLi)도 이 글의 자리로 읽는다
+  const shown = useMemo(() => displayAnswer(text), [text]);
+  const ctx = useMemo<MdCtxValue>(() => ({ byRef, activeRef: activeRef ?? null, onRef: fire, text: shown }), [byRef, activeRef, fire, shown]);
   const body = useMemo(
     () => (
       <ReactMarkdown
@@ -332,10 +341,10 @@ export function AnswerMarkdown({ text, refs, onRef, activeRef }: { text: string;
         disallowedElements={[]}
         urlTransform={keepUrl}
       >
-        {text}
+        {shown}
       </ReactMarkdown>
     ),
-    [text],
+    [shown],
   );
   return (
     <div className="md">

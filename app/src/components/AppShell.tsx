@@ -10,6 +10,7 @@ import { SCN_CUT_LABEL, SCN_LABEL } from "@/lib/scenario";
 import { wxCovers } from "@/lib/wxMatch";
 import { baseKey, baseName, baseTarget } from "@/lib/baseRegion";
 import BasePicker from "./BasePicker";
+import WxDetailModal from "./wx/WxDetailModal";
 import { SopProvider } from "@/lib/sopState";
 import SopBar from "./sop/SopBar";
 
@@ -41,6 +42,8 @@ export function WxBar() {
   const router = useRouter();
   // 펼친 목록 — "ask" = [특보로 질문] 고르기, "all" = [모두 보기] 발효 특보 전체
   const [pop, setPop] = useState<"ask" | "all" | null>(null);
+  // 기상특보 상세 창(components/wx/WxDetailModal — 발효 특보·상태 이력·전국·통보문, [조건에 반영]·[이 특보로 질의])
+  const [detail, setDetail] = useState(false);
   const barRef = useRef<HTMLDivElement>(null);
   const bk = baseKey(cond.base);
   const national = !cond.base;
@@ -144,6 +147,8 @@ export function WxBar() {
       )}
       <span className="meta">{meta}</span>
       <span className="sp" />
+      <button type="button" className="btn ghost sm wxdetail" onClick={() => { setPop(null); setDetail(true); }} aria-haspopup="dialog">특보 상세</button>
+      {detail && <WxDetailModal mine={mine} onClose={() => setDetail(false)} />}
       <div className="wxask">
         <button
           className={`btn ghost sm ${wxRef ? "on" : ""}`}

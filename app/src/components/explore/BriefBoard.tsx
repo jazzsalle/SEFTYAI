@@ -15,6 +15,9 @@ import "./brief.css";
  * 상태는 작업 상태를 합치지 않고 그대로(대기 중·보내는 중·생성 중·완료·일부 제공·오류·시간 초과·유실·취소됨·접수 실패).
  * 유엔이가 센 값·설명 문구·핵심 결과 한 줄·공통 한계 줄 없음(R25).
  * 칸을 누르면 그 항목으로 간다. 현황판이 위로 지나가면 40px 한 줄이 붙는다. 답이 오면 aria-live 로 한 번 알린다.
+ * 항목 카드 머리(개발 서버 BriefingItemCard 이식) — 진행 중이면 [취소](그 항목 하나만), 오류·취소됨이면 [다시 시도](그 항목 하나만),
+ *   답이 오면 [크게 보기] — 그 항목 하나만 펼쳐 읽는 자리(개발 서버 BriefingAnswer). 답 글은 카드 안에서 마크다운 그대로(AnswerCard).
+ *   모든 항목이 실패하면 머리에 [다시 시도](실패한 것 모두 — 개발 서버 BriefingPanel).
  */
 
 /** 브리핑 턴의 묶음 — 보낼 때 항목 이름(브리핑 설정의 「항목 이름」)·기준지역 이름을 함께 둔다(화면 표시용, 보내는 요청에는 넣지 않음) */
@@ -116,8 +119,23 @@ function Marks({ c }: { c: BriefCell }) {
   );
 }
 
-export default function BriefBoard({ turns, regionName, renderBody }: { turns: Turn[]; regionName: string; renderBody: (t: Turn) => ReactNode }) {
+interface BoardProps {
+  turns: Turn[];
+  regionName: string;
+  /** 항목 본문 — large = 「크게 보기」로 그 항목 하나만 펼쳐 볼 때 */
+  renderBody: (t: Turn, large?: boolean) => ReactNode;
+  /** 그 항목만 다시 보내기(접수 실패·오류·시간 초과·유실·취소됨). 없으면 머리의 [다시 시도]를 두지 않는다 */
+  onRetry?: (t: Turn) => void;
+}
+
+/** 머리에서 다시 보낼 수 있는 상태 — 오류 계열·취소됨 */
+const retryable = (k: Kind) => k === "err" || k === "off";
+
+export default function BriefBoard({ turns, regionName, renderBody, onRetry }: BoardProps) {
   const s = useSession();
+  // 「크게 보기」로 연 항목(턴 ID) — 그 항목이 묶음에서 빠지면 저절로 풀린다
+  const [bigId, setBigId] = useState<string | null>(null);
+  const big = bigId ? turns.find((t) => t.id === bigId) ?? null : null;
   const [now, setNow] = useState(() => Date.now());
   const [stuck, setStuck] = useState(false);
   const [ovf, setOvf] = useState(false);
@@ -233,16 +251,68 @@ export default function BriefBoard({ turns, regionName, renderBody }: { turns: T
     el.querySelector<HTMLElement>(".brief-item-h")?.focus({ preventScroll: true });
   };
 
+  const cellOf = (id: string) => cells.find((c) => c.id === id);
+  // 모든 항목이 실패(진행 중 없음·답 없음) — 실패한 것 모두 다시 보내기(개발 서버 BriefingPanel 의 allFailed)
+  const allFailed = !!onRetry && cells.length > 0 && cells.every((c) => retryable(c.kind));
+  const retryAll = () => {
+    if (!onRetry) return;
+    for (const t of turns) if (retryable(cellOf(t.id)?.kind ?? "wait")) onRetry(t);
+  };
+  const cancel = (jobId: string) => s.cancel(jobId).catch(() => s.toast("취소하지 못했습니다."));
+  const open = (id: string | null) => {
+    const back = bigId;
+    setBigId(id);
+    // 열면 그 항목 머리로, 닫으면 보던 항목으로 — 화면이 엉뚱한 자리에 남지 않게
+    window.requestAnimationFrame(() => {
+      const el = items.current.get(id ?? back ?? "");
+      el?.scrollIntoView({ block: "start" });
+      el?.querySelector<HTMLElement>(".brief-item-h")?.focus({ preventScroll: true });
+    });
+  };
+
+  /** 항목 머리 오른쪽 단추 — 상태마다 하나(개발 서버 BriefingItemCard) */
+  const tools = (t: Turn) => {
+    const c = cellOf(t.id);
+    if (!c) return null;
+    const job = t.jobId ? s.jobs[t.jobId] : undefined;
+    const label = `${c.no}번${c.label ? ` ${c.label}` : ""}`;
+    return (
+      <span className="brief-item-tools">
+        {c.kind === "run" && job && isActive(job.state) && (
+          <button type="button" className="btn xs" onClick={() => cancel(job.id)} aria-label={`${label} 취소`}>취소</button>
+        )}
+        {retryable(c.kind) && onRetry && (
+          <button type="button" className="btn xs pri" onClick={() => onRetry(t)} aria-label={`${label} 다시 시도`}>다시 시도</button>
+        )}
+        {c.answered && big?.id !== t.id && (
+          <button type="button" className="btn xs line" onClick={() => open(t.id)} aria-label={`${label} 크게 보기`}>크게 보기</button>
+        )}
+      </span>
+    );
+  };
+
   return (
-    <div className="brief-card">
+    <div className={`brief-card${big ? " is-big" : ""}`}>
       <div className="brief-card-h">
-        <h2>현재 상황 브리핑</h2>
+        <div className="brief-card-row">
+          <h2>현재 상황 브리핑</h2>
+          {allFailed && !big && <button type="button" className="btn sm pri" onClick={retryAll}>다시 시도</button>}
+        </div>
         <div className="xs muted">
           기준지역 <b>{groupOf(turns[0])?.region ?? regionName}</b>
           {turns.some((t) => t.jobId && sentWithScenario(s.full[t.jobId]?.request)) && ` · ${SCN_SENT_LABEL}`}
         </div>
       </div>
-      <div className="bb" ref={boardRef}>
+      {/* 「크게 보기」 — 그 항목 하나만. 묶음으로 돌아가는 길을 머리에 둔다(개발 서버 BriefingAnswer 의 「← 브리핑」) */}
+      {big && (
+        <div className="brief-big-bar">
+          <button type="button" className="btn sm" onClick={() => open(null)}>
+            <span aria-hidden="true">←</span> 브리핑 전체 보기
+          </button>
+          <span className="xs muted">{cellOf(big.id)?.no}번{cellOf(big.id)?.label ? ` ${cellOf(big.id)?.label}` : ""} 크게 보기</span>
+        </div>
+      )}
+      <div className="bb" ref={boardRef} hidden={!!big}>
         <ul className="bb-cells" role="list" aria-label="브리핑 현황">
           {cells.map((c) => (
             <li key={c.id}>
@@ -266,7 +336,7 @@ export default function BriefBoard({ turns, regionName, renderBody }: { turns: T
         <div className="sr-only" aria-live="polite" aria-atomic="true">{live}</div>
       </div>
       {/* 접힌 한 줄 — 현황판과 같은 내용의 마우스용 바로가기(읽기 도구는 위 현황판을 읽는다) */}
-      <div className={`bb-mini${stuck ? " on" : ""}${ovf ? " ovf" : ""}`} aria-hidden="true">
+      <div className={`bb-mini${stuck && !big ? " on" : ""}${ovf ? " ovf" : ""}`} aria-hidden="true">
         <b className="bb-mini-lab">브리핑</b>
         <div className="bb-mini-in" ref={miniIn}>
           {cells.map((c) => (
@@ -286,7 +356,8 @@ export default function BriefBoard({ turns, regionName, renderBody }: { turns: T
       {turns.map((t) => (
         <div
           key={t.id}
-          className="brief-item"
+          hidden={!!big && big.id !== t.id}
+          className={`brief-item${big?.id === t.id ? " big" : ""}`}
           id={t.jobId ? `job-${t.jobId}` : undefined}
           data-brief-item={t.id}
           ref={(el) => {
@@ -296,8 +367,9 @@ export default function BriefBoard({ turns, regionName, renderBody }: { turns: T
         >
           <div className="brief-item-h" tabIndex={-1}>
             <span className="num">{t.group?.no}</span> <b>{t.q}</b>
+            {tools(t)}
           </div>
-          {renderBody(t)}
+          {renderBody(t, big?.id === t.id)}
         </div>
       ))}
     </div>

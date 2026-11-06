@@ -1,0 +1,55 @@
+/* 기상특보 상세 창 (components/wx/WxDetailModal) — 특보는 노랑(주의) 계열, 경보 빨강은 기존 특보 표지(.lvb.w)만 */
+.modal.wxd { width: min(860px, 100%); }
+.wxd .modal-hd { gap: 8px; }
+.wxd-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px 12px; border-radius: var(--r-m); background: var(--c-surface); border: 1px solid var(--c-line); }
+.wxd-region { font-size: var(--fs-s); }
+.wxd-src { font-size: var(--fs-xs); color: var(--c-sub); }
+.wxd-src.warn { color: var(--c-mute); }
+.wxd-sec { margin-top: 18px; }
+.wxd-sec > h3 { font-size: var(--fs-s); padding-bottom: 6px; border-bottom: 2px solid var(--c-line); margin-bottom: 6px; }
+.wxd-empty { padding: 8px 2px; font-size: var(--fs-xs); color: var(--c-sub); }
+.wxd-note { margin-top: 6px; font-size: var(--fs-2xs); color: var(--c-mute); }
+.wxd-alarm { margin-top: 4px; padding: 8px 10px; border-radius: var(--r-s); background: var(--c-warn-sub); color: var(--c-warn-dk); font-size: var(--fs-xs); }
+.wxd-tag { margin-left: 6px; font-size: 11px; font-weight: 700; color: var(--c-sub); border: 1px solid var(--c-bd); border-radius: 3px; padding: 0 4px; background: #fff; }
+.wxd-list, .wxd-steps, .wxd-all, .wxd-msgs { list-style: none; margin: 0; padding: 0; }
+.wxd-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 4px; border-bottom: 1px solid var(--c-line); }
+.wxd-item .lvb { margin-top: 2px; }
+.wxd-body { flex: 1; min-width: 0; }
+.wxd-area { font-weight: 700; font-size: var(--fs-xs); line-height: 1.5; word-break: keep-all; overflow-wrap: anywhere; }
+.wxd-meta { margin-top: 2px; font-size: var(--fs-2xs); color: var(--c-mute); }
+.wxd-acts { flex: none; display: flex; gap: 6px; }
+.wxd-step { display: grid; grid-template-columns: minmax(120px, auto) 1fr; gap: 2px 10px; padding: 8px 4px; border-bottom: 1px dashed var(--c-line); font-size: var(--fs-xs); }
+.wxd-state { align-self: start; justify-self: start; font-weight: 800; font-size: var(--fs-2xs); padding: 1px 7px; border-radius: var(--r-s); background: var(--c-warn-sub); color: var(--c-warn-dk); }
+.wxd-state.ended { background: var(--c-sec-sub); color: var(--c-sub); }
+.wxd-step-area { line-height: 1.5; word-break: keep-all; overflow-wrap: anywhere; }
+.wxd-step-at { grid-column: 2; font-size: var(--fs-2xs); color: var(--c-mute); }
+.wxd-all li { display: flex; align-items: flex-start; gap: 8px; padding: 6px 4px; font-size: var(--fs-xs); border-bottom: 1px solid var(--c-line); }
+.wxd-all .ar { flex: 1; line-height: 1.5; word-break: keep-all; overflow-wrap: anywhere; }
+.wxd-msg { border-bottom: 1px solid var(--c-line); }
+.wxd-msg-hd { display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 4px; border: 0; background: none; text-align: left; font-size: var(--fs-xs); cursor: pointer; }
+.wxd-msg-hd:hover { background: var(--c-surface); }
+.wxd-msg-at { flex: none; color: var(--c-mute); font-size: var(--fs-2xs); }
+.wxd-msg-stn { flex: none; font-weight: 700; }
+.wxd-msg-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wxd-msg-seq { flex: none; color: var(--c-mute); font-size: var(--fs-2xs); }
+.wxd-msg-hd svg { flex: none; transition: transform .15s; }
+.wxd-msg-hd svg.open { transform: rotate(180deg); }
+.wxd-msg-bd { padding: 4px 4px 12px; }
+
+/* 통보문 한 장 (components/wx/BulletinCard) */
+.bc { padding: 12px 14px; border: 1px solid #f0d38a; border-radius: var(--r-m); background: #fffdf6; }
+.bc-cond { font-size: var(--fs-2xs); color: var(--c-mute); }
+.bc-title { margin-top: 4px; font-size: var(--fs-s); }
+.bc-fields { margin: 8px 0 0; display: grid; gap: 8px; }
+.bc-fields dt { font-size: 11px; font-weight: 700; color: var(--c-warn-dk); }
+.bc-fields dd { margin: 2px 0 0; font-size: var(--fs-xs); line-height: 1.6; white-space: pre-line; word-break: keep-all; overflow-wrap: anywhere; }
+.bc-fields dd.none { color: var(--c-mute); }
+
+@media (max-width: 720px) {
+  .wxd-item { flex-wrap: wrap; }
+  .wxd-acts { width: 100%; justify-content: flex-end; }
+  .wxd-step { grid-template-columns: 1fr; }
+  .wxd-step-at { grid-column: 1; }
+  .wxd-msg-hd { flex-wrap: wrap; }
+  .wxd-msg-title { flex-basis: 100%; white-space: normal; }
+}

@@ -59,7 +59,7 @@ const MERGED: Record<string, { gu: string[]; rest: string[] }> = {
  * 시·도 이름 없이 나오는 섬 특보 구역 → 속한 시·도(기상청 이름)·시·군 짧은 이름.
  * whole = 그 시·군 전체가 이 구역 하나이고 기상청이 시·도 특보와 따로 쓴다(울릉군 — 경상북도 특보·「…제외」 목록에 들지 않는다)
  */
-const ISLANDS: Record<string, { sido: string; sgg: string; whole?: boolean }> = {
+export const ISLANDS: Record<string, { sido: string; sgg: string; whole?: boolean }> = {
   "울릉도.독도": { sido: "경상북도", sgg: "울릉", whole: true },
   서해5도: { sido: "인천", sgg: "옹진" },
   "흑산도.홍도": { sido: "전라남도", sgg: "신안" },
@@ -68,6 +68,8 @@ const ISLANDS: Record<string, { sido: string; sgg: string; whole?: boolean }> = 
 
 const isMetro = (sido: string) => /광역시$/.test(sido) || sido === "서울특별시" || sido === "세종특별자치시";
 const isSea = (zone: string) => /(바다|해상)$/.test(zone);
+/** 바다 구역인가(괄호 앞 이름이 …바다·…해상) — 특보 상세의 「해상」 표지·「이 특보로 질의」 기준지역(바다는 걸리는 행정구역이 없다) */
+export const isSeaArea = (area: string) => isSea(parseArea(area).head);
 const isExcept = (item: string) => /제외$/.test(item);
 const noSpace = (s: string) => s.replace(/\s+/g, "");
 
