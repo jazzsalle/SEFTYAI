@@ -63,7 +63,7 @@ const wrap = (ui: ReactNode) => render(<ExploreContext.Provider value={x}>{ui}</
 const writeText = vi.fn((t: string) => Promise.resolve(t));
 
 beforeEach(() => {
-  x = { openCitation: vi.fn(), openDetail: vi.fn(), showOnMap: vi.fn(), selectedKey: null, followUp: vi.fn(), retry: vi.fn() };
+  x = { openCitation: vi.fn(), openDetail: vi.fn(), showOnMap: vi.fn(), selectOnMap: vi.fn(), showSummary: vi.fn(), selectedKey: null, followUp: vi.fn(), retry: vi.fn() };
   session.weather = null;
   session.toast.mockClear();
   writeText.mockClear();

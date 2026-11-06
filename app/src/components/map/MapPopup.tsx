@@ -21,9 +21,12 @@ interface Props {
   onLocate?: () => void;
   onFilter?: (key: string | null) => void;
   onZoom: () => void;
+  /** 상세 탭 열기(개발 서버 「상세 보기」) — 주면 단추를 둔다. detail 이 "yes" 일 때만 눌린다(없으면 회색 「상세 없음」) */
+  onDetail?: () => void;
+  detail?: "checking" | "yes" | "no";
 }
 
-export default function MapPopup({ f, other, filter, onClose, onLocate, onFilter, onZoom }: Props) {
+export default function MapPopup({ f, other, filter, onClose, onLocate, onFilter, onZoom, onDetail, detail = "checking" }: Props) {
   const look = lookOf(f.entityType, f.displayName);
   const c = look.entry.pin;
   const pk = precisionKo(f.precision);
@@ -48,7 +51,7 @@ export default function MapPopup({ f, other, filter, onClose, onLocate, onFilter
         </button>
       </div>
       <div className="mp-bd">
-        <strong className={`mp-name${f.displayName ? "" : " none"}`}>{f.displayName ?? "이름 미제공"}</strong>
+        {/* 정밀도(근사) 배지를 이름 위로 — 그 자리가 아니라는 것을 이름보다 먼저 읽게(개발 서버 사용자 지시 48) */}
         {(pk || other) && (
           <div className="mp-badges">
             {pk && (
@@ -60,10 +63,17 @@ export default function MapPopup({ f, other, filter, onClose, onLocate, onFilter
             {other && <span className="mp-bdg other">다른 답변 대상</span>}
           </div>
         )}
+        <strong className={`mp-name${f.displayName ? "" : " none"}`}>{f.displayName ?? "이름 미제공"}</strong>
       </div>
       <div className="mp-act">
+        {onDetail && (
+          <button type="button" className="mp-btn pri" onClick={onDetail} disabled={detail !== "yes"} title={detail === "no" ? "받은 상세 속성이 없습니다" : undefined}>
+            <svg width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="2.5" width="11" height="11" rx="2" fill="none" stroke="currentColor" strokeWidth="1.6" /><path d="M5 6h6M5 9h4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>
+            {detail === "no" ? "상세 없음" : detail === "checking" ? "확인 중…" : "상세 보기"}
+          </button>
+        )}
         {onLocate && (
-          <button type="button" className="mp-btn pri" onClick={onLocate}>
+          <button type="button" className={`mp-btn${onDetail ? "" : " pri"}`} onClick={onLocate}>
             <svg width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 3.5h10M3 8h10M3 12.5h6" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" /></svg>
             답변에서 보기
           </button>

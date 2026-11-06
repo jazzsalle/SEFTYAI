@@ -24,3 +24,19 @@
 @media (prefers-reduced-motion: reduce) {
   .bs-pop, .bs-list { animation: none; }
 }
+
+/* 지도에서 집어 둔 객체(개발 서버 query-refs) — 질문 칸 바로 위 한 줄, 많으면 접힌다(끝에 무엇이 있는지 모른 채 묻지 않게) */
+.query-refs { display: flex; align-items: flex-start; gap: 8px; padding: 8px 0 0; }
+.query-refs-label { flex: none; padding-top: 4px; font-size: 14px; color: #58616a; }
+.query-refs-list { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.query-ref {
+  display: inline-flex; align-items: center; gap: 4px; max-width: 240px; padding: 2px 4px 2px 10px;
+  font-size: 14px; line-height: 22px; color: #0b50d0; background: #ecf2fe; border: 1px solid #b1cefb; border-radius: 14px;
+}
+.query-ref-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.query-ref-drop {
+  display: inline-flex; flex: none; align-items: center; justify-content: center; width: 18px; height: 18px; padding: 0;
+  color: #0b50d0; background: none; border: 0; border-radius: 50%; cursor: pointer;
+}
+.query-ref-drop:hover { color: #fff; background: #0b50d0; }
+.query-ref-drop:focus-visible { outline: 2px solid #0b50d0; outline-offset: 1px; }

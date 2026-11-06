@@ -61,7 +61,7 @@ const makeFull = (job: JobSummary, over: Partial<JobFull> = {}): JobFull => ({ .
 
 let x: ExploreApi;
 const wrap = (ui: ReactNode) => render(<ExploreContext.Provider value={x}>{ui}</ExploreContext.Provider>);
-beforeEach(() => { x = { openCitation: vi.fn(), openDetail: vi.fn(), showOnMap: vi.fn(), selectedKey: null, followUp: vi.fn(), retry: vi.fn() }; });
+beforeEach(() => { x = { openCitation: vi.fn(), openDetail: vi.fn(), showOnMap: vi.fn(), selectOnMap: vi.fn(), showSummary: vi.fn(), selectedKey: null, followUp: vi.fn(), retry: vi.fn() }; });
 afterEach(cleanup);
 
 describe("답변 그림 — 순수 계산(infoMap)", () => {

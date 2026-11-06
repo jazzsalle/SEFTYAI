@@ -31,10 +31,12 @@ export function autoFigures(job: JobSummary, full: JobFull | null | undefined) {
   return { refs, shapes, order, similar, facility, hasAny: order.length > 0 || similar.length > 0 || facility.length > 0 };
 }
 
-export default function AutoInfoPanel({ job, full }: { job: JobSummary; full: JobFull | null | undefined }) {
+/** noTargets — 한눈 요약 카드(CompactSummary)가 같은 대상을 그리면 「답변 대상」 묶음은 빼고 우리 것(타일·유사사례·시설)만 남긴다 */
+export default function AutoInfoPanel({ job, full, noTargets = false }: { job: JobSummary; full: JobFull | null | undefined; noTargets?: boolean }) {
   const f = useMemo(() => autoFigures(job, full), [job, full]);
   // 정의된 질문(질문 모음·브리핑 문항 — 자동 조회 API 가 고정된 항목)에만. 자유 질문에는 붙이지 않는다(사용자 지시 2026-11-02)
-  if (!job.library_id || !f.hasAny) return null;
+  const targets = !noTargets && f.order.length > 0;
+  if (!job.library_id || !(targets || f.similar.length > 0 || f.facility.length > 0)) return null;
   return (
     <details className="demo-info auto-info" open>
       <summary>
@@ -42,7 +44,7 @@ export default function AutoInfoPanel({ job, full }: { job: JobSummary; full: Jo
       </summary>
       <div className="viz demo-info-body">
         <Tiles full={full} />
-        {f.order.length > 0 && <AnswerTargets job={job} refs={f.refs} shapes={f.shapes} order={f.order} />}
+        {targets && <AnswerTargets job={job} refs={f.refs} shapes={f.shapes} order={f.order} />}
         {f.similar.length > 0 && <SimilarChronicle items={f.similar} full={full} />}
         {f.facility.length > 0 && <FacilityCards items={f.facility} p={previewOf(full, "RISK_FACILITY")!} />}
       </div>

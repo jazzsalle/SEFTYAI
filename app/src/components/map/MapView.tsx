@@ -13,9 +13,13 @@
  * - 설명서 7.5-2: activeJobId 의 대상은 진하게, 다른 답변의 대상은 흐리게.
  * - 범례 거르기(filter): 그 종류만 그리고 그 범위로 맞춤. 선택한 대상은 거르기와 상관없이 보인다.
  * - 선택한 대상은 말풍선 카드(MapPopup)로 — 받은 유형·이름·위치 정밀도만, 동작은 이미 있는 것(답변 목록으로 이동·확대·같은 종류만)만.
+ * - 개발 서버 MapPane 이식(2026-11-06): 「객체 참조」(켜면 누르기 = 집기, 말풍선 없음, 집은 것은 파랑 고리·점선) ·
+ *   점 묶음(화면 56px, 16줌부터 해제, 고른 것·집은 것은 낱개) · 근사 위치 확대 규칙(lib/mapRef focusZoomOf) ·
+ *   처음 맞춤은 무리에서 먼 것을 빼고(coreIndices), 사람이 지도를 움직인 뒤에는 새 답이 와도 다시 잡지 않음 ·
+ *   누른 핀은 배율 그대로 가운데로 · 말풍선 「상세 보기」는 상세가 있을 때만 · 행정경계 실패 알림 · 지도 대체정보 목록(누르면 선택).
  */
 import "./map.css";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import OlMap from "ol/Map";
 import View from "ol/View";
@@ -37,7 +41,7 @@ import Polygon from "ol/geom/Polygon";
 import MultiPolygon from "ol/geom/MultiPolygon";
 import GeometryCollection from "ol/geom/GeometryCollection";
 import type Geometry from "ol/geom/Geometry";
-import { fromLonLat, get as getProjection } from "ol/proj";
+import { fromLonLat, get as getProjection, toLonLat } from "ol/proj";
 import { createXYZ } from "ol/tilegrid";
 import { createEmpty, extend as extendExtent, getCenter, getHeight, getWidth, isEmpty as isEmptyExtent } from "ol/extent";
 import { Circle as CircleStyle, Fill, Icon, Stroke, Style, Text } from "ol/style";
@@ -45,6 +49,7 @@ import { Attribution, ScaleLine, defaults as defaultControls } from "ol/control"
 import { defaults as defaultInteractions } from "ol/interaction";
 import type { RegionId } from "@/lib/contract/agent";
 import { REGIONS } from "@/lib/config";
+import { CLUSTER_UNTIL_ZOOM, SYMBOL_NAMES, type RefLike, centerLabel, clusterPoints, coreIndices, focusZoomOf, pointZoom, symbolOf, type MapSymbol } from "@/lib/mapRef";
 import {
   MAP_COLOR, PIN, approxLevel, entityTypeKo, isRangePrecision, lookOf, matchFilter, pinDataUri, precisionKo, rgba, shade,
   type LegendEntry, type Look,
@@ -76,6 +81,12 @@ export interface MapFeature {
   draw: string | null; // T3Q map.draw
   precision: string | null; // EXT-01 properties.precision
   geometry: { type: string; coordinates: unknown }; // EXT-01 geometry 그대로 (EPSG:4326)
+  /** 여러 답을 건너 같은 대상을 가리는 열쇠(lib/mapRef entityKey — 지도 열쇠 key:value). 집기·요약 구 거르기가 쓴다. 없으면 key */
+  eid?: string;
+  /** T3Q map.value 그대로 — 행정구역 중심점 이름 찾기(adminCenterCode) */
+  mapValue?: string | null;
+  /** 받은 ref 그대로 — 말풍선 상세 유무(T3Q-15)·요약 이름 누르기가 쓴다 */
+  t3qRef?: RefLike;
 }
 export interface MapLayers { boundary: boolean; features: boolean }
 export const DEFAULT_LAYERS: MapLayers = { boundary: true, features: true };
@@ -99,6 +110,32 @@ interface Props {
   onLocate?: (f: MapFeature) => void;
   /** 주면 지도 위에 일반 ↔ 위성 단추를 둔다(위성 실패 시 "Base" 로 되돌림) */
   onBasemap?: (b: Basemap) => void;
+  /** 「객체 참조」 켬 — 지도 누르기가 집기가 된다(말풍선·선택 없음, 개발 서버 MapPane picking) */
+  picking?: boolean;
+  /** 집어 둔 대상 열쇠(eid) — 파랑 고리·점선으로, 묶지 않는다 */
+  pickedIds?: ReadonlySet<string>;
+  onTogglePick?: (f: MapFeature) => void;
+  /** 「지도 표시」에서 끈 갈래 */
+  hidden?: ReadonlySet<MapSymbol>;
+  /** 요약 보기에서 고른 구 — 이 열쇠(eid)의 대상만 그린다 */
+  areaIds?: ReadonlySet<string> | null;
+  /** 요약 보기 켬 — 핀을 거두고 하천 띠만 남긴다(시군구 색칠이 주인공) */
+  summaryOn?: boolean;
+  /** 지금 그리는 답(턴·브리핑)의 열쇠 — 바뀌면 사람이 옮긴 자리를 놓고 새 대상 범위로 맞춘다 */
+  scope?: string;
+  /** 행정구역 중심점 코드 → 지역 이름(「인제군 중심」) */
+  adminNames?: ReadonlyMap<string, string>;
+  /** 말풍선 「상세 보기」 — detailOf 가 참일 때만 눌린다(상세 없음이면 회색) */
+  detailOf?: (f: MapFeature) => Promise<boolean>;
+  onDetail?: (f: MapFeature) => void;
+  /** 답이 가리켰으나 도형을 못 받은 대상 수(지도 대체정보에 적는다) */
+  missing?: number;
+  /** 조회결과 위치(EXT-01) 상태 — 실패·받는 중 알림 */
+  resultStatus?: "loading" | "failed" | null;
+  /** OpenLayers 지도 — 요약 보기(MapSummary)가 겹을 얹는다 */
+  onMap?: (m: OlMap | null) => void;
+  /** 지도 위에 얹는 것(요약 보기 단추·카드) */
+  children?: ReactNode;
 }
 
 /** 위성지도 단추 기호 (개발 서버 MapPane SatIcon) */
@@ -131,7 +168,6 @@ interface Rec {
   range: boolean;
   /** GeometryCollection 을 나눴을 때 첫 조각만 라벨·축소 핀 */
   primary: boolean;
-  label?: Style;
 }
 
 const FONT = `Pretendard, "Pretendard Variable", "Noto Sans KR", "Malgun Gothic", sans-serif`;
@@ -198,9 +234,12 @@ function dots(color: string, strong = false): CanvasPattern | string {
 }
 
 /** 핀 (+ 근사 위치 점선 원 · 호버/선택 후광 · 선택 바닥 고리). onAnchor = 선·면의 대표점에 그림 */
-function pinStyles(look: Look, st: St, approx: 0 | 1 | 2, onAnchor: boolean): Style[] {
+/** 집어 둔 대상의 색 — 개발 서버 map-pin--held(#0b50d0) */
+const HELD = "#0b50d0";
+
+function pinStyles(look: Look, st: St, approx: 0 | 1 | 2, onAnchor: boolean, held = false): Style[] {
   const e = look.entry;
-  const k = `p|${e.id}|${look.glyph}|${st}|${approx}|${onAnchor ? 1 : 0}`;
+  const k = `p|${e.id}|${look.glyph}|${st}|${approx}|${onAnchor ? 1 : 0}|${held ? 1 : 0}`;
   const hit = styleCache.get(k);
   if (hit) return hit;
   const w = PIN_W[st];
@@ -238,6 +277,14 @@ function pinStyles(look: Look, st: St, approx: 0 | 1 | 2, onAnchor: boolean): St
       }),
     }));
   }
+  if (held) {
+    // 집은 것 — 핀 머리에 파랑 고리. 고름은 하나(지금 보는 것), 집음은 여럿(질문에 딸려 갈 것)이라 얼굴을 달리한다
+    out.push(new Style({
+      geometry,
+      zIndex: z + 3,
+      image: new CircleStyle({ radius: Math.round(w * 0.62), displacement: [0, w * PIN.headK], stroke: new Stroke({ color: HELD, width: 3 }) }),
+    }));
+  }
   out.push(new Style({
     geometry,
     zIndex: z + 2,
@@ -252,21 +299,23 @@ function pinStyles(look: Look, st: St, approx: 0 | 1 | 2, onAnchor: boolean): St
   return out;
 }
 
-function lineStyles(e: LegendEntry, st: St, range: boolean): Style[] {
-  const k = `l|${e.id}|${st}|${range ? 1 : 0}`;
+function lineStyles(e: LegendEntry, st: St, range: boolean, held = false): Style[] {
+  const k = `l|${e.id}|${st}|${range ? 1 : 0}|${held ? 1 : 0}`;
   const hit = styleCache.get(k);
   if (hit) return hit;
   const w = st === "dim" ? 2.5 : st === "base" ? 4 : st === "hover" ? 5 : 6;
   const z = Z[st];
   const cap = { lineCap: "round", lineJoin: "round" } as const;
   const out: Style[] = [];
-  if (st === "sel" || st === "hover") {
-    out.push(new Style({ zIndex: z, stroke: new Stroke({ color: rgba(e.stroke, st === "sel" ? 0.28 : 0.16), width: w + (st === "sel" ? 12 : 8), ...cap }) }));
+  const c = held ? HELD : e.stroke;
+  const strong = st === "sel" || held;
+  if (strong || st === "hover") {
+    out.push(new Style({ zIndex: z, stroke: new Stroke({ color: rgba(c, strong ? 0.28 : 0.16), width: w + (strong ? 12 : 8), ...cap }) }));
   }
   out.push(new Style({ zIndex: z + 1, stroke: new Stroke({ color: st === "dim" ? "rgba(255,255,255,0.55)" : "#fff", width: w + 3.5, ...cap }) }));
   out.push(new Style({
     zIndex: z + 2,
-    stroke: new Stroke({ color: st === "dim" ? rgba(e.stroke, 0.5) : e.stroke, width: w, lineDash: range ? [8, 6] : undefined, ...cap }),
+    stroke: new Stroke({ color: st === "dim" ? rgba(c, 0.5) : c, width: w, lineDash: range || held ? [8, 6] : undefined, ...cap }),
   }));
   // 물길은 가운데 밝은 줄 — 흐르는 물처럼
   if (st !== "dim" && !range && (e.id === "river" || e.id === "floodTrace")) {
@@ -285,14 +334,15 @@ function areaFill(e: LegendEntry, st: St): CanvasPattern | string {
   return e.fill;
 }
 
-function areaStyles(e: LegendEntry, st: St, range: boolean): Style[] {
-  const k = `a|${e.id}|${st}|${range ? 1 : 0}`;
+function areaStyles(e: LegendEntry, st: St, range: boolean, held = false): Style[] {
+  const k = `a|${e.id}|${st}|${range ? 1 : 0}|${held ? 1 : 0}`;
   const hit = styleCache.get(k);
   if (hit) return hit;
   const w = st === "dim" ? 1.5 : st === "base" ? 2.2 : st === "hover" ? 3 : 3.5;
   const z = Z[st];
-  const dash = range ? [8, 6] : undefined;
+  const dash = range || held ? [8, 6] : undefined;
   const out: Style[] = [];
+  if (held) out.push(new Style({ zIndex: z, stroke: new Stroke({ color: rgba(HELD, 0.28), width: w + 10, lineJoin: "round" }) }));
   if (st === "sel") out.push(new Style({ zIndex: z, stroke: new Stroke({ color: rgba(e.stroke, 0.26), width: w + 10, lineJoin: "round" }) }));
   if (st !== "dim") out.push(new Style({ zIndex: z + 1, stroke: new Stroke({ color: "rgba(255,255,255,0.9)", width: w + 3, lineJoin: "round" }) }));
   // 무늬 없는 면은 호버·선택 때 한 겹 더 채워 진하게
@@ -302,18 +352,21 @@ function areaStyles(e: LegendEntry, st: St, range: boolean): Style[] {
   out.push(new Style({
     zIndex: z + 2,
     fill: new Fill({ color: areaFill(e, st) }),
-    stroke: new Stroke({ color: st === "dim" ? rgba(e.stroke, 0.45) : e.stroke, width: w, lineDash: dash, lineJoin: "round" }),
+    stroke: new Stroke({ color: held ? HELD : st === "dim" ? rgba(e.stroke, 0.45) : e.stroke, width: w, lineDash: dash, lineJoin: "round" }),
   }));
   styleCache.set(k, out);
   return out;
 }
 
-/** 상시 이름표 — display_name 그대로, 대표점 아래 */
-function labelStyle(r: Rec): Style {
-  r.label ??= new Style({
+/** 상시 이름표 — display_name 그대로(행정구역 중심점이면 그 지역 이름), 대표점 아래. 지역 이름이 늦게 오면 글이 바뀌므로 글마다 하나 */
+const labelCache = new Map<string, Style>();
+function labelStyle(text: string): Style {
+  const hit = labelCache.get(text);
+  if (hit) return hit;
+  const st = new Style({
     geometry: anchorOf,
     text: new Text({
-      text: r.mf.displayName ?? "",
+      text,
       font: `700 12px ${FONT}`,
       fill: new Fill({ color: MAP_COLOR.navyDk }),
       stroke: new Stroke({ color: "rgba(255,255,255,0.96)", width: 4 }),
@@ -321,7 +374,23 @@ function labelStyle(r: Rec): Style {
       offsetY: 7,
     }),
   });
-  return r.label;
+  labelCache.set(text, st);
+  return st;
+}
+
+/** 묶음 원 — 개수만큼 크게(개발 서버 map-cluster 34·40·48px), 개수 글자 */
+function clusterStyle(n: number): Style {
+  const k = `c|${n}`;
+  const hit = styleCache.get(k);
+  if (hit) return hit[0];
+  const size = n >= 50 ? 48 : n >= 10 ? 40 : 34;
+  const st = new Style({
+    zIndex: 60,
+    image: new CircleStyle({ radius: size / 2, fill: new Fill({ color: "rgba(86,70,194,0.92)" }), stroke: new Stroke({ color: "rgba(86,70,194,0.22)", width: 10 }) }),
+    text: new Text({ text: String(n), font: `800 13px ${FONT}`, fill: new Fill({ color: "#fff" }) }),
+  });
+  styleCache.set(k, [st]);
+  return st;
 }
 
 /* ─── EXT-01 geometry → OpenLayers 피처 ───────────────────────────────────── */
@@ -401,7 +470,11 @@ interface Api {
   placePop(pan?: boolean): void;
   /** 한 대상으로 확대 */
   zoomTo(key: string): void;
+  /** 사람이 옮긴 자리를 놓고 다시 맞춤(답·요약 보기·고른 구가 바뀜) */
+  refit(): void;
 }
+
+const EMPTY_NAMES: ReadonlyMap<string, string> = new Map();
 
 export default function MapView(p: Props) {
   const el = useRef<HTMLDivElement>(null);
@@ -419,6 +492,8 @@ export default function MapView(p: Props) {
   // OSM 대체 중(위성 단추 막음) · 위성지도를 못 불러와 일반지도로 돌아옴(안내 한 줄)
   const [osmOn, setOsmOn] = useState(false);
   const [satFailed, setSatFailed] = useState(false);
+  // 행정경계(WMS)만 못 받음 — 배경지도·표식은 그대로
+  const [bndFailed, setBndFailed] = useState(false);
 
   // 초기화 (한 번)
   useEffect(() => {
@@ -469,17 +544,31 @@ export default function MapView(p: Props) {
       if (P.activeJobId && r.mf.jobId !== P.activeJobId) return "dim";
       return "base";
     };
-    /** 범례 거르기 — 선택한 대상은 늘 보인다 */
+    const eidOf = (r: Rec) => r.mf.eid ?? r.mf.key;
+    const heldRec = (r: Rec) => !!propsRef.current.pickedIds?.has(eidOf(r));
+    /**
+     * 그릴 대상인가 — 요약 보기 중이면 하천만(띠), 요약에서 고른 구가 있으면 그 구의 대상만, 「지도 표시」에서 끈 갈래는 빼고,
+     * 범례 거르기(선택한 대상은 거르기와 상관없이 보인다)
+     */
     const shownRec = (r: Rec): boolean => {
       const P = propsRef.current;
+      if (P.summaryOn) return r.entry.id === "river";
+      if (P.areaIds && !P.areaIds.has(eidOf(r))) return false;
+      if (P.hidden?.has(symbolOf(r.mf.entityType))) return false;
       return matchFilter(P.filter, r.look) || (!!P.selectedKey && r.mf.key === P.selectedKey);
     };
+    /** 점 묶음에 든 대상(mf.key) — 핀·이름표를 숨기고 묶음 원 하나로 */
+    const clustered = new Set<string>();
+    /** 이름표 글 — 행정구역 중심점이면 그 지역 이름 */
+    const nameOf = (r: Rec) => centerLabel(r.mf.displayName, r.mf.precision, r.mf.mapValue, propsRef.current.adminNames ?? EMPTY_NAMES);
+    /** 선·면의 대표점에 핀을 세우는가 — 선택·draw=pin·화면에서 너무 작음 */
+    const anchorPinned = (r: Rec, st: St, res: number) => r.primary && (st === "sel" || r.mf.draw === "pin" || r.size / res < SMALL_PX);
     const area = new VectorLayer({
       source: src,
       zIndex: 20,
       style: (f) => {
         const r = recs.get(f);
-        return r?.kind === "area" && shownRec(r) ? areaStyles(r.entry, stateOf(r), r.range) : undefined;
+        return r?.kind === "area" && shownRec(r) ? areaStyles(r.entry, stateOf(r), r.range, heldRec(r)) : undefined;
       },
     });
     const line = new VectorLayer({
@@ -487,7 +576,7 @@ export default function MapView(p: Props) {
       zIndex: 21,
       style: (f) => {
         const r = recs.get(f);
-        return r?.kind === "line" && shownRec(r) ? lineStyles(r.entry, stateOf(r), r.range) : undefined;
+        return r?.kind === "line" && shownRec(r) ? lineStyles(r.entry, stateOf(r), r.range, heldRec(r)) : undefined;
       },
     });
     const pin = new VectorLayer({
@@ -495,11 +584,11 @@ export default function MapView(p: Props) {
       zIndex: 22,
       style: (f, res) => {
         const r = recs.get(f);
-        if (!r || !shownRec(r)) return undefined;
+        // 요약 보기 중에는 핀 없이 도형(하천 띠)만
+        if (!r || !shownRec(r) || propsRef.current.summaryOn || clustered.has(r.mf.key)) return undefined;
         const st = stateOf(r);
-        if (r.kind === "point") return pinStyles(r.look, st, r.approx, false);
-        // 선·면: 선택됐거나 draw=pin 이거나 화면에서 너무 작으면 대표점에 핀
-        if (r.primary && (st === "sel" || r.mf.draw === "pin" || r.size / res < SMALL_PX)) return pinStyles(r.look, st, r.approx, true);
+        if (r.kind === "point") return pinStyles(r.look, st, r.approx, false, heldRec(r));
+        if (anchorPinned(r, st, res)) return pinStyles(r.look, st, r.approx, true, heldRec(r));
         return undefined;
       },
     });
@@ -509,16 +598,19 @@ export default function MapView(p: Props) {
       declutter: true,
       style: (f, res) => {
         const r = recs.get(f);
-        if (!r || !r.primary || !r.mf.displayName || res > LABEL_MAX_RES || !shownRec(r)) return undefined;
+        if (!r || !r.primary || !r.mf.displayName || res > LABEL_MAX_RES || !shownRec(r) || propsRef.current.summaryOn || clustered.has(r.mf.key)) return undefined;
         const st = stateOf(r);
-        return st === "sel" || st === "dim" ? undefined : labelStyle(r); // 선택은 말풍선 카드(오버레이)
+        return st === "sel" || st === "dim" ? undefined : labelStyle(nameOf(r) ?? ""); // 선택은 말풍선 카드(오버레이)
       },
     });
+    // 점 묶음 원 — 겹치는 핀을 개수 원 하나로(개발 서버 recluster). 누르면 그 점들이 다 보이게 확대
+    const clSrc = new VectorSource();
+    const clLayer = new VectorLayer({ source: clSrc, zIndex: 24, style: (f) => clusterStyle(Number(f.get("n")) || 0) });
     const vecSet = new Set<unknown>([area, line, pin, label]);
 
     const m = new OlMap({
       target,
-      layers: [base, white, sat, hyb, osm, bnd, area, line, pin, label],
+      layers: [base, white, sat, hyb, osm, bnd, area, line, pin, label, clLayer],
       view: new View({ center: fromLonLat(r0.center), zoom: r0.zoom, minZoom: 6, maxZoom: 19 }),
       controls: defaultControls({ zoom: false, rotate: false, attribution: false }).extend([
         new ScaleLine({ bar: false }),
@@ -547,13 +639,14 @@ export default function MapView(p: Props) {
         tipKey = r.mf.key;
         tipEl.style.setProperty("--c", r.entry.pin);
         const name = document.createElement("b");
-        name.textContent = r.mf.displayName ?? "이름 미제공";
+        name.textContent = nameOf(r) ?? "이름 미제공";
         if (!r.mf.displayName) name.className = "none";
         const meta = document.createElement("span");
         meta.className = "meta";
         const dot = document.createElement("i");
         dot.setAttribute("aria-hidden", "true");
-        meta.append(dot, entityTypeKo(r.mf.entityType));
+        // 세부 종류(지하차도 등 — 받은 이름 낱말)가 있으면 그것, 없으면 받은 유형(개발 서버 툴팁)
+        meta.append(dot, r.look.sub?.label ?? entityTypeKo(r.mf.entityType));
         const pk = precisionKo(r.mf.precision);
         if (pk) {
           const s = document.createElement("span");
@@ -653,62 +746,109 @@ export default function MapView(p: Props) {
       if (!wmsFailed && ((wmsOk === 0 && wmsErr >= 4) || (wmsErr >= 12 && wmsErr > wmsOk))) {
         wmsFailed = true;
         bnd.setVisible(false);
-        console.warn("[MapView] VWorld 행정경계(WMS)를 불러오지 못해 경계 없이 배경지도만 표시합니다.");
+        // 배경지도(타일)는 멀쩡하고 행정경계만 못 받은 경우 — 배경지도 고장과 따로 알린다(개발 서버 boundaryStatus failed)
+        setBndFailed(true);
       }
     });
 
     // ── 범위 맞춤
     let waitUntil = 0; // 대상 도형이 아직 없음 → 오면 다시 맞춤
     let waitSize = false; // 지도가 숨겨져 크기가 0 → 보이면 다시 맞춤
-    const zoomCap = (r: Rec) =>
-      r.kind !== "point" ? 17 : r.approx === 2 ? 12 : r.approx === 1 ? 14 : r.mf.precision === "centroid_only" ? 15 : 16;
-    const fitTo = (fs: Feature[], duration: number, done?: () => void): boolean => {
+    /**
+     * 사람이 지도를 움직였는가(끌기·휠·확대 단추). 움직인 뒤에는 새 답이 와도 다시 잡지 않는다 — 핀을 확대해 보던 사람이
+     * 답이 올 때마다 처음 자리로 끌려가면 읽고 있는 것을 빼앗는 셈이다(개발 서버 moved). 답(scope)이 바뀌면 푼다.
+     */
+    let moved = false;
+    /** 마지막으로 맞춘 대상 묶음(열쇠를 이은 글자) — 같은 것이 다시 와도 다시 잡지 않는다 */
+    let fitted: string | null = null;
+    const sizeOk = () => {
       const size = m.getSize();
       if (!size || size[0] < 8 || size[1] < 8) {
         waitSize = true;
-        return false;
+        return null;
       }
-      const ext = createEmpty();
-      let cap = 0;
-      for (const f of fs) {
-        const r = recs.get(f);
-        const g = f.getGeometry();
-        if (!r || !g) continue;
-        extendExtent(ext, g.getExtent());
-        cap = Math.max(cap, zoomCap(r));
-      }
-      if (isEmptyExtent(ext)) return false;
+      return size;
+    };
+    /** 범위로 맞춤 — maxZoom 은 한 건 확대(정밀도 규칙)·여럿(16) */
+    const fitExt = (ext: number[], maxZoom: number, duration: number, done?: () => void): boolean => {
+      const size = sizeOk();
+      if (!size || isEmptyExtent(ext)) return false;
       const pad = Math.round(Math.max(16, Math.min(56, Math.min(size[0], size[1]) * 0.12)));
       const v = m.getView();
       v.cancelAnimations();
       v.fit(ext, {
         padding: [pad + 36, pad, pad, pad], // 위쪽은 핀 높이만큼 더
-        maxZoom: cap,
+        maxZoom,
         duration: duration || undefined, // 0 이면 즉시
         callback: done ? (ok) => { if (ok) done(); } : undefined,
       });
       return true;
     };
-    /** 이 작업(없으면 전체)의 대상 중 조건에 맞는 도형 */
-    const jobFeatures = (keep: (r: Rec) => boolean = () => true): Feature[] => {
+    /**
+     * 한 대상으로 옮겨 감 — 얼마나 당길지는 좌표의 정밀도가 정한다(lib/mapRef focusZoomOf, 개발 서버 moveTo).
+     * 점: 정확하면 지금 배율이 더 가까울 때 그대로, 근사(dong_center 14 · sigungu_center 11)면 그 칸까지 물러난다. 선·면: 범위로, 최대 그 칸.
+     */
+    const moveTo = (fs: Feature[], duration: number, done?: () => void): boolean => {
+      const r = recs.get(fs[0]);
+      if (!r || !sizeOk()) return false;
+      const v = m.getView();
+      if (r.kind === "point") {
+        v.cancelAnimations();
+        v.animate({ center: r.anchor.getCoordinates(), zoom: pointZoom(r.mf.precision, v.getZoom() ?? 0), duration: duration || 0 }, (ok) => { if (ok && done) done(); });
+        return true;
+      }
+      const ext = createEmpty();
+      for (const f of fs) {
+        const g = f.getGeometry();
+        if (g) extendExtent(ext, g.getExtent());
+      }
+      return fitExt(ext, focusZoomOf(r.mf.precision), duration, done);
+    };
+    /** 이 작업(없으면 전체)의 그릴 대상 — 열쇠별 도형 */
+    const jobGroups = (keep: (r: Rec) => boolean = () => true): Feature[][] => {
       const P = propsRef.current;
-      const fs: Feature[] = [];
+      const out: Feature[][] = [];
       byKey.forEach((arr) => {
         const r = recs.get(arr[0]);
-        if (r && (!P.activeJobId || r.mf.jobId === P.activeJobId) && keep(r)) fs.push(...arr);
+        if (r && (!P.activeJobId || r.mf.jobId === P.activeJobId) && shownRec(r) && keep(r)) out.push(arr);
       });
-      return fs;
+      return out;
+    };
+    /** 여럿에 맞춤 — 무리에서 멀리 떨어진 것(바다 위 좌표 등)은 맞출 범위에서만 뺀다(lib/mapRef coreIndices), 최대 16 */
+    const fitCore = (groups: Feature[][], duration: number): boolean => {
+      if (!groups.length) return false;
+      const at = groups.map((g) => toLonLat(recs.get(g[0])!.anchor.getCoordinates()) as [number, number]);
+      const ext = createEmpty();
+      for (const i of coreIndices(at)) for (const f of groups[i]) {
+        const g = f.getGeometry();
+        if (g) extendExtent(ext, g.getExtent());
+      }
+      return fitExt(ext, 16, duration);
+    };
+    const sigOf = (groups: Feature[][]) => groups.map((g) => recs.get(g[0])?.mf.key ?? "").join("|");
+    /** 답이 바뀌어 대상이 새로 온 때만, 그리고 사람이 지도를 움직이기 전에만 맞춘다. 요약 보기 중에는 색칠한 시군구 쪽이 범위를 잡는다 */
+    const autoFit = (duration: number) => {
+      const P = propsRef.current;
+      if (moved || P.summaryOn || waitUntil > Date.now()) return;
+      const groups = jobGroups();
+      const sig = sigOf(groups);
+      if (!groups.length || sig === fitted) return;
+      if (fitCore(groups, duration)) fitted = sig;
     };
     const focus = (duration: number) => {
       const P = propsRef.current;
       let ok = false;
       let wait = false;
       const sel = P.selectedKey ? byKey.get(P.selectedKey) : undefined;
-      if (sel?.length) ok = fitTo(sel, duration, panPop);
-      else {
+      if (sel?.length) {
+        ok = moveTo(sel, duration, panPop);
+        // 사람이 고른 자리다 — 다음 답이 와도 빼앗지 않는다
+        if (ok) moved = true;
+      } else {
         if (P.selectedKey) wait = true; // 선택 대상 도형이 아직 오지 않음
-        const fs = jobFeatures();
-        ok = fs.length > 0 && fitTo(fs, duration);
+        const groups = jobGroups();
+        ok = fitCore(groups, duration);
+        if (ok) fitted = sigOf(groups);
       }
       waitUntil = !ok || wait ? Date.now() + FOCUS_WAIT_MS : 0;
     };
@@ -720,8 +860,9 @@ export default function MapView(p: Props) {
       restyle();
       hideTip();
       // 거른 종류(없으면 이 작업 전체) 범위로 맞춤
-      const fs = jobFeatures((r) => matchFilter(f, r.look));
-      if (fs.length) fitTo(fs, 450);
+      const groups = jobGroups((r) => matchFilter(f, r.look));
+      if (groups.length) fitCore(groups, 450);
+      recluster();
     };
     const toRegion = () => {
       const r = REGIONS[propsRef.current.region] ?? REGIONS.national;
@@ -733,8 +874,48 @@ export default function MapView(p: Props) {
     };
     const zoomTo = (key: string) => {
       const fs = byKey.get(key);
-      if (fs?.length) fitTo(fs, 450, panPop);
+      if (fs?.length && moveTo(fs, 450, panPop)) moved = true;
     };
+
+    /**
+     * 점 묶기(개발 서버 recluster) — 화면에서 56px 안에 겹치는 핀을 개수 원 하나로. 줌을 바꿀 때마다 다시 묶고, 16줌부터 모두 낱개.
+     * 고른 것·집은 것은 묶지 않는다(사람이 찾는 그 한 곳이 숨으면 안 된다). 선·면은 그 위에 선 대표 핀만 묶이고 도형은 그대로.
+     */
+    let lastRes = 0;
+    const recluster = () => {
+      const P = propsRef.current;
+      const v = m.getView();
+      const res = v.getResolution() ?? 0;
+      lastRes = res;
+      const had = clustered.size > 0;
+      clustered.clear();
+      clSrc.clear(true);
+      if (res > 0 && (v.getZoom() ?? 0) < CLUSTER_UNTIL_ZOOM && !P.summaryOn && P.layers.features) {
+        const free: { key: string; c: number[] }[] = [];
+        byKey.forEach((fs, key) => {
+          const r = recs.get(fs[0]);
+          if (!r || !shownRec(r) || key === P.selectedKey || heldRec(r)) return;
+          if (r.kind !== "point" && !anchorPinned(r, stateOf(r), res)) return;
+          free.push({ key, c: r.anchor.getCoordinates() });
+        });
+        for (const g of clusterPoints(free.map((p) => ({ x: p.c[0] / res, y: p.c[1] / res })))) {
+          if (g.length < 2) continue;
+          const ext = createEmpty();
+          for (const i of g) {
+            clustered.add(free[i].key);
+            extendExtent(ext, [free[i].c[0], free[i].c[1], free[i].c[0], free[i].c[1]]);
+          }
+          const f = new Feature({ geometry: new Point(getCenter(ext)) });
+          f.set("n", g.length);
+          f.set("ext", ext);
+          clSrc.addFeature(f);
+        }
+      }
+      if (had || clustered.size) src.changed();
+    };
+    m.on("moveend", () => {
+      if ((m.getView().getResolution() ?? 0) !== lastRes) recluster();
+    });
 
     const setFeatures = (list: MapFeature[]) => {
       if (lastList && lastList.length === list.length && lastList.every((x, i) => x === list[i])) return;
@@ -754,14 +935,36 @@ export default function MapView(p: Props) {
       if (hoverKey && !next.has(hoverKey)) hoverKey = null;
       if (tipKey && !next.has(tipKey)) hideTip();
       placePop();
+      // 볼 것이 없어지면(새 대화·새 브리핑) 다시 잡아도 되는 상태로
+      if (!next.size) {
+        moved = false;
+        fitted = null;
+      }
       if (waitUntil > Date.now()) focus(450);
+      else autoFit(0);
+      recluster();
+    };
+    /** 답이 바뀜(scope) · 요약 보기 켜고 끔 · 요약에서 고른 구 — 사람이 옮긴 자리를 놓고 새로 맞춘다 */
+    const refit = () => {
+      moved = false;
+      fitted = null;
+      restyle();
+      autoFit(0);
+      recluster();
     };
 
-    // ── 마우스: 호버 툴팁 · 클릭 선택
+    // ── 마우스: 호버 툴팁 · 클릭 선택(객체 참조 중에는 집기) · 묶음 확대
     const hitRec = (pixel: number[]): Rec | undefined =>
       m.forEachFeatureAtPixel(pixel, (f) => recs.get(f), { hitTolerance: 4, layerFilter: (l) => vecSet.has(l) });
+    const hitCluster = (pixel: number[]): Feature | undefined =>
+      m.forEachFeatureAtPixel(pixel, (f) => f as Feature, { hitTolerance: 2, layerFilter: (l) => l === clLayer });
     m.on("pointermove", (e) => {
       if (e.dragging || !propsRef.current.layers.features) {
+        if (tipKey) hideTip();
+        return;
+      }
+      if (hitCluster(e.pixel)) {
+        target.style.cursor = "pointer";
         if (tipKey) hideTip();
         return;
       }
@@ -771,23 +974,45 @@ export default function MapView(p: Props) {
         hoverKey = k;
         restyle();
       }
-      target.style.cursor = r ? "pointer" : "";
+      target.style.cursor = r ? (propsRef.current.picking ? "copy" : "pointer") : "";
       // 말풍선이 열린 대상에는 툴팁을 겹쳐 띄우지 않는다
       if (r && !(r.mf.key === propsRef.current.selectedKey && pop.getPosition())) showTip(r, e.coordinate);
       else if (tipKey) hideTip();
     });
+    m.on("pointerdrag", () => {
+      moved = true;
+    });
     m.on("singleclick", (e) => {
       const P = propsRef.current;
       if (!P.layers.features) return;
+      const cl = hitCluster(e.pixel);
+      if (cl) {
+        // 묶음 — 그 점들이 다 보이게 확대(한 자리에 포개진 것이면 두 칸 당김, 최대 16)
+        const ext = cl.get("ext") as number[];
+        const v = m.getView();
+        if (getWidth(ext) === 0 && getHeight(ext) === 0) v.animate({ center: getCenter(ext), zoom: Math.min((v.getZoom() ?? 0) + 2, CLUSTER_UNTIL_ZOOM), duration: 300 });
+        else fitExt(ext, CLUSTER_UNTIL_ZOOM, 300);
+        moved = true;
+        return;
+      }
       const r = hitRec(e.pixel);
       if (r) {
         hideTip();
+        // 객체 참조 중 — 누르기 = 집기(놓기). 상세·말풍선은 열지 않는다
+        if (P.picking) return P.onTogglePick?.(r.mf);
         if (r.mf.key === P.selectedKey) {
           // 이미 고른 대상 — 닫아 둔 말풍선만 다시 연다
           closedRef.current = null;
           setClosedKey(null);
           placePop(true);
-        } else P.onSelect?.(r.mf.key);
+        } else {
+          // 누른 핀을 지도 가운데로 — 배율은 그대로(보던 넓이를 빼앗지 않는다, 개발 서버 pick)
+          const v = m.getView();
+          v.cancelAnimations();
+          v.animate({ center: r.anchor.getCoordinates(), duration: 250 });
+          moved = true;
+          P.onSelect?.(r.mf.key);
+        }
       } else if (P.selectedKey && pop.getPosition()) {
         // 빈 곳을 누르면 말풍선만 닫는다 (선택 강조는 그대로)
         closedRef.current = P.selectedKey;
@@ -804,11 +1029,16 @@ export default function MapView(p: Props) {
         restyle();
       }
     };
+    const onWheel = () => {
+      moved = true;
+    };
     vp.addEventListener("pointerleave", onLeave);
+    vp.addEventListener("wheel", onWheel, { passive: true });
 
     // 외부 확대/축소 버튼 (zoomBy)
     const onZoom = (ev: Event) => {
       const v = m.getView();
+      moved = true;
       v.animate({ zoom: (v.getZoom() ?? 10) + Number((ev as CustomEvent<number>).detail || 0), duration: 200 });
     };
     window.addEventListener("sa-map-zoom", onZoom);
@@ -817,16 +1047,21 @@ export default function MapView(p: Props) {
       const s = m.getSize();
       if (waitSize && s && s[0] >= 8 && s[1] >= 8) {
         waitSize = false;
-        focus(0);
+        if (propsRef.current.focusToken !== undefined || waitUntil > Date.now()) focus(0);
+        else autoFit(0);
       }
     });
     ro.observe(target);
 
     api.current = {
-      applyLayers,
+      applyLayers: () => {
+        applyLayers();
+        recluster();
+      },
       setFeatures,
       restyle: () => {
         restyle();
+        recluster();
         placePop();
       },
       focus,
@@ -834,7 +1069,9 @@ export default function MapView(p: Props) {
       applyFilter,
       placePop,
       zoomTo,
+      refit,
     };
+    P0.onMap?.(m);
     applyLayers();
     if (osmMode) {
       setOsmOn(true);
@@ -847,6 +1084,8 @@ export default function MapView(p: Props) {
       ro.disconnect();
       window.removeEventListener("sa-map-zoom", onZoom);
       vp.removeEventListener("pointerleave", onLeave);
+      vp.removeEventListener("wheel", onWheel);
+      propsRef.current.onMap?.(null);
       m.setTarget(undefined);
       m.dispose();
       api.current = null;
@@ -866,10 +1105,24 @@ export default function MapView(p: Props) {
     api.current?.setFeatures(p.features);
   }, [p.features, ready]);
 
-  // 작업 강조 · 선택
+  // 작업 강조 · 선택 · 집기 · 끈 갈래 · 지역 이름(이름표 글)
   useEffect(() => {
     api.current?.restyle();
-  }, [p.activeJobId, p.selectedKey, ready]);
+  }, [p.activeJobId, p.selectedKey, p.pickedIds, p.hidden, p.adminNames, ready]);
+
+  // 답이 바뀜 · 요약 보기 켜고 끔 · 요약에서 고른 구 → 사람이 옮긴 자리를 놓고 새로 맞춤(개발 서버 scope·onSummary·onRegion)
+  const refitSeen = useRef<string | null>(null);
+  useEffect(() => {
+    if (!ready) return;
+    const k = `${p.scope ?? ""}|${p.summaryOn ? 1 : 0}|${p.areaIds ? [...p.areaIds].join(",") : ""}`;
+    if (refitSeen.current === null) {
+      refitSeen.current = k;
+      return;
+    }
+    if (refitSeen.current === k) return;
+    refitSeen.current = k;
+    api.current?.refit();
+  }, [p.scope, p.summaryOn, p.areaIds, ready]);
 
   // 범례 거르기
   useEffect(() => {
@@ -932,12 +1185,38 @@ export default function MapView(p: Props) {
 
   const selFeature = p.selectedKey ? p.features.find((f) => f.key === p.selectedKey) : undefined;
   const satOn = p.basemap === "Satellite";
-  const popOpen = !!selFeature && closedKey !== selFeature.key && p.layers.features;
+  // 집는 중·요약 보기 중에는 말풍선을 띄우지 않는다(개발 서버)
+  const popOpen = !!selFeature && closedKey !== selFeature.key && p.layers.features && !p.picking && !p.summaryOn;
+
+  // 말풍선 대상의 상세 유무 — 없으면 「상세 보기」를 회색으로(개발 서버 사용자 지시 49)
+  const [detail, setDetail] = useState<{ key: string; v: "checking" | "yes" | "no" } | null>(null);
+  const detailOf = p.detailOf;
+  const popKey = popOpen ? selFeature?.key : undefined;
+  useEffect(() => {
+    if (!popKey || !detailOf || !selFeature) return;
+    let alive = true;
+    setDetail({ key: popKey, v: "checking" });
+    detailOf(selFeature)
+      .then((ok) => alive && setDetail({ key: popKey, v: ok ? "yes" : "no" }))
+      .catch(() => alive && setDetail({ key: popKey, v: "no" }));
+    return () => {
+      alive = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [popKey, detailOf]);
 
   return (
     <div className="sa-map olmap" role="region" aria-label="지도">
       <div ref={el} className="sa-map-canvas" />
       <p className="sa-map-sr" aria-live="polite">{sr}</p>
+      <MapAlt features={p.features} activeJobId={p.activeJobId ?? null} selectedKey={p.selectedKey ?? null} missing={p.missing ?? 0} onSelect={p.onSelect} />
+      {/* 알림은 지도 영역 맨 위에(개발 서버 설계 슬라이드 57~59) */}
+      <div className="sa-map-notices">
+        {p.resultStatus === "failed" && <Notice title="조회결과 위치를 불러오지 못했습니다.">잠시 후 같은 질문을 다시 보내세요.</Notice>}
+        {bndFailed && !osmOn && <Notice title="행정경계를 불러오지 못했습니다.">배경지도와 표식은 그대로 볼 수 있습니다.</Notice>}
+      </div>
+      {p.resultStatus === "loading" && <p className="sa-map-loading" role="status">지도를 불러오는 중입니다…</p>}
+      {p.children}
       {p.onBasemap && (
         <button
           type="button"
@@ -967,8 +1246,51 @@ export default function MapView(p: Props) {
           onLocate={p.onLocate ? () => p.onLocate?.(selFeature) : undefined}
           onFilter={p.onFilter}
           onZoom={() => api.current?.zoomTo(selFeature.key)}
+          onDetail={p.onDetail && p.detailOf ? () => p.onDetail?.(selFeature) : undefined}
+          detail={detail?.key === selFeature.key ? detail.v : "checking"}
         />,
         popEl,
+      )}
+    </div>
+  );
+}
+
+function Notice({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <div className="sa-map-notice" role="status">
+      <strong>{title}</strong>
+      <span>{children}</span>
+    </div>
+  );
+}
+
+/**
+ * 지도 대체정보(개발 서버 MapAlt · 설계 ⑧) — 눈으로는 보이지 않지만 실제로 쓸 수 있는 목록이다. 누르면 그 대상이 지도에서도 선택된다.
+ * 도형을 못 받은 수도 적는다(「N건은 공간정보가 없어 표시하지 못했습니다」).
+ */
+function MapAlt({ features, activeJobId, selectedKey, missing, onSelect }: { features: MapFeature[]; activeJobId: string | null; selectedKey: string | null; missing: number; onSelect?: (key: string) => void }) {
+  const list = activeJobId ? features.filter((f) => f.jobId === activeJobId) : features;
+  return (
+    <div className="sa-map-sr">
+      <h3>지도 대체정보</h3>
+      <p>지도에 초점이 있으면 방향키로 이동하고, 확대·축소 버튼으로 배율을 바꿉니다. 아래 목록에서 대상을 고르면 지도에서도 같은 대상이 선택됩니다.</p>
+      {list.length + missing === 0 ? (
+        <p>지도에 표시된 조회결과가 없습니다.</p>
+      ) : (
+        <>
+          <p>
+            조회결과 {list.length + missing}건 가운데 {list.length}건을 지도에 표시했습니다.
+            {missing > 0 && ` ${missing}건은 공간정보가 없어 표시하지 못했습니다.`}
+          </p>
+          <ul>
+            {list.map((f) => (
+              <li key={f.key}>
+                <button type="button" aria-current={f.key === selectedKey} onClick={() => onSelect?.(f.key)}>{f.displayName ?? f.ref}</button>
+                {` — ${SYMBOL_NAMES[symbolOf(f.entityType)]}${precisionKo(f.precision) ? ` · ${precisionKo(f.precision)}` : ""}`}
+              </li>
+            ))}
+          </ul>
+        </>
       )}
     </div>
   );

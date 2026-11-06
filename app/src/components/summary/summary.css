@@ -1,0 +1,741 @@
+/* 한눈 요약(개발 서버 styles/renewal/summary.css 이식, 2026-11-06) — 치수는 rem × 10 = px, 색은 --c-* 토큰 */
+/* 답변 한눈 요약 — 새 Figma 「시연 인포그래픽」 시안 1(대화창 압축형) · 시안 2(패널 한눈 요약).
+   값은 T3Q 응답 그대로 그린다. 구분 색은 KRDS 의미색이고 값의 좋고 나쁨을 뜻하지 않는다. */
+
+/* ── 구분 색 ─────────────────────────────────────────────────────────── */
+.sm-tone--blue   { --sm-strong: #256ef4; --sm-soft: #b6cffb; --sm-bg: #ecf2fe; --sm-ink: #0b50d0; }
+.sm-tone--green  { --sm-strong: #228738; --sm-soft: #b8dcbf; --sm-bg: #eaf6ec; --sm-ink: #1a6a2c; }
+.sm-tone--yellow { --sm-strong: #ffb114; --sm-soft: #ffe1a3; --sm-bg: #fff3db; --sm-ink: #8a5c00; }
+.sm-tone--sky    { --sm-strong: #0b78cb; --sm-soft: #a9d4f5; --sm-bg: #e7f4fe; --sm-ink: #085a99; }
+.sm-tone--red    { --sm-strong: #de3412; --sm-soft: #f5b9ac; --sm-bg: #fdefec; --sm-ink: #bd2c0f; }
+.sm-tone--purple { --sm-strong: #6f4bd8; --sm-soft: #cfc2f3; --sm-bg: #f1edfc; --sm-ink: #4f32a8; }
+.sm-tone--teal   { --sm-strong: #0f9d8a; --sm-soft: #a8e0d8; --sm-bg: #e6f6f3; --sm-ink: #0b7366; }
+.sm-tone--brown  { --sm-strong: #8a5a2b; --sm-soft: #dcc3a8; --sm-bg: #f6efe7; --sm-ink: #6b4520; }
+.sm-tone--navy   { --sm-strong: #063a74; --sm-soft: #b3c6dd; --sm-bg: #eef2f7; --sm-ink: #052b57; }
+.sm-tone--gray   { --sm-strong: #6d7882; --sm-soft: #cdd1d5; --sm-bg: #f4f5f6; --sm-ink: #464c53; }
+
+.sm-card .sr-only,
+.sm-poster .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* ── 시안 1 카드 ─────────────────────────────────────────────────────── */
+.sm-card {
+  container-type: inline-size;
+  margin: 0 0 16px;
+  padding: 16px;
+  border: 1px solid var(--c-bd-gray);
+  border-radius: var(--r-xl);
+  background: var(--c-white);
+  color: var(--c-text);
+}
+.sm-card--loading { padding: 12px 16px; }
+.sm-card-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.sm-card-title {
+  margin: 0;
+  font-size: var(--fs-s);
+  font-weight: 700;
+  color: #131416;
+}
+.sm-expand {
+  margin-left: auto;
+  padding: 4px 10px;
+  border: 1px solid var(--c-primary-bd);
+  border-radius: var(--r-pill);
+  background: var(--c-primary-sub);
+  color: var(--c-primary-dk);
+  font-size: var(--fs-2xs);
+  font-weight: 600;
+  cursor: pointer;
+}
+.sm-expand:hover { border-color: var(--c-primary); }
+
+.sm-cond {
+  margin: 0 0 10px;
+  font-size: var(--fs-xs);
+  color: var(--c-sub);
+}
+
+.sm-counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 12px;
+  padding: 0;
+  list-style: none;
+}
+.sm-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--r-l);
+  background: var(--c-line);
+  font-size: var(--fs-xs);
+  color: var(--c-sub);
+}
+.sm-count b { font-size: var(--fs-m); color: #131416; }
+.sm-count-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--sm-strong);
+}
+
+.sm-grid2 {
+  /* 블록 격자 — 폭이 되면 2열, 좁으면 1열(사용자 지시 46: 시안 폭에 묶지 않고 칸 폭에 맞춘다).
+     예전 2단(column) 흘림은 구분이 하나뿐이면 왼쪽 반만 차고 오른쪽이 텅 비었다.
+     홀수 개면 마지막 것이 한 줄을 다 쓴다 — 한쪽만 빈 줄이 남지 않게. */
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 10px;
+  align-items: stretch;
+  margin-bottom: 10px;
+}
+.sm-group { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.sm-grid2 > .sm-group:last-child:nth-child(odd) { grid-column: 1 / -1; }
+/* 옆 구분과 키를 맞춘다 — 마지막 모듈이 남는 높이를 채운다. */
+.sm-grid2 > .sm-group > .sm-mod:last-of-type { flex: 1 1 auto; }
+
+/* 펼치기 — 머리 줄과 펼친 내용을 한 상자로 묶어 흐름 안에 둔다(사용자 지시 41).
+   예전엔 머리 줄만 있고 펼친 내용이 반 폭 카드로 떠서, 아래 내용 위에 겹친 패널처럼 보였다. */
+.sm-fold,
+.sm-tables {
+  margin: 0 0 10px;
+  border: 1px solid var(--c-line);
+  border-radius: var(--r-l);
+  background: #fff;
+}
+.sm-fold > summary,
+.sm-tables > summary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  list-style: none;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: var(--r-l);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  color: var(--c-primary-dk);
+}
+.sm-fold > summary::-webkit-details-marker,
+.sm-tables > summary::-webkit-details-marker { display: none; }
+.sm-fold > summary::before,
+.sm-tables > summary::before {
+  content: '';
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(-45deg);
+  transition: transform 0.15s;
+}
+.sm-fold[open] > summary::before,
+.sm-tables[open] > summary::before { transform: rotate(45deg); }
+.sm-fold > summary::after { content: '펼치기'; margin-left: auto; font-weight: 500; color: var(--c-mute); }
+.sm-fold[open] > summary::after { content: '접기'; }
+.sm-fold > summary:hover,
+.sm-tables > summary:hover { background: var(--c-primary-sub); }
+.sm-fold > summary:focus-visible,
+.sm-tables > summary:focus-visible { outline: 2px solid var(--c-primary); outline-offset: -2px; }
+.sm-fold[open] > summary,
+.sm-tables[open] > summary { border-bottom: 1px solid var(--c-line); border-radius: var(--r-l) var(--r-l) 0 0; }
+.sm-fold-body { padding: 10px 12px 12px; }
+.sm-tables[open] { padding-bottom: 10px; }
+.sm-tables[open] > :not(summary) { margin-left: 12px; margin-right: 12px; }
+
+/* ── 모듈 공통 ──────────────────────────────────────────────────────── */
+.sm-mod {
+  min-width: 0;
+  padding: 12px 14px;
+  border-radius: var(--r-l);
+}
+.sm-mod--compact {
+  border: 1px solid var(--c-line);
+  background: var(--c-surface);
+  /* 시안 1 은 무채색 + 파랑 막대 — 구분 색을 쓰지 않는다. */
+  --sm-bar: var(--c-primary);
+  --sm-bar-ink: var(--c-primary-dk);
+}
+.sm-mod--poster {
+  background: var(--sm-bg);
+  --sm-bar: var(--sm-strong);
+  --sm-bar-ink: var(--sm-ink);
+}
+.sm-mod-title {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin: 0 0 10px;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  color: #131416;
+}
+.sm-mod--poster .sm-mod-title { color: var(--sm-ink); font-size: var(--fs-s); }
+.sm-mod-sub { font-weight: 400; color: var(--c-mute); font-size: var(--fs-2xs); }
+.sm-more,
+.sm-note {
+  margin: 8px 0 0;
+  font-size: var(--fs-2xs);
+  color: var(--c-mute);
+}
+.sm-sublabel { margin: 6px 0 4px; font-size: var(--fs-2xs); color: var(--c-sub); font-weight: 600; }
+.sm-where {
+  margin: 0;
+  font-size: var(--fs-2xs);
+  color: var(--c-sub);
+}
+.sm-where span {
+  display: inline-block;
+  margin-right: 4px;
+  padding: 0 6px;
+  border-radius: var(--r-s);
+  background: var(--c-line);
+  font-weight: 600;
+}
+
+/* ── 세로 막대(일자별) ──────────────────────────────────────────────── */
+.sm-cols {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  height: 120px;
+  padding-bottom: 20px;
+}
+.sm-col {
+  position: relative;
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  height: 100%;
+  min-width: 0;
+}
+.sm-col-val { font-size: var(--fs-2xs); font-weight: 700; color: var(--sm-bar-ink); }
+.sm-col-bar {
+  width: 100%;
+  max-width: 32px;
+  min-height: 3px;
+  border-radius: var(--r-s) var(--r-s) 0 0;
+  background: var(--sm-bar);
+}
+.sm-col-x {
+  position: absolute;
+  bottom: -18px;
+  font-size: 11px;
+  color: var(--c-mute);
+  white-space: nowrap;
+}
+
+/* ── 가로 막대 ──────────────────────────────────────────────────────── */
+/* 한 표처럼 — 칸 폭을 막대 줄 모두가 함께 쓴다(줄마다 따로 나누면 값 글자 폭에 따라 막대가 들쭉날쭉). */
+.sm-bars {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: minmax(60px, 38%) 1fr max-content;
+  align-items: center;
+  gap: 6px 8px;
+  font-size: var(--fs-2xs);
+}
+.sm-bar { display: contents; }
+.sm-bar-val { text-align: right; }
+.sm-bar-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--c-text); }
+.sm-bar-track { height: 10px; border-radius: var(--r-pill); background: rgba(0, 0, 0, 0.06); overflow: hidden; }
+.sm-bar-fill { display: block; height: 100%; border-radius: var(--r-pill); background: var(--sm-bar); }
+.sm-bar-val { font-weight: 700; color: var(--sm-bar-ink); white-space: nowrap; }
+
+/* ── 간트 ───────────────────────────────────────────────────────────── */
+.sm-gantt-rows { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+.sm-gantt-row {
+  display: grid;
+  grid-template-columns: minmax(80px, 36%) 1fr;
+  align-items: center;
+  gap: 8px;
+}
+.sm-gantt-label { display: flex; flex-direction: column; min-width: 0; font-size: var(--fs-2xs); }
+.sm-gantt-label b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #131416; }
+.sm-gantt-label small { color: var(--c-mute); font-size: 11px; }
+.sm-gantt-track { position: relative; height: 18px; background: rgba(0, 0, 0, 0.04); border-radius: var(--r-s); }
+.sm-gantt-bar {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  min-width: 4px;
+  border-radius: var(--r-s);
+  background: var(--sm-bar);
+  color: #fff;
+  font-size: 11px;
+  line-height: 14px;
+  padding: 0 4px;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.sm-gantt-row.is-off .sm-gantt-bar { background: var(--c-dis); }
+.sm-gantt-off {
+  position: absolute;
+  top: 2px;
+  font-size: 11px;
+  color: var(--c-mute);
+  white-space: nowrap;
+}
+.sm-gantt-now {
+  position: absolute;
+  top: -3px;
+  bottom: -3px;
+  width: 2px;
+  background: var(--c-dang);
+}
+.sm-gantt-axis { display: grid; grid-template-columns: minmax(80px, 36%) 1fr; gap: 8px; margin-top: 4px; }
+.sm-gantt-axis-line { position: relative; height: 16px; font-size: 11px; color: var(--c-mute); }
+.sm-gantt-axis-line > span { position: absolute; transform: translateX(-50%); white-space: nowrap; }
+.sm-gantt-axis-line > span:first-child { transform: none; }
+.sm-gantt-axis-line .sm-gantt-axis-now { top: 14px; color: var(--c-dang); font-weight: 600; }
+.sm-gantt-axis:has(.sm-gantt-axis-now) .sm-gantt-axis-line { height: 30px; }
+
+/* ── 점검표(지하차도) ───────────────────────────────────────────────── */
+.sm-check,
+.sm-grid { width: 100%; border-collapse: collapse; font-size: var(--fs-2xs); }
+.sm-check th,
+.sm-check td,
+.sm-grid th,
+.sm-grid td { padding: 4px 6px; text-align: center; border-bottom: 1px solid var(--c-line); }
+.sm-check thead th,
+.sm-grid thead th { color: var(--c-mute); font-weight: 600; white-space: nowrap; }
+.sm-check tbody th,
+.sm-grid tbody th {
+  text-align: left;
+  font-weight: 600;
+  color: #131416;
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sm-check-grade { font-weight: 700; }
+.sm-dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; vertical-align: middle; }
+.sm-dot--yes { background: var(--sm-bar, var(--c-primary)); }
+.sm-dot--no { border: 1.5px solid var(--c-bd-gray); }
+.sm-dash { color: var(--c-dis); }
+.sm-legend { margin: 6px 0 0; font-size: 11px; color: var(--c-mute); display: flex; align-items: center; gap: 4px; }
+.sm-legend .sm-dot { width: 10px; height: 10px; }
+.sm-legend .sm-dot--no { margin-left: 8px; }
+
+.sm-grid-cell {
+  display: inline-block;
+  width: 100%;
+  min-width: 24px;
+  height: 18px;
+  border-radius: var(--r-s);
+  background: var(--c-white);
+  border: 1px solid var(--sm-soft);
+}
+.sm-grid-cell.is-yes { background: var(--sm-strong); border-color: var(--sm-strong); }
+.sm-grid-cell.is-none { background: repeating-linear-gradient(45deg, transparent 0 4px, var(--c-line) 4px 6px); }
+.sm-grid tfoot td { border-bottom: 0; color: var(--sm-ink); font-weight: 700; }
+
+.sm-donut-wrap { display: flex; align-items: center; gap: 16px; }
+.sm-donut {
+  position: relative;
+  flex: none;
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+}
+.sm-donut::before {
+  content: '';
+  position: absolute;
+  inset: 16px;
+  border-radius: 50%;
+  background: var(--sm-bg);
+}
+.sm-donut b { position: relative; font-size: var(--fs-hm); color: var(--sm-ink); }
+.sm-donut-legend { margin: 0; padding: 0; list-style: none; font-size: var(--fs-xs); color: var(--c-sub); }
+.sm-donut-legend b { color: var(--sm-ink); font-size: var(--fs-s); }
+
+/* ── 값 카드 ────────────────────────────────────────────────────────── */
+.sm-gauge + .sm-gauge { margin-top: 10px; }
+.sm-gauge-name { margin: 0 0 6px; font-size: var(--fs-2xs); color: var(--c-sub); }
+.sm-gauge-name b { color: #131416; }
+.sm-values { display: grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 6px; }
+.sm-value {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 10px;
+  border-radius: var(--r-l);
+  background: var(--c-line);
+}
+.sm-mod--poster .sm-value,
+.sm-hero .sm-value { background: rgba(255, 255, 255, 0.7); }
+.sm-value-num { font-size: var(--fs-hs); font-weight: 700; color: #131416; line-height: 1.2; }
+.sm-value-num small { margin-left: 2px; font-size: var(--fs-2xs); font-weight: 400; color: var(--c-sub); }
+.sm-value-label { font-size: 11px; color: var(--c-mute); }
+
+/* ── 이름 목록 ──────────────────────────────────────────────────────── */
+.sm-names { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; font-size: var(--fs-2xs); color: var(--c-sub); }
+.sm-names b { color: #131416; }
+.sm-names--small { margin-top: 8px; color: var(--c-mute); font-size: 11px; }
+
+.sm-grades { display: flex; flex-wrap: wrap; gap: 4px; margin: 0 0 8px; padding: 0; list-style: none; }
+.sm-grades li { padding: 2px 8px; border-radius: var(--r-pill); background: var(--c-line); font-size: 11px; color: var(--c-sub); }
+.sm-grades b { color: #131416; }
+.sm-mod--poster .sm-grades li { background: rgba(255, 255, 255, 0.7); }
+
+/* ── 표로 보기 · 출처 ───────────────────────────────────────────────── */
+.sm-tables { margin-top: 4px; }  /* 상자 꼴은 위 「펼치기」 규칙 */
+.sm-table-wrap { margin-top: 10px; }
+.sm-table-cap { margin: 0 0 4px; font-size: var(--fs-2xs); font-weight: 700; color: #131416; }
+.sm-table-cap small { font-weight: 400; color: var(--c-mute); }
+.sm-table-scroll { overflow-x: auto; }
+.sm-table { font-size: var(--fs-2xs); }
+.sm-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--c-primary-dk);
+  font: inherit;
+  text-align: left;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+.sm-source { margin: 10px 0 0; font-size: 11px; color: var(--c-mute); }
+
+/* ── 시안 2 — 패널 「한눈 요약」 ─────────────────────────────────────── */
+.sm-poster { padding: 4px 0 16px; color: var(--c-text); }
+.sm-poster--empty { padding: 40px 16px; text-align: center; color: var(--c-mute); font-size: var(--fs-xs); }
+.sm-poster-head { margin-bottom: 12px; }
+.sm-poster-title { margin: 0 0 4px; font-size: var(--fs-hs); font-weight: 700; color: #131416; }
+.sm-poster .sm-count { background: var(--sm-bg); color: var(--sm-ink); }
+.sm-poster .sm-count b { color: var(--sm-ink); }
+.sm-poster-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 10px;
+}
+/* 구분마다 제 격자 — 블록이 홀수면 마지막 블록이 한 줄을 다 쓴다(한쪽이 텅 비지 않게). */
+.sm-group--poster {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  min-width: 0;
+}
+.sm-group--poster > :nth-last-child(2):nth-child(odd),
+.sm-group--poster > :only-child { grid-column: 1 / -1; }
+.sm-group--poster > .sm-where { grid-column: 1 / -1; margin-top: -4px; }
+@container (max-width: 520px) { .sm-group--poster { grid-template-columns: minmax(0, 1fr); } }
+.sm-mod--wide,
+.sm-hero--wide { grid-column: 1 / -1; }
+
+.sm-hero {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  padding: 14px 16px;
+  border-radius: var(--r-l);
+  background: var(--sm-bg);
+  color: var(--sm-ink);
+}
+.sm-hero--fill { background: var(--sm-strong); color: #fff; }
+.sm-hero--fill .sm-gauge-name,
+.sm-hero--fill .sm-gauge-name b,
+.sm-hero--fill .sm-sublabel { color: #fff; }
+.sm-hero--fill .sm-value-num { color: #131416; }
+.sm-hero--fill .sm-bar-label { color: #fff; }
+.sm-hero--fill .sm-bar-val { color: #fff; }
+.sm-hero--fill .sm-bar-track { background: rgba(255, 255, 255, 0.25); }
+.sm-hero--fill .sm-bar-fill { background: #fff; }
+.sm-hero-label { font-size: var(--fs-xs); font-weight: 600; opacity: 0.9; }
+.sm-hero-num { display: flex; align-items: baseline; gap: 4px; flex-wrap: wrap; font-size: var(--fs-s); }
+.sm-hero-num b { font-size: var(--fs-hl); line-height: 1.1; }
+.sm-hero-num small { font-size: var(--fs-2xs); opacity: 0.85; }
+.sm-hero-meter {
+  display: inline-block;
+  width: 80px;
+  height: 8px;
+  margin: 0 4px;
+  border-radius: var(--r-pill);
+  background: rgba(255, 255, 255, 0.3);
+  overflow: hidden;
+  align-self: center;
+}
+.sm-hero-meter span { display: block; height: 100%; background: #fff; }
+.sm-hero-foot { font-size: var(--fs-2xs); opacity: 0.85; }
+
+/* 원 타임라인 */
+.sm-tl { padding: 32px 16px 4px; }
+.sm-tl-axis { position: relative; height: 2px; margin: 24px 0; background: var(--sm-soft); }
+.sm-tl-dot {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--sm-soft);
+  color: var(--sm-ink);
+  font-size: 11px;
+  font-weight: 700;
+}
+.sm-tl-dot.is-peak { background: var(--sm-strong); color: #fff; }
+.sm-tl-dot small {
+  position: absolute;
+  bottom: calc(100% + 4px);
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--c-mute);
+  white-space: nowrap;
+}
+.sm-tl-dot.is-below small { bottom: auto; top: calc(100% + 4px); }
+.sm-tl-years { display: flex; justify-content: space-between; margin-top: 26px; font-size: 11px; color: var(--c-mute); }
+
+/* 트리맵 */
+.sm-tree { display: flex; flex-wrap: wrap; gap: 2px; height: 160px; align-content: stretch; }
+.sm-tree-cell {
+  flex-basis: 0;
+  border: 0;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  min-width: 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 4px 6px;
+  overflow: hidden;
+  border-radius: var(--r-s);
+  background: var(--sm-soft);
+  color: var(--sm-ink);
+  font-size: 11px;
+}
+.sm-tree-cell b { white-space: nowrap; }
+.sm-tree-cell small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sm-tree-cell--0 { background: var(--sm-strong); color: #fff; }
+.sm-tree-cell--1 { background: color-mix(in srgb, var(--sm-strong) 70%, #fff); color: #fff; }
+.sm-tree-cell--2 { background: color-mix(in srgb, var(--sm-strong) 45%, #fff); }
+.sm-tree-cell:hover { filter: brightness(0.95); }
+.sm-tree-cell.is-on { outline: 2px solid var(--sm-ink); outline-offset: -2px; }
+.sm-tree-cell:focus-visible { outline: 2px solid var(--c-primary); outline-offset: -2px; }
+/* 고른 칸 — 제목 줄 오른쪽(사용자 지시 46). 좁은 칸은 글이 잘리니 여기서 읽는다. */
+.sm-mod-pick {
+  margin-left: auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--fs-xs);
+  font-weight: 500;
+  color: var(--sm-ink);
+}
+.sm-mod-pick b { font-weight: 700; }
+.sm-mod-pick small { color: var(--c-mute); font-size: var(--fs-2xs); }
+
+/* 패널은 늘 한 줄에 구분 하나 — 2열은 구분 안의 블록끼리만 나눈다. */
+.sm-poster-grid { grid-template-columns: minmax(0, 1fr); }
+
+/* ── 시안 3 — 지도 탭 「요약 보기」 ──────────────────────────────────── */
+.sm-map {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 500;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  max-height: calc(100% - 80px);
+  pointer-events: none;
+}
+.sm-map > * { pointer-events: auto; }
+.sm-map-toggle {
+  height: 30px;
+  padding: 0 12px;
+  border: 1px solid var(--c-bd);
+  border-radius: var(--r-m);
+  background: var(--c-white);
+  color: var(--c-text);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  box-shadow: 0 6px 20px rgba(38, 89, 166, 0.16);
+  cursor: pointer;
+}
+.sm-map-toggle.is-on { border-color: var(--c-primary); background: var(--c-primary); color: #fff; }
+.sm-map-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 220px;
+  overflow-y: auto;
+}
+.sm-map-card {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 12px;
+  border: 1px solid var(--c-line);
+  border-left: 4px solid var(--sm-strong);
+  border-radius: var(--r-l);
+  background: var(--c-white);
+  box-shadow: 0 6px 20px rgba(38, 89, 166, 0.16);
+  text-align: left;
+  cursor: pointer;
+}
+.sm-map-card.is-on { background: var(--sm-bg); border-color: var(--sm-strong); }
+.sm-map-card-head { display: flex; align-items: center; gap: 6px; font-size: var(--fs-xs); font-weight: 600; color: #131416; }
+.sm-map-card-head b { margin-left: auto; color: var(--sm-ink); }
+.sm-map-card small { font-size: 11px; color: var(--c-mute); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sm-map-legend {
+  width: 220px;
+  padding: 8px 12px;
+  border-radius: var(--r-l);
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 6px 20px rgba(38, 89, 166, 0.16);
+  font-size: 11px;
+  color: var(--c-sub);
+}
+.sm-map-legend p { margin: 0 0 4px; }
+.sm-map-ramp {
+  display: block;
+  height: 8px;
+  border-radius: var(--r-pill);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--ramp) 25%, #fff), var(--ramp));
+}
+.sm-map-ramp-x { display: flex; justify-content: space-between; margin-top: 2px; }
+/* 구 이름표는 OpenLayers Text 스타일로 그린다(MapSummary) — 개발 서버 .sm-map-label 과 같은 색·크기 */
+
+/* 패널 폭을 본다 — 분할 바로 줄이면 구분 안 블록이 1열로 접힌다. */
+.sm-poster { container-type: inline-size; }
+
+/* ── 시안 3 적용(사용자 지시 49) — 머리·출처가 붙은 카드 목록, 상세 줄, 지도 아래 범례, 배경 흐림 ── */
+/* 배경지도 흐림은 MapSummary 가 타일 겹 불투명도(0.55)로 한다 */
+.sm-hover { cursor: pointer; }
+.sm-map { max-height: calc(100% - 90px); }
+.sm-map-list {
+  display: flex; flex-direction: column; gap: 6px; width: 260px; min-height: 0;
+  padding: 8px; border: 1px solid var(--c-line); border-radius: var(--r-l);
+  background: rgba(255, 255, 255, 0.97); box-shadow: 0 6px 20px rgba(38, 89, 166, 0.16); overflow: hidden;
+}
+.sm-map-list-h { margin: 0 2px; font-size: 11px; color: var(--c-mute); }
+.sm-map-list-f { margin: 0 2px; font-size: 10px; line-height: 1.4; color: var(--c-mute); }
+.sm-map-list .sm-map-cards { width: auto; min-height: 0; flex: 1 1 auto; }
+.sm-map-list .sm-map-card { box-shadow: none; border-left-width: 1px; padding: 9px 11px; gap: 3px; }
+.sm-map-list .sm-map-card.is-on { border-left-width: 1px; }
+.sm-map-card-head { font-size: 13px; font-weight: 700; }
+.sm-map-card-head b { margin-left: 2px; color: inherit; }
+.sm-map-card.is-on .sm-map-card-head { color: var(--sm-ink); }
+.sm-map-card small { white-space: normal; color: var(--c-sub); line-height: 1.45; }
+.sm-map-dates { display: flex; flex-direction: column; gap: 3px; margin-top: 2px; font-size: 11px; color: var(--c-sub); }
+.sm-map-dates > span { display: flex; align-items: center; gap: 6px; }
+.sm-map-dates em { font-style: normal; padding: 0 5px; border: 1px solid var(--c-bd); border-radius: 3px; background: #fff; }
+.sm-map-more { color: var(--c-mute); }
+.sm-map-legend.sm-map-legend--bar {
+  position: absolute; left: 0; right: 0; bottom: 0; z-index: 500; width: auto;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px;
+  padding: 9px 14px; border-radius: 0; border-top: 1px solid var(--c-line);
+  background: rgba(255, 255, 255, 0.97); box-shadow: none; font-size: 12px; color: var(--c-sub);
+}
+.sm-map-legend--bar > b { color: #131416; font-size: 13px; }
+.sm-map-steps { display: inline-flex; align-items: center; gap: 3px; }
+.sm-map-steps > i { width: 12px; height: 12px; border-radius: 2px; background: var(--ramp); }
+.sm-map-steps > i:last-of-type { margin-right: 4px; }
+.sm-map-riverkey { display: inline-flex; align-items: center; gap: 6px; }
+.sm-map-riverkey > i { width: 18px; height: 3px; border-radius: 2px; background: #0a7fa3; }
+/* 범례 띠가 생기면 확대·축소 단추와 객체 참조를 그 위로 올린다. */
+.mapwrap:has(.sm-map-legend--bar) .map-zoom,
+.mapwrap:has(.sm-map-legend--bar) .sa-map-sat,
+.mapwrap:has(.sm-map-legend--bar) .map-pickmode { margin-bottom: 44px; }
+/* 지도 보기·요약 보기 단추가 왼쪽 위를 쓰면 범례 카드는 그 아래로 */
+.mapwrap:has(.sm-map-seg) .mlp { top: 56px; max-height: calc(100% - 140px); }
+.mapwrap:has(.map-area-chip) .mlp { top: 96px; }
+
+/* 지도 보기 / 요약 보기 토글(사용자 지시 53) — 두 칸 붙은 단추. 색칠한 구는 누를 수 있다. */
+.sm-map-seg { display: inline-flex; box-shadow: 0 6px 20px rgba(38, 89, 166, 0.16); border-radius: var(--r-m); }
+.sm-map-seg .sm-map-toggle { box-shadow: none; border-radius: 0; }
+.sm-map-seg .sm-map-toggle:first-child { border-radius: var(--r-m) 0 0 var(--r-m); }
+.sm-map-seg .sm-map-toggle:last-child { border-radius: 0 var(--r-m) var(--r-m) 0; margin-left: -1px; }
+.map-area-chip {
+  position: absolute;
+  top: 54px;
+  left: 12px;
+  z-index: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 6px 0 12px;
+  border: 1px solid var(--c-primary);
+  border-radius: var(--r-m);
+  background: #ecf2fe;
+  color: #063a74;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  box-shadow: 0 6px 20px rgba(38, 89, 166, 0.16);
+}
+.map-area-chip button {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: inherit;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+}
+.map-area-chip button:hover { background: rgba(37, 110, 244, 0.15); }
+
+/* ── 유사사례 한눈 요약(사용자 지시 55) — 압축형 카드 문법 + 연대순 목록 ── */
+.cs-one { grid-template-columns: 1fr; }
+.cs-chron { display: flex; flex-direction: column; gap: 4px; margin: 0; padding: 0; list-style: none; font-size: var(--fs-2xs); }
+.cs-chron li {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) max-content;
+  align-items: baseline;
+  column-gap: 8px;
+  padding: 4px 8px;
+  border-radius: var(--r-m);
+}
+.cs-chron li.is-direct { background: #ecf2fe; }
+.cs-year { font-size: var(--fs-xs); font-weight: 700; color: var(--c-primary-dk); }
+.cs-name { min-width: 0; color: #131416; font-weight: 600; overflow-wrap: anywhere; }
+.cs-period { color: var(--c-mute); white-space: nowrap; }
+.cs-mod { container-type: inline-size; }
+@container (max-width: 360px) { .cs-chron li { grid-template-columns: 44px minmax(0, 1fr); } .cs-period { grid-column: 2; } }
+.cs-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 0 6px;
+  border-radius: var(--r-pill);
+  background: #256ef4;
+  color: #fff;
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 18px;
+  vertical-align: 1px;
+}
+.sm-bar.is-direct .sm-bar-label { font-weight: 700; color: var(--c-primary-dk); }
+.sm-bar.is-direct .sm-bar-fill { background: #0b50d0; }

@@ -14,6 +14,9 @@ import { IcChevD } from "../Icons";
 import { AnswerMarkdown, entityLabel, mdPlainText } from "./Markdown";
 import DemoInfoPanel, { hasDemoInfographic } from "./DemoInfographic";
 import AutoInfoPanel from "./AutoInfographic";
+import CompactSummary from "../summary/CompactSummary";
+import { useSummary } from "../summary/useSummary";
+import { basisTime } from "@/lib/summary";
 import "./answer.css";
 
 export { entityLabel } from "./Markdown";
@@ -112,6 +115,9 @@ function Card({ job, full, compact, noActions, brief }: CardProps) {
   const bodyRef = useRef<HTMLDivElement>(null);
   const region = useMemo(() => regionOfRequest(full?.request), [full?.request]);
   const at = receivedAt(job, full);
+  // 한눈 요약(개발 서버 시안 1) — 같은 refs 는 한 번만 받는다(CompactSummary 와 같은 캐시)
+  const sm = useSummary(brief ? null : refs);
+  const regionName = (full?.request as { query_context?: { region?: { name?: string } | null } } | undefined)?.query_context?.region?.name ?? null;
   const seen = seenAdvisories(job, full);
   const after = useMemo(() => advisoriesAfter(s.weather, region, at, seen), [s.weather, region, at, seen]);
 
@@ -268,7 +274,9 @@ function Card({ job, full, compact, noActions, brief }: CardProps) {
       {hasNotice && <button type="button" className="ans-jump" onClick={() => goTo(noticeId, "center")}>경고 보기 ↓</button>}
 
       {/* 그림을 먼저(11/2 행안부 회의 코멘트, 사용자 승인 2026-11-02) — 시연 탭 항목은 미리 만든 시연 자료, 그 밖은 받은 대상·조회 값으로 그린 답변 그림. 답 글·대상은 그대로 */}
-      {hasDemoInfographic(job) ? <DemoInfoPanel job={job} /> : <AutoInfoPanel job={job} full={full} />}
+      {hasDemoInfographic(job) ? <DemoInfoPanel job={job} /> : <AutoInfoPanel job={job} full={full} noTargets={sm.kind !== "none"} />}
+      {/* 답 글 위 한눈 요약 카드(개발 서버 CompactSummary) — 대상 그림은 이 카드가 맡는다(답변 그림의 「답변 대상」은 접는다) */}
+      {!brief && <CompactSummary refs={refs} regionName={regionName} basisAt={basisTime(at ?? job.created_at)} onEntity={(r) => x.showOnMap(job.id, r.ref)} onExpand={() => x.showSummary(job.id)} />}
 
       {answer ? (
         <div ref={bodyRef} className={fold ? "acard-body folded" : "acard-body"}>

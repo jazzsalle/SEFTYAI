@@ -3,7 +3,7 @@ import { createContext, useContext } from "react";
 import type { Citation } from "@/lib/contract/agent";
 import type { T3qRef } from "@/lib/jobTypes";
 
-export type TabKind = "map" | "sop" | "doc" | "detail";
+export type TabKind = "map" | "summary" | "sop" | "doc" | "detail";
 export interface PanelTab {
   key: string;
   kind: TabKind;
@@ -21,6 +21,10 @@ export interface ExploreApi {
   openDetail: (api: string, id: string, label: string, ctx?: Record<string, unknown> | null) => void;
   /** 답의 대상(refs)을 지도에 — ref 를 주면 그 대상 선택 */
   showOnMap: (jobId: string, ref?: string) => void;
+  /** 지도에서 대상을 누름 — 고른 표시만(지도 맞춤 없음). key = `${jobId}:${ref}` */
+  selectOnMap: (key: string) => void;
+  /** 「한눈 요약」 탭에서 이 답을 크게(답 카드 [패널에서 크게 보기]) */
+  showSummary: (jobId: string) => void;
   selectedKey: string | null;
   /** 이어서 묻기 — 고른 참조 대상과 함께 */
   followUp: (jobId: string, refs: T3qRef[]) => void;

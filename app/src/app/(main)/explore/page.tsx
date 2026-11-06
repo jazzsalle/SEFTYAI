@@ -9,9 +9,11 @@ import { REGIONS } from "@/lib/config";
 import { api } from "@/lib/api";
 import type { Citation } from "@/lib/contract/agent";
 import { activeAdvisories, advName, warningsPayload } from "@/lib/wxref";
-import { baseName, basePilot, baseTarget, type BaseRegion } from "@/lib/baseRegion";
+import { baseKey, baseName, basePilot, baseTarget, type BaseRegion } from "@/lib/baseRegion";
+import { entityKey, objectIdOf, type RefLike } from "@/lib/mapRef";
 import { WX_ASK_EVENT, takeWxAsk, wxAskQuestion, type WxAskRequest } from "@/lib/wxAsk";
-import { SOURCE_LABEL, type JobSummary, type T3qRef } from "@/lib/jobTypes";
+import { SOURCE_LABEL, receivedAt, type JobSummary, type T3qRef } from "@/lib/jobTypes";
+import { basisTime } from "@/lib/summary";
 import { ExploreContext, type ExploreApi, type PanelTab } from "@/components/explore/ExploreCtx";
 import RightPanel from "@/components/explore/RightPanel";
 import Composer from "@/components/explore/Composer";
@@ -26,6 +28,10 @@ import { IcChevL } from "@/components/Icons";
 
 const SOP_TAB: PanelTab = { key: "sop", kind: "sop", title: "대응절차", pinned: true };
 const MAP_TAB: PanelTab = { key: "map", kind: "map", title: "지도" };
+/** 답변 한눈 요약(개발 서버 시안 2) — 지도 다음 붙박이 탭 */
+const SUMMARY_TAB: PanelTab = { key: "summary", kind: "summary", title: "한눈 요약" };
+/** 지도에서 집어 둔 참조 객체(개발 서버 useObjectRefs) — eid = lib/mapRef entityKey */
+interface PickedRef { eid: string; ref: RefLike }
 type AskArgs = Omit<SubmitArgs, "convId" | "turnNo">;
 /** 대화를 시작한 기준지역(이름)이 지금 기준지역과 다른가(R32 — 대화 하나는 기준지역 하나). 이름이 없는 예전 대화는 따지지 않는다 */
 const otherBase = (c: Conversation | null | undefined, now: BaseRegion | null) => !!c?.baseName && c.baseName !== baseName(now);
@@ -93,6 +99,33 @@ function Explore() {
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [focusToken, setFocusToken] = useState(0);
   const [follow, setFollow] = useState<{ jobId: string; refs: T3qRef[]; label: string } | null>(null);
+  /**
+   * 「객체 참조」(개발 서버 useObjectRefs) — 켜 둔 동안 지도 누르기 = 집기. 집은 것은 질문 칸 위 이름표로 남고, 어느 길로 물어도
+   * (질문·브리핑·질문 모음) 함께 간다(reference.object_ids + 이름 키워드). 새 대화·기준지역 변경·계정 변경이면 모두 놓고 끈다.
+   */
+  const [picking, setPicking] = useState(false);
+  const [picked, setPicked] = useState<PickedRef[]>([]);
+  const pickedRef = useRef(picked);
+  pickedRef.current = picked;
+  const resetPicks = useCallback(() => {
+    setPicked([]);
+    setPicking(false);
+  }, []);
+  const togglePick = useCallback((eid: string, ref: RefLike) => {
+    setPicked((list) => (list.some((x) => x.eid === eid) ? list.filter((x) => x.eid !== eid) : [...list, { eid, ref }]));
+  }, []);
+  const pickedIds = useMemo(() => new Set(picked.map((x) => x.eid)), [picked]);
+  // 집어 둔 것은 그 지역·그 사람의 객체다 — 두면 부산 질문에 강원도 지구가 딸려 간다
+  const baseK = baseKey(s.cond.base);
+  useEffect(() => resetPicks(), [baseK, s.account?.id, resetPicks]);
+  /** 보낼 질의에 집어 둔 것을 얹는다 — 접수 본문 objectRefs(서버 lib/server/jobInput objectRefsOf 가 reference·키워드로) */
+  const withRefs = useCallback(
+    (a: AskArgs): AskArgs =>
+      pickedRef.current.length && a.source !== "AI_MODE"
+        ? ({ ...a, objectRefs: pickedRef.current.map((x) => ({ id: objectIdOf(x.ref), name: x.ref.display_name ?? null })) } as AskArgs)
+        : a,
+    [],
+  );
   const endRef = useRef<HTMLDivElement>(null);
   // 지금 보고 있는 대화 + 대화별 최신본(연달아 보낼 때 앞선 턴이 지워지지 않게 — 항상 최신본에 붙인다)
   const convRef = useRef<Conversation | null>(null);
@@ -109,8 +142,9 @@ function Explore() {
   const newConv = useCallback(() => {
     setConv(null);
     setFollow(null);
+    resetPicks();
     router.replace("/explore");
-  }, [router]);
+  }, [router, resetPicks]);
   useEffect(() => {
     window.addEventListener("sa:new-conv", newConv);
     return () => window.removeEventListener("sa:new-conv", newConv);
@@ -217,7 +251,8 @@ function Explore() {
 
   /** 질문 보내기 — 이력에서 다시 연 대화의 기준지역이 지금과 다르면 새 대화로(질문은 지금 기준지역으로 가므로) */
   const ask = useCallback(
-    async (a: AskArgs, extra?: Partial<Turn>, newConv = false) => {
+    async (a0: AskArgs, extra?: Partial<Turn>, newConv = false) => {
+      const a = withRefs(a0);
       const open = convRef.current;
       // 이 질문에만 실은 기준지역(「이 특보로 질의」 — a.base)이 있으면 그 지역으로 대화를 가린다(R32 대화 하나는 기준지역 하나)
       const area = a.base !== undefined ? a.base : sRef.current.cond.base;
@@ -228,7 +263,7 @@ function Explore() {
       const c = appendTurns(a.question, [t], newConv || moved ? null : open?.id ?? null, a.base);
       return submitInto(c.id, tid, a, c.turns.length);
     },
-    [appendTurns, submitInto],
+    [appendTurns, submitInto, withRefs],
   );
   const toastErr = (e: unknown) => s.toast((e as Error).message);
 
@@ -296,7 +331,7 @@ function Explore() {
     const warnings = s.aimOn ? liveWarnings() : null;
     const plan = items.map((it, i) => {
       // 질문 글·briefing 칸(lib/library briefRequest — 질의문 그대로)
-      const a: AskArgs = { ...briefRequest(it, i, items.length, regionName), source: "BRIEFING", warnings, ...showPin(it.question, i) };
+      const a: AskArgs = withRefs({ ...briefRequest(it, i, items.length, regionName), source: "BRIEFING", warnings, ...showPin(it.question, i) });
       // 현황판(D1)용 — 브리핑 설정의 항목 이름·보낸 기준지역 이름을 턴에 함께 둔다(요청에는 넣지 않음)
       const group: BriefGroup = { id: gid, no: i + 1, total: items.length, title: "현재 상황 브리핑", label: it.label?.trim() || undefined, region: regionName };
       const t: Turn = { id: uid("t"), jobId: "", pending: true, q: a.question, source: "BRIEFING", libraryId: a.libraryId ?? null, at: now, args: a, group };
@@ -372,24 +407,76 @@ function Explore() {
     for (const q of qs) await askLib(q);
   };
 
-  // ── 지도: 대화의 완료 답 refs + 서버가 미리 받은 도형(geo) ──
-  const features = useMemo(() => {
+  // ── 지도: 지금 보는 답(턴 기준 표시 — 개발 서버 mapRefs)의 refs + 서버가 미리 받은 도형(geo) ──
+  // 새 턴이 붙으면 고른 답을 놓고 마지막 답을 따라간다
+  const nTurns = conv?.turns.length ?? 0;
+  useEffect(() => setMapJob(null), [conv?.id, nTurns]);
+  const answered = useCallback((jobId: string) => !!s.full[jobId]?.raw, [s.full]);
+  /**
+   * 지도가 그릴 답 — 고른 답(답 글·대상·카드에서 짚은 것)이 있으면 그 답만, 없으면 마지막 묶음이 브리핑이면 그 브리핑 항목 전부,
+   * 아니면 마지막으로 답이 온 턴. 대화는 마지막 턴만 — 앞 턴 대상까지 찍히면 지도가 「여태 물은 것 전부」가 된다
+   */
+  const mapScope = useMemo(() => {
+    const turns = (conv?.turns ?? []).filter((t) => t.jobId);
+    if (mapJob && turns.some((t) => t.jobId === mapJob)) return { key: mapJob, jobs: [mapJob], summaryJob: mapJob };
+    const last = turns[turns.length - 1];
+    if (last?.group) {
+      const jobs = turns.filter((t) => t.group?.id === last.group!.id).map((t) => t.jobId);
+      return { key: `b:${last.group.id}`, jobs, summaryJob: null as string | null };
+    }
+    for (let i = turns.length - 1; i >= 0; i--) if (answered(turns[i].jobId)) return { key: turns[i].jobId, jobs: [turns[i].jobId], summaryJob: turns[i].jobId };
+    return { key: "", jobs: [] as string[], summaryJob: null as string | null };
+  }, [conv, mapJob, answered]);
+  const mapData = useMemo(() => {
     const out: MapFeature[] = [];
-    for (const t of conv?.turns ?? []) {
-      if (!t.jobId) continue;
-      const f = s.full[t.jobId];
-      const refs = (f?.raw?.result?.refs ?? []) as T3qRef[];
-      const feats = f?.geo?.result?.features ?? [];
+    const seen = new Set<string>();
+    let missing = 0;
+    let loading = false;
+    let failed = false;
+    for (const jobId of mapScope.jobs) {
+      const f = s.full[jobId];
+      if (!f) {
+        if (s.jobs[jobId]?.state === "DONE") loading = true;
+        continue;
+      }
+      const refs = (f.raw?.result?.refs ?? []) as T3qRef[];
+      const feats = f.geo?.result?.features ?? [];
+      if (refs.some((r) => r.map?.value) && (!f.geo || (f.geo.status !== "SUCCESS" && f.geo.status !== "PARTIAL_SUCCESS"))) failed = true;
       // EXT-01 은 같은 key·value 를 한 번만 돌려준다(마지막 ref 로) — 같은 대상을 가리키는 ref 모두에 그 도형을 쓴다
       const byKV = new Map(feats.map((ft) => [`${ft.properties.key}|${ft.properties.value}`, ft]));
       for (const r of refs) {
-        const ft = byKV.get(`${r.map.key}|${r.map.value}`);
-        if (!ft) continue;
-        out.push({ key: `${t.jobId}:${r.ref}`, ref: r.ref, jobId: t.jobId, entityType: r.entity_type, displayName: r.display_name, draw: r.map.draw, precision: ft.properties.precision ?? null, geometry: ft.geometry });
+        const eid = entityKey(r);
+        // 같은 대상을 여러 항목(브리핑)이 가리키면 한 번만 — 핀이 겹쳐 쌓이면 수가 부풀어 보인다
+        if (seen.has(eid)) continue;
+        seen.add(eid);
+        const ft = r.map ? byKV.get(`${r.map.key}|${r.map.value}`) : undefined;
+        if (!ft) {
+          missing += 1;
+          continue;
+        }
+        out.push({ key: `${jobId}:${r.ref}`, ref: r.ref, jobId, entityType: r.entity_type, displayName: r.display_name, draw: r.map.draw, precision: ft.properties.precision ?? null, geometry: ft.geometry, eid, mapValue: r.map.value, t3qRef: r });
       }
     }
-    return out;
-  }, [conv, s.full]);
+    return { features: out, missing, status: failed ? ("failed" as const) : loading ? ("loading" as const) : null };
+  }, [mapScope, s.full, s.jobs]);
+  const features = mapData.features;
+  /** 「한눈 요약」이 그릴 답 — 지도와 같은 턴(브리핑 묶음 전체를 볼 때는 없음). 개발 서버 summaryOf */
+  const summary = useMemo(() => {
+    const id = mapScope.summaryJob;
+    const f = id ? s.full[id] : undefined;
+    if (!id || !f?.raw) return null;
+    const refs = (f.raw.result?.refs ?? []) as T3qRef[];
+    return { jobId: id, refs, regionName: conv?.baseName, basisAt: basisTime(receivedAt(f, f) ?? f.created_at) };
+  }, [mapScope, s.full, conv?.baseName]);
+  // 고른 답에 한눈 요약이 없으면 「한눈 요약」 탭에 머물지 않고 지도로 — 고른 답이 바뀐 순간에만(사람이 탭을 직접 누르면 막지 않는다)
+  const lastSummaryJob = useRef(summary?.jobId ?? null);
+  useEffect(() => {
+    const id = summary?.jobId ?? null;
+    if (lastSummaryJob.current === id) return;
+    lastSummaryJob.current = id;
+    if (active === "summary" && !summary?.refs.length) setActive("map");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [summary?.jobId]);
 
   const openTab = (t: PanelTab) => {
     setTabs((p) => (p.some((x) => x.key === t.key) ? p : [...p, t]));
@@ -404,6 +491,16 @@ function Explore() {
       setSelectedKey(ref ? `${jobId}:${ref}` : null);
       setFocusToken((n) => n + 1);
       setActive("map");
+      setPanelOpen(true);
+    },
+    selectOnMap: (key) => {
+      // 지도에서 누름 — 고른 표시만(지도는 MapView 가 배율 그대로 가운데로 옮긴다)
+      setMapJob(key.split(":")[0]);
+      setSelectedKey(key);
+    },
+    showSummary: (jobId) => {
+      setMapJob(jobId);
+      setActive("summary");
       setPanelOpen(true);
     },
     selectedKey,
@@ -426,7 +523,8 @@ function Explore() {
     setTimeout(() => document.getElementById(`job-${j.id}`)?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
   };
 
-  const panelTabs = sop.enabled ? [MAP_TAB, SOP_TAB, ...tabs.filter((t) => t.kind !== "map" && t.kind !== "sop")] : tabs.filter((t) => t.kind !== "sop");
+  const fixedTabs = sop.enabled ? [MAP_TAB, SUMMARY_TAB, SOP_TAB] : [MAP_TAB, SUMMARY_TAB];
+  const panelTabs = [...fixedTabs, ...tabs.filter((t) => t.kind !== "map" && t.kind !== "sop" && t.kind !== "summary")];
 
   // 턴을 브리핑 묶음 단위로
   const blocks = useMemo(() => {
@@ -509,6 +607,8 @@ function Explore() {
             onLibrary={() => setLibOpen(true)}
             followUpLabel={follow?.label}
             clearFollowUp={() => setFollow(null)}
+            objectRefs={picked.map((x) => ({ id: x.eid, name: x.ref.display_name ?? x.ref.ref }))}
+            onDropRef={(eid) => setPicked((list) => list.filter((x) => x.eid !== eid))}
           />
         </main>
         {panelOpen && (
@@ -530,9 +630,20 @@ function Explore() {
             close={(k) => { setTabs((p) => p.filter((t) => t.key !== k)); if (active === k) setActive("map"); }}
             closeAll={() => setPanelOpen(false)}
             features={features}
-            activeJobId={mapJob}
+            activeJobId={null}
+            mapScope={mapScope.key}
+            missing={mapData.missing}
+            resultStatus={mapData.status}
             focusToken={focusToken}
             sopFocus={sopFocus}
+            summary={summary}
+            picking={picking}
+            onPicking={setPicking}
+            pickedIds={pickedIds}
+            onTogglePick={(f) => {
+              const r = (s.full[f.jobId]?.raw?.result?.refs as T3qRef[] | undefined)?.find((x) => x.ref === f.ref);
+              if (r) togglePick(f.eid ?? entityKey(r), r);
+            }}
           />
         )}
         {libOpen && (

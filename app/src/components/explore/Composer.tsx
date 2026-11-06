@@ -14,12 +14,15 @@ import type { DisasterType } from "@/lib/contract/agent";
  * 질의 입력 (Figma 201001 하단 · 201003 조건 편집) — 적용 조건 요약 · 입력 2,000자 · [브리핑 세트▾] · [질의]
  * 보낸 뒤 바로 비워 다음 질문을 이어서 보낼 수 있다(비차단, R2).
  */
-export default function Composer({ onAsk, onBriefing, onLibrary, followUpLabel, clearFollowUp }: {
+export default function Composer({ onAsk, onBriefing, onLibrary, followUpLabel, clearFollowUp, objectRefs = [], onDropRef }: {
   onAsk: (q: string) => Promise<void>;
   onBriefing: () => void;
   onLibrary: () => void;
   followUpLabel?: string | null;
   clearFollowUp?: () => void;
+  /** 지도에서 집어 둔 참조 객체(「객체 참조」) — id = 화면 열쇠, name = 받은 이름 */
+  objectRefs?: { id: string; name: string }[];
+  onDropRef?: (id: string) => void;
 }) {
   const s = useSession();
   const [q, setQ] = useState("");
@@ -55,6 +58,22 @@ export default function Composer({ onAsk, onBriefing, onLibrary, followUpLabel, 
         <div className="cmp-follow xs">
           <b>이어서 묻기</b> · {followUpLabel}
           <button className="lnk xs" onClick={clearFollowUp}>해제 ×</button>
+        </div>
+      )}
+      {/* 지도에서 집어 둔 객체(개발 서버 QueryBox query-refs) — 질문 칸 바로 위. 엉뚱한 것을 쥔 채 묻지 않게 늘 보이고, 없으면 줄을 내지 않는다 */}
+      {objectRefs.length > 0 && (
+        <div className="query-refs">
+          <span className="query-refs-label">참조 객체 {objectRefs.length}</span>
+          <ul className="query-refs-list">
+            {objectRefs.map((r) => (
+              <li key={r.id} className="query-ref">
+                <span className="query-ref-name" title={r.name}>{r.name}</span>
+                <button type="button" className="query-ref-drop" aria-label={`${r.name} 참조 해제`} title="참조 해제" onClick={() => onDropRef?.(r.id)}>
+                  <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true" focusable="false"><path d="M1 1l8 8M9 1l-8 8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>
+                </button>
+              </li>
+            ))}
+          </ul>
         </div>
       )}
       <textarea

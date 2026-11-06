@@ -58,3 +58,55 @@ export async function adminAreas(level: AdminLevel, parent = ""): Promise<AdminA
   cache.set(ck, { at: Date.now(), items });
   return items;
 }
+
+/** 시군구 경계 한 덩어리 — 지도 「요약 보기」가 구마다 대상 수로 칠할 때 쓴다(개발 서버 mapApi.boundary) */
+export interface SigunguShape { code: string; name: string; geometry: { type: "Polygon" | "MultiPolygon"; coordinates: unknown } }
+const shapeCache = new Map<string, { at: number; items: SigunguShape[] }>();
+
+/** 경위도를 소수 넷째 자리(약 10m)로 줄이고 같은 점이 이어지면 뺀다 — 응답을 Vercel 한도(4.5MB) 안에 둔다 */
+function thin(c: unknown): unknown {
+  if (!Array.isArray(c)) return c;
+  if (typeof c[0] === "number") return [Math.round((c[0] as number) * 1e4) / 1e4, Math.round((c[1] as number) * 1e4) / 1e4];
+  const out = c.map(thin);
+  if (Array.isArray(out[0]) && typeof (out[0] as unknown[])[0] === "number") {
+    return out.filter((p, i) => i === 0 || i === out.length - 1 || String(p) !== String(out[i - 1]));
+  }
+  return out;
+}
+
+/** 시도(2자리) 안 시군구 경계(LT_C_ADSIGG_INFO, 도형 포함). 하루 보관 */
+export async function sigunguShapes(sido: string): Promise<SigunguShape[]> {
+  if (!/^\d{2}$/.test(sido)) throw new AdminLookupError("시·도 코드가 올바르지 않습니다.");
+  const hit = shapeCache.get(sido);
+  if (hit && Date.now() - hit.at < TTL_MS) return hit.items;
+  const key = process.env.VWORLD_KEY || process.env.NEXT_PUBLIC_VWORLD_KEY;
+  if (!key) throw new AdminLookupError("브이월드 인증키가 설정되지 않았습니다.");
+  const items: SigunguShape[] = [];
+  let got = 0;
+  for (let n = 1; n <= 5; n++) {
+    const u = new URL("https://api.vworld.kr/req/data");
+    const p: Record<string, string> = {
+      service: "data", request: "GetFeature", version: "2.0", format: "json", data: "LT_C_ADSIGG_INFO", key,
+      domain: process.env.VWORLD_DOMAIN || "safetyai-three.vercel.app", geometry: "true", attribute: "true", crs: "EPSG:4326",
+      size: "100", page: String(n), attrFilter: `sig_cd:like:${sido}`,
+    };
+    for (const [k, v] of Object.entries(p)) u.searchParams.set(k, v);
+    const r = await fetch(u, { signal: AbortSignal.timeout(15000), cache: "no-store" });
+    const j = (await r.json().catch(() => null)) as {
+      response?: { status?: string; error?: { text?: string }; record?: { total?: string }; result?: { featureCollection?: { features?: { geometry: SigunguShape["geometry"]; properties: Record<string, string> }[] } } };
+    } | null;
+    const res = j?.response;
+    if (res?.status === "NOT_FOUND") break;
+    if (!res || res.status !== "OK") throw new AdminLookupError(`행정경계를 받지 못했습니다. (${res?.error?.text ?? `HTTP ${r.status}`})`);
+    const feats = res.result?.featureCollection?.features ?? [];
+    got += feats.length;
+    for (const f of feats) {
+      // like 는 「포함」이라 앞자리 일치만 남긴다
+      const code = String(f.properties.sig_cd);
+      if (code.startsWith(sido)) items.push({ code, name: String(f.properties.sig_kor_nm), geometry: { type: f.geometry.type, coordinates: thin(f.geometry.coordinates) } });
+    }
+    if (!feats.length || got >= Number(res.record?.total ?? 0)) break;
+  }
+  shapeCache.set(sido, { at: Date.now(), items });
+  return items;
+}
