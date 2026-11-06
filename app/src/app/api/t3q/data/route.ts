@@ -7,7 +7,7 @@ export const maxDuration = 30;
 /**
  * POST /api/t3q/data {api, id?, body?, query?} — T3Q Data API 프록시 (화이트리스트). 봉투는 그대로 돌려준다(R0).
  * 상세 패널(사건·위험객체·하천·계획)과 목록 조회용. ID 는 T3Q 가 준 값을 그대로 쓴다(파싱 금지).
- * 시연 모드를 켠 동안만 응답을 들고 있는다(R52 — lib/server/demoMode). 평소에는 늘 새로 받는다
+ * 시연 모드를 켠 동안 대상 계정만 응답을 들고 있는다(R52·R52-1 — lib/server/demoMode). 평소·대상 아닌 계정은 늘 새로 받는다
  */
 const ID = /^[A-Za-z0-9_.\-가-힣]{1,80}$/;
 const ROUTES: Record<string, (id?: string) => { method: "GET" | "POST"; path: string } | null> = {
@@ -37,7 +37,7 @@ export async function POST(req: Request) {
   const r = route(b!.id ? encodeURIComponent(b!.id) : undefined);
   if (!r) return fail(400, "ID 가 필요합니다.");
   const qs = b!.query ? "?" + new URLSearchParams(b!.query).toString() : "";
-  const res = await t3qData(r.method, r.path + qs, r.method === "POST" ? (b!.body ?? {}) : undefined);
+  const res = await t3qData(who.id, r.method, r.path + qs, r.method === "POST" ? (b!.body ?? {}) : undefined);
   if (!res.envelope) return fail(502, res.error ?? "정보를 불러오지 못했습니다.", { http: res.http });
   return json({ api: b!.api, http: res.http, ms: res.ms, envelope: res.body });
 }

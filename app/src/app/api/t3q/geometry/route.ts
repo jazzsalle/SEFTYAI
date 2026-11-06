@@ -12,7 +12,7 @@ export async function POST(req: Request) {
   const b = (await req.json().catch(() => null)) as { items?: { ref?: string; key?: string; value?: string }[] } | null;
   const items = (b?.items ?? []).filter((i) => i?.value).slice(0, 300).map((i) => ({ ref: i.ref ?? null, key: i.key, value: String(i.value) }));
   if (!items.length) return fail(400, "조회할 대상이 없습니다.");
-  const r = await t3qData("POST", "/spatial-objects/geometry", { items }); // 시연 모드 동안만 들고 있음(R52)
+  const r = await t3qData(who.id, "POST", "/spatial-objects/geometry", { items }); // 시연 모드 동안 대상 계정만 들고 있음(R52·R52-1)
   if (!r.envelope) return fail(502, r.error ?? "위치를 불러오지 못했습니다.");
   return json({ envelope: r.body });
 }

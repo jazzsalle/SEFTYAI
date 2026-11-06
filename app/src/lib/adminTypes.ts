@@ -133,9 +133,12 @@ export interface AdminFeedbackResponse {
 }
 
 /** GET·POST /api/admin/scenario — 시연 시나리오 특보 켜짐 상태(R43). live = 켬 + 끝나는 시각 전 */
-/** /api/admin/demo-mode 응답(R52 — 개발서버 DemoModeController) */
+/** 시연 모드를 켤 때 기본으로 골라 두는 대상 계정(R52-1, 사용자 결정 2026-11-06) — 운영자가 더 고를 수 있다 */
+export const DEMO_DEFAULT_ACCOUNTS: readonly string[] = ["busan2"];
+
+/** /api/admin/demo-mode 응답(R52 — 개발서버 DemoModeController · R52-1 대상 계정) */
 export interface AdminDemoModeResponse {
-  state: { on: boolean; since: string | null; until: string | null; by: string | null };
+  state: { on: boolean; since: string | null; until: string | null; by: string | null; accounts: string[] };
   live: boolean;
   now: string;
   remainingSeconds: number;

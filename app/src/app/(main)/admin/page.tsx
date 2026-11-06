@@ -16,6 +16,7 @@ import { PILOT_T3Q } from "@/lib/t3q/region";
 import { SOURCE_LABEL, STATE_LABEL, isActive, type JobSource, type JobState, type JobSummary } from "@/lib/jobTypes";
 import { SCN_ACCOUNT, SCN_DEFAULT_HOURS, SCN_DEFS, SCN_LABEL, SCN_MAX_HOURS, SCN_REGIONS, SCN_SOURCE, scenarioLive, type ScnRegion } from "@/lib/scenario";
 import {
+  DEMO_DEFAULT_ACCOUNTS,
   WARM_REGIONS,
   type AdminAccountRow,
   type AdminDemoModeResponse,
@@ -506,8 +507,8 @@ function WarmTab({ jobs, warm, setWarm, onOpen }: { jobs: JobsHook; warm: WarmRe
       <section className="panel">
         <h2 style={{ fontSize: 19 }}>브리핑 예열</h2>
         <p className="xs muted" style={{ margin: "6px 0 0", lineHeight: 1.7 }}>
-          부산·인제·영천 × 기본 브리핑 세트 {BRIEF_SET.length}문항을 각 지역 담당자 계정 명의로 미리 질의합니다.{" "}
-          <b>예열한 답은 시연 모드를 켠 동안 12시간까지 같은 질문에 즉시 표시됩니다.</b> 시연 모드가 꺼져 있으면 받은 답을 다시 쓰지 않아(늘 새로 질의) 예열할 수 없습니다.
+          부산·인제·영천 × 기본 브리핑 세트 {BRIEF_SET.length}문항을 각 지역의 시연 대상 계정 명의로 미리 질의합니다(그 지역에 대상 계정이 없으면 건너뜁니다).{" "}
+          <b>예열한 답은 시연 모드를 켠 동안 대상 계정에 12시간까지 같은 질문에 즉시 표시됩니다.</b> 시연 모드가 꺼져 있으면 받은 답을 다시 쓰지 않아(늘 새로 질의) 예열할 수 없습니다.
           <br />
           같은 질문 = 질문 글·브리핑 출처·기준지역이 같고 재난상황 조건·특보가 붙지 않은 질의입니다. 업무 시작·시연 전에 실행하세요.
         </p>
@@ -605,7 +606,8 @@ const fmtMDHM = (iso?: string | null) => {
 
 /**
  * 시연 모드(R52 — 개발서버 DemoModeButton·DemoModeController) — 켠 동안만 받은 답·조회 응답을 다시 쓴다. 평소에는 늘 실시간(RAG 검증).
- * 켜고 끌 때 들고 있던 응답을 비운다. 48시간 뒤 저절로 꺼진다. 상태는 서비스 하나에 하나(모든 사용자)
+ * 켜고 끌 때 들고 있던 응답을 비운다. 48시간 뒤 저절로 꺼진다. 상태는 서비스 하나에 하나.
+ * 대상 계정(R52-1) — 켤 때 고른 계정만 저장 답을 쓴다(기본 busan2). 켜 둔 채 바꿀 수 있고 끌 때 비운다. 고르지 않은 계정은 켜져 있어도 늘 새로 받는다
  */
 function DemoModePanel() {
   const { toast } = useSession();
@@ -614,19 +616,28 @@ function DemoModePanel() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [ask, setAsk] = useState(false);
+  const [picked, setPicked] = useState<string[]>([...DEMO_DEFAULT_ACCOUNTS]);
+  const show = (r: AdminDemoModeResponse) => {
+    setD(r);
+    setPicked(r.live && r.state.accounts?.length ? r.state.accounts : [...DEMO_DEFAULT_ACCOUNTS]);
+  };
   useEffect(() => {
-    api<AdminDemoModeResponse>("/api/admin/demo-mode").then(setD).catch((e) => setError(errMsg(e)));
+    api<AdminDemoModeResponse>("/api/admin/demo-mode").then(show).catch((e) => setError(errMsg(e)));
   }, []);
   const live = !!d?.live && !!d.state.until && Date.parse(d.state.until) > now;
-  const save = async (on: boolean) => {
+  const cur = live ? (d?.state.accounts ?? []) : [];
+  const changed = live && (picked.length !== cur.length || picked.some((x) => !cur.includes(x)));
+  const save = async (on: boolean | null) => {
     if (busy) return;
+    if (on !== false && !picked.length) return setError("시연 대상 계정을 하나 이상 고르세요.");
     setBusy(true);
     setError(null);
     try {
-      const r = await api<AdminDemoModeResponse>("/api/admin/demo-mode", { method: "POST", json: { on } });
-      setD(r);
+      const body = on === null ? { accounts: picked } : on ? { on, accounts: picked } : { on };
+      const r = await api<AdminDemoModeResponse>("/api/admin/demo-mode", { method: "POST", json: body });
+      show(r);
       setAsk(false);
-      toast(on ? "시연 모드를 켰습니다." : "시연 모드를 껐습니다.");
+      toast(on === null ? "시연 대상 계정을 바꿨습니다." : on ? "시연 모드를 켰습니다." : "시연 모드를 껐습니다.");
     } catch (e) {
       setError(errMsg(e));
     } finally {
@@ -640,7 +651,9 @@ function DemoModePanel() {
       <h2 style={{ fontSize: 19 }}>시연 모드</h2>
       <p className="xs muted" style={{ margin: "6px 0 0", lineHeight: 1.7 }}>
         <b>평소에는 받은 답을 다시 쓰지 않고 늘 에이전트에 새로 묻습니다</b>(응답이 바뀌면 바로 보이게 — RAG 검증). 켜 둔 동안만 조회 응답과, 켠 뒤 받은 첫 질문 답(시·도·영천·인제, 성공한 답, 12시간까지)을 다시 써서 시연을 빠르게 합니다.
-        브리핑의 받아 둔 답(질문 모음 「한눈 요약 질의」)도 켠 동안만 씁니다. 켤 때와 끌 때 들고 있던 응답을 모두 비우고, 켠 뒤 48시간이 지나면 저절로 꺼집니다. 모든 사용자에게 함께 적용됩니다.
+        브리핑의 받아 둔 답(질문 모음 「한눈 요약 질의」)도 켠 동안만 씁니다. 켤 때와 끌 때 들고 있던 응답을 모두 비우고, 켠 뒤 48시간이 지나면 저절로 꺼집니다.
+        <br />
+        <b>아래에서 고른 계정에만 적용됩니다</b>(기본 busan2). 고르지 않은 계정은 켜져 있어도 평소처럼 늘 새로 묻습니다 — 디자이너 시험·RAG 검증용. 켜 둔 채 대상을 바꿀 수 있고, 끄면 대상도 비웁니다.
       </p>
       <div className="adm-scn" role="status">
         <span className={`badge ${live ? "info" : "neutral"}`}>{!d ? "확인 중" : live ? "켜짐" : "꺼짐"}</span>
@@ -648,7 +661,7 @@ function DemoModePanel() {
           {!d
             ? ""
             : live
-              ? `${fmtMDHM(d.state.since)} 켬 · 남은 시간 ${hm} · 저장해 둔 조회 응답 ${d.entries}건${d.state.by ? ` · ${d.state.by}` : ""}`
+              ? `대상 ${cur.join(" · ") || "없음"} · ${fmtMDHM(d.state.since)} 켬 · 남은 시간 ${hm} · 저장해 둔 조회 응답 ${d.entries}건${d.state.by ? ` · ${d.state.by}` : ""}`
               : d.state.on && d.state.until
                 ? `켠 뒤 48시간(${fmtMDHM(d.state.until)})이 지나 꺼졌습니다`
                 : d.state.by
@@ -659,7 +672,25 @@ function DemoModePanel() {
         {live ? (
           <button type="button" className="btn" onClick={() => setAsk(true)} disabled={busy}>시연 모드 끄기</button>
         ) : (
-          <button type="button" className="btn pri" onClick={() => save(true)} disabled={busy || !d}>시연 모드 켜기</button>
+          <button type="button" className="btn pri" onClick={() => save(true)} disabled={busy || !d || !picked.length}>시연 모드 켜기</button>
+        )}
+      </div>
+      <div className="adm-scn" role="group" aria-label="시연 대상 계정">
+        <span className="xs"><b>대상 계정</b></span>
+        {ACCOUNTS.map((a) => (
+          <label key={a.id} className="chk xs">
+            <input
+              type="checkbox"
+              checked={picked.includes(a.id)}
+              onChange={(e) => setPicked((p) => (e.target.checked ? ACCOUNTS.map((x) => x.id).filter((x) => x === a.id || p.includes(x)) : p.filter((x) => x !== a.id)))}
+              disabled={busy}
+            />
+            {a.id} <span className="muted">({ROLE_LABEL[a.role] ?? a.role} · {a.name})</span>
+          </label>
+        ))}
+        <span className="sp" />
+        {live && (
+          <button type="button" className="btn" onClick={() => save(null)} disabled={busy || !changed || !picked.length}>대상 계정 바꾸기</button>
         )}
       </div>
       {error && <div className="notice warn" role="alert" style={{ marginTop: 12 }}>{error}</div>}
@@ -677,7 +708,7 @@ function DemoModePanel() {
             </>
           }
         >
-          <p className="acm-sub">끄면 저장해 둔 조회 응답을 모두 비우고, 모든 사용자에게 꺼집니다.</p>
+          <p className="acm-sub">끄면 저장해 둔 조회 응답과 대상 계정을 모두 비웁니다.</p>
         </Dialog>
       )}
     </section>

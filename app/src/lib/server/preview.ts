@@ -26,7 +26,7 @@ const SPEC: Record<PreviewApi, { apiId: string; label: string; path: string; bod
   PLAN: { apiId: "T3Q-06", label: "계획문서 목록", path: "/plans/search", body: (qc) => ({ region: qc.region ?? null, page: { page: 1, size: 20 } }) },
 };
 
-export async function runPreview(libraryId: string, qc: Record<string, unknown>): Promise<PreviewItem[] | undefined> {
+export async function runPreview(accountId: string, libraryId: string, qc: Record<string, unknown>): Promise<PreviewItem[] | undefined> {
   const q = libById(libraryId);
   if (!q?.preview?.length) return undefined;
   // 지역이 없는(전국) 목록 조회는 범위가 너무 넓어 자동 조회하지 않는다(유사사례는 조건으로 순위를 매기므로 허용)
@@ -36,7 +36,7 @@ export async function runPreview(libraryId: string, qc: Record<string, unknown>)
     apis.map(async (api) => {
       const s = SPEC[api];
       const request = s.body(qc);
-      const r = await t3qData("POST", s.path, request, { timeoutMs: 8000 });
+      const r = await t3qData(accountId, "POST", s.path, request, { timeoutMs: 8000 });
       return { api, apiId: s.apiId, label: s.label, method: "POST" as const, path: s.path, request, http: r.http, ms: r.ms, response: r.body };
     }),
   );

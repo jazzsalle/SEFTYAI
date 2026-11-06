@@ -475,7 +475,7 @@ describe("답 재사용(R52) — 특보가 아니라 시연 모드·점검 대�
 
   it("시연 모드를 켠 동안 — 특보가 덮는 점검 대상 지역(인제군 한파주의보·영천시·제주)도 2시간 전 답을 다시 쓴다(D5 폐지)", async () => {
     const D = await import("@/lib/server/demoMode");
-    await D.demoSet(admin, true, Date.now() - 3 * 3_600_000);
+    await D.demoSet(admin, true, Date.now() - 3 * 3_600_000, ["hang", "01000"]); // 대상 계정(R52-1)
     try {
       for (const [i, region] of [
         { admin_code: "5181000000", level: "SIGUNGU", name: "강원특별자치도 인제군" },

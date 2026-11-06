@@ -129,8 +129,10 @@ describe("답 재사용(R52) — 시연 모드를 켠 동안만 · 켠 뒤 받�
     D = await import("@/lib/server/demoMode");
     admin = (await import("@/lib/config")).ACCOUNTS.find((a) => a.id === "unes")!;
   });
+  /** 이 묶음의 시연 대상 계정(R52-1) — 대상 판정은 아래 「시연 대상 계정」 묶음이 따로 본다 */
+  const TARGET = ["busan", "inje", "hang"];
   /** 시연 모드 켬 — 켠 시각을 agoH 시간 전으로 당긴다(그 뒤 받은 답이 재사용 대상) */
-  const demoOn = (agoH = 20) => D.demoSet(admin, true, Date.now() - agoH * 3_600_000);
+  const demoOn = (agoH = 20) => D.demoSet(admin, true, Date.now() - agoH * 3_600_000, TARGET);
   afterEach(async () => {
     await D.demoSet(admin, false);
   });
@@ -164,7 +166,7 @@ describe("답 재사용(R52) — 시연 모드를 켠 동안만 · 켠 뒤 받�
 
   it("켜기 전에 받은 답은 쓰지 않는다", async () => {
     const src = await answered(inje, "재사용 시험 켜기 전", QC.inje, "30 minutes");
-    await D.demoSet(admin, true);
+    await D.demoSet(admin, true, Date.now(), TARGET);
     const j = await ask(inje, "재사용 시험 켜기 전", QC.inje);
     expect(j.cached_from).toBeNull();
     expect(j.id).not.toBe(src.id);
@@ -174,7 +176,7 @@ describe("답 재사용(R52) — 시연 모드를 켠 동안만 · 켠 뒤 받�
     await demoOn(2);
     await answered(inje, "재사용 시험 다시 켬", QC.inje, "1 hour");
     await D.demoSet(admin, false);
-    await D.demoSet(admin, true);
+    await D.demoSet(admin, true, Date.now(), TARGET);
     expect((await ask(inje, "재사용 시험 다시 켬", QC.inje)).cached_from).toBeNull();
   });
 
@@ -258,7 +260,7 @@ describe("답 재사용(R52) — 시연 모드를 켠 동안만 · 켠 뒤 받�
     const off = await J.submitJob(busan, { question: "브리핑 고정 시험 1", source: "BRIEFING", queryContext: QC.busan, pinId: "SH-R52" });
     expect(off.cached_from).toBeNull();
     expect((await sql.query("select pending_job_id from sa_demo_pins where item_id = 'SH-R52'"))[0].pending_job_id).toBeNull();
-    await D.demoSet(admin, true);
+    await D.demoSet(admin, true, Date.now(), TARGET);
     const on = await J.submitJob(busan, { question: "브리핑 고정 시험 2", source: "BRIEFING", queryContext: QC.busan, pinId: "SH-R52" });
     expect(on.cached_from).toBe(pinned.id);
     await D.demoSet(admin, false);
@@ -292,11 +294,12 @@ describe("시연 모드 Data API 응답(R52) — 켠 동안만 들고 있다", (
     await D.demoSet(admin, false);
     const path = "/similar-events/search";
     const body = { query: "호우", request_id: "A" };
-    expect((await D.t3qData("POST", path, body)).demoHit).toBeUndefined();
-    const st = await D.demoSet(admin, true);
+    expect((await D.t3qData("busan2", "POST", path, body)).demoHit).toBeUndefined();
+    const st = await D.demoSet(admin, true); // 기본 대상 = busan2 하나(R52-1)
+    expect(st.accounts).toEqual(["busan2"]);
     expect(Date.parse(st.until!) - Date.parse(st.since!)).toBe(48 * 3_600_000);
-    const a = await D.t3qData("POST", path, body);
-    const b = await D.t3qData("POST", path, { ...body, request_id: "B" }); // request_id 는 열쇠에 들지 않는다
+    const a = await D.t3qData("busan2", "POST", path, body);
+    const b = await D.t3qData("busan2", "POST", path, { ...body, request_id: "B" }); // request_id 는 열쇠에 들지 않는다
     const status = (a.body as { status?: string } | null)?.status;
     if (a.envelope && a.http < 300 && (status === "SUCCESS" || status === "NO_RESULT")) {
       expect(a.demoHit).toBeUndefined();
@@ -308,8 +311,8 @@ describe("시연 모드 Data API 응답(R52) — 켠 동안만 들고 있다", (
     }
     await D.demoSet(admin, false);
     expect((await sql.query("select count(*)::int as n from sa_demo_cache"))[0].n).toBe(0);
-    expect((await D.t3qData("POST", path, body)).demoHit).toBeUndefined();
-    const old = { on: true, since: new Date(Date.now() - 49 * 3_600_000).toISOString(), until: new Date(Date.now() - 3_600_000).toISOString(), by: null };
+    expect((await D.t3qData("busan2", "POST", path, body)).demoHit).toBeUndefined();
+    const old = { on: true, since: new Date(Date.now() - 49 * 3_600_000).toISOString(), until: new Date(Date.now() - 3_600_000).toISOString(), by: null, accounts: ["busan2"] };
     expect(D.demoLive(old)).toBe(false);
     expect(D.demoKey("POST", path, { a: 1, b: 2, caller: { x: 1 } })).toBe(D.demoKey("POST", path, { b: 2, a: 1 }));
   });

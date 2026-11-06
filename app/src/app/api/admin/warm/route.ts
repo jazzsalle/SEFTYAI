@@ -28,7 +28,8 @@ const pick = (j: Job): WarmJob => ({
 
 /**
  * POST /api/admin/warm {regions?, force?} — 브리핑 예열 (운영자 전용, §5)
- * 부산·인제·영천 × 기본 브리핑 세트(lib/briefingSet 기본 항목 가운데 체크된 것 — 개발서버 ai_briefing_item is_default)를 그 지역 담당자 계정 명의로 접수한다(source BRIEFING).
+ * 부산·인제·영천 × 기본 브리핑 세트(lib/briefingSet 기본 항목 가운데 체크된 것 — 개발서버 ai_briefing_item is_default)를 그 지역의 시연 대상 계정 명의로 접수한다(source BRIEFING).
+ * 대상 계정(R52-1)은 시연 모드를 켤 때 고른 계정 — 그 지역에 대상 계정이 없으면 그 지역은 예열하지 않는다(ERROR 로 알린다). 대상 아닌 계정은 받아 둔 답을 쓰지 않으므로.
  * 화면 [브리핑 시작]과 같게 질의문 그대로 · 문항 없음 · query_context 는 기준지역만(재난유형 없음).
  * 동시성(계정 4·전체 8)은 submitJob 이 맡는다 — 한도를 넘는 문항은 QUEUED 로 남고, 상태 조회 때 차례로 제출된다.
  * 경쟁 없이 슬롯을 세도록 한 건씩 차례로 접수한다. 완료된 답은 시연 모드를 켠 동안 12시간까지 같은 질문에 즉시 쓰인다(R52).
@@ -41,7 +42,8 @@ export async function POST(req: Request) {
   if (!b.success) return fail(400, "요청 형식이 맞지 않습니다.");
   const regions = WARM_REGIONS.filter((r) => !b.data.regions || b.data.regions.includes(r));
   const force = !!b.data.force;
-  if (!demoLive(await demoGet())) return fail(409, "시연 모드가 꺼져 있어 예열하지 않았습니다. 꺼져 있으면 받은 답을 다시 쓰지 않고 늘 새로 묻습니다. 시연 모드를 먼저 켜세요.");
+  const demo = await demoGet();
+  if (!demoLive(demo)) return fail(409, "시연 모드가 꺼져 있어 예열하지 않았습니다. 꺼져 있으면 받은 답을 다시 쓰지 않고 늘 새로 묻습니다. 시연 모드를 먼저 켜세요.");
   const health = await t3qHealth();
   if (!health.ok) return fail(503, `T3Q 연결 상태가 정상이 아니어서 예열하지 않았습니다. (${health.detail ?? "상태 확인 실패"})`);
 
@@ -53,7 +55,7 @@ export async function POST(req: Request) {
     return fail(500, "서버 DB를 준비하지 못했습니다. " + errText(e));
   }
   for (const r of regions) {
-    const acc = ACCOUNTS.find((a) => a.role === "지자체" && a.region === r);
+    const acc = ACCOUNTS.find((a) => a.role === "지자체" && a.region === r && demo.accounts.includes(a.id));
     const region = PILOT_T3Q[r];
     const set = briefingDefaults().filter((x) => x.checked);
     for (const [i, it] of set.entries()) {
@@ -61,7 +63,7 @@ export async function POST(req: Request) {
       const question = req.question;
       const base = { region: r, regionName: region.name, accountId: acc?.id ?? "", libraryId: it.id, question };
       if (!acc) {
-        items.push({ ...base, outcome: "ERROR", job: null, error: "이 지역 담당자 계정이 설정(ACCOUNTS)에 없습니다." });
+        items.push({ ...base, outcome: "ERROR", job: null, error: "이 지역에는 시연 대상 계정이 없습니다. 「시연 모드」 탭에서 이 지역 계정을 대상으로 고르세요." });
         continue;
       }
       if (Date.now() - t0 > BUDGET_MS) {

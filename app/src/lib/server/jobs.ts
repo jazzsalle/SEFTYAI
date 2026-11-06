@@ -6,12 +6,13 @@ import { db, ensureSchema } from "./db";
 import { SCN_SOURCE } from "../scenario";
 import { fetchLiveAdvisories } from "./kma";
 import { traceAdd } from "./kvStore";
-import { demoGet, demoLive, t3qData } from "./demoMode";
+import { demoFor, t3qData } from "./demoMode";
 
 /**
  * 질의 작업 (R1·R2·R8·R22) — T3Q Agent ASYNC 를 Neon 작업 표로 감싼다.
  * - 접수: 같은 키 진행 중 → 합류 / 슬롯(계정 4·전체 8) 있으면 T3Q 제출, 없으면 QUEUED
- * - 답 재사용(R52 — 개발서버 AgentQueryService·AgentCacheKey·DbAgentAnswerCache 규칙): 시연 모드(lib/server/demoMode)를 켠 동안만.
+ * - 답 재사용(R52 — 개발서버 AgentQueryService·AgentCacheKey·DbAgentAnswerCache 규칙): 시연 모드(lib/server/demoMode)를 켠 동안, 운영자가 고른 대상 계정만(demoFor — R52-1).
+ *   다시 쓰는 답은 켠 뒤 받은 것이면 누가 받았든(대상 아닌 계정 포함) 쓸 수 있지만, 대상 아닌 계정은 다시 쓰지 않고 늘 새로 받는다.
  *   평소에는 받아 둔 답을 주지 않는다(RAG 검증 — 사용자 지시 2026-11-06). 켠 동안 받은 답만, 받은 지 12시간 안, SUCCESS 만,
  *   첫 턴만(이어서 묻기 아님), 점검 대상 지역(시·도·영천시·인제군 — lib/aiMode aimSupported, 전국 제외)만.
  *   재사용 작업은 원래 답을 받은 시각(source_finished_at)·그때 발효 중이던 특보(source_wx_seen)를 함께 준다.
@@ -189,11 +190,11 @@ export async function submitJob(acc: Account, input: SubmitInput): Promise<Job> 
   const id = randomUUID();
   const base = [id, acc.id, input.convId ?? null, input.turnNo ?? null, input.source, input.libraryId ?? null, input.question.trim(), questionSent, JSON.stringify(request), cacheKey];
 
-  const demoSt = await demoGet();
-  const demo = demoLive(demoSt) ? demoSt : null;
+  // 시연 모드 대상 계정일 때만(R52-1 — 켜져 있어도 고르지 않은 계정은 늘 새로 받는다)
+  const demo = await demoFor(acc.id);
   // 첫 턴만(개발서버 AgentCacheKey.IsCacheable — 이어 가는 대화는 앞 대화에 기대므로) · 점검 대상 지역만(DbAgentAnswerCache.SaveAsync — ai_region, 전국 제외)
   const reusable = !t3qConv && reuseRegion((input.queryContext?.region as { admin_code?: string } | undefined)?.admin_code);
-  // 브리핑의 받아 둔 답(질문 모음 「시연」·「한눈 요약 질의」와 글이 같은 항목) — 개발서버 useBriefing 처럼 시연 모드일 때만, 받아 둔 답이 없으면 실시간(고정하지 않음)
+  // 브리핑의 받아 둔 답(질문 모음 「시연」·「한눈 요약 질의」와 글이 같은 항목) — 개발서버 useBriefing 처럼 시연 모드 대상 계정일 때만, 받아 둔 답이 없으면 실시간(고정하지 않음)
   if (input.pinId && input.source === "BRIEFING") {
     const pinned = demo ? await pinnedJob(input.pinId) : null;
     if (pinned) return copyJob(base, input, pinned);
@@ -510,7 +511,7 @@ async function prefetchGeo(job: Job) {
   const refs = refsOf(job);
   if (!refs.length) return;
   const items = refs.slice(0, 300).map((r) => ({ ref: r.ref, key: r.map!.key, value: String(r.map!.value) }));
-  const g = await t3qData("POST", "/spatial-objects/geometry", { items }, { timeoutMs: POLL_TIMEOUT_MS });
+  const g = await t3qData(job.account_id, "POST", "/spatial-objects/geometry", { items }, { timeoutMs: POLL_TIMEOUT_MS });
   if (g.envelope) await q("update sa_agent_jobs set geo = $2 where id = $1", [job.id, JSON.stringify(g.body)]);
 }
 
