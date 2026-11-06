@@ -203,7 +203,10 @@
 .day-q .day-btn span { color: var(--c-text); }
 /* 밑줄은 항목 이름(파란 링크)에만 — 검정 질문 글까지 밑줄이 번지지 않게(밑줄은 자식으로 번져 자식에서 끌 수 없으므로 단추에서 끄고 이름에 준다) */
 .day-q .day-btn:hover { text-decoration: none; }
-.day-q .day-btn:hover b { text-decoration: underline; }
+.day-q .day-btn:hover:not(:disabled) b { text-decoration: underline; }
+/* 질문 모음 「시연」 — 받아 둔 답이 없는 질문은 회색으로 눌리지 않는다(개발서버 qlib-day-btn:disabled 와 같은 회색) */
+.day-q .day-btn:disabled { cursor: not-allowed; }
+.day-q .day-btn:disabled b, .day-q .day-btn:disabled span { color: var(--c-sub); }
 /* 질문 말풍선 — 이 질문에 붙인 조건(보낸 값 그대로) */
 .qb-cond { color: var(--c-sub); margin-top: 4px; }
 .flow { padding: 10px 0; border-bottom: 1px solid var(--c-line); font-size: var(--fs-xs); display: flex; flex-direction: column; gap: 6px; }

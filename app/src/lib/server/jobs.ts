@@ -272,6 +272,13 @@ export async function demoPins(): Promise<Record<string, { job: Job | null; pend
   return out;
 }
 
+/** 받아 둔 답 지우기 — 질문 모음 「한눈 요약 질의」 [지우기](개발서버 DELETE /demo-pins/{id}/answer). 작업 행은 남기고 고정만 푼다(받는 중인 작업도 고정 대기에서 뺀다) */
+export async function clearDemoPin(itemId: string): Promise<boolean> {
+  await ensurePins();
+  const rows = await q("update sa_demo_pins set job_id = null, pending_job_id = null, updated_at = now() where item_id = $1 returning item_id", [itemId]);
+  return rows.length > 0;
+}
+
 async function pinnedJob(itemId: string): Promise<Job | null> {
   return (await demoPins())[itemId]?.job ?? null;
 }

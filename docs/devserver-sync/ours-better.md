@@ -52,3 +52,9 @@
 - KRDS 원본 CSS를 싣지 않고 토큰만 `app/globals.css` `:root`에 둔다(변수 이름은 개발서버 `styles/renewal/tokens.css`와 같다). 화면별 스타일은 컴포넌트 옆 `.css` 한 곳에만 둔다.
 - 개발서버는 `krds.min.css`(1rem=10px) → `index.css`(7천 줄) → `styles/renewal/*`(같은 클래스를 덮음) 세 겹이라, 한 요소에 규칙이 두세 번 걸리고 읽는 순서가 바뀌면 화면이 깨진다.
 - 개발서버 반영 시 참고: renewal 덮어쓰기는 그대로 두되, renewal이 이미 덮은 `index.css` 규칙을 한 번 걷어내면 고칠 곳이 하나로 준다. 개발서버 치수(rem, 1rem=10px)를 옮길 때는 ×10 px로 바꾼다.
+
+## 11. 질문 모음 맞추기(2026-11-06)에서 남긴 것
+- 받아 둔 답의 짝을 ID 하나로만 찾는다(개발서버는 ID + 질문 글) — 대신 질문 글은 코드(`lib/library.ts`)에만 있어 서버 시드와 어긋날 일이 없다. 가져오기 도구는 개발서버처럼 글까지 같을 때만 넣는다 (`harness/demo/import_pins.mjs`)
+- 「받는 중」은 서버 작업 상태(QUEUED·SUBMITTED·RUNNING)로 본다 — 브라우저를 닫았다 열어도 받는 중이 보이고, 끝나면 5초 안에 고정 답으로 올라간다. 개발서버는 이 화면이 받는 중인 것만 알아 RUNNING 이 굳는 일이 있었다(11/4) (`lib/server/jobs.ts` `demoPins`)
+- 「지역 질문」 체크박스에 고르는 질문 글을 보조기기 이름으로 붙인다 (`components/explore/LibraryDrawer.tsx`)
+- 개발서버 반영 시 참고: 개발서버 서버 시드 주석은 한눈 요약 질의를 「마흔한 개」라 적었으나 실제 항목은 47개(묶음 3~5)다.
