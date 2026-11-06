@@ -18,8 +18,8 @@ describe("시연 자료 패널 — 어느 답에 붙는가", () => {
     expect(demoItemOf(job("BR-01", DEMO_SHOW[0].text))?.id).toBe("SH-1-1"); // 브리핑 세트 항목으로 보냈어도 글이 같으면
   });
 
-  it("그림이 없는 항목(1-4 하천기본계획 · 2-7 대응절차 · 2-9 캠핑장)은 패널이 없다", () => {
-    for (const id of ["SH-1-4", "SH-2-8", "SH-2-10"]) {
+  it("그림이 없는 항목(1-4 하천기본계획 · 2-7 대응절차)은 패널이 없다", () => {
+    for (const id of ["SH-1-4", "SH-2-8"]) {
       expect(hasDemoInfographic(job(id))).toBe(false);
       const { container } = render(<DemoInfoPanel job={job(id)} />);
       expect(container.querySelector(".demo-info")).toBeNull();

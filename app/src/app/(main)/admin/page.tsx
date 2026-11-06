@@ -1,7 +1,7 @@
 "use client";
 /**
  * 운영관리 (S7 · SCR-UNE-302001 운영설정 · 302002 추적로그 조회) — 시스템 운영자 전용
- * 탭: 질의 현황(/api/admin/jobs · 강제 취소 · 원응답 JSON) · 브리핑 예열(/api/admin/warm) · 시연 세트 예열(/api/admin/warm/demo · 시연 시나리오 특보 /api/admin/scenario) · 계정(/api/admin/accounts)
+ * 탭: 질의 현황(/api/admin/jobs · 강제 취소 · 원응답 JSON) · 브리핑 예열(/api/admin/warm) · 시연 시나리오 특보(/api/admin/scenario) · 계정(/api/admin/accounts)
  *     · 답변 평가(/api/admin/feedback) · 추적로그(/api/trace)
  * 원응답은 저장된 JSON 을 들여쓰기만 해서 그대로 보여 준다 — 응답 원문 검증용(R0). 가공·요약하지 않는다.
  */
@@ -11,7 +11,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { api, ApiError } from "@/lib/api";
 import { useSession } from "@/lib/session";
 import { ACCOUNTS } from "@/lib/config";
-import { DEFAULT_BRIEFING, DEMO_DAY, DEMO_DAY_BRIEFING, fillText, libById, presetLines } from "@/lib/library";
+import { briefingDefaults } from "@/lib/briefingSet";
 import { PILOT_T3Q } from "@/lib/t3q/region";
 import { SOURCE_LABEL, STATE_LABEL, isActive, type JobSource, type JobState, type JobSummary } from "@/lib/jobTypes";
 import { SCN_ACCOUNT, SCN_DEFAULT_HOURS, SCN_DEFS, SCN_LABEL, SCN_MAX_HOURS, SCN_REGIONS, SCN_SOURCE, scenarioLive, type ScnRegion } from "@/lib/scenario";
@@ -22,8 +22,6 @@ import {
   type AdminFeedbackResponse,
   type AdminJobRow,
   type AdminJobsResponse,
-  type DemoWarmItem,
-  type DemoWarmResponse,
   type T3qHealth,
   type WarmItem,
   type WarmJob,
@@ -33,7 +31,7 @@ import {
 import { Dialog, Portal } from "@/components/account/Dialog";
 
 type Tab = "jobs" | "warm" | "demo" | "accounts" | "feedback" | "trace";
-const TABS: [Tab, string][] = [["jobs", "질의 현황"], ["warm", "브리핑 예열"], ["demo", "시연 세트 예열"], ["accounts", "계정"], ["feedback", "답변 평가"], ["trace", "추적로그"]];
+const TABS: [Tab, string][] = [["jobs", "질의 현황"], ["warm", "브리핑 예열"], ["demo", "시연 시나리오 특보"], ["accounts", "계정"], ["feedback", "답변 평가"], ["trace", "추적로그"]];
 const STATES: JobState[] = ["QUEUED", "SUBMITTED", "RUNNING", "DONE", "FAILED", "CANCELLED", "LOST", "TIMEOUT"];
 const STATE_TONE: Record<JobState, string> = { QUEUED: "neutral", SUBMITTED: "info", RUNNING: "info", DONE: "ok", FAILED: "danger", CANCELLED: "neutral", LOST: "warn", TIMEOUT: "danger" };
 const ROLE_LABEL: Record<string, string> = { 지자체: "지자체", 중앙정부: "정부기관", 운영자: "운영자" };
@@ -154,7 +152,6 @@ export default function AdminPage() {
   const [tab, setTabState] = useState<Tab>("jobs");
   const [detail, setDetail] = useState<string | null>(null);
   const [warm, setWarm] = useState<WarmResponse | null>(null);
-  const [demoWarm, setDemoWarm] = useState<DemoWarmResponse | null>(null);
   const jobs = useAdminJobs(op);
 
   useEffect(() => {
@@ -219,7 +216,7 @@ export default function AdminPage() {
         <div id="adm-panel" role="tabpanel" aria-labelledby={`adm-tab-${tab}`}>
           {tab === "jobs" && <JobsTab jobs={jobs} onOpen={setDetail} />}
           {tab === "warm" && <WarmTab jobs={jobs} warm={warm} setWarm={setWarm} onOpen={setDetail} />}
-          {tab === "demo" && <DemoWarmTab jobs={jobs} warm={demoWarm} setWarm={setDemoWarm} onOpen={setDetail} />}
+          {tab === "demo" && <ScenarioPanel />}
           {tab === "accounts" && <AccountsTab />}
           {tab === "feedback" && <FeedbackTab onOpen={setDetail} />}
           {tab === "trace" && <TraceTab />}
@@ -448,12 +445,10 @@ function JobTable({ rows, now, onOpen, onCancel, empty }: { rows: AdminJobRow[];
 /* ───────────────────────── 브리핑 예열 ───────────────────────── */
 
 interface PlanRow { r: WarmRegion; libraryId: string; question: string; accountId: string }
-/** 예열 문항 — 부산·인제·영천 × 기본 브리핑(DEFAULT_BRIEFING), 지역 이름을 채운 글 (서버 /api/admin/warm 과 같은 규칙) */
+/** 예열 문항 — 부산·인제·영천 × 기본 브리핑 세트(개발서버 ai_briefing_item 기본 항목), 질의문 그대로 (서버 /api/admin/warm 과 같은 규칙) */
+const BRIEF_SET = briefingDefaults().filter((x) => x.checked);
 const PLAN: PlanRow[] = WARM_REGIONS.flatMap((r) =>
-  DEFAULT_BRIEFING.flatMap((id) => {
-    const q = libById(id);
-    return q ? [{ r, libraryId: id, question: fillText(q, PILOT_T3Q[r].name), accountId: ACCOUNTS.find((a) => a.role === "지자체" && a.region === r)?.id ?? "—" }] : [];
-  }),
+  BRIEF_SET.map((it) => ({ r, libraryId: it.id, question: it.question, accountId: ACCOUNTS.find((a) => a.role === "지자체" && a.region === r)?.id ?? "—" })),
 );
 const OUTCOME: Record<WarmItem["outcome"], [string, string]> = {
   CACHED: ["캐시 적중 · 즉시 표시", "ok"],
@@ -501,10 +496,10 @@ function WarmTab({ jobs, warm, setWarm, onOpen }: { jobs: JobsHook; warm: WarmRe
       <section className="panel">
         <h2 style={{ fontSize: 19 }}>브리핑 예열</h2>
         <p className="xs muted" style={{ margin: "6px 0 0", lineHeight: 1.7 }}>
-          부산·인제·영천 × 기본 브리핑 {DEFAULT_BRIEFING.length}문항을 각 지역 담당자 계정 명의로 미리 질의합니다.{" "}
+          부산·인제·영천 × 기본 브리핑 세트 {BRIEF_SET.length}문항을 각 지역 담당자 계정 명의로 미리 질의합니다.{" "}
           <b>예열한 답은 24시간 동안 같은 질문에 즉시 표시됩니다.</b>
           <br />
-          같은 질문 = 질문 글·브리핑 출처·기준지역·재난유형이 같고 특보 조건이 붙지 않은 질의입니다. 업무 시작·시연 전에 실행하세요.
+          같은 질문 = 질문 글·브리핑 출처·기준지역이 같고 재난상황 조건·특보가 붙지 않은 질의입니다. 업무 시작·시연 전에 실행하세요.
         </p>
         <div className="adm-warm-ctl">
           <div className="grp" role="group" aria-label="예열 지역">
@@ -525,7 +520,7 @@ function WarmTab({ jobs, warm, setWarm, onOpen }: { jobs: JobsHook; warm: WarmRe
           </label>
           <span className="sp" />
           <button type="button" className="btn pri" onClick={run} disabled={busy || !regions.length || t3qDown}>
-            {busy ? "접수 중… (최대 1분)" : `브리핑 예열 시작 (${regions.length * DEFAULT_BRIEFING.length}건)`}
+            {busy ? "접수 중… (최대 1분)" : `브리핑 예열 시작 (${regions.length * BRIEF_SET.length}건)`}
           </button>
         </div>
         {t3qDown && <div className="notice danger" style={{ marginTop: 12 }}>에이전트 서버 연결 불가 — {jobs.data?.t3q.detail ?? "상태 확인 실패"}. 연결이 돌아오면 예열하세요.</div>}
@@ -645,7 +640,7 @@ function ScenarioPanel() {
         켜 둔 동안 켠 지역의 시연 계정은 <b>기상청 실시간 특보를 받지 않고</b> 아래 가상 특보만 받습니다(특보 줄·AI 모드·브리핑·대응절차 단계 추천). 화면에는 「{SCN_LABEL}」, 에이전트 질의에는 출처 「{SCN_SOURCE}」로 표시됩니다.{" "}
         <b>끝나는 시각이 지나면 저절로 꺼집니다</b>(최대 {SCN_MAX_HOURS}시간). 끄면 다시 실시간입니다. 다른 계정은 지금처럼 실시간이고, 그 시연 계정의 같은 질문은 특보가 발효 중이어도 24시간 동안 이전 답을 다시 씁니다.
         <br />
-        브리핑 세트는 시나리오 특보가 열쇠에 들어가므로 시나리오를 켠 상태에서 예열하세요. 계정 화면에는 1~2분 안에 반영됩니다.
+        계정 화면에는 1~2분 안에 반영됩니다.
       </p>
       <div className="adm-scn" role="status">
         <span className={`badge ${live ? "info" : "neutral"}`}>{!d ? "확인 중" : live ? "켜짐" : "꺼짐"}</span>
@@ -706,197 +701,6 @@ function ScenarioPanel() {
       </div>
       {error && <div className="notice warn" role="alert" style={{ marginTop: 12 }}>{error}</div>}
     </section>
-  );
-}
-
-/* ───────────────────────── 시연 세트 예열 ───────────────────────── */
-
-/** 예열 계정 = 그 지역 시연 계정(서버 lib/server/warmPlan demoAccountOf 와 같게) */
-const accountOf = (r: WarmRegion) => SCN_ACCOUNT[r];
-/** 새 표·패널은 빨강을 쓰지 않는다 — 실패 표지는 경고 계열로 */
-const calm = (tone: string) => (tone === "danger" ? "warn" : tone);
-type DemoRow = Pick<DemoWarmItem, "region" | "accountId" | "kind" | "itemId" | "scene" | "title" | "question">;
-/** 예열하기 전 표 — 묶음 「재난담당자의 하루」 가운데 실시간이 아닌 항목(서버 lib/server/warmPlan 과 같은 규칙) + 브리핑 세트 자리 */
-const DEMO_PLAN: DemoRow[] = WARM_REGIONS.flatMap((r) => [
-  ...(DEMO_DAY_BRIEFING.includes(r) ? [{ region: r, accountId: accountOf(r), kind: "BRIEFING" as const, itemId: "—", scene: "2", title: "브리핑 세트", question: "이 계정의 「내 브리핑 항목」에서 체크한 항목 전부(예열할 때 읽음)" }] : []),
-  ...DEMO_DAY.filter((d) => d.regions[0] === r && !d.live).map((d) => ({ region: r, accountId: accountOf(r), kind: "CHAIN" as const, itemId: d.id, scene: d.scene, title: d.title, question: d.text })),
-]);
-const DEMO_LIVE = DEMO_DAY.filter((d) => d.live);
-const DEMO_BY_ID = new Map(DEMO_DAY.map((d) => [d.id, d]));
-
-function DemoWarmTab({ jobs, warm, setWarm, onOpen }: { jobs: JobsHook; warm: DemoWarmResponse | null; setWarm: (w: DemoWarmResponse) => void; onOpen: (id: string) => void }) {
-  const { toast } = useSession();
-  const now = useNow(5000);
-  const [regions, setRegions] = useState<WarmRegion[]>(WARM_REGIONS);
-  const [force, setForce] = useState(false);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const t3qDown = jobs.data?.t3q.ok === false;
-  const live = (id: string): AdminJobRow | WarmJob | undefined => jobs.data?.recent.find((j) => j.id === id) ?? jobs.data?.active.find((j) => j.id === id);
-
-  const run = async () => {
-    if (!regions.length || busy) return;
-    setBusy(true);
-    setError(null);
-    try {
-      const r = await api<DemoWarmResponse>("/api/admin/warm/demo", { method: "POST", json: { regions, force } });
-      setWarm(r);
-      const n = (o: DemoWarmItem["outcome"]) => r.items.filter((i) => i.outcome === o).length;
-      const miss = n("SKIPPED") + n("ERROR");
-      toast(`시연 세트 예열 접수 — 새로 ${n("NEW")} · 캐시 ${n("CACHED")} · 합류 ${n("JOINED")}${miss ? ` · 미접수 ${miss}` : ""}`);
-      await jobs.load();
-    } catch (e) {
-      setError(errMsg(e));
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  /** 한 항목만 — 예열 전에는 그 항목만 예열, 예열 뒤에는 캐시 무시하고 새로 질의(재사용 원본이 오래됐을 때 — 대본 §5.4 규칙 2) */
-  const runOne = async (row: DemoRow) => {
-    if (busy) return;
-    const prev = warm?.items.find((x) => x.region === row.region && x.itemId === row.itemId);
-    const fresh = !!prev || force;
-    if (fresh && !window.confirm(`「${row.title}」을(를) 캐시 없이 새로 질의합니다. 보통 1~3분 걸립니다.`)) return;
-    setBusy(true);
-    setError(null);
-    try {
-      const r = await api<DemoWarmResponse>("/api/admin/warm/demo", { method: "POST", json: { regions: [row.region], ids: [row.itemId], force: fresh } });
-      const got = r.items[0];
-      if (got) {
-        const same = (x: DemoRow) => x.region === got.region && x.itemId === got.itemId;
-        const rest = (warm?.items ?? []).filter((x) => !same(x));
-        setWarm({ at: warm?.at ?? r.at, items: [...rest, got] });
-        toast(`「${got.title}」 — ${OUTCOME[got.outcome][0]}`);
-      }
-      await jobs.load();
-    } catch (e) {
-      setError(errMsg(e));
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  // 표 = 예열 대상(정의 순서) 자리에 받은 결과를 채운 것 — 브리핑 세트 자리는 예열 때 읽은 항목들로
-  const res = warm?.items ?? [];
-  const rows: (DemoRow | DemoWarmItem)[] = [
-    ...DEMO_PLAN.filter((p) => regions.includes(p.region) || res.some((x) => x.region === p.region)).flatMap((p) => {
-      if (p.kind === "BRIEFING") {
-        const got = res.filter((x) => x.region === p.region && x.kind === "BRIEFING");
-        return got.length ? got : [p];
-      }
-      return [res.find((x) => x.region === p.region && x.itemId === p.itemId) ?? p];
-    }),
-    ...res.filter((x) => x.kind === "CHAIN" && !DEMO_BY_ID.has(x.itemId)),
-  ];
-  const states = (warm?.items ?? []).map((i) => (i.job ? (live(i.job.id) ?? i.job).state : null));
-  const done = states.filter((s) => s === "DONE").length;
-  const running = states.filter((s) => s && isActive(s)).length;
-  const failed = states.filter((s) => s && !isActive(s) && s !== "DONE").length;
-
-  return (
-    <>
-      <ScenarioPanel />
-      <section className="panel">
-        <h2 style={{ fontSize: 19 }}>시연 세트 예열</h2>
-        <p className="xs muted" style={{ margin: "6px 0 0", lineHeight: 1.7 }}>
-          질문 모음 「재난담당자의 하루」의 질문과 부산 시연 계정의 브리핑 세트를 각 지역 시연 계정 명의로, 화면에서 누를 때와 같은 질문 글·출처·조건·특보로 미리 질의합니다.{" "}
-          <b>예열한 답은 24시간 동안 같은 질문에 즉시 표시됩니다</b>(시연 시나리오가 꺼져 있을 때 그 기준지역에 기상청 특보가 발효 중이면 1시간 — 켠 지역의 시연 계정은 24시간).
-          <br />
-          브리핑 세트는 AI 모드를 켠 화면처럼 그 계정에 그때 보이는 발효 특보(시나리오를 켠 동안은 시연 시나리오 특보만)를 함께 보냅니다. 시연 때와 같은 특보 상태에서 실행하세요.
-        </p>
-        <div className="adm-warm-ctl">
-          <div className="grp" role="group" aria-label="예열 지역">
-            {WARM_REGIONS.map((r) => (
-              <label key={r} className="chk">
-                <input
-                  type="checkbox"
-                  checked={regions.includes(r)}
-                  onChange={(e) => setRegions((p) => (e.target.checked ? WARM_REGIONS.filter((x) => x === r || p.includes(x)) : p.filter((x) => x !== r)))}
-                />
-                {PILOT_T3Q[r].name}
-              </label>
-            ))}
-          </div>
-          <label className="chk">
-            <input type="checkbox" checked={force} onChange={(e) => setForce(e.target.checked)} />
-            캐시 무시하고 새로 질의
-          </label>
-          <span className="sp" />
-          <button type="button" className="btn pri" onClick={run} disabled={busy || !regions.length || t3qDown}>
-            {busy ? "접수 중… (최대 1분)" : "시연 세트 예열 시작"}
-          </button>
-        </div>
-        {t3qDown && <div className="notice warn" style={{ marginTop: 12 }}>에이전트 서버 연결 불가 — {jobs.data?.t3q.detail ?? "상태 확인 실패"}. 연결이 돌아오면 예열하세요.</div>}
-        {error && <div className="notice warn" role="alert" style={{ marginTop: 12 }}>{error}</div>}
-        <p className="adm-note">
-          실시간으로 보일 질문은 예열하지 않습니다 — {DEMO_LIVE.map((d) => `${PILOT_T3Q[d.regions[0]].name} 「${d.title}」`).join(" · ")}. 시연 24시간 안에는 어느 계정으로도 이 질문을 보내지 마세요.
-          이 화면을 열어 두면 대기 문항을 차례로 보내고 완료까지 상태를 확인합니다.
-          <br />
-          예열은 시연 계정 명의라 끝나기 전에는 그 계정의 무대 질의(AI 모드 점검 포함)가 차례를 기다릴 수 있습니다. 장면 전에 진행 중 0을 확인하세요.
-        </p>
-      </section>
-
-      <section className="adm-sec">
-        <h2>
-          예열 항목{" "}
-          <small>{warm ? `${fmtHM(warm.at)} 실행 · 완료 ${done} · 진행 중 ${running}${failed ? ` · 실패·취소 ${failed}` : ""}` : "아직 실행하지 않았습니다"}</small>
-        </h2>
-        <div className="adm-scroll">
-          <table className="tbl adm-tbl">
-            <thead>
-              <tr>
-                <th>지역</th>
-                <th>단계</th>
-                <th>항목</th>
-                <th>계정</th>
-                <th>접수</th>
-                <th>상태</th>
-                <th>제공처 상태</th>
-                <th>처리 시간</th>
-                <th><span className="sr-only">동작</span></th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((p, i) => {
-                const it = "outcome" in p ? p : undefined;
-                const j = it?.job ? live(it.job.id) ?? it.job : null;
-                const d = p.kind === "CHAIN" ? DEMO_BY_ID.get(p.itemId) : undefined;
-                return (
-                  <tr key={`${p.region}-${p.itemId}-${i}`} className={j ? "click" : ""} onClick={j ? () => onOpen(j.id) : undefined}>
-                    <td className="xs nowrap">{PILOT_T3Q[p.region].name}</td>
-                    <td className="xs nowrap">{p.scene}</td>
-                    <td className="adm-q">
-                      <b className="xs">{p.title}</b>
-                      <span className="clamp" title={p.question}>{p.question}</span>
-                      {d && <div className="mute2">조건 · {presetLines(d.cond).join(" · ") || "없음"}{d.base ? ` · 기준지역 ${d.base.sido.name} ${d.base.sigungu?.name ?? ""}` : ""}</div>}
-                      {it?.warnings && <div className="mute2">{it.warnings.length ? `특보 ${it.warnings.join(" · ")}` : "특보 없음"}</div>}
-                    </td>
-                    <td className="xs nowrap">{p.accountId}</td>
-                    <td className="xs">
-                      {it ? <span className={`badge ${calm(OUTCOME[it.outcome][1])}`}>{OUTCOME[it.outcome][0]}</span> : "—"}
-                      {it?.outcome === "CACHED" && <div className="mute2" style={{ marginTop: 4 }}>원래 답 받은 시각 {fmtDT(it.sourceFinishedAt)}</div>}
-                      {it?.error && <div className="mute2" style={{ marginTop: 4 }}>{it.error}</div>}
-                    </td>
-                    <td className="nowrap">{j ? <span className={`badge ${calm(STATE_TONE[j.state] ?? "neutral")}`}>{STATE_LABEL[j.state] ?? j.state}</span> : "—"}</td>
-                    <td className="xs nowrap">{j?.t3q_status ? statusKo(j.t3q_status) : "—"}</td>
-                    <td className="num xs nowrap">{j ? respTime(j, now) : "—"}</td>
-                    <td onClick={(e) => e.stopPropagation()}>
-                      <div className="adm-acts">
-                        {j && <button type="button" className="btn xs" onClick={() => onOpen(j.id)}>원문</button>}
-                        {p.itemId !== "—" && (!j || !isActive(j.state)) && (
-                          <button type="button" className="btn xs" disabled={busy || t3qDown} onClick={() => runOne(p)}>{"outcome" in p ? "새로 질의" : "이 항목만 예열"}</button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </section>
-    </>
   );
 }
 

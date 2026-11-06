@@ -14,7 +14,6 @@ export interface JobBody {
 /**
  * 접수 본문 → submitJob 입력 — 라우트가 질문 글·출처·기준지역 검사를 마친 뒤 부른다.
  * 문항 재난유형은 질문 모음 문항일 때만(사용자가 고르지 않았을 때), AI 모드 점검은 기준지역만 싣는다(R39 — 가정 조건은 화면이 무엇을 보내든 넣지 않음).
- * 「시연 세트 예열」 시험(harness/region/demoWarmKey)이 화면 본문을 이 함수로 돌려 예열과 열쇠를 견준다
  */
 export function jobInputOf(who: Account, b: JobBody | null | undefined, question: string, source: JobSource): SubmitInput {
   const lib = b?.libraryId ? libById(b.libraryId) : undefined;

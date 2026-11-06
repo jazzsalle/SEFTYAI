@@ -295,7 +295,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                 <div className="xs muted">{account.org} {account.dept}</div>
               </div>
               <Link href="/contacts" onClick={() => setMenu(false)}>연락망·상황전파</Link>
-              <Link href="/settings/briefing" onClick={() => setMenu(false)}>내 브리핑 항목</Link>
+              <Link href="/settings/briefing" onClick={() => setMenu(false)}>브리핑 설정</Link>
               <button onClick={() => { setMenu(false); setModal("me"); }}>내 권한 정보</button>
               <button onClick={() => { setMenu(false); setModal("pw"); }}>비밀번호 변경</button>
               <button onClick={async () => { await logout(); router.push("/login"); }}>로그아웃</button>

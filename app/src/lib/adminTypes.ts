@@ -93,32 +93,6 @@ export interface WarmResponse {
   at: string;
 }
 
-/** 시연 세트 예열(/api/admin/warm/demo) 한 줄 — 묶음 「재난담당자의 하루」 사슬 질문(실시간 제외) · 브리핑 세트 */
-export interface DemoWarmItem {
-  region: WarmRegion;
-  regionName: string;
-  accountId: string;
-  kind: "CHAIN" | "BRIEFING";
-  /** 묶음 항목 id(DD-…) · 브리핑 항목 key */
-  itemId: string;
-  /** 대본 단계 */
-  scene: string;
-  title: string;
-  question: string;
-  outcome: WarmItem["outcome"];
-  job: WarmJob | null;
-  /** 재사용(CACHED)이면 원래 답을 받은 시각 — 재사용 기간(24시간)은 이 시각부터 */
-  sourceFinishedAt?: string | null;
-  /** 브리핑 줄에 실린 특보 번호(warning_key, 보낸 값 그대로 — 열쇠에 들어감). 사슬 질문 줄에는 없음 */
-  warnings?: string[];
-  error?: string;
-}
-
-export interface DemoWarmResponse {
-  items: DemoWarmItem[];
-  at: string;
-}
-
 export interface AdminAccountRow {
   id: string;
   name: string;

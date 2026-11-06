@@ -9,7 +9,7 @@ import { RawFoot } from "../answer/AnswerCard";
 import { statusKo } from "@/lib/labels";
 import { isActive, STATE_LABEL, type T3qRef } from "@/lib/jobTypes";
 import { AnswerMarkdown } from "../answer/Markdown";
-import { BRIEF_AIM_COUNT, useBriefItems } from "@/lib/briefing";
+import { useBriefItems } from "@/lib/briefing";
 
 /**
  * AI 모드 · 상황 감지 (Figma 202001, R6) — 켜면 즉시 1회, 이후 이 화면이 열려 있는 동안 10분마다 T3Q 에 점검 질의(AI_MODE).
@@ -227,15 +227,17 @@ export default function AiModeModal() {
             <div className="start-brief" style={{ boxShadow: "none", background: "var(--c-sec-sub)", padding: "16px 20px" }}>
               <div>
                 <b>기상 특보 기반 상황 브리핑</b>
+                <div className="xs muted">현재 상황 브리핑 {brief.length}개 항목을 지금 조건으로 한 번에 정리합니다.</div>
               </div>
-              <button className="btn go" onClick={() => { setCollapsed(true); if (path?.startsWith("/explore")) window.dispatchEvent(new CustomEvent("sa:briefing")); else router.push("/explore?brief=1"); }}>브리핑 시작 ›</button>
+              <button className="btn go" disabled={!brief.length} onClick={() => { setCollapsed(true); if (path?.startsWith("/explore")) window.dispatchEvent(new CustomEvent("sa:briefing")); else router.push("/explore?brief=1"); }}>브리핑 시작 ›</button>
             </div>
             <div className="start-tiles" style={{ gridTemplateColumns: "repeat(4, 1fr)" }}>
-              {brief.slice(0, BRIEF_AIM_COUNT).map((b) => (
-                <button key={b.key} className="tile" style={{ boxShadow: "none", background: "var(--c-surface)" }}
-                  onClick={() => { setCollapsed(true); if (path?.startsWith("/explore")) window.dispatchEvent(new CustomEvent("sa:ask-brief", { detail: { q: b.q, preset: b.preset } })); else router.push(`/explore?bq=${encodeURIComponent(b.q)}${b.preset ? `&bp=${encodeURIComponent(b.preset)}` : ""}`); }}>
+              {/* 체크한 항목 전부(개발서버 AiModeModal briefingItems = 체크한 항목, R51) */}
+              {brief.map((b) => (
+                <button key={b.id} className="tile" style={{ boxShadow: "none", background: "var(--c-surface)" }}
+                  onClick={() => { setCollapsed(true); if (path?.startsWith("/explore")) window.dispatchEvent(new CustomEvent("sa:ask-brief", { detail: { q: b.question } })); else router.push(`/explore?bq=${encodeURIComponent(b.question)}`); }}>
                   <span className="tile-k">{b.label} ›</span>
-                  <span className="tile-q">{b.q.replaceAll("{지역}", regionName)}</span>
+                  <span className="tile-q">{b.question.replaceAll("{지역}", regionName)}</span>
                 </button>
               ))}
             </div>

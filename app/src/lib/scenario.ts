@@ -2,7 +2,7 @@ import type { Advisory, WeatherResponse } from "./contract/agent";
 
 /**
  * 시연 시나리오 특보 (R43 — R6 「특보 = 기상청 실시간만」의 시연용 예외, 사용자 승인 2026-10-29) · 켠 동안 시연 계정은 기상청 실시간 특보 끊음(R45).
- *  · 운영자가 운영관리 「시연 세트 예열」 탭에서 켜고 끈다. 끝나는 시각이 지나면 저절로 꺼진다(켤 때 기본 SCN_DEFAULT_HOURS 시간, 최대 SCN_MAX_HOURS)
+ *  · 운영자가 운영관리 「시연 시나리오 특보」 탭에서 켜고 끈다. 끝나는 시각이 지나면 저절로 꺼진다(켤 때 기본 SCN_DEFAULT_HOURS 시간, 최대 SCN_MAX_HOURS)
  *  · 시연 계정 셋(SCN_ACCOUNT)에만, 그 계정 지역의 정의 하나만 — 시연 계정 · 켬 · 끝나는 시각 전 · 그 지역을 켬(scenarioCuts)이면
  *    서버 /api/weather 가 기상청 실시간 특보(예비특보 포함)를 부르지 않고 시나리오 특보만 돌려준다(scenarioWeather — realtimeCut). 끄거나 끝나는 시각이
  *    지나면 다시 실시간. 다른 계정(운영자·행안부)·시나리오를 켜지 않은 지역의 시연 계정은 지금처럼 실시간이고 시나리오는 어디에도 넣지 않는다

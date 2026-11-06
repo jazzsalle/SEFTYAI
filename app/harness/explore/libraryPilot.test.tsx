@@ -12,7 +12,7 @@ vi.mock("@/lib/session", () => ({ useSession: () => session.s, uid: (p: string) 
 // 받아 둔 답 — SH-1-1 · IG-IJ-02 만 있다고 둔다(개발서버 ai_demo_pin 의 received_at 자리)
 const pins = vi.hoisted(() => ({ v: {} as Record<string, unknown> }));
 vi.mock("@/lib/api", () => ({ api: async (path: string) => (path === "/api/demo-pins" ? { pins: pins.v } : {}) }));
-vi.mock("@/lib/briefing", async (orig) => ({ ...(await orig<typeof import("@/lib/briefing")>()), useRandomBrief: () => [] }));
+vi.mock("@/lib/briefing", async (orig) => ({ ...(await orig<typeof import("@/lib/briefing")>()), useBriefingSet: () => ({ items: [], checked: [], loaded: true }) }));
 
 import LibraryDrawer from "@/components/explore/LibraryDrawer";
 import StartScreen from "@/components/explore/StartScreen";
@@ -72,7 +72,7 @@ describe("질문 모음 — 시·도까지만 고른 기준지역(R48)", () => {
 });
 
 describe("질문 모음 「시연」 — 받아 둔 답이 없는 질문은 회색(개발서버 QuestionLibrary 와 같게)", () => {
-  it("SH-1-1 만 받아 둔 답 → 그것만 눌림 · 나머지 회색 · 받기 단추 없음 · 13개(SH-2-10 숨김)", async () => {
+  it("SH-1-1 만 받아 둔 답 → 그것만 눌림 · 나머지 회색 · 받기 단추 없음 · 13개(개발서버 시연 13개)", async () => {
     pins.v = { "SH-1-1": { at: "2026-11-05T05:00:00.000Z", jobId: "j1", pending: null } };
     const show = vi.fn();
     const c = drawer({ sido: { code: "26", name: "부산광역시" }, sigungu: null }, () => {}, show);
@@ -80,7 +80,7 @@ describe("질문 모음 「시연」 — 받아 둔 답이 없는 질문은 회�
     await screen.findByText(/저장된 답 · .* 받음/);
     const btns = [...c.querySelectorAll<HTMLButtonElement>(".day-btn")];
     expect(btns).toHaveLength(13);
-    expect(btns.map((b) => b.querySelector("b")?.textContent)).toEqual(DEMO_SHOW.filter((d) => !d.hidden).map((d) => d.title));
+    expect(btns.map((b) => b.querySelector("b")?.textContent)).toEqual(DEMO_SHOW.map((d) => d.title));
     expect(btns.filter((b) => !b.disabled)).toHaveLength(1);
     expect(c.textContent).not.toContain("다시 받기");
     fireEvent.click(btns[1]); // 회색 — 눌리지 않는다
@@ -112,7 +112,7 @@ describe("시작 화면 질문 타일 — 시·도까지만 고른 기준지역(
     return [...c.querySelectorAll(".tile-q")].map((x) => x.textContent);
   };
   it("경상북도 → 영천 문항이 먼저, 강원특별자치도 → 인제 문항이 먼저", () => {
-    expect(tiles(GYEONGBUK)[0]).toBe((libById("YC-01") as LibraryQuestion).text);
+    expect(tiles(GYEONGBUK)[0]).toBe((libById("YC-03") as LibraryQuestion).text);
     cleanup();
     expect(tiles(GANGWON)[0]).toBe((libById("IJ-01") as LibraryQuestion).text);
   });

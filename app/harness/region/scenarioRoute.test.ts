@@ -1,7 +1,7 @@
 // 하네스 — 시연 시나리오 특보(R43) 서버 판단: /api/weather 가 로그인 계정·켜짐·끝나는 시각으로 정한다(화면이 고르지 않는다)
 //  · 운영관리 /api/admin/scenario(운영자만 바꿈) → kv system · demo_scenario(메모리 Postgres, PGlite)
 //  · 켠 동안 시연 계정은 기상청 실시간 특보를 받지 않고(부르지도 않음) 그 지역 시나리오 하나만(R45) · 중앙정부·운영자는 기상청 그대로 · 끄면 · 끝나는 시각이 지나면 다시 실시간
-//  · 「시연 세트 예열」 브리핑 특보(weatherFor)도 같은 값
+//  · 서버 weatherFor 도 같은 값
 // npx vitest run harness/region/scenarioRoute.test.ts
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import type { Account } from "@/lib/config";

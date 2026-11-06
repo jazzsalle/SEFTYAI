@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useSession, type Cond } from "@/lib/session";
 import { DISASTER_TYPES } from "@/lib/config";
 import { baseName } from "@/lib/baseRegion";
-import { useBriefItems, type BriefItem } from "@/lib/briefing";
+import { useBriefItems, type BriefingItem } from "@/lib/briefing";
 import { COND_ITEMS } from "@/lib/library";
 import { IcChevR } from "@/components/Icons";
 import type { DisasterType } from "@/lib/contract/agent";
@@ -84,7 +84,7 @@ export default function Composer({ onAsk, onBriefing, onLibrary, followUpLabel, 
 }
 
 /**
- * [브리핑 세트▾] 2단 패널 — 왼쪽: 브리핑 시작·항목 설정, 오른쪽: 내 브리핑 세트 질문 전체(설정에서 '사용' 체크한 항목, 최대 8개).
+ * [브리핑 세트▾] 2단 패널 — 왼쪽: 브리핑 시작·항목 설정, 오른쪽: 내 브리핑 세트 질문 전체(설정에서 체크한 항목, 최대 8개 — 개발서버 BriefingSetMenu).
  * 질문을 누르면 그 질문만 보낸다(시작 화면·AI 모드 타일과 같은 sa:ask-brief). 바깥을 누르거나 Esc 로 닫는다.
  */
 function BriefSetMenu({ onBriefing }: { onBriefing: () => void }) {
@@ -111,9 +111,9 @@ function BriefSetMenu({ onBriefing }: { onBriefing: () => void }) {
       document.removeEventListener("keydown", key);
     };
   }, [open]);
-  const askOne = (b: BriefItem) => {
+  const askOne = (b: BriefingItem) => {
     setOpen(false);
-    window.dispatchEvent(new CustomEvent("sa:ask-brief", { detail: { q: b.q, preset: b.preset } }));
+    window.dispatchEvent(new CustomEvent("sa:ask-brief", { detail: { q: b.question } }));
   };
   return (
     <div className="dd" ref={box}>
@@ -121,7 +121,7 @@ function BriefSetMenu({ onBriefing }: { onBriefing: () => void }) {
       {open && (
         <div id="bs-pop" className="bs-pop" role="dialog" aria-label="브리핑 세트">
           <div className="bs-act">
-            <button className="bs-start" onClick={() => { setOpen(false); onBriefing(); }}>현재 상황 브리핑 시작</button>
+            <button className="bs-start" disabled={!items.length} onClick={() => { setOpen(false); onBriefing(); }}>현재 상황 브리핑 시작</button>
             <Link className="bs-set" href="/settings/briefing" onClick={() => setOpen(false)}>브리핑 항목 설정 <IcChevR size={14} /></Link>
           </div>
           <div className="bs-list">
@@ -129,12 +129,12 @@ function BriefSetMenu({ onBriefing }: { onBriefing: () => void }) {
             {items.length ? (
               <ol>
                 {items.map((b, i) => (
-                  <li key={b.key}>
+                  <li key={b.id}>
                     <button onClick={() => askOne(b)}>
                       <span className="no">{i + 1}</span>
                       <span className="tx">
                         {b.label.trim() && <span className="k">{b.label}</span>}
-                        <span className="q">{b.q.replaceAll("{지역}", regionName)}</span>
+                        <span className="q">{b.question.replaceAll("{지역}", regionName)}</span>
                       </span>
                     </button>
                   </li>

@@ -1,7 +1,8 @@
 import { z } from "zod";
 import { WARM_REGIONS, type WarmItem, type WarmJob, type WarmResponse } from "@/lib/adminTypes";
 import { ACCOUNTS } from "@/lib/config";
-import { DEFAULT_BRIEFING, fillText, libById } from "@/lib/library";
+import { briefingDefaults } from "@/lib/briefingSet";
+import { briefRequest } from "@/lib/library";
 import { errText, requireOperator, t3qHealth } from "@/lib/server/admin";
 import { audit, ensureSchema } from "@/lib/server/db";
 import { submitJob, type Job } from "@/lib/server/jobs";
@@ -26,7 +27,8 @@ const pick = (j: Job): WarmJob => ({
 
 /**
  * POST /api/admin/warm {regions?, force?} — 브리핑 예열 (운영자 전용, §5)
- * 부산·인제·영천 × 기본 브리핑 4문항을 그 지역 담당자 계정 명의로 접수한다(source BRIEFING).
+ * 부산·인제·영천 × 기본 브리핑 세트(lib/briefingSet 기본 항목 가운데 체크된 것 — 개발서버 ai_briefing_item is_default)를 그 지역 담당자 계정 명의로 접수한다(source BRIEFING).
+ * 화면 [브리핑 시작]과 같게 질의문 그대로 · 문항 없음 · query_context 는 기준지역만(재난유형 없음).
  * 동시성(계정 4·전체 8)은 submitJob 이 맡는다 — 한도를 넘는 문항은 QUEUED 로 남고, 상태 조회 때 차례로 제출된다.
  * 경쟁 없이 슬롯을 세도록 한 건씩 차례로 접수한다. 완료된 답은 24시간 동안 같은 질문에 캐시로 즉시 쓰인다.
  */
@@ -50,11 +52,11 @@ export async function POST(req: Request) {
   for (const r of regions) {
     const acc = ACCOUNTS.find((a) => a.role === "지자체" && a.region === r);
     const region = PILOT_T3Q[r];
-    for (const id of DEFAULT_BRIEFING) {
-      const q = libById(id);
-      if (!q) continue;
-      const question = fillText(q, region.name);
-      const base = { region: r, regionName: region.name, accountId: acc?.id ?? "", libraryId: q.id, question };
+    const set = briefingDefaults().filter((x) => x.checked);
+    for (const [i, it] of set.entries()) {
+      const req = briefRequest(it, i, set.length, region.name);
+      const question = req.question;
+      const base = { region: r, regionName: region.name, accountId: acc?.id ?? "", libraryId: it.id, question };
       if (!acc) {
         items.push({ ...base, outcome: "ERROR", job: null, error: "이 지역 담당자 계정이 설정(ACCOUNTS)에 없습니다." });
         continue;
@@ -67,9 +69,10 @@ export async function POST(req: Request) {
         const job = await submitJob(acc, {
           question,
           source: "BRIEFING",
-          libraryId: q.id,
-          queryContext: { region, disaster_types: q.disasterTypes },
-          quickQueryId: q.quickQueryId ?? null,
+          libraryId: null,
+          queryContext: { region },
+          briefing: req.briefing,
+          turnNo: i + 1,
           noCache: force,
         });
         // 캐시 적중 = 새 행 + cached_from · 진행 중 합류 = 이번 요청 전에 만든 행

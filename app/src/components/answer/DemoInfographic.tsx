@@ -21,7 +21,7 @@ export function demoItemOf(job: Pick<JobSummary, "library_id" | "question_user">
   return DEMO_SHOW.find((d) => d.text === q);
 }
 
-/** 항목 → 그림 목록. 없는 항목(1-4 하천기본계획·2-7 대응절차·2-9 캠핑장)은 패널이 없다 */
+/** 항목 → 그림 목록. 없는 항목(1-4 하천기본계획·2-7 대응절차)은 패널이 없다 */
 const FIGURES: Record<string, (() => ReactNode)[]> = {
   "SH-1-1": [RainCompare, () => <Underpasses />],
   "SH-1-2": [() => <OncheonMap />],

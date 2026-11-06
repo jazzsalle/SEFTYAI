@@ -9,7 +9,7 @@ import { useSession } from "@/lib/session";
  * 질문 모음 (R11) — 개발서버 질문 모음(QuestionLibrary)과 같은 세 갈피(2026-11-06 맞춤):
  * ① 시연 — 미리 받아 둔 답만 바로 보인다. 받아 둔 답이 없는 질문은 회색으로 눌리지 않는다(개발서버: 시연 탭은 에이전트에 묻지 않음 · 받기 단추 없음).
  *    받아 둔 답은 계정과 상관없이 하나(sa_demo_pins — 개발서버 ai_demo_pin 도 계정 구분 없음). 받기는 운영관리 「시연 세트 예열」·가져오기 도구(harness/demo/import_pins.mjs)
- * ② 지역 질문 — 업무단계별 평소 질문(여러 개 골라 차례로)
+ * ② 지역 질문 — 업무단계별 평소 질문(여러 개 골라 차례로). 글·순서는 개발서버 questionLibrary 그대로(R51)
  * ③ 한눈 요약 질의 — 질문마다 제 조건을 달고 다니는 묶음(lib/library DAY_ITEMS). 받아 둔 답이 있으면 그것을, 없으면 그 자리에서 조건을 얹어 묻는다. 받아 두기·다시 받기·지우기
  * 연속 질의·에이전트 추천 질문(T3Q-03 고정 목록) 탭은 2026-11-02 사용자 지시로 삭제 — 추천 질문은 대화에 따라 답 뒤에 나와야 하는데 T3Q 에 그런 API 가 없다.
  */
@@ -103,7 +103,7 @@ export default function LibraryDrawer({ regionName, onClose, onAsk, onAskMany, o
         <div className="drawer-b">
           <p className="xs muted">미리 받아 둔 답을 그 자리에서 바로 보여 줍니다 — 상류가 준 글 그대로이고, 받은 시각을 함께 적습니다. 받아 둔 답이 있는 질문만 누를 수 있습니다(「저장된 답 없음」은 시연 준비 중).</p>
           {SHOW_GROUPS.map((g) => {
-            const items = DEMO_SHOW.filter((d) => d.group === g.group && !d.hidden);
+            const items = DEMO_SHOW.filter((d) => d.group === g.group);
             const ready = items.filter((d) => pinOf(d.id).at);
             return (
               <section key={g.group} className="lib-sec" aria-label={g.title}>
@@ -178,7 +178,7 @@ export default function LibraryDrawer({ regionName, onClose, onAsk, onAskMany, o
         <div className="drawer-b">
           <p className="xs muted">{regionName} 기준으로 보냅니다. 하나를 누르면 바로 묻고, 여러 개(최대 4개)를 골라 차례로 보낼 수도 있습니다.</p>
           {STAGES.map((st) => {
-            const qs = list.filter((q) => q.stage === st && !q.after);
+            const qs = list.filter((q) => q.stage === st);
             if (!qs.length) return null;
             return (
               <section key={st} className="lib-sec">

@@ -1,24 +1,24 @@
 "use client";
 import { useMemo } from "react";
-import { useRandomBrief } from "@/lib/briefing";
+import { useBriefingSet } from "@/lib/briefing";
 import { libraryFor, fillText, type LibraryQuestion } from "@/lib/library";
 import { baseQuestionPilot } from "@/lib/baseRegion";
 import { useSession } from "@/lib/session";
 import { IcChevR } from "../Icons";
 
-/** 시작 화면 (Figma 201001) — 현재 상황 브리핑 + 질문 타일(내 브리핑 무작위 4 + 지역 질문 4) */
+/** 시작 화면 (Figma 201001) — 현재 상황 브리핑 + 질문 타일(내 브리핑 항목 전부 — 개발서버 StartGuide 「등록 항목 전부」, 체크하지 않은 것도 · R51 — + 지역 질문 4) */
 export default function StartScreen({ regionName, onBriefing, onAskBrief, onAskLib }: {
   regionName: string;
   onBriefing: () => void;
-  /** q = 브리핑 항목 질의문 원형({지역} 포함) */
-  onAskBrief: (q: string, preset?: string) => void;
+  /** q = 브리핑 항목 질의문 원형 */
+  onAskBrief: (q: string) => void;
   onAskLib: (q: LibraryQuestion) => void;
 }) {
   const s = useSession();
-  const brief = useRandomBrief(4);
+  const { items: brief, checked } = useBriefingSet();
   const qr = baseQuestionPilot(s.cond.base); // 시·도까지만 골라도 인제·영천 질문(R48)
   const lib = useMemo(() => {
-    const l = libraryFor(qr === "national" ? "" : qr).filter((q) => !q.after);
+    const l = libraryFor(qr === "national" ? "" : qr);
     return [...l.filter((q) => q.regions), ...l.filter((q) => !q.regions)].slice(0, 4);
   }, [qr]);
   return (
@@ -28,14 +28,15 @@ export default function StartScreen({ regionName, onBriefing, onAskBrief, onAskL
       <div className="start-brief">
         <div>
           <b>현재 상황 브리핑</b>
+          <div className="xs muted">브리핑 세트 {checked.length}개 항목을 지금 조건으로 한 번에 정리합니다.</div>
         </div>
-        <button className="btn go lg" onClick={onBriefing}>브리핑 시작 <IcChevR size={16} /></button>
+        <button className="btn go lg" disabled={!checked.length} onClick={onBriefing}>브리핑 시작 <IcChevR size={16} /></button>
       </div>
       <div className="start-tiles">
         {brief.map((b) => (
-          <button key={b.key} className="tile" onClick={() => onAskBrief(b.q, b.preset)}>
+          <button key={b.id} className="tile" title={b.question} onClick={() => onAskBrief(b.question)}>
             <span className="tile-k">{b.label} <IcChevR size={14} /></span>
-            <span className="tile-q">{b.q.replaceAll("{지역}", regionName)}</span>
+            <span className="tile-q">{b.question.replaceAll("{지역}", regionName)}</span>
           </button>
         ))}
         {lib.map((q) => (

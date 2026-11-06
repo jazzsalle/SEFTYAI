@@ -11,7 +11,7 @@
  *     public 스키마의 모든 표에서 글자(text·varchar)·JSON(json·jsonb) 칸을 훑어, 옛 아이디가 든 값을 새 아이디로 바꾼다
  *     (sa_accounts.id — 비밀번호 해시·잠금 상태는 그대로 이어받음, account_id·by_id·updated_by, kv 범위 acct:<계정>, JSON 안의 아이디 등)
  *  2) 옛 아이디의 살아 있는 세션은 끊는다(revoked_at) — 새 아이디로 다시 로그인
- *  3) 새 계정 busan2 · issuer 를 발급한다(이미 있으면 건너뜀) — 초기 비밀번호 + 첫 로그인 때 변경 강제(R24).
+ *  3) 새 계정 busan2 · issuer 를 발급한다(이미 있으면 건너뜀) — 7개 계정 모두 사용자가 지정한 비밀번호, 첫 로그인 변경 요구 없음(2026-11-06).
  *     초기 비밀번호는 --pw-file 파일(SA_INIT_PASSWORDS='{"busan2":"…","issuer":"…"}')에서 읽고, 파일이 없으면 --apply 때 새로 만들어 적는다.
  *     해시는 lib/server/auth.ts hashPw 와 같은 방식(scrypt N=2^15 r=8 p=1, 16바이트 소금)
  *  4) sa_audit 에 account.rename 한 줄(새 아이디만)

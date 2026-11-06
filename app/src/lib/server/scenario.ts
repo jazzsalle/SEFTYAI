@@ -6,7 +6,7 @@ import { kvGet, kvPut } from "./kvStore";
 
 /**
  * 시연 시나리오 특보 켜짐 상태 (R43) — kv 전역 범위 system · demo_scenario. 화면용 /api/kv 로는 읽고 쓸 수 없다(scopeAccess 가 막음).
- * 운영관리(/api/admin/scenario)만 바꾸고, /api/weather·시연 세트 예열이 읽는다. 정의(종류·단계·구역·특보 번호)는 lib/scenario 에 고정.
+ * 운영관리(/api/admin/scenario)만 바꾸고, /api/weather 가 읽는다. 정의(종류·단계·구역·특보 번호)는 lib/scenario 에 고정.
  * 읽기는 10초 캐시(바꾸면 이 서버의 캐시는 바로 비운다 — 다른 서버 인스턴스는 10초 안). 읽지 못하면 꺼짐으로 본다(넣지 않는 쪽)
  */
 const SCOPE = "system";

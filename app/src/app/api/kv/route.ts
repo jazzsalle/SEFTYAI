@@ -1,3 +1,4 @@
+import { BRIEFING_KV_KEY, validateBriefing } from "@/lib/briefingSet";
 import { hasDb } from "@/lib/server/db";
 import { KvConflict, kvGet, kvPut, scopeAccess } from "@/lib/server/kvStore";
 import { fail, json, whoami } from "@/lib/server/who";
@@ -22,8 +23,17 @@ export async function PUT(req: Request) {
   if (!body?.scope || !body.key || body.key.length > 200 || body.value === undefined) return fail(400, "요청 형식이 맞지 않습니다.");
   if (!scopeAccess(who, body.scope).write) return fail(403, "고칠 수 있는 권한이 없습니다.");
   if (!hasDb()) return fail(503, "서버 DB가 연결되지 않았습니다.");
+  // 브리핑 세트는 화면과 같은 규칙을 서버에서도 본다(개발서버 BriefingSetService.Validate — 화면만 믿으면 창구를 직접 부르는 쪽에는 규칙이 없다, R51)
+  let value = body.value;
+  if (body.key === BRIEFING_KV_KEY && body.scope.startsWith("acct:") && value !== null) {
+    try {
+      value = validateBriefing(value);
+    } catch (e) {
+      return fail(422, (e as Error).message);
+    }
+  }
   try {
-    return json({ item: await kvPut(body.scope, body.key, body.value, who, typeof body.rev === "number" ? body.rev : undefined) });
+    return json({ item: await kvPut(body.scope, body.key, value, who, typeof body.rev === "number" ? body.rev : undefined) });
   } catch (e) {
     if (e instanceof KvConflict) return fail(409, e.message, { latest: e.latest });
     return fail(400, (e as Error).message || "저장하지 못했습니다.");

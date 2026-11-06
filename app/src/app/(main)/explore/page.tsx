@@ -3,8 +3,8 @@ import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "rea
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession, uid, type Conversation, type SubmitArgs, type Turn } from "@/lib/session";
 import { useSop } from "@/lib/sopState";
-import { useBriefState } from "@/lib/briefing";
-import { briefRequest, DEMO_SHOW, demoAsk, fillText, libById, presetLines, presetManual, type DemoItem, type LibraryQuestion, type ShowItem } from "@/lib/library";
+import { useBriefingSet } from "@/lib/briefing";
+import { briefRequest, DEMO_SHOW, demoAsk, fillText, presetLines, presetManual, type DemoItem, type LibraryQuestion, type ShowItem } from "@/lib/library";
 import { REGIONS } from "@/lib/config";
 import { api } from "@/lib/api";
 import type { Citation } from "@/lib/contract/agent";
@@ -43,7 +43,7 @@ function Explore() {
   const sop = useSop();
   const sp = useSearchParams();
   const router = useRouter();
-  const { items: briefItems, loaded: briefLoaded } = useBriefState();
+  const { checked: briefItems, loaded: briefLoaded } = useBriefingSet();
   const [conv, setConv] = useState<Conversation | null>(null);
   const [queueOpen, setQueueOpen] = useState(true);
   const [libOpen, setLibOpen] = useState(false);
@@ -232,7 +232,7 @@ function Explore() {
   );
   const toastErr = (e: unknown) => s.toast((e as Error).message);
 
-  /** 지금 기준지역에서 발효 중인 특보(AI 모드 질의·브리핑에 원문 그대로) — 시연 시나리오를 켠 시연 계정은 서버가 준 시나리오 특보만(R45 — 기상청 실시간 끊음). 「시연 세트 예열」 lib/server/warmPlan briefWarningsOf 와 같은 계산 */
+  /** 지금 기준지역에서 발효 중인 특보(AI 모드 질의·브리핑에 원문 그대로) — 시연 시나리오를 켠 시연 계정은 서버가 준 시나리오 특보만(R45 — 기상청 실시간 끊음) */
   const liveWarnings = () => warningsPayload(s.weather, activeAdvisories(s.weather, wxTarget));
 
   const askText = async (q: string) => {
@@ -268,12 +268,9 @@ function Explore() {
   };
   const askLib = (q: LibraryQuestion, source: "LIBRARY" | "BRIEFING" = "LIBRARY") =>
     ask({ question: fillText(q, regionName), source, libraryId: q.id, quickQueryId: q.quickQueryId ?? null, warnings: source === "BRIEFING" && s.aimOn ? liveWarnings() : null }, undefined, source === "BRIEFING").catch(toastErr);
-  /** 브리핑 항목 하나 질의 (시작 화면 타일 · AI 모드 타일) — q 는 질의문 원형 */
-  const askBrief = (q: string, preset?: string) => {
-    const lib = preset ? libById(preset) : undefined;
-    if (lib && lib.text === q) return askLib(lib, "BRIEFING");
-    return ask({ question: q.replaceAll("{지역}", regionName), source: "BRIEFING", warnings: s.aimOn ? liveWarnings() : null, ...showPin(q, 0) }, undefined, true).catch(toastErr);
-  };
+  /** 브리핑 항목 하나 질의 (시작 화면 타일 · 질의 줄 메뉴 · AI 모드 타일) — q 는 질의문 원형. 개발서버처럼 질의문 그대로(출처 BRIEFING) */
+  const askBrief = (q: string) =>
+    ask({ question: q.replaceAll("{지역}", regionName), source: "BRIEFING", warnings: s.aimOn ? liveWarnings() : null, ...showPin(q, 0) }, undefined, true).catch(toastErr);
   /**
    * 브리핑 항목 글이 질문 모음 「시연」 질문과 같으면 그 항목의 고정 답을 쓴다 — 받아 둔 답을 몇 초 뒤 차례로 보인다(사용자 지시 2026-11-02).
    * 받아 둔 답이 없으면 새로 받아 고정한다
@@ -282,7 +279,7 @@ function Explore() {
     const d = DEMO_SHOW.find((x) => x.text === q.trim());
     return d ? { pinId: d.id, revealMs: 3000 + i * 1500 } : {};
   };
-  /** 질문 모음 「재난담당자의 하루」 — 질문 모음 질문과 같은 경로(자동 조회 먼저), 항목의 조건 프리셋은 이 질문에만 싣는다(세션 조건 그대로) */
+  /** 질문 모음 「한눈 요약 질의」(받아 둔 답이 없을 때) — 질문 모음 질문과 같은 경로(자동 조회 먼저), 항목의 조건 프리셋은 이 질문에만 싣는다(세션 조건 그대로) */
   const askDemo = (d: DemoItem) => ask(demoAsk(d)).catch(toastErr);
   /** 질문 모음 「시연」 — 고정해 둔 답이 있으면 바로, 없으면 새로 받아 고정 */
   const askShow = async (ds: DemoItem[]) => {
@@ -293,13 +290,13 @@ function Explore() {
   /** 브리핑 세트 — 항목마다 자리 턴을 먼저 만들고(실패해도 자리 유지) 동시에 보낸다(R2) */
   const startBriefing = async () => {
     const items = briefItems;
-    if (!items.length) return s.toast("브리핑 항목이 없습니다. 브리핑 항목 설정에서 고르세요.");
+    if (!items.length) return s.toast("브리핑 항목이 없습니다. [브리핑 항목 설정]에서 사용할 항목을 고르세요.");
     const gid = uid("b");
     const now = new Date().toISOString();
     const warnings = s.aimOn ? liveWarnings() : null;
     const plan = items.map((it, i) => {
-      // 질문 글·문항·briefing 칸 — 「시연 세트 예열」과 같은 함수(lib/library briefRequest)
-      const a: AskArgs = { ...briefRequest(it, i, items.length, regionName), source: "BRIEFING", warnings, ...showPin(it.q, i) };
+      // 질문 글·briefing 칸(lib/library briefRequest — 질의문 그대로)
+      const a: AskArgs = { ...briefRequest(it, i, items.length, regionName), source: "BRIEFING", warnings, ...showPin(it.question, i) };
       // 현황판(D1)용 — 브리핑 설정의 항목 이름·보낸 기준지역 이름을 턴에 함께 둔다(요청에는 넣지 않음)
       const group: BriefGroup = { id: gid, no: i + 1, total: items.length, title: "현재 상황 브리핑", label: it.label?.trim() || undefined, region: regionName };
       const t: Turn = { id: uid("t"), jobId: "", pending: true, q: a.question, source: "BRIEFING", libraryId: a.libraryId ?? null, at: now, args: a, group };
@@ -344,7 +341,7 @@ function Explore() {
   askWxRef.current = askWx;
   useEffect(() => {
     const onBrief = () => briefRef.current().catch(toastErr);
-    const onAsk = (e: Event) => { const d = (e as CustomEvent<{ q: string; preset?: string }>).detail; askBriefRef.current(d.q, d.preset); };
+    const onAsk = (e: Event) => { const d = (e as CustomEvent<{ q: string }>).detail; askBriefRef.current(d.q); };
     // 특보 상세 「이 특보로 질의」 — 다른 화면에서 맡기고 옮겨 왔으면 처음 그릴 때 받아 간다
     const onWx = () => { const r = takeWxAsk(); if (r) void askWxRef.current(r); };
     onWx();
@@ -360,12 +357,12 @@ function Explore() {
     const q = sp.get("q"), brief = sp.get("brief"), bq = sp.get("bq");
     const key = `${q}|${brief}|${bq}`;
     if ((!q && !brief && !bq) || handledQ.current === key) return;
-    // 브리핑 세트는 이 계정의 「내 브리핑 항목」을 서버에서 다 읽은 뒤에 — 읽기 전 기본 4문항이 나가지 않게
+    // 브리핑 세트는 이 계정의 브리핑 세트를 서버에서 다 읽은 뒤에 — 읽기 전 기본 항목이 나가지 않게
     if (brief && !q && !briefLoaded) return;
     handledQ.current = key;
     if (q) askRef.current({ question: q, source: "USER" }, undefined, true).catch(toastErr);
     else if (brief) briefRef.current().catch(toastErr);
-    else if (bq) askBriefRef.current(bq, sp.get("bp") ?? undefined);
+    else if (bq) askBriefRef.current(bq);
     router.replace("/explore");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sp, s.account, briefLoaded]);
