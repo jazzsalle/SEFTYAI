@@ -561,10 +561,16 @@ function Explore() {
     return out;
   }, [conv]);
 
+  // 질문 목록 맨 위 「(브리핑 이름) 전체 보기」 — 이 대화의 마지막 브리핑 묶음으로(개발서버 AskList briefingTitle)
+  const lastBrief = [...blocks].reverse().find((b) => b.group)?.group;
+  const briefRow = lastBrief
+    ? { title: lastBrief.title || "현재 상황 브리핑", onShow: () => document.getElementById(`brief-${lastBrief.id}`)?.scrollIntoView({ behavior: "smooth", block: "start" }) }
+    : null;
+
   return (
     <ExploreContext.Provider value={x}>
       <div className={`explore ${panelOpen ? "with-panel" : ""} ${queueOpen ? "with-queue" : ""} ${dragging ? "dragging" : ""}`} style={{ "--chat-w": `${chatW}%` } as React.CSSProperties}>
-        <QueuePanel open={queueOpen} setOpen={setQueueOpen} onPick={pickFromQueue} currentJobIds={turnJobIds} />
+        <QueuePanel open={queueOpen} setOpen={setQueueOpen} onPick={pickFromQueue} currentJobIds={turnJobIds} briefing={briefRow} />
         <main className="ex-main" ref={mainRef}>
           {!panelOpen && (
             <button className="btn panel-open" onClick={() => setPanelOpen(true)}><IcChevL size={14} /> 패널 펼치기</button>
@@ -585,7 +591,7 @@ function Explore() {
               </div>
               {blocks.map((b, bi) =>
                 b.group ? (
-                  <section key={`${b.group.id}:${bi}`} className="brief-block">
+                  <section key={`${b.group.id}:${bi}`} className="brief-block" id={`brief-${b.group.id}`}>
                     <div className="qbubble">
                       <ol>{b.turns.map((t) => <li key={t.id}>{t.q}</li>)}</ol>
                     </div>

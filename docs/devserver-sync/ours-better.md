@@ -81,3 +81,10 @@
 - [조건 변경] 창의 기준시각 칸(우리 기능) — 개발서버 창에는 없다
 - AI 모드 장면의 받아 둔 점검은 서버 작업(질문 모음 받아 두기와 같은 `sa_demo_pins`)으로 받아 두어, 다른 PC·다른 계정에서도 그대로 재생된다(운영자 [받아 두기])
 - 수위·유량 조건 코드는 T3Q 계약(`WATER_LEVEL`·`FLOW`)을 따른다 — 개발서버 `RIVER_LEVEL`·`RIVER_FLOW` 는 자기 주석대로 「T3Q 와 확인 필요」
+
+## 14. 남은 조각 복제(2026-11-07, R56)에서 남긴 것
+- 질문 목록에서 진행 중인 질문도 누를 수 있다 — 그 답 카드 자리(진행 상황·경과 시계)로 간다. 개발서버는 진행 중을 글로만 두어 「어디까지 왔나」를 가운데 화면에서 볼 수 없다 (`components/queue/QueuePanel.tsx`)
+- 질문 목록이 계정의 지난 작업(다른 PC·새로 고침 전)도 싣는다 — 그래서 「새 답」은 끝난 지 15분 안인 것만 센다 (`QueuePanel.tsx` FRESH_MS)
+- 행정경계 WMS 도 서버가 대신 받아 브라우저에 키가 남지 않는다(개발서버는 배경지도 타일만 대리) (`app/api/map/wms`, `lib/server/vworldTiles.ts`)
+- 대상 상세 [지도에서 보기]가 지도 점으로 돌아간다(지도에서 연 경우) — 패널 탭을 지도로 바꾸고 그 점을 고른다 (`components/explore/EntityDetail.tsx`)
+- 개발서버 반영 시 참고: 개발서버 BriefingPanel summarize 는 실패 항목 이름이 비면 「 은(는)」 앞이 빈다 — 우리는 「n번 항목」으로 메운다 (`components/explore/BriefBoard.tsx` briefSummary)

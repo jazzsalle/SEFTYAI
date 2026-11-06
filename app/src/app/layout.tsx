@@ -4,6 +4,7 @@ import "./globals.css";
 import "./renewal.css";
 import { SessionProvider } from "@/lib/session";
 import HelpCenter from "@/components/HelpCenter";
+import { FontBoot } from "@/components/FontSize";
 
 export const metadata: Metadata = {
   title: "재난안전 AI 시범서비스 | 행정안전부",
@@ -14,6 +15,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="ko">
       <body>
+        <FontBoot />
         <SessionProvider>
           {children}
           <HelpCenter />

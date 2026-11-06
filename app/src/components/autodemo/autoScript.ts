@@ -148,7 +148,7 @@ export const UI = {
   /** 지도 말풍선(개발서버 .map-pop) */
   mapPopup: ".sa-map-pop .mp-card",
   /** 대상 상세 탭(T3Q-15 — 개발서버 evd) */
-  detailPane: ".rpanel .gdp",
+  detailPane: ".rpanel .entity-tab",
 } as const
 
 /** 강조 이름 → 화면 요소(개발서버 Spotlight Selectors) */
@@ -192,8 +192,8 @@ const MdP = `${BodyBox} p`
 const MdText = `${BodyBox} li, ${BodyBox} p`
 const MdQuote = `${BodyBox} blockquote, ${BodyBox} p`
 /** 대상 상세(T3Q-15)의 속성 묶음과 칸(개발서버 .evd-record · .di-pill) */
-const DetailRecord = `${UI.detailPane} .kv, ${UI.detailPane} .tree-table`
-const DetailField = `${UI.detailPane} th, ${UI.detailPane} .kv > *`
+const DetailRecord = `${UI.detailPane} .evd-record, ${UI.detailPane} .ev-sec .kv`
+const DetailField = `${UI.detailPane} .di-pill, ${UI.detailPane} .kv > *`
 /** 유사사례 카드·첫 사례 열기·사건 상세 타임라인(개발서버 .sim-card · .sim-open · .evp-tl) */
 const SimCard = `${LastTurn} .datacard-sec.sim`
 const SimOpen = `${LastTurn} .sim-top`

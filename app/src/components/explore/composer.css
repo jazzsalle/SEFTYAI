@@ -49,3 +49,8 @@
 .query-expired-head { display: flex; gap: 6px; align-items: center; margin: 0; font-size: 16px; font-weight: 700; line-height: 24px; color: #8a6116; }
 .query-expired-sub { margin: 2px 0 0 26px; font-size: 15px; line-height: 23px; color: #6d5a2e; }
 .cmp-input:disabled { background: var(--c-surface, #f4f5f6); cursor: not-allowed; }
+
+/* 조건 딱지의 × (개발서버 QueryBox cond-clear) */
+.cmp-cond .cond-clear { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; margin-left: 3px; padding: 0; border: 0; border-radius: 50%; background: #e6e8ea; color: #464c53; cursor: pointer; vertical-align: middle; }
+.cmp-cond .cond-clear:hover { background: #d0d6dc; color: #1e2124; }
+.cmp-cond .cond-clear:focus-visible { outline: 2px solid #256ef4; outline-offset: 1px; }

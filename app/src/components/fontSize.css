@@ -1,0 +1,5 @@
+/* 글자 크기 설정 창(개발서버 FontSizeModal) — 다섯 단계 라디오 */
+.font-scales { display: flex; flex-direction: column; gap: 4px; margin: 4px 0; }
+.font-scale { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 12px; border: 1px solid var(--c-line, #e2e6eb); border-radius: 8px; font-size: var(--fs-s); cursor: pointer; }
+.font-scale:has(input:checked) { border-color: #256ef4; background: #ecf2fe; font-weight: 700; }
+.font-scale input { width: 20px; height: 20px; margin: 0; accent-color: #256ef4; }

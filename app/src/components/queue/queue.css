@@ -1,0 +1,16 @@
+/* 질문 목록 상태 칩·접힌 탭 배지 — 개발서버 styles/renewal/asklist.css(kjw 998facb). 목록 폭 안에 칩 넷이 한 줄로 */
+.qp-filter { display: flex; flex-wrap: nowrap; gap: 4px; padding: 10px 10px 4px 12px; }
+.qp-chip { display: inline-flex; align-items: center; flex: 0 1 auto; min-width: 0; height: 32px; padding: 0 7px; border: 1px solid #b1b8be; border-radius: 6px; background: #fff; color: #1e2124; font: inherit; font-size: 13px; line-height: 1; white-space: nowrap; cursor: pointer; }
+.qp-chip:hover { border-color: #256ef4; }
+.qp-chip[aria-pressed="true"] { background: #ecf2fe; border-color: #256ef4; color: #0b50d0; font-weight: 700; }
+.qp-chip:focus-visible { outline: 2px solid #256ef4; outline-offset: 1px; }
+/* 「(브리핑 이름) 전체 보기」 — 목록 맨 위 */
+.qp-brief-all { display: block; width: calc(100% - 20px); margin: 8px 10px 0; padding: 9px 12px; border: 1px solid #b1b8be; border-radius: 6px; background: #f4f5f6; color: #1e2124; font: inherit; font-size: 14px; font-weight: 700; text-align: left; cursor: pointer; }
+.qp-brief-all:hover { border-color: #256ef4; background: #ecf2fe; color: #0b50d0; }
+/* 접힌 탭 배지 — 진행(파랑 + 도는 고리) · 새 답(초록) · 새 실패·중단(빨강) */
+.qp-badge.run { position: relative; background: #256ef4; }
+.qp-badge.run::after { content: ""; position: absolute; inset: -3px; border: 2px solid rgba(37, 110, 244, 0.25); border-top-color: #256ef4; border-radius: 50%; animation: qp-spin 0.9s linear infinite; }
+.qp-badge.ok { background: #228738; }
+.qp-badge.bad { background: #de3412; }
+@keyframes qp-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .qp-badge.run::after { animation: none; } }

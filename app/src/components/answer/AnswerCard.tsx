@@ -12,6 +12,7 @@ import { SCN_SENT_LABEL, sentWithScenario } from "@/lib/scenario";
 import { useExplore } from "../explore/ExploreCtx";
 import { IcChevD } from "../Icons";
 import { AnswerMarkdown, entityLabel, mdPlainText } from "./Markdown";
+import DocRefs from "./DocRefs";
 import DemoInfoPanel, { hasDemoInfographic } from "./DemoInfographic";
 import AutoInfoPanel from "./AutoInfographic";
 import CompactSummary from "../summary/CompactSummary";
@@ -78,6 +79,9 @@ export function advisoriesAfter(weather: WeatherResponse | null | undefined, tar
   });
 }
 
+/** 이 화면을 연 때 — 그 전에 끝난 작업은 다시 연 대화의 턴으로 본다(실패 문구 「답변을 받지 못한 질문입니다.」) */
+const PAGE_OPENED = Date.now();
+const endedBefore = (at: string | null | undefined) => !!at && Date.parse(at) < PAGE_OPENED;
 const p2 = (n: number) => String(n).padStart(2, "0");
 /** 앱 시각 → 「2026-10-28 02:48」(이 컴퓨터 시간대). 읽지 못하면 받은 글자 그대로 */
 export function fmtYmdHm(iso: string): string {
@@ -159,7 +163,7 @@ function Card({ job, full, compact, noActions, brief }: CardProps) {
     return (
       <div className="acard err">
         <div className="acard-h"><b>재난안전 AI</b> <span className="badge danger">{STATE_LABEL[job.state]}</span></div>
-        <div className="s" style={{ marginTop: 8 }}>{failureText(job.state)}</div>
+        <div className="s" style={{ marginTop: 8 }}>{failureText(job.state, endedBefore(job.finished_at))}</div>
         {!noActions && <div className="row" style={{ marginTop: 10 }}>
           <button className="btn sm pri" onClick={() => x.retry(job.id)}>다시 질의</button>
         </div>}
@@ -286,6 +290,8 @@ function Card({ job, full, compact, noActions, brief }: CardProps) {
         <div className="s muted" style={{ marginTop: 8 }}>{ANSWER_FAILED}</div>
       )}
       {fold && <button className="lnk s" onClick={() => setFold(false)}>전체 보기 ▼</button>}
+      {/* 근거 문서(T3Q v0.4.5 doc_refs — 개발서버 DocRefs) — 문서 이름 · 쪽, 누르면 원문 미리보기 새 창. 비면 답 글 안 문서 링크로 */}
+      <DocRefs refs={res?.doc_refs} text={answer} />
 
       {refs.length > 0 && (
         <div className="refbox" id={refsId} tabIndex={-1}>

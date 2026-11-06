@@ -133,8 +133,14 @@ export const mappable = (ref: T3qRef) => (ref.map as { has_geometry?: boolean } 
 
 // ── 실패 안내 문구(개발서버 lib/agentRun.ts describe·AnswerFailed) ──
 export const ANSWER_FAILED = "답변을 불러오지 못했습니다.";
-/** 받지 못한 답의 안내 — 기술 사유(서버 재시작·HTTP 코드 등)는 화면에 내지 않고 정해 둔 문구만 */
-export function failureText(state: string): string {
+/** 다시 연 대화의 받지 못한 질문(개발서버 hooks/useConversation — 저장된 턴이 DONE 이 아니면 이 글 하나) */
+export const REOPENED_FAILED = "답변을 받지 못한 질문입니다.";
+/**
+ * 받지 못한 답의 안내 — 기술 사유(서버 재시작·HTTP 코드 등)는 화면에 내지 않고 정해 둔 문구만.
+ * reopened = 이 화면을 열기 전에 이미 끝난 작업(다시 연 대화) — 그때는 까닭을 가르지 않고 「답변을 받지 못한 질문입니다.」
+ */
+export function failureText(state: string, reopened = false): string {
+  if (reopened) return REOPENED_FAILED;
   if (state === "TIMEOUT") return "질의가 제한 시간을 넘겼습니다. 조건을 좁혀 다시 시도하세요.";
   if (state === "CANCELLED") return "질의를 취소했습니다.";
   return ANSWER_FAILED;

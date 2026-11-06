@@ -4,6 +4,7 @@ import { api } from "@/lib/api";
 import { API_KO, fieldKo, gapName, GAP_KO, QUALITY_KO, statusKo } from "@/lib/labels";
 import { fmtValue } from "@/lib/format";
 import EventDetail from "./EventDetail";
+import EntityDetail from "./EntityDetail";
 import "./tree.css";
 
 /**
@@ -14,6 +15,8 @@ type Env = { status?: string; result?: unknown; data_gaps?: { component: string;
 
 export default function DetailPane({ apiId, id, label, ctx }: { apiId: string; id: string; label: string; ctx?: Record<string, unknown> | null }) {
   if (apiId === "T3Q-10") return <EventDetail id={id} label={label} ctx={ctx} />;
+  // 위험·취약 대상 — 개발서버 EntityTab 그대로(갈래별 묶음·이름 견줌·예외 문구). 그 밖의 상세(계획 등)는 받은 값 나무
+  if (apiId === "T3Q-15") return <EntityDetail id={id} label={label} ctx={ctx} />;
   return <GenericDetail apiId={apiId} id={id} label={label} />;
 }
 

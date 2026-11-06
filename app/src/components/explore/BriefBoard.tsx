@@ -80,6 +80,35 @@ export function briefCell(t: Turn, i: number, job: JobSummary | undefined, full:
   return { ...base, ...got, kind: job.state === "CANCELLED" ? "off" : "err", text: END_TEXT[job.state] ?? job.state };
 }
 
+/** 「…은/는」 — 앞 글자에 받침이 있으면 「은」, 한글이 아니면 「은(는)」(개발서버 BriefingPanel topicParticle) */
+export function topicParticle(word: string): string {
+  const last = word.charCodeAt(word.length - 1);
+  if (!(last >= 0xac00 && last <= 0xd7a3)) return "은(는)";
+  return (last - 0xac00) % 28 === 0 ? "는" : "은";
+}
+
+/**
+ * 머리말 한 줄(개발서버 BriefingPanel summarize) — 세트 전체를 아우르는 글은 상류가 주지 않으므로 센 것만 적는다.
+ * 진행 중 = 「결과를 확인하고 있습니다.」 · 다 됨 = 「브리핑 항목 N개를 정리했습니다.」 · 실패가 있으면 「… ○○은(는) 불러오지 못했습니다.」
+ * 실패 = 오류 계열(취소됨은 빼고 — 개발서버 phase failed). 모두 실패(완료 0)면 null — 머리에 「브리핑 결과를 불러오지 못했습니다.」
+ */
+export function briefSummary(cells: Pick<BriefCell, "kind" | "label" | "no">[]): string | null {
+  if (cells.some((c) => c.kind === "run" || c.kind === "wait")) return "결과를 확인하고 있습니다.";
+  const done = cells.filter((c) => c.kind === "done").length;
+  const failed = cells.filter((c) => c.kind === "err");
+  if (!done && failed.length) return null;
+  if (!failed.length) return `브리핑 항목 ${done}개를 정리했습니다.`;
+  const names = failed.map((c) => c.label ?? `${c.no}번 항목`);
+  return `브리핑 항목 ${done}개를 정리했습니다. ${names.join(", ")}${topicParticle(names[names.length - 1])} 불러오지 못했습니다.`;
+}
+/** 시안 표기 2026.08.25 16:00 — 읽지 못하면 null */
+export function briefStamp(iso: string | undefined): string | null {
+  const d = iso ? new Date(iso) : null;
+  if (!d || Number.isNaN(d.getTime())) return null;
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}.${p(d.getMonth() + 1)}.${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+
 // 대화를 바꿨다 돌아와도 도착·새로 도착을 놓치지 않게 — 턴별 마지막 단계와 아직 안 본 도착
 type Phase = "run" | "wait" | "end";
 const phaseOf = (k: Kind): Phase => (k === "run" ? "run" : k === "wait" ? "wait" : "end");
@@ -155,6 +184,7 @@ export default function BriefBoard({ turns, regionName, renderBody, onRetry }: B
     [turns, s.jobs, s.full, now],
   );
   const running = cells.some((c) => c.kind === "run");
+  const summary = briefSummary(cells);
 
   // 시계 — 진행 중이면 1초, 아니면 30초(재사용 「n시간 전」)
   useEffect(() => {
@@ -338,6 +368,16 @@ export default function BriefBoard({ turns, regionName, renderBody, onRetry }: B
           기준지역 <b>{groupOf(turns[0])?.region ?? regionName}</b>
           {turns.some((t) => t.jobId && sentWithScenario(s.full[t.jobId]?.request)) && ` · ${SCN_SENT_LABEL}`}
         </div>
+        {/* 개발서버 BriefingPanel — 「재난안전 AI · {시각} 기준」 + 센 것만 적은 머리말 */}
+        <div className="brief-ai xs">
+          <b>재난안전 AI</b>
+          {briefStamp(turns[0]?.at) && <span className="muted"> {briefStamp(turns[0]?.at)} 기준</span>}
+        </div>
+        {summary !== null ? (
+          <p className="brief-summary s" aria-live="polite">{summary}</p>
+        ) : (
+          <p className="brief-summary err s" role="alert">브리핑 결과를 불러오지 못했습니다.</p>
+        )}
       </div>
       {/* 「크게 보기」 — 그 항목 하나만. 묶음으로 돌아가는 길을 머리에 둔다(개발 서버 BriefingAnswer 의 「← 브리핑」) */}
       {big && (

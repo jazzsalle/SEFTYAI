@@ -80,3 +80,9 @@
 @media print {
   .bb-mini { display: none !important; }
 }
+
+/* 머리말(개발서버 BriefingPanel briefing-ai · briefing-panel-summary) */
+.brief-ai { margin-top: 8px; }
+.brief-ai b { color: var(--c-navy, #0b2a55); }
+.brief-summary { margin: 4px 0 0; color: #1e2124; }
+.brief-summary.err { color: #8a4b00; font-weight: 600; }

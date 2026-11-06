@@ -58,17 +58,18 @@ import MapPopup from "./MapPopup";
 import MapBrowserEvent from "ol/MapBrowserEvent";
 import { MAP_CLICK_EVENT, MAP_FIND_EVENT, type MapHit, type MapQuery } from "@/lib/autoDemoMap";
 
-const VW_KEY = process.env.NEXT_PUBLIC_VWORLD_KEY ?? "";
+/** 배경지도 타일·경계는 서버가 대신 받는다 — 인증키를 브라우저에 두지 않는다(개발서버 MapController tiles · app/api/map/tiles·wms) */
+const VW_TILE_URL = "/api/map/tiles";
 
 /**
  * VWorld 2D 데이터 API — WMS 행정경계 (GetCapabilities 2026-10-28 확인)
  * - 레이어: lt_c_adsido(광역시도) · lt_c_adsigg(시군구) · lt_c_ademd(읍면동, 큰 축척에서만 그려짐). 스타일 이름 = 레이어 이름.
  * - CRS EPSG:3857 이면 BBOX 는 xmin,ymin,xmax,ymax (OpenLayers 가 맞춰 보냄). 한 번에 최대 4개 레이어.
  * - 응답에 CORS 헤더가 없다 → crossOrigin 을 주지 않는다(주면 이미지가 막힘).
- * - 인증은 브라우저가 보내는 Referer(등록 도메인)로 된다. DOMAIN 파라미터를 붙이면 응답이 INCORRECT_KEY 와
- *   섞여 나와(같은 요청 반복 시험) 넣지 않는다.
+ * - 인증은 Referer(등록 도메인)로 된다. DOMAIN 파라미터를 붙이면 응답이 INCORRECT_KEY 와 섞여 나와(같은 요청 반복 시험) 넣지 않는다.
+ * - 2026-11-07 부터 서버(/api/map/wms)가 KEY 를 붙이고 등록 주소를 Referer 로 보내 대신 받는다(같은 출처라 CORS 걱정 없음).
  */
-const VW_WMS_URL = "https://api.vworld.kr/req/wms";
+const VW_WMS_URL = "/api/map/wms";
 const VW_WMS_LAYERS = "lt_c_adsido,lt_c_adsigg,lt_c_ademd";
 
 export type Basemap = "Base" | "Satellite" | "gray";
@@ -506,13 +507,13 @@ export default function MapView(p: Props) {
 
     // ── 배경지도: VWorld WMTS (일반·회색·영상+하이브리드) · 실패 시 OSM
     const vw = (layer: string, ext: string, maxZoom = 19) =>
-      new XYZ({ url: `https://api.vworld.kr/req/wmts/1.0.0/${VW_KEY}/${layer}/{z}/{y}/{x}.${ext}`, crossOrigin: "anonymous", maxZoom });
+      new XYZ({ url: `${VW_TILE_URL}/${layer}/{z}/{y}/{x}.${ext}`, crossOrigin: "anonymous", maxZoom });
     const base = new TileLayer({ source: vw("Base", "png"), zIndex: 0 });
     const white = new TileLayer({ source: vw("white", "png", 18), zIndex: 0, visible: false }); // 회색지도는 18단계까지만 있음(19 는 오류 XML)
     const sat = new TileLayer({ source: vw("Satellite", "jpeg"), zIndex: 0, visible: false });
     const hyb = new TileLayer({ source: vw("Hybrid", "png"), zIndex: 1, visible: false });
     const osm = new TileLayer({ source: new OSM(), zIndex: 0, visible: false });
-    let osmMode = !VW_KEY; // 키가 없으면 처음부터 OSM
+    let osmMode = false; // 서버에 키가 없으면 타일이 404 → 오류 수로 OSM
     let tileOk = 0;
     let tileErr = 0;
     let vwReported = false;
@@ -525,12 +526,12 @@ export default function MapView(p: Props) {
     // ── 행정경계: VWorld WMS (실패하면 숨김 → 배경지도만)
     const wms = new TileWMS({
       url: VW_WMS_URL,
-      params: { VERSION: "1.3.0", LAYERS: VW_WMS_LAYERS, STYLES: VW_WMS_LAYERS, FORMAT: "image/png", TRANSPARENT: "TRUE", KEY: VW_KEY },
+      params: { VERSION: "1.3.0", LAYERS: VW_WMS_LAYERS, STYLES: VW_WMS_LAYERS, FORMAT: "image/png", TRANSPARENT: "TRUE" },
       tileGrid: createXYZ({ extent: getProjection("EPSG:3857")!.getExtent(), tileSize: 512, maxZoom: 19 }),
       wrapX: false,
     });
     const bnd = new TileLayer({ source: wms, zIndex: 5, visible: false });
-    let wmsFailed = !VW_KEY;
+    let wmsFailed = false;
     let wmsOk = 0;
     let wmsErr = 0;
 

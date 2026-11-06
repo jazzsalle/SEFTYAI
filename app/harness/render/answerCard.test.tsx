@@ -148,18 +148,29 @@ describe("답변 카드 — 받은 값만, 센 값·설명 없음", () => {
     expect(container.textContent).not.toContain("2025년 자료까지만");
   });
 
-  it("받지 못한 답은 정해 둔 문구만 — 시간 초과·취소·그 밖(유실 등)", () => {
+  it("받지 못한 답은 정해 둔 문구만 — 시간 초과·취소·그 밖(유실 등) · 화면을 연 뒤 끝난 작업", () => {
+    const later = new Date(Date.now() + 60_000).toISOString();
     for (const [state, msg] of [
       ["TIMEOUT", "질의가 제한 시간을 넘겼습니다. 조건을 좁혀 다시 시도하세요."],
       ["CANCELLED", "질의를 취소했습니다."],
       ["LOST", "답변을 불러오지 못했습니다."],
       ["FAILED", "답변을 불러오지 못했습니다."],
     ] as const) {
-      const job = makeJob({ state: state as JobSummary["state"] });
+      const job = makeJob({ state: state as JobSummary["state"], finished_at: later });
       const raw = makeRaw({ status: "UPSTREAM_ERROR", warnings: [{ code: "E", message: "upstream HTTP 502" }] });
       const { container } = wrap(<AnswerCard job={job} full={makeFull(job, raw)} />);
       expect(container.querySelector(".acard.err")!.textContent).toContain(msg);
       expect(container.textContent).not.toContain("502");
+      cleanup();
+    }
+  });
+
+  // 개발서버 useConversation — 다시 연 대화(화면을 열기 전에 끝난 작업)의 받지 못한 질문은 까닭을 가르지 않고 한 문구
+  it("다시 연 대화의 실패 턴 — 「답변을 받지 못한 질문입니다.」", () => {
+    for (const state of ["TIMEOUT", "CANCELLED", "FAILED"] as const) {
+      const job = makeJob({ state });
+      const { container } = wrap(<AnswerCard job={job} full={makeFull(job, makeRaw({ status: "UPSTREAM_ERROR" }))} />);
+      expect(container.querySelector(".acard.err")!.textContent).toContain("답변을 받지 못한 질문입니다.");
       cleanup();
     }
   });

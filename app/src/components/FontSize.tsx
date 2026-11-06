@@ -1,33 +1,55 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
+import "./fontSize.css";
+import { applyScale, DEFAULT_SCALE, FONT_SCALES, readScaleKey, saveScaleKey } from "@/lib/fontScale";
 
-/** 글자 크기 (Figma 102004, UFR-008 접근성) — 작게·보통·크게·아주 크게. 브라우저에 기억 */
-const SIZES = [{ k: "s", l: "작게", px: 14 }, { k: "m", l: "보통", px: 16 }, { k: "l", l: "크게", px: 18 }, { k: "xl", l: "아주 크게", px: 20 }];
+/** 남겨 둔 글자 크기를 화면이 뜰 때 먹인다(로그인 화면 포함 — 개발서버 bootFontScale) */
+export function FontBoot() {
+  useEffect(() => applyScale(readScaleKey()), []);
+  return null;
+}
 
+/**
+ * 글자 크기 (Figma 102004, UFR-008 접근성) — 개발서버 FontSizeModal(kjw 998facb) 그대로.
+ * 머리줄 단추 → 창(다섯 단계 라디오). 고르면 그 자리에서 바뀐다(적용 단추 없음), 아래는 [초기화](보통)와 [닫기](되돌리지 않음).
+ */
 export default function FontSize() {
   const [open, setOpen] = useState(false);
-  const [k, setK] = useState("m");
-  useEffect(() => {
-    try {
-      const v = localStorage.getItem("sa.font");
-      if (v) setK(v);
-    } catch {}
-  }, []);
-  useEffect(() => {
-    const px = SIZES.find((x) => x.k === k)?.px ?? 16;
-    document.documentElement.style.fontSize = `${px}px`;
-    try { localStorage.setItem("sa.font", k); } catch {}
-  }, [k]);
   return (
-    <div className="dd">
-      <button className="hbtn" onClick={() => setOpen((v) => !v)} aria-expanded={open} aria-label="글자 크기">가 글자 크기</button>
-      {open && (
-        <div className="dd-menu right" onMouseLeave={() => setOpen(false)} role="menu">
-          {SIZES.map((x) => (
-            <button key={x.k} role="menuitemradio" aria-checked={k === x.k} className={k === x.k ? "on" : ""} onClick={() => { setK(x.k); setOpen(false); }} style={{ fontSize: x.px }}>{x.l}</button>
+    <>
+      <button className="hbtn" onClick={() => setOpen(true)} aria-haspopup="dialog" aria-label="글자 크기">가 글자 크기</button>
+      {open && <FontSizeModal onClose={() => setOpen(false)} />}
+    </>
+  );
+}
+
+export function FontSizeModal({ onClose }: { onClose: () => void }) {
+  const id = useId();
+  const [picked, setPicked] = useState(() => readScaleKey());
+  const choose = (key: string) => {
+    setPicked(key);
+    applyScale(key);
+    saveScaleKey(key);
+  };
+  return (
+    <div className="modal-bg" role="dialog" aria-modal="true" aria-label="글자 크기 설정" onKeyDown={(e) => e.key === "Escape" && onClose()} onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="modal font-modal" style={{ width: 400 }}>
+        <div className="modal-h"><h2>글자 크기 설정</h2></div>
+        <div className="font-scales" role="radiogroup" aria-label="글자 크기">
+          {FONT_SCALES.map((s) => (
+            <label key={s.key} className="font-scale" htmlFor={`${id}-${s.key}`}>
+              <input type="radio" name={`${id}-scale`} id={`${id}-${s.key}`} checked={picked === s.key} onChange={() => choose(s.key)} />
+              {s.label}
+              <span className="sr-only">{` ${s.percent}%`}</span>
+            </label>
           ))}
         </div>
-      )}
+        <div className="modal-f">
+          <span className="sp" />
+          <button type="button" className="btn" onClick={() => choose(DEFAULT_SCALE)}>초기화</button>
+          <button type="button" className="btn primary" onClick={onClose} autoFocus>닫기</button>
+        </div>
+      </div>
     </div>
   );
 }

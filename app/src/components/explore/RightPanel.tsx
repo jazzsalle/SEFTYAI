@@ -132,7 +132,8 @@ function MapPanel(p: Props) {
   const detailOf = useCallback((f: MapFeature) => riskHasDetail(f.t3qRef), []);
   const onDetail = useCallback((f: MapFeature) => {
     const id = f.t3qRef ? detailIdOf(f.t3qRef) : null;
-    if (id) x.openDetail("T3Q-15", id, f.displayName ?? id);
+    // 지도에서 연 대상 — 상세 머리 [지도에서 보기]가 이 점으로 돌아온다(개발서버 EntityTab onShowMap)
+    if (id) x.openDetail("T3Q-15", id, f.displayName ?? id, { mapJob: f.jobId, mapRef: f.ref });
   }, [x]);
   // 말풍선 「답변에서 보기」 — 그 답변의 대상 목록(없으면 답변 머리)으로
   const locate = (f: MapFeature) => {

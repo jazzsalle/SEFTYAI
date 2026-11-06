@@ -65,8 +65,12 @@ export default function Composer({ onAsk, onBriefing, onLibrary, followUpLabel, 
       <div className="cmp-cond">
         <span className="xs muted">재난유형</span> <b className="xs">{c.disasterType && c.disasterType !== "전체" ? c.disasterType : "전체"}</b>
         <span className="xs muted"> · 기준시각</span> <b className="xs">{c.referenceTime ? c.referenceTime.replace("T", " ") : "현재"}</b>
-        {(c.periodFrom || c.periodTo) && (<><span className="xs muted"> · 발생기간</span> <b className="xs">{c.periodFrom ?? ""} ~ {c.periodTo ?? ""}</b></>)}
+        {c.referenceTime && <ClearButton what="기준시각" onClick={() => s.setCond({ referenceTime: undefined })} />}
+        {/* 발생기간 — 지운 조건도 자리는 지킨다(「제한 없음」), 이미 지운 조건에는 × 를 두지 않는다(개발서버 QueryBox) */}
+        <span className="xs muted"> · 발생기간</span> <b className="xs">{periodText(c.periodFrom, c.periodTo)}</b>
+        {(c.periodFrom || c.periodTo) && <ClearButton what="발생기간" onClick={() => s.setCond({ periodFrom: undefined, periodTo: undefined })} />}
         <span className="xs muted"> · 상황 상세정보</span> <b className="xs">{nCond}개</b>
+        {nCond > 0 && <ClearButton what="상황 상세정보" onClick={() => s.setCond({ conditions: undefined, warningKind: undefined, warningLevel: undefined, keywords: undefined })} />}
         {nCond > 0 && <span className="badge neutral xs" title="사용자가 직접 입력한 조건입니다(실시간 관측·특보 아님)">사용자 입력 조건</span>}
         <span className="sp" />
         <button className="lnk xs" onClick={() => setCondOpen(true)}>조건 변경 ›</button>
@@ -127,6 +131,21 @@ export default function Composer({ onAsk, onBriefing, onLibrary, followUpLabel, 
       </div>
       {condOpen && <CondModal onClose={() => setCondOpen(false)} />}
     </div>
+  );
+}
+
+/** 발생기간 표기 — 둘 다 없으면 「제한 없음」(개발서버 formatRange), 한쪽만 있으면 그쪽만 */
+export function periodText(from?: string | null, to?: string | null): string {
+  if (!from && !to) return "제한 없음";
+  return `${from ?? ""} ~ ${to ?? ""}`;
+}
+
+/** 조건 하나를 지우는 × — 이름을 「발생기간 조건 지우기」처럼 풀어 적는다(× 만으로는 읽기 도구가 「닫기」로 읽음) */
+function ClearButton({ what, onClick }: { what: string; onClick: () => void }) {
+  return (
+    <button type="button" className="cond-clear" aria-label={`${what} 조건 지우기`} title={`${what} 조건을 지웁니다`} onClick={onClick}>
+      <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true" focusable="false"><path d="M1 1l8 8M9 1l-8 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>
+    </button>
   );
 }
 

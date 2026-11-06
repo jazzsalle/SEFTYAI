@@ -68,6 +68,15 @@ describe("지도 — 일반 ↔ 위성 단추", () => {
     expect(srcOf("Hybrid")).toBeTruthy();
   });
 
+  it("타일은 서버 대리(/api/map/tiles)로 받는다 — 주소에 인증키가 없다(개발서버 MapController tiles)", () => {
+    view("Base", vi.fn());
+    expect(h.xyz.length).toBeGreaterThan(0);
+    for (const x of h.xyz.filter((t) => t.url.includes("/Base/") || t.url.includes("/Satellite/"))) {
+      expect(x.url.startsWith("/api/map/tiles/")).toBe(true);
+      expect(x.url).not.toContain("test-key");
+    }
+  });
+
   it("위성 타일이 연속 실패하면 일반지도로 돌려놓고 안내 — OSM 으로 넘기지 않는다", () => {
     const set = vi.fn();
     const tile = vi.fn();
