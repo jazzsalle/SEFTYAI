@@ -1,5 +1,6 @@
 import type { AdminAccountRow } from "@/lib/adminTypes";
 import { ACCOUNTS } from "@/lib/config";
+import { issuedAccount } from "@/lib/accountRules";
 import { errText, requireOperator } from "@/lib/server/admin";
 import { db, ensureSchema } from "@/lib/server/db";
 import { fail, json } from "@/lib/server/who";
@@ -7,7 +8,7 @@ import { fail, json } from "@/lib/server/who";
 export const dynamic = "force-dynamic";
 
 interface Row {
-  id: string; name: string; org: string; role: string; status: string; failed_count: number;
+  id: string; name: string; org: string; role: string; status: string; failed_count: number; grade: number | null; team_sn: number | null;
   locked_until: string | null; locked: boolean; last_login_at: string | null; created_at: string | null; session_seen_at: string | null;
 }
 /** 화면 순서 — 부산·부산2·인제·영천·정부기관·운영자·계정 발급자 */
@@ -15,7 +16,7 @@ const ORDER = ["busan", "busan2", "inje", "01000", "hang", "unes", "issuer"];
 
 /**
  * GET /api/admin/accounts — 계정 목록 (운영자 전용)
- * sa_accounts(발급 상태·연속 실패·잠금·최근 로그인) + 살아 있는 세션의 마지막 활동. 설정에만 있고 발급 전인 계정도 함께 보인다.
+ * sa_accounts(발급 상태·연속 실패·잠금·최근 로그인) + 살아 있는 세션의 마지막 활동. 설정에만 있고 발급 전인 계정, 계정 발급 화면에서 만든 계정도 함께 보인다.
  */
 export async function GET(req: Request) {
   const g = await requireOperator(req);
@@ -23,7 +24,7 @@ export async function GET(req: Request) {
   try {
     await ensureSchema();
     const rows = (await db().query(
-      `select a.id, a.name, a.org, a.role, a.status, a.failed_count, a.locked_until,
+      `select a.id, a.name, a.org, a.role, a.status, a.failed_count, a.locked_until, a.grade, a.team_sn,
               (a.locked_until is not null and a.locked_until > now()) as locked,
               a.last_login_at, a.created_at,
               (select max(s.last_seen_at) from sa_sessions s
@@ -41,12 +42,15 @@ export async function GET(req: Request) {
         last_login_at: r?.last_login_at ?? null, created_at: r?.created_at ?? null, session_seen_at: r?.session_seen_at ?? null,
       };
     });
-    for (const r of rows.filter((x) => !ACCOUNTS.some((a) => a.id === x.id)))
+    // 계정 발급 화면(/accounts, R55)에서 만든 계정 — 등급·소속으로 이름·역할을 만든다(known = 등급·소속을 알아 로그인할 수 있음)
+    for (const r of rows.filter((x) => !ACCOUNTS.some((a) => a.id === x.id))) {
+      const acc = issuedAccount(r.id, r.grade, r.team_sn);
       out.push({
-        id: r.id, name: r.name, org: r.org, dept: null, role: r.role, issued: true, known: false,
+        id: r.id, name: acc?.name ?? r.name, org: acc?.org ?? r.org, dept: null, role: acc?.role ?? r.role, issued: true, known: !!acc,
         status: r.status, failed_count: r.failed_count, locked_until: r.locked_until, locked: !!r.locked,
         last_login_at: r.last_login_at, created_at: r.created_at, session_seen_at: r.session_seen_at,
       });
+    }
     return json({ accounts: out });
   } catch (e) {
     return fail(500, "계정 목록을 불러오지 못했습니다. " + errText(e));

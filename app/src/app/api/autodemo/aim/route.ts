@@ -5,13 +5,11 @@ import { hasDb } from "@/lib/server/db";
 import { errText, requireOperator } from "@/lib/server/admin";
 import { fail, json, whoami } from "@/lib/server/who";
 import { warningsPayload } from "@/lib/wxref";
-import { AIM_DEMO, aimDemoById, aimDemoRequest, aimDemoView } from "@/lib/autoDemoAim";
+import { AIM_DEMO, aimAnswerOf, aimDemoById, aimDemoRequest, aimDemoView, aimNoWarnOf } from "@/lib/autoDemoAim";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 30;
 
-const answerOf = (raw: unknown) => (raw as { result?: { answer?: unknown } } | null)?.result?.answer;
-const noWarnOf = (raw: unknown) => (raw as { result?: { no_warning_message?: unknown } } | null)?.result?.no_warning_message;
 
 /**
  * GET /api/autodemo/aim — 자동 시연 AI 모드 장면의 받아 둔 점검(R54 · 개발서버 demoApi.answer(AIM-…)).
@@ -36,7 +34,7 @@ export async function GET(req: Request) {
           id: it.id, title: it.title,
           at: job?.finished_at ?? null,
           pending: p?.pending ? { id: p.pending.id, state: p.pending.state } : null,
-          view: job ? aimDemoView(it, answerOf(job.raw), noWarnOf(job.raw)) : null,
+          view: job ? aimDemoView(it, aimAnswerOf(job.raw), aimNoWarnOf(job.raw)) : null,
         };
       }),
     });

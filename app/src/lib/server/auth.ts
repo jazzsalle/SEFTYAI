@@ -2,10 +2,11 @@ import "server-only";
 import { createHmac, randomBytes, scrypt as _scrypt, timingSafeEqual } from "node:crypto";
 import { promisify } from "node:util";
 import { ACCOUNTS, type Account } from "../config";
+import { issuedAccount } from "../accountRules";
 import { db, ensureSchema } from "./db";
 
 /**
- * 로그인·세션 (R7, UFR-007) — 사전 발급 7계정(R50 개발서버 아이디), scrypt 해시, 서명 쿠키 sa_sid
+ * 로그인·세션 (R7, UFR-007) — 고정 7계정(R50 개발서버 아이디)과 계정 발급 화면에서 만든 계정(R55), scrypt 해시, 서명 쿠키 sa_sid
  * 유휴 4시간(슬라이딩, last_seen 갱신은 60초에 1회) · 절대 12시간 · 비밀번호 9자 이상 + 영문·숫자·특수문자 · 5회 실패 15분 잠금
  * 한 사람당 접속 하나 — 개발서버 AuthService(R53): 비밀번호가 맞았는데 다른 곳에서 접속 중이면(자취 beat_at 이 2분 안·이 브라우저의 세션이 아님)
  * 바로 들이지 않고 409 AUTH_SESSION_EXISTS 로 되묻는다(SCR-UNE-101003). force 면 그 접속을 끊고(revoked_reason TAKEN_OVER) 들어간다.
@@ -31,6 +32,10 @@ function secret() {
   if (!s && process.env.VERCEL_ENV === "production") throw new Error("SESSION_SECRET 이 설정되지 않았다");
   return s || "dev-only-session-secret";
 }
+
+/** 아이디 → 계정 — 고정 7계정은 설정(ACCOUNTS), 그 밖은 발급 화면이 남긴 등급·소속(R55). 어느 쪽도 아니면 null */
+export const accountOf = (id: string, grade?: number | null, teamSn?: number | null): Account | null =>
+  ACCOUNTS.find((a) => a.id === id) ?? issuedAccount(id, grade, teamSn);
 
 export const pwRule = (pw: string) => pw.length >= 9 && /[A-Za-z]/.test(pw) && /\d/.test(pw) && /[^A-Za-z0-9]/.test(pw);
 
@@ -90,9 +95,9 @@ export async function login(id: string, pw: string, ua: string, opts: { force?: 
   // 화면설계 SCR-UNE-101001 의 확정 문구 — 어느 칸이 틀렸는지도, 그 계정이 있는지도 알려 주지 않는다
   const generic = { ok: false as const, error: "아이디 또는 비밀번호를 잘못 입력했습니다. 다시 입력하세요.", status: 401 };
   const [row] = (await sql.query(
-    "select id, pw_hash, status, (locked_until is not null and locked_until > now()) as locked from sa_accounts where id = $1", [id],
-  )) as { id: string; pw_hash: string; status: string; locked: boolean }[];
-  const account = ACCOUNTS.find((a) => a.id === id);
+    "select id, pw_hash, status, grade, team_sn, (locked_until is not null and locked_until > now()) as locked from sa_accounts where id = $1", [id],
+  )) as { id: string; pw_hash: string; status: string; grade: number | null; team_sn: number | null; locked: boolean }[];
+  const account = row ? accountOf(row.id, row.grade, row.team_sn) : null;
   if (!row || !account || row.status !== "ACTIVE") return generic;
   if (row.locked) return { ok: false, error: LOCKED_MSG, status: 423 };
   if (!(await verifyPw(pw, row.pw_hash))) {
@@ -169,14 +174,14 @@ export async function sessionAccount(req: Request): Promise<Account | null> {
   if (!sid) return null;
   await ensureSchema();
   const [s] = (await db().query(
-    `select s.account_id, s.last_seen_at, s.expires_at, s.revoked_at, a.status, a.must_change_pw
+    `select s.account_id, s.last_seen_at, s.expires_at, s.revoked_at, a.status, a.must_change_pw, a.grade, a.team_sn
        from sa_sessions s left join sa_accounts a on a.id = s.account_id where s.sid = $1`, [sid],
-  )) as { account_id: string; last_seen_at: string; expires_at: string; revoked_at: string | null; status: string | null; must_change_pw: boolean | null }[];
+  )) as { account_id: string; last_seen_at: string; expires_at: string; revoked_at: string | null; status: string | null; must_change_pw: boolean | null; grade: number | null; team_sn: number | null }[];
   if (!s || s.revoked_at || s.status !== "ACTIVE") return null;
   const now = Date.now(), seen = new Date(s.last_seen_at).getTime();
   if (now - seen > IDLE_MS || now > new Date(s.expires_at).getTime()) return null;
   if (req.headers.get("x-sa-activity") === "1" && now - seen > 60_000) await db().query("update sa_sessions set last_seen_at = now() where sid = $1", [sid]);
-  const acc = ACCOUNTS.find((a) => a.id === s.account_id);
+  const acc = accountOf(s.account_id, s.grade, s.team_sn);
   return acc ? { ...acc, mustChangePw: !!s.must_change_pw } : null;
 }
 

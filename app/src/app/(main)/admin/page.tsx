@@ -873,7 +873,7 @@ function AccountsTab() {
       {error && <div className="notice danger" role="alert" style={{ marginBottom: 12 }}>{error}</div>}
       <section className="adm-sec" style={{ marginTop: 0 }}>
         <h2>
-          계정 <small>사전 발급 7계정 · 30초마다 갱신</small>
+          계정 <small>고정 7계정과 발급한 계정 · 30초마다 갱신</small>
           <span className="sp" />
           <button type="button" className="btn sm" onClick={() => load()}>새로고침</button>
         </h2>
@@ -898,7 +898,7 @@ function AccountsTab() {
                 const canUnlock = a.issued && (a.locked || a.failed_count > 0);
                 return (
                   <tr key={a.id}>
-                    <td className="nowrap"><code>{a.id}</code>{!a.known && <div className="xs mute2">설정에 없는 계정</div>}</td>
+                    <td className="nowrap"><code>{a.id}</code>{!a.known && <div className="xs mute2">등급·소속을 모르는 계정</div>}</td>
                     <td>{a.name}<div className="xs mute2">{a.org}{a.dept ? ` ${a.dept}` : ""}</div></td>
                     <td className="xs nowrap">{ROLE_LABEL[a.role] ?? a.role}</td>
                     <td className="nowrap"><span className={`badge ${tone}`}>{label}</span></td>
@@ -928,7 +928,7 @@ function AccountsTab() {
         <p className="adm-note">
           비밀번호를 5회 연속 잘못 입력하면 15분 동안 잠깁니다. [잠금 해제]는 잠금과 연속 실패 횟수를 함께 0으로 되돌립니다. 같은 계정으로 새로 로그인하면 기존 접속은 종료됩니다.
           <br />
-          계정 발급·비밀번호 재설정은 운영 스크립트 <code>app/scripts/seed_accounts.mjs</code>(서버 SEED_SECRET 필요)로 합니다.
+          새 계정 발급·비밀번호 재발급·폐기는 계정 발급자(issuer)의 [계정 발급] 화면에서 합니다. 고정 7계정의 비밀번호는 운영 스크립트 <code>app/scripts/seed_accounts.mjs</code>(서버 SEED_SECRET 필요)로 바꿉니다.
         </p>
       </section>
     </>

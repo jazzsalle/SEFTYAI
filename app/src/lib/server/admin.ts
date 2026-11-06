@@ -51,3 +51,13 @@ export async function t3qHealth(): Promise<T3qHealth> {
   cache = { at: Date.now(), v };
   return v;
 }
+
+/** 계정 발급 API 공통(R55) — 개발서버 AccountController.EnsureIssuer: 계정 발급자(등급 0)만. 초기 비밀번호를 바꾸기 전에는 막는다 */
+export async function requireIssuer(req: Request): Promise<{ who: Account; res?: undefined } | { who?: undefined; res: Response }> {
+  if (!hasDb()) return { res: fail(503, "서버 DB가 연결되지 않았습니다.") };
+  const who = await whoami(req);
+  if (!who) return { res: fail(401, "로그인이 필요합니다.") };
+  if (who.grade !== 0) return { res: fail(403, "계정 발급자(등급 0)만 쓸 수 있습니다.", { code: "AUTH_GRADE_NOT_ALLOWED" }) };
+  if (who.mustChangePw) return { res: fail(403, "초기 비밀번호를 먼저 바꿔 주세요.") };
+  return { who };
+}

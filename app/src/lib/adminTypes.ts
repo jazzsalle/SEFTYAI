@@ -101,7 +101,7 @@ export interface AdminAccountRow {
   role: string;
   /** sa_accounts 에 발급된 계정인지 */
   issued: boolean;
-  /** 설정(ACCOUNTS)에 있는 계정인지 */
+  /** 로그인할 수 있는 계정인지 — 설정(ACCOUNTS)에 있거나 계정 발급 화면이 등급·소속을 남긴 계정(R55) */
   known: boolean;
   status: string | null;
   failed_count: number;

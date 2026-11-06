@@ -78,6 +78,11 @@ const SCHEMA = [
      id text primary key, name text not null, org text not null, role text not null, admin_code text, pw_hash text not null,
      must_change_pw boolean not null default false, failed_count int not null default 0, locked_until timestamptz,
      status text not null default 'ACTIVE', created_at timestamptz not null default now(), last_login_at timestamptz)`,
+  // 계정 발급(R55, 개발서버 acc_user grad_sn·team_sn·memo·crt_user_sn) — 고정 7계정은 비어 있고 lib/config ACCOUNTS 를 쓴다
+  `alter table sa_accounts add column if not exists grade int`,
+  `alter table sa_accounts add column if not exists team_sn int`,
+  `alter table sa_accounts add column if not exists memo text`,
+  `alter table sa_accounts add column if not exists created_by text`,
   `create table if not exists sa_sessions (
      sid text primary key, account_id text not null, created_at timestamptz not null, last_seen_at timestamptz not null,
      expires_at timestamptz not null, revoked_at timestamptz, ua_hash text)`,

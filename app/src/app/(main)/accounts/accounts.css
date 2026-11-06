@@ -1,0 +1,21 @@
+/* 계정 발급(R55) — 개발서버 계정 발급 사이트(nia_ai-account index.css)의 표·결과 패널을 우리 운영관리 꼴로 */
+.acc-page .adm-acts { justify-content: flex-start; flex-wrap: wrap; }
+.acc-grid { max-height: 300px; }
+.acc-grid .input { width: 100%; min-width: 120px; }
+.acc-grid td.num, .acc-grid th.num { width: 40px; text-align: center; }
+.acc-row-err td { background: #fff8f7; }
+.acc-list { max-height: 420px; }
+.acc-errs { margin: 8px 0 0; padding-left: 18px; font-size: var(--fs-xs); color: var(--c-dang-dk); line-height: 1.6; }
+.acc-btns { display: flex; gap: 8px; justify-content: flex-end; margin-top: 10px; }
+.acc-fold > summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.acc-fold > summary::-webkit-details-marker { display: none; }
+.acc-fold > summary::before { content: "▾"; color: var(--c-mute); }
+.acc-fold:not([open]) > summary::before { content: "▸"; }
+.acc-fold > summary h2 { font-size: var(--fs-hs); margin: 0; }
+.acc-fold > summary h2 small { font-size: var(--fs-xs); font-weight: 500; color: var(--c-mute); }
+.acc-result { border: 1px solid #f5dea0; background: #fffdf5; border-radius: var(--r-l); padding: 14px 16px; }
+.acc-result-h { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.acc-result-h h2 { font-size: var(--fs-hs); margin: 0; }
+.acc-result-h .sp { flex: 1; }
+.acc-pw { font-family: ui-monospace, Consolas, monospace; letter-spacing: .04em; }
+.acc-warn { margin: 10px 0 0; font-size: var(--fs-s); color: var(--c-warn-dk); }

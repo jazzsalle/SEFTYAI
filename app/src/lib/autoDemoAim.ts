@@ -62,3 +62,12 @@ export function aimDemoView(it: AimDemoItem, answer: unknown, noWarning?: unknow
     nextCheckDe: new Date(Date.parse(asOf) + AIM_INTERVAL_MIN * 60_000).toISOString(),
   };
 }
+
+/**
+ * 받아 둔 답의 글 — 우리가 받은 것은 T3Q 봉투(result.answer), 개발서버에서 가져온 것(harness/demo/import_pins.mjs, R55)은 개발서버 AI 모드 점검
+ * 꼴(AiModeView — answer·noWarningMessage·guides, 상류 상태는 작업 행 t3q_status)을 받은 그대로 담았으므로 그 칸을 읽는다
+ */
+type PinRaw = { result?: { answer?: unknown; no_warning_message?: unknown }; guides?: unknown; answer?: unknown; noWarningMessage?: unknown } | null;
+const aimDevView = (raw: PinRaw) => (raw && !raw.result && Array.isArray(raw.guides) ? raw : null);
+export const aimAnswerOf = (raw: unknown) => (raw as PinRaw)?.result?.answer ?? aimDevView(raw as PinRaw)?.answer;
+export const aimNoWarnOf = (raw: unknown) => (raw as PinRaw)?.result?.no_warning_message ?? aimDevView(raw as PinRaw)?.noWarningMessage;

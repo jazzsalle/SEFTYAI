@@ -272,8 +272,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const target = baseTarget(cond.base);
   const mine = (weather?.advisories ?? []).filter((a) => a.status === "발효" && wxCovers(a.area, target));
   const st = !aimOn ? "" : aimTone(weather, mine);
-  // 연락망·상황전파는 사용자 메뉴로 옮김(사용자 지시 2026-10-28)
-  const nav: [string, string][] = [["/explore", "통합 탐색"], ["/history", "대화 이력"], ...(account.role === "운영자" ? ([["/admin", "운영관리"]] as [string, string][]) : [])];
+  // 연락망·상황전파는 사용자 메뉴로 옮김(사용자 지시 2026-10-28). 계정 발급(R55)은 계정 발급자(등급 0)만
+  const nav: [string, string][] = [["/explore", "통합 탐색"], ["/history", "대화 이력"], ...(account.role === "운영자" ? ([["/admin", "운영관리"]] as [string, string][]) : []), ...(account.grade === 0 ? ([["/accounts", "계정 발급"]] as [string, string][]) : [])];
 
   return (
     <SopProvider>
