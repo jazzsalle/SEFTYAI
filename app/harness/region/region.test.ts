@@ -415,7 +415,8 @@ describe("질의 접수 라우트 — AI 모드 점검은 기준지역만(R39)",
     const r = await row(((await res.json()) as { job: { id: string } }).job.id);
     return r.request as { query_context: Record<string, unknown>; weather_warnings?: unknown };
   };
-  const AIM_Q = (readFileSync(join(__dirname, "..", "..", "src", "components", "explore", "AiModeModal.tsx"), "utf8").match(/const AIM_Q =\s*"([^"]+)"/) ?? [])[1];
+  // 공통 질의 글 — lib/aiMode(개발서버 AiMode:Question 그대로, R52)
+  const AIM_Q = (readFileSync(join(__dirname, "..", "..", "src", "lib", "aiMode.ts"), "utf8").match(/export const AIM_Q =\s*"([^"]+)"/) ?? [])[1];
 
   it("AI_MODE 면 query_context = 기준지역만 — 재난유형·기준시각·발생기간·특보 종류·단계·키워드·강우 조건 없음, 특보는 weather_warnings 로 그대로", async () => {
     const warnings = { items: [{ warning_key: "KMA-호우경보-경상북도", kind: "호우", level: "경보", area: "경상북도" }] };
@@ -455,7 +456,7 @@ describe("질의 접수 라우트 — AI 모드 점검은 기준지역만(R39)",
   });
 });
 
-describe("재사용 기준(D5) — 작업의 기준지역에 특보가 발효 중인지 같은 함수(wxCovers)로", () => {
+describe("답 재사용(R52) — 특보가 아니라 시연 모드·점검 대상 지역(시·도·영천·인제)으로만 정한다", () => {
   const RAW = { status: "SUCCESS", result: { answer: "재사용 시험 답" }, meta: { base_time: "2026-10-28T06:00:00+09:00" } };
   const answered = async (a: Account, question: string, qc: Record<string, unknown>) => {
     const j = await J.submitJob(a, { question, source: "USER", queryContext: qc, noCache: true });
@@ -470,35 +471,39 @@ describe("재사용 기준(D5) — 작업의 기준지역에 특보가 발효 �
   };
   // 슬롯이 차지 않게 시험마다 진행 작업을 비운다(이 묶음은 재사용 판단만 본다)
   const clear = () => sql.query("update sa_agent_jobs set state = 'CANCELLED', finished_at = now() - interval '10 minutes' where state in ('QUEUED','SUBMITTED','RUNNING')");
+  const admin = acc("unes");
 
-  it("특보가 덮는 기준지역(인제군 한파주의보·영천시 「…제외」 한파주의보·울릉군 강풍주의보·제주특별자치도·인천 옹진군)은 2시간 전 답을 다시 쓰지 않는다", async () => {
-    for (const [i, region] of [
-      { admin_code: "5181000000", level: "SIGUNGU", name: "강원특별자치도 인제군" },
-      { admin_code: "4723000000", level: "SIGUNGU", name: "경상북도 영천시" },
-      { admin_code: "4794000000", level: "SIGUNGU", name: "경상북도 울릉군" },
-      { admin_code: "5000000000", level: "SIDO", name: "제주특별자치도" },
-      { admin_code: "2872033000", level: "EMD", name: "인천광역시 옹진군 백령면" },
-    ].entries()) {
-      await clear();
-      expect(await reused(MOIS, `D5 특보 발효 ${i}`, region)).toBe(false);
+  it("시연 모드를 켠 동안 — 특보가 덮는 점검 대상 지역(인제군 한파주의보·영천시·제주)도 2시간 전 답을 다시 쓴다(D5 폐지)", async () => {
+    const D = await import("@/lib/server/demoMode");
+    await D.demoSet(admin, true, Date.now() - 3 * 3_600_000);
+    try {
+      for (const [i, region] of [
+        { admin_code: "5181000000", level: "SIGUNGU", name: "강원특별자치도 인제군" },
+        { admin_code: "4723000000", level: "SIGUNGU", name: "경상북도 영천시" },
+        { admin_code: "5000000000", level: "SIDO", name: "제주특별자치도" },
+      ].entries()) {
+        await clear();
+        expect(await reused(MOIS, `R52 점검 대상 ${i}`, region)).toBe(true);
+      }
+      // 점검 대상이 아닌 곳(울릉군·포항시 북구·종로구·읍면동)과 전국은 켜 있어도 다시 쓰지 않는다
+      for (const [i, region] of [
+        { admin_code: "4794000000", level: "SIGUNGU", name: "경상북도 울릉군" },
+        { admin_code: "4711300000", level: "SIGUNGU", name: "경상북도 포항시 북구" },
+        { admin_code: "1111000000", level: "SIGUNGU", name: "서울특별시 종로구" },
+        { admin_code: "2872033000", level: "EMD", name: "인천광역시 옹진군 백령면" },
+        null,
+      ].entries()) {
+        await clear();
+        expect(await reused(YC, `R52 대상 아님 ${i}`, region)).toBe(false);
+      }
+    } finally {
+      await D.demoSet(admin, false);
     }
   });
 
-  it("특보가 덮지 않는 기준지역(포항시 북구 — 경상북도 한파주의보 「…제외」 목록에 있음, 서울특별시, R33 서울)은 24시간 안 답을 다시 쓴다", async () => {
-    for (const [i, region] of [
-      { admin_code: "4711300000", level: "SIGUNGU", name: "경상북도 포항시 북구" },
-      { admin_code: "1111000000", level: "SIGUNGU", name: "서울특별시 종로구" },
-      R33_SEOUL,
-    ].entries()) {
-      await clear();
-      expect(await reused(YC, `D5 특보 없음 ${i}`, region)).toBe(true);
-    }
-  });
-
-  it("전국(지역 없음)은 어느 지역이든 특보가 있으면 1시간 기준, 지역 이름을 읽을 수 없으면 24시간 그대로", async () => {
+  it("시연 모드가 꺼져 있으면 어느 지역이든 다시 쓰지 않는다", async () => {
     await clear();
-    expect(await reused(MOIS, "D5 전국", null)).toBe(false);
-    await clear();
-    expect(await reused(MOIS, "D5 이름 없는 지역", { admin_code: "5181000000" })).toBe(true);
+    expect(await reused(MOIS, "R52 꺼짐", { admin_code: "5181000000", level: "SIGUNGU", name: "강원특별자치도 인제군" })).toBe(false);
   });
 });
+

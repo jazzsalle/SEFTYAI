@@ -82,7 +82,7 @@ export interface WarmItem {
   accountId: string;
   libraryId: string;
   question: string;
-  /** CACHED = 24시간 안 같은 답 재사용 · JOINED = 진행 중인 같은 질의에 합류 · NEW = 새로 접수 · SKIPPED = 시간 부족으로 미접수 · ERROR */
+  /** CACHED = 시연 모드를 켠 동안 받은 같은 답 재사용(R52) · JOINED = 진행 중인 같은 질의에 합류 · NEW = 새로 접수 · SKIPPED = 시간 부족으로 미접수 · ERROR */
   outcome: "CACHED" | "JOINED" | "NEW" | "SKIPPED" | "ERROR";
   job: WarmJob | null;
   error?: string;
@@ -133,6 +133,16 @@ export interface AdminFeedbackResponse {
 }
 
 /** GET·POST /api/admin/scenario — 시연 시나리오 특보 켜짐 상태(R43). live = 켬 + 끝나는 시각 전 */
+/** /api/admin/demo-mode 응답(R52 — 개발서버 DemoModeController) */
+export interface AdminDemoModeResponse {
+  state: { on: boolean; since: string | null; until: string | null; by: string | null };
+  live: boolean;
+  now: string;
+  remainingSeconds: number;
+  /** 들고 있는 조회 응답 수 */
+  entries: number;
+}
+
 export interface AdminScenarioResponse {
   state: ScenarioState;
   live: boolean;

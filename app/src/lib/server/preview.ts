@@ -1,6 +1,6 @@
 import "server-only";
 import { libById, type PreviewApi } from "../library";
-import { t3q } from "../t3q/client";
+import { t3qData } from "./demoMode";
 
 /**
  * 자동 조회 데이터 (R3) — 정의된 질문만, 매핑된 T3Q Data API 를 동시에 부르고 원응답을 그대로 담는다.
@@ -36,7 +36,7 @@ export async function runPreview(libraryId: string, qc: Record<string, unknown>)
     apis.map(async (api) => {
       const s = SPEC[api];
       const request = s.body(qc);
-      const r = await t3q("POST", s.path, request, { timeoutMs: 8000 });
+      const r = await t3qData("POST", s.path, request, { timeoutMs: 8000 });
       return { api, apiId: s.apiId, label: s.label, method: "POST" as const, path: s.path, request, http: r.http, ms: r.ms, response: r.body };
     }),
   );

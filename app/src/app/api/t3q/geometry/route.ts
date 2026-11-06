@@ -1,5 +1,5 @@
 import { fail, json, whoami } from "@/lib/server/who";
-import { t3q } from "@/lib/t3q/client";
+import { t3qData } from "@/lib/server/demoMode";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 30;
@@ -12,7 +12,7 @@ export async function POST(req: Request) {
   const b = (await req.json().catch(() => null)) as { items?: { ref?: string; key?: string; value?: string }[] } | null;
   const items = (b?.items ?? []).filter((i) => i?.value).slice(0, 300).map((i) => ({ ref: i.ref ?? null, key: i.key, value: String(i.value) }));
   if (!items.length) return fail(400, "조회할 대상이 없습니다.");
-  const r = await t3q("POST", "/spatial-objects/geometry", { items });
+  const r = await t3qData("POST", "/spatial-objects/geometry", { items }); // 시연 모드 동안만 들고 있음(R52)
   if (!r.envelope) return fail(502, r.error ?? "위치를 불러오지 못했습니다.");
   return json({ envelope: r.body });
 }

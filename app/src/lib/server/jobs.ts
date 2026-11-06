@@ -2,20 +2,19 @@ import "server-only";
 import { createHash, createHmac, randomUUID } from "node:crypto";
 import type { Account } from "../config";
 import { newRequestId, t3q } from "../t3q/client";
-import { wxCovers, wxTargetOfT3q, type WxTarget } from "../wxMatch";
 import { db, ensureSchema } from "./db";
-import { SCN_SOURCE, scenarioCuts } from "../scenario";
+import { SCN_SOURCE } from "../scenario";
 import { fetchLiveAdvisories } from "./kma";
 import { traceAdd } from "./kvStore";
-import { scenarioGet } from "./scenario";
+import { demoGet, demoLive, t3qData } from "./demoMode";
 
 /**
  * 질의 작업 (R1·R2·R8·R22) — T3Q Agent ASYNC 를 Neon 작업 표로 감싼다.
- * - 접수: 캐시(24h) 적중 → 즉시 완료 작업 / 같은 키 진행 중 → 합류 / 슬롯(계정 4·전체 8) 있으면 T3Q 제출, 없으면 QUEUED
- * - 재사용 기간(D5)은 원래 답을 받은 시각 기준 24h — 접수 때 그 지역에 기상특보가 발효 중이면 1h(특보 조회 실패면 24h 그대로).
- *   시연 시나리오를 켜 기상청 실시간 특보가 끊긴 시연 계정(R45 — lib/scenario scenarioCuts)이 접수한 질의는 1h 단축 없이 24h(기상청을 보지 않음).
+ * - 접수: 같은 키 진행 중 → 합류 / 슬롯(계정 4·전체 8) 있으면 T3Q 제출, 없으면 QUEUED
+ * - 답 재사용(R52 — 개발서버 AgentQueryService·AgentCacheKey·DbAgentAnswerCache 규칙): 시연 모드(lib/server/demoMode)를 켠 동안만.
+ *   평소에는 받아 둔 답을 주지 않는다(RAG 검증 — 사용자 지시 2026-11-06). 켠 동안 받은 답만, 받은 지 12시간 안, SUCCESS 만,
+ *   첫 턴만(이어서 묻기 아님), 점검 대상 지역(시·도·영천시·인제군 — lib/aiMode aimSupported, 전국 제외)만.
  *   재사용 작업은 원래 답을 받은 시각(source_finished_at)·그때 발효 중이던 특보(source_wx_seen)를 함께 준다.
- *   AI 모드 점검(10분 구간)은 원래 답이 같은 계정 것이면 사본을 만들지 않고 그 작업을 그대로 돌려준다(R39)
  * - 답을 받으면(DONE) 그때 발효 중인 기상청 특보 목록을 wx_seen 에 남긴다(C9·D5 「답변을 받은 뒤 특보」를 특보 발표 시각이 아니라 목록으로 가리려고)
  * - 슬롯 입장은 한 트랜잭션(advisory lock) 안에서 세고 차지한다 — 병렬 브리핑도 한도를 넘지 않는다
  * - 상태 조회(lazy 폴링): 진행 중 호출이 있으면 기다리고(배타적 폴링 권리), 없으면 T3Q 결과 조회 1회
@@ -82,10 +81,9 @@ const HARD_TIMEOUT_MS = 15 * 60_000;
 const QUEUE_MAX_MS = 15 * 60_000;
 const LOST_RETRY_WINDOW_MS = 90_000;
 const CANCEL_COOLDOWN_MS = 120_000;
-const CACHE_TTL_MS = 24 * 3600_000;
-/** D5 — 그 지역에 기상특보가 발효 중이면 1시간 안에 받은 답만 다시 쓴다 */
-const WARN_CACHE_TTL_MS = 3600_000;
-/** 특보 조회 — /api/weather 와 같은 60초 캐시. 접수 때 기다리는 상한(넘으면 조회 실패와 같게 24시간 기준) */
+/** 개발서버 T3Q:AgentCache:TtlHours */
+const CACHE_TTL_MS = 12 * 3600_000;
+/** 특보 조회 — /api/weather 와 같은 60초 캐시. 답을 받을 때(wx_seen) 기다리는 상한 */
 const WX_CACHE_MS = 60_000;
 const WX_WAIT_MS = 3000;
 const ADMIT_LOCK = 424201;
@@ -102,7 +100,7 @@ const pseudo = (id: string) => "U-" + createHmac("sha256", process.env.SESSION_S
 /**
  * 재사용 열쇠 — 보내는 질문 글 · 질문 출처(T3Q) · query_context · 특보(번호·종류·단계·구역) · 참조 · 이어서 묻기 대화 · AI 모드 10분 구간.
  * 계정은 들어가지 않는다. 이어서 묻기는 submitJob 이 이전 작업에서 만든 질문 글·대화를 넘긴다(없으면 입력 그대로).
- * 「시연 세트 예열」 시험(harness/region/demoWarmKey)이 화면 요청과 예열 요청의 열쇠를 이 함수로 견준다
+ * 진행 중 합류(같은 계정)와 시연 모드 재사용이 이 열쇠를 쓴다
  */
 export function cacheKeyOf(
   input: Pick<SubmitInput, "question" | "source" | "queryContext" | "weatherWarnings" | "reference">,
@@ -154,6 +152,12 @@ async function q<T = Job>(text: string, params: unknown[] = []) {
   return (await db().query(text, params)) as T[];
 }
 
+/** 재사용해도 되는 기준지역 — 개발서버 ai_region(시·도 + 영천시·인제군). 전국(지역 없음)·그 밖의 시·군·구·읍·면·동은 아님 */
+export function reuseRegion(adminCode: string | null | undefined): boolean {
+  if (!adminCode || !/^\d{10}$/.test(adminCode)) return false;
+  return adminCode.endsWith("00000000") || adminCode === "4723000000" || adminCode === "5181000000";
+}
+
 export async function submitJob(acc: Account, input: SubmitInput): Promise<Job> {
   let questionSent = input.question.trim();
   let t3qConv: string | null = null;
@@ -185,36 +189,33 @@ export async function submitJob(acc: Account, input: SubmitInput): Promise<Job> 
   const id = randomUUID();
   const base = [id, acc.id, input.convId ?? null, input.turnNo ?? null, input.source, input.libraryId ?? null, input.question.trim(), questionSent, JSON.stringify(request), cacheKey];
 
-  // 시연 고정 답 — 받아 둔 답이 있으면 그대로(사본 행). 없으면 아래에서 새로 받고 받는 작업을 고정 대기로 둔다
+  const demoSt = await demoGet();
+  const demo = demoLive(demoSt) ? demoSt : null;
+  // 첫 턴만(개발서버 AgentCacheKey.IsCacheable — 이어 가는 대화는 앞 대화에 기대므로) · 점검 대상 지역만(DbAgentAnswerCache.SaveAsync — ai_region, 전국 제외)
+  const reusable = !t3qConv && reuseRegion((input.queryContext?.region as { admin_code?: string } | undefined)?.admin_code);
+  // 브리핑의 받아 둔 답(질문 모음 「시연」·「한눈 요약 질의」와 글이 같은 항목) — 개발서버 useBriefing 처럼 시연 모드일 때만, 받아 둔 답이 없으면 실시간(고정하지 않음)
+  if (input.pinId && input.source === "BRIEFING") {
+    const pinned = demo ? await pinnedJob(input.pinId) : null;
+    if (pinned) return copyJob(base, input, pinned);
+    input = { ...input, pinId: null };
+  }
+  // 질문 모음 「시연」·「한눈 요약 질의」 받아 둔 답 — 받아 둔 답이 있으면 그대로(사본 행). 없으면 아래에서 새로 받고 받는 작업을 고정 대기로 둔다(개발서버 질문 모음과 같음 — 시연 모드와 무관)
   if (input.pinId && !input.pinFresh) {
     const pinned = await pinnedJob(input.pinId);
     if (pinned) return copyJob(base, input, pinned);
   }
   if (!input.noCache && !input.pinId) {
-    // 원래 받은 답(재사용 사본이 아닌 행)만 찾는다 — 사본의 시각으로 재사용 기간이 이어서 늘어나지 않게.
-    // 답 카드는 SUCCESS 만 답으로 그린다(lib/answerText isAnswerOk, 2026-11-06) — 일부 제공 등은 재사용하지 않는다. AI 모드 점검은 R39(같은 10분 구간 한 번)대로 일부 제공도 그대로
-    // AI 모드 점검은 같은 계정의 원래 점검만(R47 — 사용자별 독립: 다른 계정의 점검을 가져오지 않는다. 같은 계정 같은 10분 구간은 R39 ②)
-    const aim = input.source === "AI_MODE";
-    let hit: Job | undefined = (
-      await q(
-        `select * from sa_agent_jobs where cache_key = $1 and cached_from is null and state = 'DONE' and t3q_status in (${aim ? "'SUCCESS','PARTIAL_SUCCESS'" : "'SUCCESS'"}) and finished_at > $2
-         ${aim ? "and account_id = $3 " : ""}order by finished_at desc limit 1`,
-        aim ? [cacheKey, new Date(Date.now() - CACHE_TTL_MS), acc.id] : [cacheKey, new Date(Date.now() - CACHE_TTL_MS)],
-      )
-    )[0];
-    // D5 — 1시간보다 오래된 답이면 그 기준지역 특보 발효 여부를 본다(발효 중이면 다시 쓰지 않음).
-    // 기상청 실시간 특보가 끊긴 계정(R45 — 시연 시나리오를 켠 시연 계정)은 보지 않는다(24시간)
-    if (
-      hit &&
-      Date.now() - new Date(hit.finished_at ?? 0).getTime() > WARN_CACHE_TTL_MS &&
-      !scenarioCuts(await scenarioGet(), acc.id) &&
-      (await warningInEffect(wxTargetOfT3q(input.queryContext?.region)))
-    )
-      hit = undefined;
-    // R39 — 같은 계정이 같은 10분 구간에 다시 보낸 AI 모드 점검(새로 고침·새 탭·껐다 켬)은 사본 행 없이 원래 점검 작업 그대로.
-    // (AI 모드 점검은 위에서 같은 계정 것만 찾으므로 사본은 생기지 않는다 — R47)
-    if (hit && aim) return { ...hit, ...NO_SOURCE };
-    if (hit) return copyJob(base, input, hit);
+    // 시연 모드 재사용(R52) — 원래 받은 답(재사용 사본이 아닌 행)만 찾는다 — 사본의 시각으로 기간이 늘어나지 않게.
+    // 답 카드는 SUCCESS 만 답으로 그린다(lib/answerText isAnswerOk) — 일부 제공 등은 재사용하지 않는다(개발서버 RememberAsync 도 SUCCESS 만)
+    if (reusable && demo) {
+      const [hit] = await q(
+        `select * from sa_agent_jobs where cache_key = $1 and cached_from is null and state = 'DONE' and t3q_status = 'SUCCESS'
+           and finished_at > $2 and finished_at >= $3 order by finished_at desc limit 1`,
+        [cacheKey, new Date(Date.now() - CACHE_TTL_MS), demo.since],
+      );
+      if (hit) return copyJob(base, input, hit);
+    }
+    // 같은 계정이 같은 질문을 진행 중이면 그 작업에 합류 — 답 재사용이 아니라 같은 질의를 두 번 보내지 않는 것(우리 쪽 기능, ours-better)
     const [running] = await q(`select * from sa_agent_jobs where cache_key = $1 and account_id = $2 and state in ('QUEUED','SUBMITTED','RUNNING') limit 1`, [cacheKey, acc.id]);
     if (running) return { ...running, ...NO_SOURCE };
   }
@@ -307,20 +308,6 @@ async function liveWeather(): Promise<LiveWeather | null> {
   } finally {
     clearTimeout(timer);
   }
-}
-
-/**
- * D5 — 접수 시각에 작업의 기준지역(보낸 query_context.region)에 기상특보가 발효 중인가(발효·변경 — 예비·해제는 아님).
- * 지역 맞추기는 화면(특보 줄·AI 모드)과 같은 함수 lib/wxMatch.wxCovers: 지역을 보내지 않았으면(전국) 모든 특보, 아니면 특보 구역이 기준지역을 덮는 것.
- * 조회 실패·지연·지역 이름을 읽을 수 없음(undefined) → false(24시간 기준 그대로).
- * 기상청 실시간(kma.ts)만 본다 — 시연 시나리오 특보(R43)는 넣지 않는다. 기상청 실시간이 끊긴 시연 계정(R45)이 접수하면 부르지 않는다(submitJob — 24시간).
- * 같은 지역을 보는 다른 계정(행안부 등)은 지금처럼 기상청 특보로 1시간. 시험 harness/jobs
- */
-async function warningInEffect(target: WxTarget | null | undefined): Promise<boolean> {
-  if (target === undefined) return false;
-  const w = await liveWeather();
-  if (!w?.ok) return false;
-  return w.advisories.some((a) => (a.status === "발효" || a.status === "변경") && wxCovers(a.area, target));
 }
 
 /**
@@ -523,7 +510,7 @@ async function prefetchGeo(job: Job) {
   const refs = refsOf(job);
   if (!refs.length) return;
   const items = refs.slice(0, 300).map((r) => ({ ref: r.ref, key: r.map!.key, value: String(r.map!.value) }));
-  const g = await t3q("POST", "/spatial-objects/geometry", { items }, { timeoutMs: POLL_TIMEOUT_MS });
+  const g = await t3qData("POST", "/spatial-objects/geometry", { items }, { timeoutMs: POLL_TIMEOUT_MS });
   if (g.envelope) await q("update sa_agent_jobs set geo = $2 where id = $1", [job.id, JSON.stringify(g.body)]);
 }
 

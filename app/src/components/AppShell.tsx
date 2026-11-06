@@ -8,7 +8,8 @@ import type { Advisory } from "@/lib/contract/agent";
 import { advName, advTime, advTone, aimTone, wxLabel } from "@/lib/wxref";
 import { SCN_CUT_LABEL, SCN_LABEL } from "@/lib/scenario";
 import { wxCovers } from "@/lib/wxMatch";
-import { baseKey, baseName, baseTarget } from "@/lib/baseRegion";
+import { baseKey, baseName, baseTarget, baseWire } from "@/lib/baseRegion";
+import { aimSupported } from "@/lib/aiMode";
 import BasePicker from "./BasePicker";
 import WxDetailModal from "./wx/WxDetailModal";
 import { SopProvider } from "@/lib/sopState";
@@ -251,6 +252,10 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const path = usePathname();
   const [menu, setMenu] = useState(false);
   const [modal, setModal] = useState<"pw" | "me" | null>(null);
+  /** AI 모드 창 — [확인]·✕ 는 창만 닫고 AI 모드는 켜 둔다(개발서버 SearchPage aiModeOpen, R52) */
+  const [aimOpen, setAimOpen] = useState(false);
+  /** 이 기준지역으로는 AI 모드를 쓸 수 없다(전국·시·도가 아닌 곳) — 개발서버 aiModeDenied */
+  const [aimDenied, setAimDenied] = useState(false);
 
   useEffect(() => {
     if (ready && !account) router.replace("/login");
@@ -281,7 +286,18 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         <BasePicker />
         <button className="hbtn" onClick={() => openHelp()}>도움말</button>
         <FontSize />
-        <button className={`ai-pill ${aimOn ? "on st-" + st : ""}`} onClick={() => { setAimOn(!aimOn); if (!path?.startsWith("/explore")) router.push("/explore"); }} aria-pressed={aimOn} title="AI 모드 — 기상특보 기반 상황 점검">
+        <button
+          className={`ai-pill ${aimOn ? "on st-" + st : ""}`}
+          onClick={() => {
+            // 쓸 수 없을 때도 눌리게 두고 까닭을 말한다(설계 202001 「전국 실행 불가」). 켜져 있으면 창을 다시 연다 — 끄기는 창의 [AI 모드 종료]
+            if (!aimSupported(baseWire(cond.base))) return setAimDenied(true);
+            if (!aimOn) setAimOn(true);
+            setAimOpen(true);
+            if (!path?.startsWith("/explore")) router.push("/explore");
+          }}
+          aria-pressed={aimOn}
+          title="AI 모드 — 기상특보 기반 상황 점검"
+        >
           <i /> {aimOn ? "AI 모드 실행 중" : "AI 모드"}
         </button>
         <div className="user">
@@ -307,8 +323,17 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       <WxBar />
       {/* 대응 단계 바 — 2026-11-03 사용자 지시로 숨김(되살리려면 SHOW_SOPBAR = true) */}
       {SHOW_SOPBAR && <SopBar />}
-      {/* AI 모드 — 접으면 이 자리(내용 맨 위)에 띠로 남고 아래 내용이 그만큼 내려간다. 펼친 창은 화면 위에 뜬다 */}
-      {aimOn && <AiModeModal />}
+      {/* AI 모드 — 켜 둔 동안 점검 결과를 읽고(창을 닫아도), 창은 머리줄 단추로 다시 연다(R52) */}
+      {aimOn && <AiModeModal open={aimOpen} onClose={() => setAimOpen(false)} />}
+      {aimDenied && (
+        <div className="modal-bg" role="dialog" aria-modal="true" aria-label="AI 모드를 실행할 수 없습니다">
+          <div className="modal" style={{ width: 480 }}>
+            <div className="modal-h"><h2>AI 모드를 실행할 수 없습니다</h2></div>
+            <p>{cond.base ? `기준지역이 ${baseName(cond.base)}이면 AI 모드를 쓸 수 없습니다. 위쪽 기준지역에서 시·도를 고르세요.` : "기준지역이 전국이면 AI 모드를 쓸 수 없습니다. 위쪽 기준지역에서 시·도를 고르세요."}</p>
+            <div className="modal-f"><span className="sp" /><button className="btn primary" onClick={() => setAimDenied(false)}>확인</button></div>
+          </div>
+        </div>
+      )}
       {children}
       {modal === "pw" && <PasswordModal onClose={() => setModal(null)} />}
       {account.mustChangePw && modal !== "pw" && <PasswordModal forced onClose={() => {}} onDone={() => window.location.reload()} />}

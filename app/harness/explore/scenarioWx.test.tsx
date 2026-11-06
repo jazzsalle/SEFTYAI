@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-// 시연 시나리오 특보 화면 표시(R43) — 특보 줄(WxBar: 첫 특보 · [특보로 질문]) · AI 모드 창 · AI 모드 띠에 「시연 시나리오」.
+// 시연 시나리오 특보 화면 표시(R43) — 특보 줄(WxBar: 첫 특보 · [특보로 질문]) · AI 모드 창에 「시연 시나리오」(점검 질의의 시나리오 특보는 harness/jobs/aiMode).
 // 켠 동안 시연 계정은 기상청 실시간 특보를 받지 않는다(R45 — 서버가 시나리오 특보만 · realtimeCut): 갱신 칸 「HH:MM 켬 · 기상청 실시간 특보 끊음」,
 // 기준지역이 시나리오 구역 밖이면 「특보 없음 · …에 발효 중인 기상특보가 없습니다」라고 하지 않고 끊김을 알린다(회색 — 갱신 칸 「기상청 실시간 특보 끊음」).
 // 머리줄 AI 모드 단추 색(lib/wxref aimTone) — 끊긴 계정에 덮는 특보가 없으면 회색
@@ -9,14 +9,14 @@ import { act, cleanup, fireEvent, render, screen } from "@testing-library/react"
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { Advisory, WeatherResponse } from "@/lib/contract/agent";
 import type { BaseRegion } from "@/lib/baseRegion";
-import { SCN_REGIONS, SCN_SOURCE, scenarioWeather, type ScenarioState } from "@/lib/scenario";
+import { SCN_REGIONS, scenarioWeather, type ScenarioState } from "@/lib/scenario";
 import { aimTone } from "@/lib/wxref";
 import { HELP_TOPICS } from "@/lib/help";
 
 const session = vi.hoisted(() => ({ s: {} as Record<string, unknown> }));
 vi.mock("@/lib/session", () => ({ useSession: () => session.s, uid: (p: string) => `${p}x` }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: () => {}, replace: () => {} }), usePathname: () => "/explore" }));
-vi.mock("@/lib/briefing", async (orig) => ({ ...(await orig<typeof import("@/lib/briefing")>()), useBriefItems: () => [] }));
+vi.mock("@/lib/briefing", async (orig) => ({ ...(await orig<typeof import("@/lib/briefing")>()), useBriefItems: () => [], useBriefingSet: () => ({ items: [], checked: [], loaded: true }) }));
 
 import { WxBar } from "@/components/AppShell";
 import AiModeModal from "@/components/explore/AiModeModal";
@@ -96,48 +96,40 @@ describe("특보 줄 — 「시연 시나리오」 표지 · 기상청 실시간
   });
 });
 
-const aimSession = (weather: WeatherResponse, base: BaseRegion, submit = vi.fn(async () => ({ id: "j1", created_at: now }))) => {
-  session.s = { weather, account: { id: "busan" }, cond: { base }, submit, jobs: {}, full: {}, loadFull: () => {}, toast: () => {}, setAimOn: () => {} };
-  return submit;
-};
-type AimArg = { question: string; source: string; warnings: { source: string; collect_status: string; collected_at: string; items: { warning_key: string }[] } };
+const aimApi = vi.hoisted(() => ({ resp: null as unknown, calls: [] as string[] }));
+vi.mock("@/lib/api", async (orig) => ({
+  ...(await orig<typeof import("@/lib/api")>()),
+  api: async (path: string) => {
+    aimApi.calls.push(path);
+    return aimApi.resp;
+  },
+}));
 
-describe("AI 모드 창·띠 — 「시연 시나리오」, 점검 질의에는 시나리오 출처 · 끊김 표시(R45)", () => {
-  it("창의 특보 이름 옆 표지 · 「켬 · 시연 시나리오 · 기상청 실시간 특보 끊음」 · 점검 질의 weather_warnings · 접은 띠의 이름·끊김", async () => {
-    const submit = aimSession(cutOf("busan"), BUSAN);
-    const { container } = render(<AiModeModal />);
+describe("AI 모드 창 — 「시연 시나리오」 표지 · 끊김 표시(R45 · R52)", () => {
+  const view = (warnings: unknown[]) => ({
+    supported: true, managed: false, running: false,
+    view: { checkId: "AIM-1", adminCode: "2600000000", regionName: "부산광역시", triggerType: "FIRST", status: "DONE", noWarningMessage: null,
+      guides: [{ sortNo: 0, warningKey: "SCN-BS-PRE-1", kind: "호우", level: "예비특보", areaName: "부산", message: "하천변 산책로 통제를 확인하십시오." }],
+      warnings, collectStatus: "SUCCESS", checkedDe: now, lastCheckDe: now, nextCheckDe: now },
+  });
+  it("시나리오 특보 카드 — 이름 옆 「시연 시나리오」, 점검 줄에 「기상청 실시간 특보 끊음」, AI 안내 = 그 특보 답", async () => {
+    session.s = { weather: cutOf("busan"), account: { id: "busan" }, cond: { base: BUSAN }, setAimOn: () => {} };
+    aimApi.resp = view([{ warningKey: "SCN-BS-PRE-1", kind: "호우", level: "예비특보", areaName: "부산", effectiveDe: ON.startedAt, changeType: null, scenario: true }]);
+    const { container } = render(<AiModeModal open onClose={() => {}} />);
     await act(async () => {});
-    const card = container.querySelector(".aim-card")!;
-    expect(card.querySelector(".scn-tag")!.textContent).toBe("시연 시나리오");
-    expect(card.textContent).toContain("켬 · 시연 시나리오 · 기상청 실시간 특보 끊음");
-    expect(card.textContent).not.toContain("발표 · 기상청");
-    expect(submit).toHaveBeenCalledTimes(1);
-    const arg = (submit.mock.calls[0] as unknown as [AimArg])[0];
-    expect(arg.source).toBe("AI_MODE");
-    expect(arg.question.startsWith("제공된 기상특보 정보를 기준으로, 해당 지역 담당자가 지금 먼저 확인할 내용을 알려 주십시오.")).toBe(true); // 점검 질의 글 그대로(R36)
-    expect(arg.warnings.source).toBe(SCN_SOURCE);
-    expect(arg.warnings.collect_status).toBe("COLLECTED");
-    expect(arg.warnings.collected_at).toBe(now); // 수집 시각 = 특보 응답을 받은 시각(발표·발효 시각 = 켠 시각)
-    expect(arg.warnings.items[0]).toMatchObject({ announced_at: ON.startedAt, effective_at: ON.startedAt });
-    expect(arg.warnings.items.map((i) => i.warning_key)).toEqual(["SCN-BS-PRE-1"]);
-    fireEvent.click(screen.getByRole("button", { name: "접기" }));
-    expect(container.querySelector(".aim-bar .aim-w")!.textContent).toBe("호우예비특보 (시연 시나리오)");
-    expect(container.querySelector(".aim-bar .aim-t")!.textContent).toMatch(/^기상청 실시간 특보 끊음 · /);
+    expect(container.querySelector(".aimx-card .scn-tag")!.textContent).toBe("시연 시나리오");
+    expect(container.querySelector(".aimx-when")!.textContent).toContain("기상청 실시간 특보 끊음");
+    expect(container.querySelector(".aimx-guide")!.textContent).toBe("하천변 산책로 통제를 확인하십시오.");
   });
 
-  it("끊긴 계정이 기준지역을 구역 밖으로 — 「서울특별시 시연 시나리오 특보 없음」 · 끊김 · 회색 점, 「발효 특보 없음」 없음 · 질의는 시나리오 출처 빈 목록", async () => {
-    const submit = aimSession(cutOf("busan"), SEOUL);
-    const { container } = render(<AiModeModal />);
+  it("기상청 특보만이면(끊지 않은 계정) 표지·끊김 없음", async () => {
+    session.s = { weather: live([KMA]), account: { id: "busan" }, cond: { base: BUSAN }, setAimOn: () => {} };
+    aimApi.resp = view([{ warningKey: KMA.id, kind: "강풍", level: "주의보", areaName: "부산", effectiveDe: now, changeType: null }]);
+    const { container } = render(<AiModeModal open onClose={() => {}} />);
     await act(async () => {});
-    const card = container.querySelector(".aim-card")!;
-    expect(card.querySelector("b")!.textContent).toBe("서울특별시 시연 시나리오 특보 없음");
-    expect(card.textContent).toContain("기상청 실시간 특보 끊음");
-    expect(container.textContent).not.toContain("발효 특보 없음");
-    const arg = (submit.mock.calls[0] as unknown as [AimArg])[0];
-    expect(arg.warnings).toEqual({ collect_status: "COLLECTED", collected_at: now, source: SCN_SOURCE, items: [] });
-    fireEvent.click(screen.getByRole("button", { name: "접기" }));
-    expect(container.querySelector(".aim-bar .aim-w")!.textContent).toBe("서울특별시 시연 시나리오 특보 없음");
-    expect(container.querySelector(".aim-bar .aim-dot")!.className).toContain("st-gray");
+    expect(container.querySelector(".scn-tag")).toBeNull();
+    expect(container.textContent).not.toContain("끊음");
+    expect(container.querySelector(".aimx-guide")!.textContent).toBe("이 특보에 대한 별도 안내가 없습니다.");
   });
 
   it("머리줄 AI 모드 단추 색 — 끊긴 계정에 덮는 특보가 없으면 녹색이 아니라 회색, 덮는 시나리오 특보가 있으면 단계 색", () => {
@@ -150,15 +142,6 @@ describe("AI 모드 창·띠 — 「시연 시나리오」, 점검 질의에는 
     expect(aimTone(live([KMA]), [KMA])).toBe("yellow");
     expect(aimTone(live([], false), [])).toBe("gray");
     expect(aimTone(null, [])).toBe("green");
-  });
-
-  it("기상청 특보만이면(끊지 않은 계정) 표지·끊김 없이 「발표 · 기상청」", async () => {
-    aimSession(live([KMA]), BUSAN, vi.fn(async () => ({ id: "j2", created_at: now })));
-    const { container } = render(<AiModeModal />);
-    await act(async () => {});
-    expect(container.querySelector(".scn-tag")).toBeNull();
-    expect(container.querySelector(".aim-card")!.textContent).toContain("발표 · 기상청");
-    expect(container.textContent).not.toContain("끊음");
   });
 });
 

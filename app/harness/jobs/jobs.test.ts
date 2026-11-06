@@ -1,9 +1,9 @@
 // 하네스 — 질의 작업 엔진의 실제 SQL 을 메모리 Postgres(PGlite)에서, T3Q 는 녹화본 재생(replay)으로 돌린다.
 // 2026-10-28 독립 검토: sweepAny 의 SQL 따옴표 누락이 아무 시험에도 걸리지 않았던 것을 막기 위함.
 // npx vitest run harness/jobs
-import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 
-// D5 — 기상청 특보 조회(kma.ts)를 흉내 낸다: 부산에만 호우경보 발효 중, 인제는 특보 없음. calls = 기상청을 부른 횟수
+// 답을 받은 때 특보(wx_seen) — 기상청 특보 조회(kma.ts)를 흉내 낸다: 부산에만 호우경보 발효 중, 인제는 특보 없음. calls = 기상청을 부른 횟수
 const wx = vi.hoisted(() => ({
   calls: 0,
   result: {
@@ -85,8 +85,8 @@ describe("질의 작업 엔진", () => {
   });
 
   it("끝난 작업은 늦게 온 취소·완료가 덮지 않는다(상태 조건)", async () => {
-    const j = await J.submitJob(inje, { question: "완료 시험", source: "USER" }); // 캐시로 즉시 완료
-    expect((await row(j.id)).state).toBe("DONE");
+    const j = await J.submitJob(inje, { question: "늦은 취소 시험", source: "USER", noCache: true });
+    await sql.query("update sa_agent_jobs set state = 'DONE', t3q_status = 'SUCCESS', finished_at = now() where id = $1", [j.id]);
     const c = await J.cancelJob(inje, j.id);
     expect(c?.state).toBe("DONE");
   });
@@ -113,7 +113,7 @@ describe("질의 작업 엔진", () => {
   });
 });
 
-describe("재사용 기준(D5) — 원래 받은 시각 기준 24시간, 접수 때 그 지역 특보 발효 중이면 1시간", () => {
+describe("답 재사용(R52) — 시연 모드를 켠 동안만 · 켠 뒤 받은 답 · 12시간 · SUCCESS · 첫 턴 · 점검 대상 지역", () => {
   const QC = {
     busan: { region: { admin_code: "2600000000", level: "SIDO", name: "부산광역시" } },
     busanGu: { region: { admin_code: "2635000000", level: "SIGUNGU", name: "부산광역시 해운대구" } },
@@ -123,71 +123,106 @@ describe("재사용 기준(D5) — 원래 받은 시각 기준 24시간, 접수 
   const RAW = { status: "SUCCESS", result: { answer: "재사용 시험 답" }, meta: { base_time: "2026-10-28T06:00:00+09:00" } };
   const ACTIVE = ["QUEUED", "SUBMITTED", "RUNNING"];
   const ms = (v: unknown) => (v == null ? null : new Date(v as string).getTime());
+  let D: typeof import("@/lib/server/demoMode");
+  let admin: Account;
+  beforeAll(async () => {
+    D = await import("@/lib/server/demoMode");
+    admin = (await import("@/lib/config")).ACCOUNTS.find((a) => a.id === "unes")!;
+  });
+  /** 시연 모드 켬 — 켠 시각을 agoH 시간 전으로 당긴다(그 뒤 받은 답이 재사용 대상) */
+  const demoOn = (agoH = 20) => D.demoSet(admin, true, Date.now() - agoH * 3_600_000);
+  afterEach(async () => {
+    await D.demoSet(admin, false);
+  });
   /** 원래 받은 답 하나 — 같은 키로 접수해 두고 완료 상태와 받은 시각만 정한다(T3Q 슬롯 상황과 무관하게) */
-  const answered = async (acc: Account, question: string, qc: Record<string, unknown>, ago: string) => {
+  const answered = async (acc: Account, question: string, qc: Record<string, unknown>, ago: string, status = "SUCCESS") => {
     const j = await J.submitJob(acc, { question, source: "USER", queryContext: qc, noCache: true });
     await sql.query(
-      "update sa_agent_jobs set state = 'DONE', t3q_status = 'SUCCESS', http_status = 200, raw = $2, finished_at = now() - $3::interval where id = $1",
-      [j.id, JSON.stringify(RAW), ago],
+      "update sa_agent_jobs set state = 'DONE', t3q_status = $4, http_status = 200, raw = $2, finished_at = now() - $3::interval where id = $1",
+      [j.id, JSON.stringify(RAW), ago, status],
     );
     return row(j.id);
   };
   const ask = (acc: Account, question: string, qc: Record<string, unknown>) => J.submitJob(acc, { question, source: "USER", queryContext: qc });
 
-  it("특보가 없는 지역(인제)은 2시간 전 답을 다시 쓴다(24시간 안)", async () => {
-    const src = await answered(inje, "재사용 시험 특보 없음", QC.inje, "2 hours");
-    const j = await ask(inje, "재사용 시험 특보 없음", QC.inje);
+  it("시연 모드가 꺼져 있으면 받아 둔 답을 주지 않는다 — 1분 전 답도 새로 묻는다(RAG 검증)", async () => {
+    const src = await answered(inje, "재사용 시험 꺼짐", QC.inje, "1 minute");
+    const j = await ask(inje, "재사용 시험 꺼짐", QC.inje);
+    expect(j.cached_from).toBeNull();
+    expect(j.id).not.toBe(src.id);
+    expect(ACTIVE).toContain(j.state);
+  });
+
+  it("시연 모드를 켠 뒤 받은 답은 12시간 안이면 다시 쓴다 — 특보 발효 중인 부산도(D5 1시간 단축 없음)", async () => {
+    await demoOn();
+    const src = await answered(busan, "재사용 시험 켬", QC.busan, "2 hours");
+    const j = await ask(busan, "재사용 시험 켬", QC.busan);
     expect(j.state).toBe("DONE");
     expect(j.cached_from).toBe(src.id);
     expect(JSON.stringify((await row(j.id)).raw)).toBe(JSON.stringify(src.raw));
   });
 
-  it("특보가 없어도 24시간이 지난 답은 다시 쓰지 않는다", async () => {
-    await answered(inje, "재사용 시험 25시간", QC.inje, "25 hours");
-    const j = await ask(inje, "재사용 시험 25시간", QC.inje);
+  it("켜기 전에 받은 답은 쓰지 않는다", async () => {
+    const src = await answered(inje, "재사용 시험 켜기 전", QC.inje, "30 minutes");
+    await D.demoSet(admin, true);
+    const j = await ask(inje, "재사용 시험 켜기 전", QC.inje);
     expect(j.cached_from).toBeNull();
-    expect(ACTIVE).toContain(j.state);
-  });
-
-  it("특보 발효 중인 지역(부산)은 2시간 전 답을 다시 쓰지 않고 새로 묻는다", async () => {
-    const src = await answered(busan, "재사용 시험 특보 발효", QC.busan, "2 hours");
-    const j = await ask(busan, "재사용 시험 특보 발효", QC.busan);
     expect(j.id).not.toBe(src.id);
-    expect(j.cached_from).toBeNull();
-    expect(j.source_finished_at).toBeNull();
-    expect(ACTIVE).toContain(j.state);
   });
 
-  it("부산 아래 구를 고른 질문도 부산 특보로 본다", async () => {
-    await answered(busan, "재사용 시험 해운대구", QC.busanGu, "2 hours");
-    const j = await ask(busan, "재사용 시험 해운대구", QC.busanGu);
-    expect(j.cached_from).toBeNull();
+  it("끄고 다시 켜면 앞서 켰을 때 받은 답을 쓰지 않는다", async () => {
+    await demoOn(2);
+    await answered(inje, "재사용 시험 다시 켬", QC.inje, "1 hour");
+    await D.demoSet(admin, false);
+    await D.demoSet(admin, true);
+    expect((await ask(inje, "재사용 시험 다시 켬", QC.inje)).cached_from).toBeNull();
   });
 
-  it("전국 질문은 어느 지역이든 특보가 발효 중이면 1시간 기준", async () => {
-    await answered(central, "재사용 시험 전국", QC.national, "2 hours");
-    const j = await ask(central, "재사용 시험 전국", QC.national);
-    expect(j.cached_from).toBeNull();
+  it("12시간이 지난 답 · SUCCESS 가 아닌 답은 쓰지 않는다", async () => {
+    await demoOn(20);
+    await answered(inje, "재사용 시험 13시간", QC.inje, "13 hours");
+    expect((await ask(inje, "재사용 시험 13시간", QC.inje)).cached_from).toBeNull();
+    await answered(inje, "재사용 시험 일부", QC.inje, "1 hour", "PARTIAL_SUCCESS");
+    expect((await ask(inje, "재사용 시험 일부", QC.inje)).cached_from).toBeNull();
   });
 
-  it("특보 발효 중이어도 1시간 안에 받은 답은 다시 쓴다", async () => {
-    const src = await answered(busan, "재사용 시험 30분", QC.busan, "30 minutes");
-    const j = await ask(busan, "재사용 시험 30분", QC.busan);
-    expect(j.state).toBe("DONE");
-    expect(j.cached_from).toBe(src.id);
+  it("점검 대상 지역(시·도·영천시·인제군)만 — 전국·해운대구는 다시 쓰지 않는다", async () => {
+    await demoOn();
+    await answered(central, "재사용 시험 전국", QC.national, "1 hour");
+    expect((await ask(central, "재사용 시험 전국", QC.national)).cached_from).toBeNull();
+    await answered(busan, "재사용 시험 구", QC.busanGu, "1 hour");
+    expect((await ask(busan, "재사용 시험 구", QC.busanGu)).cached_from).toBeNull();
+    expect(J.reuseRegion("4723000000")).toBe(true);
+    expect(J.reuseRegion("1100000000")).toBe(true);
+    expect(J.reuseRegion("4711000000")).toBe(false);
+    expect(J.reuseRegion("47230")).toBe(false);
+    expect(J.reuseRegion(null)).toBe(false);
+  });
+
+  it("이어서 묻기(T3Q 대화를 잇는 질의)는 다시 쓰지 않는다 — 첫 턴만", async () => {
+    await demoOn();
+    const prev = await answered(inje, "재사용 시험 앞 질문", QC.inje, "1 hour");
+    await sql.query("update sa_agent_jobs set t3q_conversation_id = 'CONV-R52' where id = $1", [prev.id]);
+    const follow = () => J.submitJob(inje, { question: "그 다음은?", source: "FOLLOW_UP", queryContext: QC.inje, followUp: { jobId: String(prev.id) } });
+    const f1 = await J.submitJob(inje, { question: "그 다음은?", source: "FOLLOW_UP", queryContext: QC.inje, followUp: { jobId: String(prev.id) }, noCache: true });
+    await sql.query("update sa_agent_jobs set state = 'DONE', t3q_status = 'SUCCESS', raw = $2, finished_at = now() where id = $1", [f1.id, JSON.stringify(RAW)]);
+    expect((await follow()).cached_from).toBeNull();
   });
 
   it("다시 쓴 사본의 시각으로 기간이 늘지 않는다 — 원래 받은 시각으로 판단", async () => {
+    await demoOn();
     const src = await answered(busan, "재사용 시험 사본", QC.busan, "30 minutes");
     const copy = await ask(busan, "재사용 시험 사본", QC.busan);
     expect(copy.cached_from).toBe(src.id); // 방금 만든 사본(finished_at = 지금)
-    await sql.query("update sa_agent_jobs set finished_at = now() - interval '2 hours' where id = $1", [src.id]);
-    const j = await ask(busan, "재사용 시험 사본", QC.busan);
-    expect(j.cached_from).toBeNull();
+    await sql.query("update sa_agent_jobs set finished_at = now() - interval '13 hours' where id = $1", [src.id]);
+    expect((await ask(busan, "재사용 시험 사본", QC.busan)).cached_from).toBeNull();
   });
 
-  it("재사용 작업은 원래 답을 받은 시각을 요약·상세·목록에 함께 준다(재사용이 아니면 null)", async () => {
+  it("재사용 작업은 원래 답을 받은 시각·그때의 특보 목록을 요약·상세·목록에 함께 준다(재사용이 아니면 null)", async () => {
+    await demoOn();
     const src = await answered(inje, "재사용 시험 받은 시각", QC.inje, "3 hours");
+    const seen = [{ id: "KMA-호우주의보-부산", type: "호우", level: "주의보", regionId: "busan" }];
+    await sql.query("update sa_agent_jobs set wx_seen = $2::jsonb where id = $1", [src.id, JSON.stringify(seen)]);
     const j = await ask(inje, "재사용 시험 받은 시각", QC.inje);
     const want = ms(src.finished_at);
     expect(j.cached_from).toBe(src.id);
@@ -198,186 +233,84 @@ describe("재사용 기준(D5) — 원래 받은 시각 기준 24시간, 접수 
     expect(ms((await J.setPreview(j.id, []))?.source_finished_at)).toBe(want);
     // 재사용 작업의 finished_at 은 다시 쓴 시각 — 원래 받은 시각과 다르다
     expect(ms(j.finished_at)! - want!).toBeGreaterThan(2 * 3600_000);
-    expect((await J.getJob(inje, String(src.id)))?.source_finished_at).toBeNull();
-    expect((await J.listJobs(inje)).find((x) => x.id === src.id)?.source_finished_at).toBeNull();
-  });
-
-  it("재사용 작업은 원래 답을 받은 때의 특보 목록을 요약·상세·목록에 함께 준다(재사용이 아니면 null)", async () => {
-    const src = await answered(inje, "재사용 시험 특보 목록", QC.inje, "3 hours");
-    const seen = [{ id: "KMA-호우주의보-부산", type: "호우", level: "주의보", regionId: "busan" }];
-    await sql.query("update sa_agent_jobs set wx_seen = $2::jsonb where id = $1", [src.id, JSON.stringify(seen)]);
-    const j = await ask(inje, "재사용 시험 특보 목록", QC.inje);
-    expect(j.cached_from).toBe(src.id);
     expect(j.source_wx_seen).toEqual(seen);
     expect(j.wx_seen).toBeNull(); // 사본 자신의 목록은 없다 — 원래 답의 것을 쓴다
     expect(J.jobSummary(j).source_wx_seen).toEqual(seen);
     expect((await J.getJob(inje, j.id))?.source_wx_seen).toEqual(seen);
-    expect((await J.listJobs(inje)).find((x) => x.id === j.id)?.source_wx_seen).toEqual(seen);
-    expect((await J.setPreview(j.id, []))?.source_wx_seen).toEqual(seen);
+    expect((await J.getJob(inje, String(src.id)))?.source_finished_at).toBeNull();
     expect((await J.getJob(inje, String(src.id)))?.source_wx_seen).toBeNull();
   });
 
-  it("특보 조회는 /api/weather 처럼 60초 캐시 — 잇달아 접수해도 기상청은 한 번까지만 부른다", async () => {
-    const before = wx.calls;
-    for (const n of [1, 2, 3]) {
-      await answered(inje, `재사용 시험 캐시 ${n}`, QC.inje, "2 hours");
-      expect((await ask(inje, `재사용 시험 캐시 ${n}`, QC.inje)).state).toBe("DONE");
-    }
-    expect(wx.calls - before).toBeLessThanOrEqual(1);
-    expect(wx.calls).toBeGreaterThan(0);
+  it("같은 계정이 같은 질문을 진행 중이면 합류 — 시연 모드와 무관(답 재사용이 아님) · 다른 계정은 합류하지 않는다", async () => {
+    const first = await J.submitJob(inje, { question: "합류 시험", source: "USER", queryContext: QC.inje, noCache: true });
+    await sql.query("update sa_agent_jobs set state = 'RUNNING' where id = $1", [first.id]);
+    expect((await ask(inje, "합류 시험", QC.inje)).id).toBe(first.id);
+    expect((await ask(central, "합류 시험", QC.inje)).id).not.toBe(first.id);
   });
 
-  it("시연 시나리오 특보는 D5 의 특보에 들지 않는다 — 인제(기상청 특보 없음)는 시나리오 특보를 실은 2시간 전 답도 다시 쓴다(R43)", async () => {
-    const { ACCOUNTS } = await import("@/lib/config");
-    const { scenarioSet } = await import("@/lib/server/scenario");
-    const { scenarioLive, scenarioWeather } = await import("@/lib/scenario");
-    const { warningsPayload } = await import("@/lib/wxref");
-    const admin = ACCOUNTS.find((a) => a.id === "unes")!;
-    const st = await scenarioSet(admin, { on: true, until: new Date(Date.now() + 4 * 3_600_000).toISOString() });
-    try {
-      expect(scenarioLive(st)).toBe(true);
-      const w = scenarioWeather(st, inje.id)!;
-      expect(w.advisories.map((a) => a.id)).toEqual(["SCN-IJ-1"]);
-      // 브리핑처럼 시나리오 특보를 weather_warnings 로 싣는다(재사용 열쇠에 SCN-IJ-1 이 든다)
-      const ww = warningsPayload(w, w.advisories);
-      const first = await J.submitJob(inje, { question: "재사용 시험 시나리오", source: "BRIEFING", queryContext: QC.inje, weatherWarnings: ww, noCache: true });
-      await sql.query("update sa_agent_jobs set state = 'DONE', t3q_status = 'SUCCESS', http_status = 200, raw = $2, finished_at = now() - interval '2 hours' where id = $1", [first.id, JSON.stringify(RAW)]);
-      const j = await J.submitJob(inje, { question: "재사용 시험 시나리오", source: "BRIEFING", queryContext: QC.inje, weatherWarnings: ww });
-      expect(j.cached_from).toBe(first.id);
-      expect(j.state).toBe("DONE");
-    } finally {
-      await scenarioSet(admin, { on: false });
-    }
-    // 작업 엔진은 화면 특보(server/weather)를 읽지 않는다 — D5·답을 받은 때 특보(wx_seen)의 특보는 kma.ts 만, 시나리오 상태는 끊김 판정(R45)에만
+  it("브리핑의 받아 둔 답은 시연 모드일 때만 — 꺼져 있으면 실시간이고 고정 대기도 남기지 않는다 · 질문 모음은 시연 모드와 무관", async () => {
+    const pinned = await answered(busan, "브리핑 고정 시험", QC.busan, "1 hour");
+    await J.demoPins(); // 표 만들기
+    await sql.query(
+      "insert into sa_demo_pins (item_id, job_id) values ('SH-R52', $1) on conflict (item_id) do update set job_id = excluded.job_id, pending_job_id = null",
+      [pinned.id],
+    );
+    const off = await J.submitJob(busan, { question: "브리핑 고정 시험 1", source: "BRIEFING", queryContext: QC.busan, pinId: "SH-R52" });
+    expect(off.cached_from).toBeNull();
+    expect((await sql.query("select pending_job_id from sa_demo_pins where item_id = 'SH-R52'"))[0].pending_job_id).toBeNull();
+    await D.demoSet(admin, true);
+    const on = await J.submitJob(busan, { question: "브리핑 고정 시험 2", source: "BRIEFING", queryContext: QC.busan, pinId: "SH-R52" });
+    expect(on.cached_from).toBe(pinned.id);
+    await D.demoSet(admin, false);
+    const lib = await J.submitJob(busan, { question: "브리핑 고정 시험 3", source: "LIBRARY", queryContext: QC.busan, pinId: "SH-R52" });
+    expect(lib.cached_from).toBe(pinned.id);
+  });
+
+  it("특보 조회는 /api/weather 처럼 60초 캐시 — 잇달아 접수해도 기상청은 한 번까지만 부른다(답을 받은 때 특보 wx_seen 용)", async () => {
+    const before = wx.calls;
+    for (const n of [1, 2, 3]) await J.submitJob(inje, { question: `특보 캐시 시험 ${n}`, source: "USER", queryContext: QC.inje });
+    expect(wx.calls - before).toBeLessThanOrEqual(1);
+  });
+
+  it("작업 엔진은 특보로 재사용 기간을 줄이지 않는다(D5 폐지) — 특보는 답을 받은 때 목록(wx_seen)에만", async () => {
     const src = (await import("node:fs")).readFileSync(new URL("../../src/lib/server/jobs.ts", import.meta.url), "utf8");
+    expect(src).not.toMatch(/warningInEffect|scenarioCuts|scenarioGet/);
     expect(src).not.toMatch(/from "[^"]*(server\/weather|\.\/weather)"/);
     expect(src).toMatch(/import \{ fetchLiveAdvisories \} from "\.\/kma";/);
-    expect(src).toMatch(/import \{ SCN_SOURCE, scenarioCuts \} from "\.\.\/scenario";/);
-  });
-
-  it("기상청 실시간이 끊긴 시연 계정(R45)은 실시간 특보가 발효 중이어도 24시간 — 같은 지역을 보는 다른 계정(행안부)은 지금처럼 1시간", async () => {
-    const { ACCOUNTS } = await import("@/lib/config");
-    const { scenarioSet } = await import("@/lib/server/scenario");
-    const admin = ACCOUNTS.find((a) => a.id === "unes")!;
-    // 기상청 흉내: 부산 호우경보 발효 중(이 묶음 맨 위) — 시나리오 없이는 부산 2시간 전 답을 다시 쓰지 않는다(위 「특보 발효 중인 지역(부산)」 시험)
-    const src = await answered(busan, "재사용 시험 끊김", QC.busan, "2 hours");
-    await scenarioSet(admin, { on: true, until: new Date(Date.now() + 4 * 3_600_000).toISOString(), regions: ["busan"] });
-    try {
-      const j = await ask(busan, "재사용 시험 끊김", QC.busan);
-      expect(j.cached_from).toBe(src.id);
-      expect(j.state).toBe("DONE");
-      // 끊긴 계정이 기준지역을 구(해운대구)로 바꿔도 같은 규칙 — 계정으로 판단
-      const gu = await answered(busan, "재사용 시험 끊김 구", QC.busanGu, "2 hours");
-      expect((await ask(busan, "재사용 시험 끊김 구", QC.busanGu)).cached_from).toBe(gu.id);
-      // 같은 질문·같은 지역 — 행안부(끊지 않음)는 기상청 부산 호우경보로 1시간 기준(새로 묻는다)
-      const m = await ask(central, "재사용 시험 끊김", QC.busan);
-      expect(m.cached_from).toBeNull();
-      expect(ACTIVE).toContain(m.state);
-      // 그 지역을 켜지 않은 시연 계정(인제)은 지금처럼 — 인제는 기상청 특보가 없어 24시간
-      const ij = await answered(inje, "재사용 시험 끊김 인제", QC.inje, "2 hours");
-      expect((await ask(inje, "재사용 시험 끊김 인제", QC.inje)).cached_from).toBe(ij.id);
-    } finally {
-      await scenarioSet(admin, { on: false });
-    }
-    // 끄면 다시 1시간 기준(그 계정도)
-    const again = await answered(busan, "재사용 시험 끊김 끈 뒤", QC.busan, "2 hours");
-    const k = await ask(busan, "재사용 시험 끊김 끈 뒤", QC.busan);
-    expect(k.cached_from).toBeNull();
-    expect(k.id).not.toBe(again.id);
-  });
-
-  // 마지막에 둔다 — 새 모듈(빈 특보 캐시)로 조회 실패를 흉내 낸다. DB 는 같은 PGlite
-  it("특보 조회가 안 되면 24시간 기준 그대로(부산이어도 2시간 전 답을 다시 쓴다)", async () => {
-    const saved = wx.result;
-    wx.result = { ok: false, message: "기상청 API 연결 실패", advisories: [], preliminary: [] };
-    try {
-      vi.resetModules();
-      const fresh: Jobs = await import("@/lib/server/jobs");
-      const src = await answered(busan, "재사용 시험 조회 실패", QC.busan, "2 hours");
-      const before = wx.calls;
-      const j = await fresh.submitJob(busan, { question: "재사용 시험 조회 실패", source: "USER", queryContext: QC.busan });
-      expect(wx.calls).toBe(before + 1);
-      expect(j.cached_from).toBe(src.id);
-      expect(ms(j.source_finished_at)).toBe(ms(src.finished_at));
-      // 답을 받을 때 특보 조회가 안 되면 그때의 특보 목록은 null(모름) — 「없었음」(빈 목록)과 다르다. 앞 시험의 진행 작업은 비워 슬롯을 연다
-      await sql.query("update sa_agent_jobs set state = 'CANCELLED', finished_at = now() - interval '10 minutes' where state in ('QUEUED','SUBMITTED','RUNNING')");
-      const k = await fresh.submitJob(central, { question: "특보 목록 모름 시험", source: "USER", noCache: true });
-      for (let i = 0; i < 6; i++) {
-        await stale(k.id);
-        if ((await fresh.getJob(central, k.id))?.state === "DONE") break;
-      }
-      const kr = await row(k.id);
-      expect(kr.state).toBe("DONE");
-      expect(kr.wx_seen).toBeNull();
-    } finally {
-      wx.result = saved;
-    }
+    expect(src).toMatch(/import \{ SCN_SOURCE \} from "\.\.\/scenario";/);
   });
 });
 
-describe("AI 모드 점검(R39 · R47) — 같은 계정 같은 10분 구간이면 새 행 없이 원래 점검 작업, 다른 계정 것은 쓰지 않음", () => {
-  const QC = { region: { admin_code: "5181000000", level: "SIGUNGU", name: "강원특별자치도 인제군" } };
-  const RAW = { status: "SUCCESS", result: { answer: "점검 시험 답" }, meta: { base_time: "2026-10-28T06:00:00+09:00" } };
-  const aim = (acc: Account, question: string) =>
-    J.submitJob(acc, { question, source: "AI_MODE", queryContext: QC, weatherWarnings: { items: [] }, aiMode: { trigger: "START", interval_min: 10 } });
-  const done = (id: string) =>
-    sql.query("update sa_agent_jobs set state = 'DONE', t3q_status = 'SUCCESS', http_status = 200, raw = $2, finished_at = now() where id = $1", [id, JSON.stringify(RAW)]);
-  const count = async (key: unknown) => (await sql.query("select count(*)::int as n from sa_agent_jobs where cache_key = $1", [key]))[0].n as number;
-  // 10분 구간 경계에 걸리지 않게 — 날짜만 지금 구간의 가운데로(DB 시각·타이머는 그대로)
-  beforeEach(() => {
-    vi.useFakeTimers({ toFake: ["Date"] });
-    vi.setSystemTime(Math.floor(Date.now() / 600_000) * 600_000 + 300_000);
+describe("시연 모드 Data API 응답(R52) — 켠 동안만 들고 있다", () => {
+  let D: typeof import("@/lib/server/demoMode");
+  let admin: Account;
+  beforeAll(async () => {
+    D = await import("@/lib/server/demoMode");
+    admin = (await import("@/lib/config")).ACCOUNTS.find((a) => a.id === "unes")!;
   });
-  afterEach(() => vi.useRealTimers());
-
-  it("같은 계정이 다시 보내면(새로 고침·새 탭) 사본 행 없이 원래 점검 작업을 그대로 돌려준다", async () => {
-    const first = await aim(inje, "AI 모드 점검 시험 1");
-    await done(first.id);
-    const key = (await row(first.id)).cache_key;
-    const n = await count(key);
-    for (let i = 0; i < 3; i++) {
-      const again = await aim(inje, "AI 모드 점검 시험 1");
-      expect(again.id).toBe(first.id);
-      expect(again.cached_from).toBeNull();
-      expect(again.source_finished_at).toBeNull();
-      expect(again.state).toBe("DONE");
+  it("꺼져 있으면 들고 있지 않고, 켜면 첫 번은 받아 두고 두 번째부터 그것을 쓴다 · 끄면 비운다 · 48시간 뒤 꺼짐", async () => {
+    await D.demoSet(admin, false);
+    const path = "/similar-events/search";
+    const body = { query: "호우", request_id: "A" };
+    expect((await D.t3qData("POST", path, body)).demoHit).toBeUndefined();
+    const st = await D.demoSet(admin, true);
+    expect(Date.parse(st.until!) - Date.parse(st.since!)).toBe(48 * 3_600_000);
+    const a = await D.t3qData("POST", path, body);
+    const b = await D.t3qData("POST", path, { ...body, request_id: "B" }); // request_id 는 열쇠에 들지 않는다
+    const status = (a.body as { status?: string } | null)?.status;
+    if (a.envelope && a.http < 300 && (status === "SUCCESS" || status === "NO_RESULT")) {
+      expect(a.demoHit).toBeUndefined();
+      expect(b.demoHit).toBe(true);
+      expect(b.body).toEqual(a.body);
+      expect(await D.demoEntries(st)).toBeGreaterThan(0);
+    } else {
+      expect(b.demoHit).toBeUndefined();
     }
-    expect(await count(key)).toBe(n);
-  });
-
-  it("진행 중인 점검도 같은 작업에 합류한다", async () => {
-    const first = await aim(inje, "AI 모드 점검 시험 진행");
-    await sql.query("update sa_agent_jobs set state = 'RUNNING' where id = $1", [first.id]);
-    const again = await aim(inje, "AI 모드 점검 시험 진행");
-    expect(again.id).toBe(first.id);
-  });
-
-  it("다른 계정의 원래 점검은 가져오지 않는다 — 사본이 아니라 그 계정의 새 점검(R47 사용자별 독립)", async () => {
-    const first = await aim(inje, "AI 모드 점검 시험 2");
-    await done(first.id);
-    const key = (await row(first.id)).cache_key;
-    const n = await count(key);
-    const other = await aim(central, "AI 모드 점검 시험 2");
-    expect(other.id).not.toBe(first.id);
-    expect(other.cached_from).toBeNull();
-    expect(other.account_id).toBe(central.id);
-    expect(other.state).not.toBe("DONE"); // 새로 접수한 점검(대기·제출)
-    expect(await count(key)).toBe(n + 1);
-  });
-
-  it("같은 구간에 다른 계정의 더 새 원래 답이 있어도 자기 원래 점검 작업을 돌려준다", async () => {
-    const mine = await aim(inje, "AI 모드 점검 시험 3");
-    await done(mine.id);
-    const theirs = await J.submitJob(central, { question: "AI 모드 점검 시험 3", source: "AI_MODE", queryContext: QC, weatherWarnings: { items: [] }, noCache: true });
-    await sql.query("update sa_agent_jobs set state = 'DONE', t3q_status = 'SUCCESS', http_status = 200, raw = $2, finished_at = now() + interval '1 minute' where id = $1", [theirs.id, JSON.stringify(RAW)]);
-    expect((await aim(inje, "AI 모드 점검 시험 3")).id).toBe(mine.id);
-  });
-
-  it("AI 모드가 아닌 질문은 같은 계정이어도 지금처럼 사본", async () => {
-    const first = await J.submitJob(inje, { question: "AI 모드 아닌 시험", source: "USER", queryContext: QC, noCache: true });
-    await done(first.id);
-    const again = await J.submitJob(inje, { question: "AI 모드 아닌 시험", source: "USER", queryContext: QC });
-    expect(again.id).not.toBe(first.id);
-    expect(again.cached_from).toBe(first.id);
+    await D.demoSet(admin, false);
+    expect((await sql.query("select count(*)::int as n from sa_demo_cache"))[0].n).toBe(0);
+    expect((await D.t3qData("POST", path, body)).demoHit).toBeUndefined();
+    const old = { on: true, since: new Date(Date.now() - 49 * 3_600_000).toISOString(), until: new Date(Date.now() - 3_600_000).toISOString(), by: null };
+    expect(D.demoLive(old)).toBe(false);
+    expect(D.demoKey("POST", path, { a: 1, b: 2, caller: { x: 1 } })).toBe(D.demoKey("POST", path, { b: 2, a: 1 }));
   });
 });

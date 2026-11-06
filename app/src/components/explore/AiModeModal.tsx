@@ -1,256 +1,280 @@
 "use client";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useSession, uid } from "@/lib/session";
-import { baseKey, baseName, baseTarget } from "@/lib/baseRegion";
-import { activeAdvisories, advLabel, advName, warningsPayload } from "@/lib/wxref";
-import { SCN_CUT_LABEL, SCN_LABEL } from "@/lib/scenario";
 import { usePathname, useRouter } from "next/navigation";
-import { RawFoot } from "../answer/AnswerCard";
-import { statusKo } from "@/lib/labels";
-import { isActive, STATE_LABEL, type T3qRef } from "@/lib/jobTypes";
-import { AnswerMarkdown } from "../answer/Markdown";
-import { useBriefItems } from "@/lib/briefing";
+import { api } from "@/lib/api";
+import { useSession } from "@/lib/session";
+import { baseName, baseWire } from "@/lib/baseRegion";
+import { SCN_CUT_LABEL, SCN_LABEL } from "@/lib/scenario";
+import { useBriefingSet } from "@/lib/briefing";
+import { BRIEFING_RULES } from "@/lib/briefingSet";
+import {
+  AIM_INTERVAL_MIN, AIM_READ_EVERY_MS, AIM_SLIDE_MS, aimCheckLine, sortAimWarnings,
+  type AimResponse, type AimView, type AimWarning,
+} from "@/lib/aiMode";
+import "./AiModeModal.css";
+
+/** 서버 점검이 도는 동안 결과를 다시 읽는 간격 — 우리는 질의 작업을 읽힐 때 진행시키므로(R1) 개발서버의 「끝날 때까지 기다림」 대신 짧게 읽는다 */
+const RUNNING_POLL_MS = 5000;
 
 /**
- * AI 모드 · 상황 감지 (Figma 202001, R6) — 켜면 즉시 1회, 이후 이 화면이 열려 있는 동안 10분마다 T3Q 에 점검 질의(AI_MODE).
- * 특보는 기상청 실시간 원문을 weather_warnings 로 그대로 보낸다(없으면 빈 목록 — 꾸미지 않음). 점검 답은 무가공으로 보인다.
- * 특보가 바뀌면 바로 다시 점검한다. 모달은 접어서 띠로 둘 수 있다.
- * 특보·점검 지역 = 켤 때의 기준지역(R32, lib/wxMatch). 전국이면 점검하지 않는다.
- * 시연 시나리오 특보(R43)는 창·띠의 특보 이름 옆에 「시연 시나리오」, 점검 질의에는 source 「시연 시나리오(가상 특보)」로 함께 간다(질의 글은 그대로 — R36).
- * 켠 동안 시연 계정은 기상청 실시간 특보를 받지 않아(R45) 창·띠에 「기상청 실시간 특보 끊음」(회색), 덮는 특보가 없으면 「… 시연 시나리오 특보 없음」·회색 점.
- * 점검이 도는 동안에도 기준지역을 바꿀 수 있고(R44), 바꾸면 AI 모드가 꺼진다(R47 — 새 지역으로 따라가지 않음, 진행 중인 점검은 세션이 취소 · lib/session setBase).
- * 점검은 사용자마다 따로 — 같은 계정이 같은 10분 구간에 다시 켜면 원래 점검 그대로(R39 ②), 다른 계정의 점검은 가져오지 않는다(R47 — lib/server/jobs)
+ * AI 모드 — 사람마다 따로 켜고, 켠 동안 점검 결과를 읽는다(개발서버 useAiMode 복제, R52).
+ * 배경 점검 지역(lib/aiMode AIM_GROUPS)은 서버가 지역 공용으로 10분마다 돌고 화면은 2분마다 읽기만,
+ * 그 밖의 지역은 켤 때 한 번·그 뒤 10분마다 점검을 건다(특보가 그대로이고 답이 60분 안이면 서버가 상류를 부르지 않음).
  */
-const INTERVAL_MIN = 10;
-/** 받아 둔 점검 답을 보이기까지 기다리는 시간 — 시연 시나리오 계정만 */
-const AIM_REVEAL_MS = 4000;
-/**
- * 점검 질의(R36) — 상세 요구사항 정의서 v1.72 UFR-001-001-05 「Agent 질의 내용」을 사용자 지시(2026-10-28)로 줄인 것:
- * 특보마다 「먼저 확인할 내용」 2문장(80자 내외)만, 제목·과거 사례·근거 목록 없이. 특보가 없으면 점검 결과 1문장. 지역은 query_context.region, 특보는 weather_warnings 로 따로 보낸다
- */
-const AIM_Q =
-  "제공된 기상특보 정보를 기준으로, 해당 지역 담당자가 지금 먼저 확인할 내용을 알려 주십시오. 발효 중인 특보가 있으면 특보마다 2문장 이내(공백 포함 80자 내외)로만 쓰고, 제목·과거 사례·근거 목록은 쓰지 마십시오. 발효 중인 특보가 없으면 대응 검토가 필요한 사유를 확인하지 못했다는 점검 결과만 1문장으로 쓰십시오. 제공되지 않은 관측값이나 피해 발생 여부는 추정하지 마십시오.";
-
-export default function AiModeModal() {
+function useAiMode() {
   const s = useSession();
-  const sRef = useRef(s);
-  sRef.current = s; // 점검 때 최신 조건·특보·제출 함수를 쓴다(오래된 값으로 보내지 않게)
-  const router = useRouter();
-  const path = usePathname();
-  const [collapsed, setCollapsed] = useState(false);
-  const [jobId, setJobId] = useState<string | null>(null);
-  const [lastAt, setLastAt] = useState<string | null>(null);
-  const [pg, setPg] = useState(0);
-  /** 점검을 접수하는 중(받아 둔 답을 내보이기 전 기다림 포함) */
+  const wire = useMemo(() => baseWire(s.cond.base), [s.cond.base]);
+  const [resp, setResp] = useState<AimResponse | null>(null);
   const [busy, setBusy] = useState(false);
-  const brief = useBriefItems();
-  const sentKey = useRef<string>("");
-  const base = s.cond.base;
-  const bk = baseKey(base);
-  const national = !base;
-  const regionName = baseName(base);
-  const target = useMemo(() => baseTarget(base), [base]);
-  const advs = useMemo(() => activeAdvisories(s.weather, target), [s.weather, target]);
-  const warnKey = advs.map((a) => `${a.id}:${a.level}:${a.status}`).join("|");
+  const [failed, setFailed] = useState(false);
+  const inflight = useRef(false);
 
-  // 이 창이 닫힌 뒤(AI 모드 끔 · 기준지역 변경 — R47) 돌아온 점검 접수는 이 창의 점검으로 삼지 않는다(진행 중이면 세션이 취소 — lib/session submit)
-  const alive = useRef(true);
-  useEffect(() => {
-    alive.current = true;
-    return () => {
-      alive.current = false;
-    };
-  }, []);
-
-  const check = useCallback(
-    async (trigger: "START" | "INTERVAL" | "WARNING_CHANGE" | "MANUAL") => {
-      const cur = sRef.current;
-      if (!cur.cond.base) return;
+  const call = useCallback(
+    async (kind: "check" | "read") => {
+      if (!wire || inflight.current) return null;
+      inflight.current = true;
       setBusy(true);
       try {
-        const job = await cur.submit({
-          question: AIM_Q,
-          source: "AI_MODE",
-          aiMode: { check_id: uid("CHK-"), trigger, interval_min: INTERVAL_MIN },
-          // 사용자가 직접 [지금 다시 점검] 하면 10분 캐시를 쓰지 않고 새로 묻는다
-          noCache: trigger === "MANUAL",
-          warnings: warningsPayload(cur.weather, activeAdvisories(cur.weather, baseTarget(cur.cond.base))),
-          // 시연 시나리오를 켠 시연 계정(R45) — 지역별로 받아 둔 점검 답을 몇 초 뒤 보인다(없으면 새로 받아 고정). [지금 다시 점검]은 새로 받아 바꾼다(사용자 지시 2026-11-02)
-          ...(cur.weather?.realtimeCut ? { pinId: `AIM-${baseKey(cur.cond.base)}`, pinFresh: trigger === "MANUAL", revealMs: AIM_REVEAL_MS } : {}),
-        });
-        if (!alive.current) return;
-        setJobId(job.id);
-        // 마지막 점검 = 그 점검 작업을 접수한 시각 — 같은 10분 구간에 다시 열면 서버가 원래 점검 작업을 그대로 돌려준다(R39)
-        setLastAt(job.created_at);
-      } catch (e) {
-        if (alive.current) cur.toast((e as Error).message);
+        const r =
+          kind === "check"
+            ? await api<AimResponse>("/api/ai-mode/check", { method: "POST", json: { base: wire } })
+            : await api<AimResponse>(`/api/ai-mode?${new URLSearchParams({ code: wire.code, name: wire.name, level: wire.level })}`);
+        setResp(r);
+        setFailed(false);
+        return r;
+      } catch {
+        // 한 회차를 놓쳐도 다음 회차에 다시 묻는다. 「점검 기록 없음」과 「받아 오지 못함」은 따로 적는다
+        setFailed(true);
+        return null;
       } finally {
-        if (alive.current) setBusy(false);
+        inflight.current = false;
+        setBusy(false);
       }
     },
-    [],
+    [wire],
   );
 
-  // 처음 · 특보 변화 · 10분 주기(기준지역을 바꾸면 AI 모드가 꺼지므로 이 창에서 기준지역은 바뀌지 않는다 — R47)
+  // 켤 때 한 번 — 배경 지역은 읽기(서버가 막는다), 그 밖은 점검
   useEffect(() => {
-    if (!s.weather) return;
-    const key = `${bk}|${warnKey}`;
-    if (sentKey.current === key) return;
-    const first = sentKey.current === "";
-    sentKey.current = key;
-    check(first ? "START" : "WARNING_CHANGE");
-  }, [s.weather, bk, warnKey, check]);
-  // 다음 점검 = 받은 점검 작업 접수 시각(마지막 점검) + 10분 — 새로 고침으로 되돌려 받은 원래 점검(R39)이면 그 시각 기준이라
-  // 「마지막 점검」과 「다음 점검」이 10분 간격으로 맞고, 그때는 다음 10분 구간이라 새로 묻는다. 그 뒤로는 10분마다
-  const [nextAt, setNextAt] = useState<number | null>(null);
-  useEffect(() => {
-    const ms = INTERVAL_MIN * 60_000;
-    const at = lastAt ? Date.parse(lastAt) : NaN;
-    const due = Number.isFinite(at) ? Math.max(Date.now(), at + ms) : Date.now() + ms;
-    setNextAt(due);
-    let t: ReturnType<typeof setInterval> | undefined;
-    const first = setTimeout(() => {
-      setNextAt(Date.now() + ms);
-      check("INTERVAL");
-      t = setInterval(() => {
-        setNextAt(Date.now() + ms);
-        check("INTERVAL");
-      }, ms);
-    }, due - Date.now());
-    return () => {
-      clearTimeout(first);
-      clearInterval(t);
-    };
-    // 기준지역이 바뀌거나 새 점검 작업을 받으면 그 시각부터 다시 센다
-  }, [check, bk, lastAt]);
+    void call("check");
+  }, [call]);
 
-  const job = jobId ? s.jobs[jobId] : null;
-  const full = jobId ? s.full[jobId] : undefined;
+  // 그 뒤 — 서버 점검이 도는 동안은 짧게, 아니면 배경 지역 2분 · 그 밖 10분
+  const running = !!resp?.running;
+  const managed = !!resp?.managed;
   useEffect(() => {
-    if (job && !isActive(job.state) && !full) s.loadFull(job.id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [jobId, job?.state]);
-  const answer = full?.raw?.result?.answer ?? null;
-  const next = lastAt && nextAt ? new Date(nextAt) : null;
-  const hm = (d: Date | string) => new Date(d).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", hour12: false });
-  const a = advs[pg % Math.max(1, advs.length)];
-  // 시연 시나리오를 켠 시연 계정(R45) — 기상청 실시간 특보를 받지 않는다. 덮는 시나리오 특보가 없어도 「발효 특보 없음」이라 하지 않는다
+    if (!resp) return;
+    const ms = running ? RUNNING_POLL_MS : managed ? AIM_READ_EVERY_MS : AIM_INTERVAL_MIN * 60_000;
+    const t = window.setTimeout(() => void call(running || managed ? "read" : "check"), ms);
+    return () => window.clearTimeout(t);
+  }, [resp, running, managed, call]);
+
+  return { view: resp?.view ?? null, checking: busy || running, failed };
+}
+
+const hm = (v: string | null) => {
+  if (!v) return "알 수 없음";
+  const d = new Date(v);
+  return Number.isNaN(d.getTime()) ? "알 수 없음" : `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+};
+const dateOf = (v: string | null) => {
+  if (!v) return "발효시각 미상";
+  const d = new Date(v);
+  if (Number.isNaN(d.getTime())) return "발효시각 미상";
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}.${p(d.getMonth() + 1)}.${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+};
+
+type Tone = "danger" | "caution" | "none";
+/** 경보 = danger, 주의보·예비특보 = caution, 특보 없음 = none */
+const toneOf = (level: string): Tone => (level === "경보" ? "danger" : "caution");
+/** 신호등 안 표시 — 주의보만 「!」(같은 노랑인 예비특보와 가르게) */
+const markOf = (level: string) => (level === "주의보" ? "!" : null);
+
+/**
+ * AI 모드 · 상황 감지 (SCR-UNE-202001) — 개발서버 AiModeModal 복제(R52). 창은 스스로 점검하지 않고 받아 둔 점검을 보인다.
+ * 발효 특보마다 카드 한 장(경보 먼저, 최근 발효 순), 여럿이면 3초마다 저절로 넘김(정지·이전·다음). 카드의 「AI 안내」 = 그 특보만 실어 물은 답 글 그대로.
+ * [확인]·✕ 는 창만 닫고 AI 모드는 켜 둔다(머리줄 「AI 모드 실행 중」을 누르면 다시 연다). [AI 모드 종료]는 끈다.
+ */
+export default function AiModeModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const s = useSession();
+  const router = useRouter();
+  const path = usePathname();
+  const { view, checking, failed } = useAiMode();
+  const set = useBriefingSet();
+  const items = set.checked;
+  const regionName = baseName(s.cond.base);
   const cut = !!s.weather?.realtimeCut;
-  const noneText = cut ? `${regionName} ${SCN_LABEL} 특보 없음` : `${regionName} 발효 특보 없음`;
 
-  // 접힌 띠 — 내용 맨 위. 점 색은 머리줄 AI 모드 단추와 같은 기준(경보·주의보·없음·조회 실패·끊김), 특보는 받은 이름 그대로 모두
-  if (collapsed) {
-    // 조회가 실패해도 덮는 특보가 있으면 그 이름을 보인다(특보 줄과 같게). 끊긴 계정(R45)의 응답은 늘 ok — 실패는 화면 쪽 조회 실패뿐
-    const wxFail = !!s.weather && !s.weather.status.ok && !advs.length;
-    const tone = national || wxFail || (cut && !advs.length) ? "gray" : advs.some((x) => x.level === "경보") ? "red" : advs.length ? "yellow" : "green";
-    const when = [
-      cut ? SCN_CUT_LABEL : null,
-      !national && !job && !busy ? "점검 준비 중" : busy || (job && isActive(job.state)) ? "점검 중" : null,
-      lastAt ? `마지막 점검 ${hm(lastAt)}` : null,
-      next ? `다음 점검 ${hm(next)}` : null,
-    ].filter(Boolean).join(" · ");
-    return (
-      <div className="aim-bar-wrap">
-        <div className="aim-bar" role="status" aria-label="AI 모드 실행 중">
-          <i className={`aim-dot st-${tone}`} aria-hidden />
-          <b className="aim-w">{national ? "기준지역을 고르면 점검합니다" : wxFail ? "기상특보 조회 실패" : advs.length ? advs.map(advName).join(" · ") : noneText}</b>
-          {when && <span className="aim-t">{when}</span>}
-          <span className="sp" />
-          <button type="button" className="aim-open" onClick={() => setCollapsed(false)}>AI 모드 펼치기</button>
-        </div>
-      </div>
-    );
-  }
+  const warnings = useMemo(() => sortAimWarnings(view?.warnings ?? []), [view]);
+  const guides = useMemo(() => new Map((view?.guides ?? []).map((g) => [g.warningKey, g.message])), [view]);
+  const [at, setAt] = useState(0);
+  const [playing, setPlaying] = useState(true);
+  const index = warnings.length === 0 ? 0 : Math.min(at, warnings.length - 1);
+  const many = warnings.length > 1;
+  useEffect(() => {
+    if (!open || !playing || !many) return;
+    const id = window.setTimeout(() => setAt((a) => (a + 1) % warnings.length), AIM_SLIDE_MS);
+    return () => window.clearTimeout(id);
+  }, [open, playing, many, at, warnings.length]);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, onClose]);
+
+  if (!open) return null;
+  const state: "loading" | "ready" | "failed" | "empty" = view !== null ? "ready" : checking ? "loading" : failed ? "failed" : "empty";
+
+  const brief = () => {
+    onClose();
+    if (path?.startsWith("/explore")) window.dispatchEvent(new CustomEvent("sa:briefing"));
+    else router.push("/explore?brief=1");
+  };
+  const askItem = (q: string) => {
+    onClose();
+    if (path?.startsWith("/explore")) window.dispatchEvent(new CustomEvent("sa:ask-brief", { detail: { q } }));
+    else router.push(`/explore?bq=${encodeURIComponent(q)}`);
+  };
 
   return (
-    <div className="modal-bg" role="dialog" aria-modal="true" aria-label="AI 모드 상황 감지">
-      <div className="modal aim" style={{ width: 760 }}>
+    <div className="modal-bg" role="dialog" aria-modal="true" aria-label="AI 모드 · 상황 감지" onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="modal aim aimx" style={{ width: 760 }}>
         <div className="modal-h">
           <h2>AI 모드 · 상황 감지</h2>
           <span className="sp" />
-          <button className="lnk" onClick={() => setCollapsed(true)} aria-label="접기">접기</button>
+          <button className="lnk" onClick={onClose} aria-label="닫기">✕</button>
         </div>
-        <div className="xs muted">
-          {busy || (job && isActive(job.state)) ? <><span className="ai-dot spin" /> 점검 중</> : null} {lastAt ? `마지막 점검 ${hm(lastAt)}` : ""} {next ? `· 다음 점검 ${hm(next)}` : ""} · 이 화면이 열려 있는 동안 {INTERVAL_MIN}분마다 점검
-        </div>
-        {national ? (
-          <div className="notice" style={{ marginTop: 12 }}>AI 모드는 지역 기준으로 점검합니다. 상단에서 기준지역을 고르세요.</div>
-        ) : (
-          <div className={`aim-card ${a ? (a.level === "경보" ? "danger" : "warn") : "calm"}`}>
-            <div className="row">
-              {a ? (
-                <>
-                  <b style={{ fontSize: 24 }}>{advLabel(a)}</b>
-                  {a.scenario && <span className="scn-tag">{SCN_LABEL}</span>}
-                  {a.isNew && <span className="badge danger">새 특보</span>}
-                  <span className="sp" />
-                  {advs.length > 1 && (
-                    <span className="pager">
-                      <button className="btn xs" onClick={() => setPg((p) => (p + advs.length - 1) % advs.length)} aria-label="이전 특보">‹</button>
-                      <span className="xs">{(pg % advs.length) + 1} / {advs.length}</span>
-                      <button className="btn xs" onClick={() => setPg((p) => (p + 1) % advs.length)} aria-label="다음 특보">›</button>
-                    </span>
-                  )}
-                </>
-              ) : (
-                <b style={{ fontSize: 20 }}>{s.weather && !s.weather.status.ok ? "기상특보 조회 실패" : noneText}</b>
-              )}
-            </div>
-            {!a && cut && <div className="xs muted">{SCN_CUT_LABEL}</div>}
-            {a && (a.scenario ? (
-              <div className="xs muted">{a.area} · {new Date(a.issuedAt).toLocaleString("ko-KR")} 켬 · {SCN_LABEL}{cut && ` · ${SCN_CUT_LABEL}`}</div>
-            ) : (
-              <div className="xs muted">{a.area} · {new Date(a.issuedAt).toLocaleString("ko-KR")} 발표 · 기상청</div>
-            ))}
-            <div className="aim-ai">
-              <div className="xs b" style={{ color: "var(--c-navy)" }}>AI 안내</div>
-              {answer ? (
-                <AnswerMarkdown text={answer} refs={(full?.raw?.result?.refs ?? []) as T3qRef[]} />
-              ) : busy || (job && isActive(job.state)) ? (
-                <div className="s muted">점검 질의에 답을 기다리는 중입니다(보통 1~3분).</div>
-              ) : job && job.state === "DONE" && !full ? (
-                <div className="s muted">점검 답을 불러오는 중입니다.</div>
-              ) : job ? (
-                <div className="s muted">점검 답을 받지 못했습니다({full?.raw ? statusKo(full.raw.status) : STATE_LABEL[job.state]}).</div>
-              ) : (
-                <div className="s muted">점검을 준비하고 있습니다.</div>
-              )}
-              {/* 경고·정보 부족·한계·데이터 기준시각 — 응답 원문 그대로 */}
-              {full?.raw && <RawFoot raw={full.raw} />}
-              {full?.raw?.meta?.base_time && <div className="xs muted" style={{ marginTop: 4 }}>데이터 기준 {full.raw.meta.base_time}</div>}
-            </div>
-          </div>
-        )}
-        <p className="xs muted">최종 판단은 담당자가 합니다.</p>
-        {!national && (
-          <>
-            <div className="start-brief" style={{ boxShadow: "none", background: "var(--c-sec-sub)", padding: "16px 20px" }}>
-              <div>
-                <b>기상 특보 기반 상황 브리핑</b>
-                <div className="xs muted">현재 상황 브리핑 {brief.length}개 항목을 지금 조건으로 한 번에 정리합니다.</div>
+        <p className="aimx-when">
+          {state === "loading" ? "점검 결과를 불러오는 중입니다" : aimCheckLine(view, hm)}
+          {cut && <span className="muted"> · {SCN_CUT_LABEL}</span>}
+        </p>
+
+        <div className="aimx-scroll">
+          {state === "failed" ? (
+            <Card tone="none" title="점검 결과를 불러오지 못했습니다" sub="잠시 뒤 다시 열어 보세요.">
+              <div className="aimx-miss" role="status">
+                <p className="aimx-miss-h">⚠ AI 안내를 불러오지 못했습니다.</p>
+                <p className="aimx-miss-s">특보 정보와 브리핑은 그대로 이용할 수 있습니다.</p>
               </div>
-              <button className="btn go" disabled={!brief.length} onClick={() => { setCollapsed(true); if (path?.startsWith("/explore")) window.dispatchEvent(new CustomEvent("sa:briefing")); else router.push("/explore?brief=1"); }}>브리핑 시작 ›</button>
+            </Card>
+          ) : state === "loading" ? (
+            <Card tone="none" title="상황을 확인하는 중" sub="서버가 마지막으로 남긴 점검을 읽고 있습니다." />
+          ) : state === "empty" || view === null ? (
+            <Card tone="none" title="아직 점검 기록이 없습니다" sub="다음 점검이 끝나면 여기에 상황이 나옵니다." />
+          ) : warnings.length === 0 ? (
+            <NoWarning view={view} />
+          ) : (
+            <div className="aimx-slider">
+              <div className="aimx-track" style={{ transform: `translateX(-${index * 100}%)` }}>
+                {warnings.map((w, i) => (
+                  <div key={w.warningKey} className="aimx-slide" aria-hidden={i !== index} inert={i !== index ? true : undefined}>
+                    <Card
+                      tone={toneOf(w.level)}
+                      title={<WarningTitle w={w} />}
+                      sub={`${w.areaName} · ${dateOf(w.effectiveDe)} ${w.level.startsWith("예비") ? "발표" : "발생"}`}
+                      badge={w.changeType === "신규" ? "새 특보" : null}
+                      mark={markOf(w.level)}
+                      pager={
+                        many ? (
+                          <div className="aimx-pager">
+                            <button type="button" className="aimx-pg" aria-label={playing ? "자동 넘김 정지" : "자동 넘김 재생"} aria-pressed={!playing} onClick={() => setPlaying((p) => !p)}>
+                              {playing ? "❚❚" : "▶"}
+                            </button>
+                            <button type="button" className="aimx-pg" aria-label="이전 특보" onClick={() => setAt((i - 1 + warnings.length) % warnings.length)}>‹</button>
+                            <span className="aimx-pg-at" aria-live="polite"><span className="sr-only">특보 </span>{i + 1} / {warnings.length}</span>
+                            <button type="button" className="aimx-pg" aria-label="다음 특보" onClick={() => setAt((i + 1) % warnings.length)}>›</button>
+                          </div>
+                        ) : null
+                      }
+                    >
+                      <p className={`aimx-label t-${toneOf(w.level)}`}>AI 안내</p>
+                      {/* 특보마다 따로 물은 답 그대로(R0). 그 특보 질의만 실패했으면 지어내지 않는다 */}
+                      <p className="aimx-guide">{guides.get(w.warningKey) ?? "이 특보에 대한 별도 안내가 없습니다."}</p>
+                    </Card>
+                  </div>
+                ))}
+              </div>
             </div>
-            <div className="start-tiles" style={{ gridTemplateColumns: "repeat(4, 1fr)" }}>
-              {/* 체크한 항목 전부(개발서버 AiModeModal briefingItems = 체크한 항목, R51) */}
-              {brief.map((b) => (
-                <button key={b.id} className="tile" style={{ boxShadow: "none", background: "var(--c-surface)" }}
-                  onClick={() => { setCollapsed(true); if (path?.startsWith("/explore")) window.dispatchEvent(new CustomEvent("sa:ask-brief", { detail: { q: b.question } })); else router.push(`/explore?bq=${encodeURIComponent(b.question)}`); }}>
-                  <span className="tile-k">{b.label} ›</span>
-                  <span className="tile-q">{b.question.replaceAll("{지역}", regionName)}</span>
+          )}
+
+          <p className="aimx-note">AI 안내는 과거 사례를 근거로 한 참고 정보이며, 최종 판단은 담당자가 합니다.</p>
+
+          <div className="aimx-brief">
+            <div>
+              <strong>{BRIEFING_RULES.title}</strong>
+              <p>{BRIEFING_RULES.title} {items.length}개 항목을 지금 조건으로 한 번에 정리합니다.</p>
+            </div>
+            <button type="button" className="btn" onClick={brief} disabled={items.length === 0}>브리핑 시작 ›</button>
+          </div>
+          <ul className="aimx-tiles">
+            {items.map((it) => (
+              <li key={it.id}>
+                <button type="button" className="aimx-tile" onClick={() => askItem(it.question)}>
+                  <span className="aimx-tile-h">{it.label} ›</span>
+                  <span className="aimx-tile-q">{it.question.replaceAll("{지역}", regionName)}</span>
                 </button>
-              ))}
-            </div>
-            <p className="xs muted">누르면 이 창을 접고, 발효 중인 특보 기준으로 새 대화에서 질의합니다.</p>
-          </>
-        )}
+              </li>
+            ))}
+          </ul>
+          <p className="aimx-foot">누르면 이 창을 닫고, {warnings.length > 0 ? "발효 중인 특보 기준으로" : "지금 재난상황 조건으로"} 새 대화에서 답합니다.</p>
+        </div>
+
         <div className="modal-f">
-          <button className="btn" onClick={() => check("MANUAL")} disabled={!!job && isActive(job.state)}>지금 다시 점검</button>
           <span className="sp" />
-          <button className="btn" onClick={() => s.setAimOn(false)}>AI 모드 종료</button>
-          <button className="btn primary" onClick={() => setCollapsed(true)}>확인</button>
+          <button className="btn" onClick={() => { onClose(); s.setAimOn(false); }}>AI 모드 종료</button>
+          <button className="btn primary" onClick={onClose}>확인</button>
         </div>
       </div>
+    </div>
+  );
+}
+
+function NoWarning({ view }: { view: AimView }) {
+  const fail = view.collectStatus === "FAILED";
+  return (
+    <Card tone="none" title={fail ? "특보를 조회하지 못했습니다" : "발효 중인 특보 없음"} sub={`${view.regionName} · ${hm(view.checkedDe)} 점검`}>
+      {fail ? (
+        <p className="aimx-guide">기상청 조회가 실패해 지금 무엇이 걸려 있는지 알 수 없습니다. 특보가 없는 것과 다릅니다.</p>
+      ) : (
+        <>
+          <p className="aimx-label t-none">AI 안내</p>
+          <p className="aimx-guide">{view.noWarningMessage ?? "발효 중인 특보가 없어 별도 안내가 없습니다."}</p>
+        </>
+      )}
+    </Card>
+  );
+}
+
+function WarningTitle({ w }: { w: AimWarning }) {
+  return (
+    <>
+      {w.kind}
+      <em className="aimx-level">{w.level}</em>
+      {w.scenario && <span className="scn-tag">{SCN_LABEL}</span>}
+    </>
+  );
+}
+
+function Card({ tone, title, sub, badge, mark, pager, children }: {
+  tone: Tone; title: React.ReactNode; sub: string; badge?: string | null; mark?: string | null; pager?: React.ReactNode; children?: React.ReactNode;
+}) {
+  return (
+    <div className={`aimx-card t-${tone}`}>
+      <div className="aimx-card-h">
+        <span className={`aimx-lamp t-${tone}`} aria-hidden="true">{mark && <b>{mark}</b>}</span>
+        <div className="aimx-card-n">
+          <p className="aimx-card-t">
+            {title}
+            {badge && <span className="badge danger">{badge}</span>}
+          </p>
+          <p className="aimx-card-s">{sub}</p>
+        </div>
+        {pager}
+      </div>
+      {children && <div className="aimx-card-b">{children}</div>}
     </div>
   );
 }

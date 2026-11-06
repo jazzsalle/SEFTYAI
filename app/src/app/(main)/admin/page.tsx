@@ -1,7 +1,7 @@
 "use client";
 /**
  * 운영관리 (S7 · SCR-UNE-302001 운영설정 · 302002 추적로그 조회) — 시스템 운영자 전용
- * 탭: 질의 현황(/api/admin/jobs · 강제 취소 · 원응답 JSON) · 브리핑 예열(/api/admin/warm) · 시연 시나리오 특보(/api/admin/scenario) · 계정(/api/admin/accounts)
+ * 탭: 질의 현황(/api/admin/jobs · 강제 취소 · 원응답 JSON) · 브리핑 예열(/api/admin/warm) · 시연 모드(/api/admin/demo-mode · R52)·시연 시나리오 특보(/api/admin/scenario) · 계정(/api/admin/accounts)
  *     · 답변 평가(/api/admin/feedback) · 추적로그(/api/trace)
  * 원응답은 저장된 JSON 을 들여쓰기만 해서 그대로 보여 준다 — 응답 원문 검증용(R0). 가공·요약하지 않는다.
  */
@@ -18,6 +18,7 @@ import { SCN_ACCOUNT, SCN_DEFAULT_HOURS, SCN_DEFS, SCN_LABEL, SCN_MAX_HOURS, SCN
 import {
   WARM_REGIONS,
   type AdminAccountRow,
+  type AdminDemoModeResponse,
   type AdminScenarioResponse,
   type AdminFeedbackResponse,
   type AdminJobRow,
@@ -31,7 +32,7 @@ import {
 import { Dialog, Portal } from "@/components/account/Dialog";
 
 type Tab = "jobs" | "warm" | "demo" | "accounts" | "feedback" | "trace";
-const TABS: [Tab, string][] = [["jobs", "질의 현황"], ["warm", "브리핑 예열"], ["demo", "시연 시나리오 특보"], ["accounts", "계정"], ["feedback", "답변 평가"], ["trace", "추적로그"]];
+const TABS: [Tab, string][] = [["jobs", "질의 현황"], ["warm", "브리핑 예열"], ["demo", "시연 모드"], ["accounts", "계정"], ["feedback", "답변 평가"], ["trace", "추적로그"]];
 const STATES: JobState[] = ["QUEUED", "SUBMITTED", "RUNNING", "DONE", "FAILED", "CANCELLED", "LOST", "TIMEOUT"];
 const STATE_TONE: Record<JobState, string> = { QUEUED: "neutral", SUBMITTED: "info", RUNNING: "info", DONE: "ok", FAILED: "danger", CANCELLED: "neutral", LOST: "warn", TIMEOUT: "danger" };
 const ROLE_LABEL: Record<string, string> = { 지자체: "지자체", 중앙정부: "정부기관", 운영자: "운영자" };
@@ -191,7 +192,7 @@ export default function AdminPage() {
         <div className="ph">
           <div>
             <h1>운영관리</h1>
-            <p>질의 현황·강제 취소·원응답 검증, 브리핑 예열, 시연 세트 예열, 계정 잠금 해제, 답변 평가, 추적로그 (시스템 운영자 전용)</p>
+            <p>질의 현황·강제 취소·원응답 검증, 브리핑 예열, 시연 모드·시연 시나리오 특보, 계정 잠금 해제, 답변 평가, 추적로그 (시스템 운영자 전용)</p>
           </div>
           <span className="sp" />
           <T3qPill h={jobs.data?.t3q} />
@@ -216,7 +217,12 @@ export default function AdminPage() {
         <div id="adm-panel" role="tabpanel" aria-labelledby={`adm-tab-${tab}`}>
           {tab === "jobs" && <JobsTab jobs={jobs} onOpen={setDetail} />}
           {tab === "warm" && <WarmTab jobs={jobs} warm={warm} setWarm={setWarm} onOpen={setDetail} />}
-          {tab === "demo" && <ScenarioPanel />}
+          {tab === "demo" && (
+            <>
+              <DemoModePanel />
+              <ScenarioPanel />
+            </>
+          )}
           {tab === "accounts" && <AccountsTab />}
           {tab === "feedback" && <FeedbackTab onOpen={setDetail} />}
           {tab === "trace" && <TraceTab />}
@@ -466,6 +472,10 @@ function WarmTab({ jobs, warm, setWarm, onOpen }: { jobs: JobsHook; warm: WarmRe
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const t3qDown = jobs.data?.t3q.ok === false;
+  const [demoOn, setDemoOn] = useState<boolean | null>(null);
+  useEffect(() => {
+    api<AdminDemoModeResponse>("/api/admin/demo-mode").then((r) => setDemoOn(r.live)).catch(() => setDemoOn(null));
+  }, []);
   const live = (id: string): AdminJobRow | WarmJob | undefined => jobs.data?.recent.find((j) => j.id === id) ?? jobs.data?.active.find((j) => j.id === id);
 
   const run = async () => {
@@ -497,7 +507,7 @@ function WarmTab({ jobs, warm, setWarm, onOpen }: { jobs: JobsHook; warm: WarmRe
         <h2 style={{ fontSize: 19 }}>브리핑 예열</h2>
         <p className="xs muted" style={{ margin: "6px 0 0", lineHeight: 1.7 }}>
           부산·인제·영천 × 기본 브리핑 세트 {BRIEF_SET.length}문항을 각 지역 담당자 계정 명의로 미리 질의합니다.{" "}
-          <b>예열한 답은 24시간 동안 같은 질문에 즉시 표시됩니다.</b>
+          <b>예열한 답은 시연 모드를 켠 동안 12시간까지 같은 질문에 즉시 표시됩니다.</b> 시연 모드가 꺼져 있으면 받은 답을 다시 쓰지 않아(늘 새로 질의) 예열할 수 없습니다.
           <br />
           같은 질문 = 질문 글·브리핑 출처·기준지역이 같고 재난상황 조건·특보가 붙지 않은 질의입니다. 업무 시작·시연 전에 실행하세요.
         </p>
@@ -516,13 +526,14 @@ function WarmTab({ jobs, warm, setWarm, onOpen }: { jobs: JobsHook; warm: WarmRe
           </div>
           <label className="chk">
             <input type="checkbox" checked={force} onChange={(e) => setForce(e.target.checked)} />
-            캐시 무시하고 새로 질의
+            받아 둔 답 무시하고 새로 질의
           </label>
           <span className="sp" />
-          <button type="button" className="btn pri" onClick={run} disabled={busy || !regions.length || t3qDown}>
+          <button type="button" className="btn pri" onClick={run} disabled={busy || !regions.length || t3qDown || demoOn === false}>
             {busy ? "접수 중… (최대 1분)" : `브리핑 예열 시작 (${regions.length * BRIEF_SET.length}건)`}
           </button>
         </div>
+        {demoOn === false && <div className="notice warn" style={{ marginTop: 12 }}>시연 모드가 꺼져 있습니다. 「시연 모드」 탭에서 켠 뒤 예열하세요.</div>}
         {t3qDown && <div className="notice danger" style={{ marginTop: 12 }}>에이전트 서버 연결 불가 — {jobs.data?.t3q.detail ?? "상태 확인 실패"}. 연결이 돌아오면 예열하세요.</div>}
         {error && <div className="notice danger" role="alert" style={{ marginTop: 12 }}>{error}</div>}
         <p className="adm-note">
@@ -593,6 +604,87 @@ const fmtMDHM = (iso?: string | null) => {
 };
 
 /**
+ * 시연 모드(R52 — 개발서버 DemoModeButton·DemoModeController) — 켠 동안만 받은 답·조회 응답을 다시 쓴다. 평소에는 늘 실시간(RAG 검증).
+ * 켜고 끌 때 들고 있던 응답을 비운다. 48시간 뒤 저절로 꺼진다. 상태는 서비스 하나에 하나(모든 사용자)
+ */
+function DemoModePanel() {
+  const { toast } = useSession();
+  const now = useNow(15_000);
+  const [d, setD] = useState<AdminDemoModeResponse | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [ask, setAsk] = useState(false);
+  useEffect(() => {
+    api<AdminDemoModeResponse>("/api/admin/demo-mode").then(setD).catch((e) => setError(errMsg(e)));
+  }, []);
+  const live = !!d?.live && !!d.state.until && Date.parse(d.state.until) > now;
+  const save = async (on: boolean) => {
+    if (busy) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const r = await api<AdminDemoModeResponse>("/api/admin/demo-mode", { method: "POST", json: { on } });
+      setD(r);
+      setAsk(false);
+      toast(on ? "시연 모드를 켰습니다." : "시연 모드를 껐습니다.");
+    } catch (e) {
+      setError(errMsg(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+  const left = live && d?.state.until ? Math.max(0, Date.parse(d.state.until) - now) : 0;
+  const hm = `${Math.floor(left / 3_600_000)}시간 ${Math.floor((left % 3_600_000) / 60_000)}분`;
+  return (
+    <section className="panel" aria-label="시연 모드" style={{ marginBottom: 16 }}>
+      <h2 style={{ fontSize: 19 }}>시연 모드</h2>
+      <p className="xs muted" style={{ margin: "6px 0 0", lineHeight: 1.7 }}>
+        <b>평소에는 받은 답을 다시 쓰지 않고 늘 에이전트에 새로 묻습니다</b>(응답이 바뀌면 바로 보이게 — RAG 검증). 켜 둔 동안만 조회 응답과, 켠 뒤 받은 첫 질문 답(시·도·영천·인제, 성공한 답, 12시간까지)을 다시 써서 시연을 빠르게 합니다.
+        브리핑의 받아 둔 답(질문 모음 「한눈 요약 질의」)도 켠 동안만 씁니다. 켤 때와 끌 때 들고 있던 응답을 모두 비우고, 켠 뒤 48시간이 지나면 저절로 꺼집니다. 모든 사용자에게 함께 적용됩니다.
+      </p>
+      <div className="adm-scn" role="status">
+        <span className={`badge ${live ? "info" : "neutral"}`}>{!d ? "확인 중" : live ? "켜짐" : "꺼짐"}</span>
+        <span className="xs">
+          {!d
+            ? ""
+            : live
+              ? `${fmtMDHM(d.state.since)} 켬 · 남은 시간 ${hm} · 저장해 둔 조회 응답 ${d.entries}건${d.state.by ? ` · ${d.state.by}` : ""}`
+              : d.state.on && d.state.until
+                ? `켠 뒤 48시간(${fmtMDHM(d.state.until)})이 지나 꺼졌습니다`
+                : d.state.by
+                  ? `${d.state.by}이(가) 껐습니다`
+                  : ""}
+        </span>
+        <span className="sp" />
+        {live ? (
+          <button type="button" className="btn" onClick={() => setAsk(true)} disabled={busy}>시연 모드 끄기</button>
+        ) : (
+          <button type="button" className="btn pri" onClick={() => save(true)} disabled={busy || !d}>시연 모드 켜기</button>
+        )}
+      </div>
+      {error && <div className="notice warn" role="alert" style={{ marginTop: 12 }}>{error}</div>}
+      {ask && (
+        <Dialog
+          title="시연 모드를 끌까요?"
+          desc="시연 담당자에게 확인하고 끄세요."
+          onClose={() => setAsk(false)}
+          busy={busy}
+          size="sm"
+          footer={
+            <>
+              <button type="button" className="acm-btn" onClick={() => setAsk(false)} disabled={busy}>닫기</button>
+              <button type="button" className="acm-btn danger" onClick={() => save(false)} disabled={busy}>{busy ? "끄는 중…" : "끄기"}</button>
+            </>
+          }
+        >
+          <p className="acm-sub">끄면 저장해 둔 조회 응답을 모두 비우고, 모든 사용자에게 꺼집니다.</p>
+        </Dialog>
+      )}
+    </section>
+  );
+}
+
+/**
  * 시연 시나리오 특보 — 켜기(지역·끝나는 시각, 기본 SCN_DEFAULT_HOURS 시간 뒤)·끄기. 정의는 lib/scenario 고정(재사용 열쇠에 들어감).
  * 보이는 계정·만료 판단은 서버(/api/weather)가 한다 — 이 화면은 상태만 보이고 바꾼다
  */
@@ -638,7 +730,7 @@ function ScenarioPanel() {
       <h2 style={{ fontSize: 19 }}>시연 시나리오 특보</h2>
       <p className="xs muted" style={{ margin: "6px 0 0", lineHeight: 1.7 }}>
         켜 둔 동안 켠 지역의 시연 계정은 <b>기상청 실시간 특보를 받지 않고</b> 아래 가상 특보만 받습니다(특보 줄·AI 모드·브리핑·대응절차 단계 추천). 화면에는 「{SCN_LABEL}」, 에이전트 질의에는 출처 「{SCN_SOURCE}」로 표시됩니다.{" "}
-        <b>끝나는 시각이 지나면 저절로 꺼집니다</b>(최대 {SCN_MAX_HOURS}시간). 끄면 다시 실시간입니다. 다른 계정은 지금처럼 실시간이고, 그 시연 계정의 같은 질문은 특보가 발효 중이어도 24시간 동안 이전 답을 다시 씁니다.
+        <b>끝나는 시각이 지나면 저절로 꺼집니다</b>(최대 {SCN_MAX_HOURS}시간). 끄면 다시 실시간입니다. 다른 계정은 지금처럼 실시간이고, 받은 답을 다시 쓰는지는 위 「시연 모드」만 정합니다.
         <br />
         계정 화면에는 1~2분 안에 반영됩니다.
       </p>

@@ -5,6 +5,7 @@ import { briefingDefaults } from "@/lib/briefingSet";
 import { briefRequest } from "@/lib/library";
 import { errText, requireOperator, t3qHealth } from "@/lib/server/admin";
 import { audit, ensureSchema } from "@/lib/server/db";
+import { demoGet, demoLive } from "@/lib/server/demoMode";
 import { submitJob, type Job } from "@/lib/server/jobs";
 import { fail, json } from "@/lib/server/who";
 import { PILOT_T3Q } from "@/lib/t3q/region";
@@ -14,7 +15,7 @@ export const maxDuration = 60;
 
 const Body = z.object({
   regions: z.array(z.enum(["busan", "inje", "yeongcheon"])).min(1).max(3).optional(),
-  /** 24시간 캐시를 무시하고 새로 질의 */
+  /** 받아 둔 답을 무시하고 새로 질의 */
   force: z.boolean().optional(),
 });
 /** 함수 시간 한도(60초) 안에 끝내기 위한 접수 예산 — 넘으면 남은 문항은 SKIPPED (다시 실행하면 이어서 접수) */
@@ -30,7 +31,8 @@ const pick = (j: Job): WarmJob => ({
  * 부산·인제·영천 × 기본 브리핑 세트(lib/briefingSet 기본 항목 가운데 체크된 것 — 개발서버 ai_briefing_item is_default)를 그 지역 담당자 계정 명의로 접수한다(source BRIEFING).
  * 화면 [브리핑 시작]과 같게 질의문 그대로 · 문항 없음 · query_context 는 기준지역만(재난유형 없음).
  * 동시성(계정 4·전체 8)은 submitJob 이 맡는다 — 한도를 넘는 문항은 QUEUED 로 남고, 상태 조회 때 차례로 제출된다.
- * 경쟁 없이 슬롯을 세도록 한 건씩 차례로 접수한다. 완료된 답은 24시간 동안 같은 질문에 캐시로 즉시 쓰인다.
+ * 경쟁 없이 슬롯을 세도록 한 건씩 차례로 접수한다. 완료된 답은 시연 모드를 켠 동안 12시간까지 같은 질문에 즉시 쓰인다(R52).
+ * 시연 모드가 꺼져 있으면 받은 답을 다시 쓰지 않으므로(RAG 검증 — 늘 실시간) 예열하지 않는다(409).
  */
 export async function POST(req: Request) {
   const g = await requireOperator(req);
@@ -39,6 +41,7 @@ export async function POST(req: Request) {
   if (!b.success) return fail(400, "요청 형식이 맞지 않습니다.");
   const regions = WARM_REGIONS.filter((r) => !b.data.regions || b.data.regions.includes(r));
   const force = !!b.data.force;
+  if (!demoLive(await demoGet())) return fail(409, "시연 모드가 꺼져 있어 예열하지 않았습니다. 꺼져 있으면 받은 답을 다시 쓰지 않고 늘 새로 묻습니다. 시연 모드를 먼저 켜세요.");
   const health = await t3qHealth();
   if (!health.ok) return fail(503, `T3Q 연결 상태가 정상이 아니어서 예열하지 않았습니다. (${health.detail ?? "상태 확인 실패"})`);
 

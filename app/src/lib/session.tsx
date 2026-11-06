@@ -161,26 +161,6 @@ const condFor = (acc: Account): Cond => {
   const base = defaultBase(acc);
   return { base, region: basePilot(base) };
 };
-/** AI 모드 켜짐 저장 열쇠 — 계정별(R47) */
-export const aimKey = (accountId?: string | null) => `sa.aim.${accountId ?? "-"}`;
-const LS = {
-  get<T>(k: string, d: T): T {
-    try {
-      const v = localStorage.getItem(k);
-      return v ? (JSON.parse(v) as T) : d;
-    } catch {
-      return d;
-    }
-  },
-  set(k: string, v: unknown) {
-    try {
-      localStorage.setItem(k, JSON.stringify(v));
-    } catch {
-      /* 저장 불가 환경에서도 화면은 동작 */
-    }
-  },
-};
-
 export function SessionProvider({ children }: { children: React.ReactNode }) {
   const [ready, setReady] = useState(false);
   const [account, setAccount] = useState<Account | null>(null);
@@ -212,17 +192,17 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   accountRef.current = account;
   const aimOnRef = useRef(aimOn);
   aimOnRef.current = aimOn;
-  /** 진행 중인 AI 모드 점검 취소(아래 cancel — 선언 순서 때문에 ref 로) */
-  const cancelRef = useRef<(jobId: string) => Promise<void>>(async () => {});
 
   const toast = useCallback((m: string) => {
     setToast(m);
     window.setTimeout(() => setToast(null), 2600);
   }, []);
 
-  /** AI 모드 켜짐은 계정별로 저장한다(R47 — 사용자별 독립: 같은 브라우저에서 다른 계정으로 로그인해도 이어지지 않음) */
+  /**
+   * AI 모드 켜짐은 이 화면의 것 — 사람마다 따로 켠다(R47). 적어 두지 않아 새로 고치면 꺼진 채로 시작한다(개발서버 useAiMode, R52).
+   * 점검은 서버(lib/server/aiMode)가 지역·사람 단위로 돌고, 화면은 켜 둔 동안 그 결과를 읽는다
+   */
   const setAimOn = useCallback((v: boolean) => {
-    LS.set(aimKey(accountRef.current?.id), v);
     aimOnRef.current = v;
     setAimOnS(v);
     if (v) setWxRef(null);
@@ -234,7 +214,6 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       .then((r) => {
         setAccount(r.account);
         setCondS(condFor(r.account));
-        setAimOnS(LS.get<boolean>(aimKey(r.account.id), false));
       })
       .catch(() => setAccount(null))
       .finally(() => setReady(true));
@@ -248,7 +227,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     setAccount(r.account);
     setExpired(false);
     setCondS(condFor(r.account));
-    setAimOnS(LS.get<boolean>(aimKey(r.account.id), false));
+    setAimOnS(false);
   }, []);
 
   const logout = useCallback(async () => {
@@ -339,12 +318,10 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     if (sendingRef.current > 0 || Object.values(jobsRef.current).some(locksBase)) return false;
     setCondS((p) => ({ ...p, base: b, region: basePilot(b) }));
     setWxRef(null);
-    // R47 — 기준지역을 바꾸면 AI 모드를 끝낸다(새 지역으로 따라가지 않음 — 다시 켜서 쓴다). 진행 중인 점검도 함께 취소(아무도 보지 않을 점검이 계정 동시 한도를 차지하지 않게)
+    // R47 — 기준지역을 바꾸면 AI 모드를 끝낸다(새 지역으로 따라가지 않음 — 다시 켜서 쓴다). 서버 점검은 사람 화면과 무관하게 끝까지 돌고 기록만 남는다(개발서버와 같음 — R52)
     if (aimOnRef.current) {
-      LS.set(aimKey(accountRef.current?.id), false);
       aimOnRef.current = false;
       setAimOnS(false);
-      for (const j of Object.values(jobsRef.current)) if (j.source === "AI_MODE" && isActive(j.state)) cancelRef.current(j.id).catch(() => {});
     }
     return true;
   }, []);
@@ -520,8 +497,6 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
         if (a.revealMs && a.pinId && r.job.cached_from && r.job.state === "DONE") await new Promise((ok) => setTimeout(ok, a.revealMs));
         putJob(r.job);
         if (r.job.state === "QUEUED") void openStream(r.job.id);
-        // 접수를 기다리는 사이 AI 모드가 꺼졌으면(기준지역 변경 · AI 모드 종료) 그 점검은 아무도 보지 않는다 — 진행 중이면 취소(R47)
-        if (a.source === "AI_MODE" && !aimOnRef.current && isActive(r.job.state)) cancelRef.current(r.job.id).catch(() => {});
         return r.job;
       } finally {
         if (lock) {
@@ -540,7 +515,6 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     },
     [putJob],
   );
-  cancelRef.current = cancel;
 
   const fullRef = useRef(full);
   fullRef.current = full;

@@ -173,20 +173,6 @@
 .aim-card.calm { background: var(--c-sec-sub); }
 .aim-ai { margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(0, 0, 0, 0.08); max-height: 46vh; overflow-y: auto; }
 .pager { display: inline-flex; align-items: center; gap: 6px; }
-/* AI 모드 접힘 띠 — 대응절차 줄 아래 내용 맨 위(아래 내용을 밀어 내림). 점 색 = 머리줄 AI 모드 단추 */
-.aim-bar-wrap { flex: none; padding: 10px 24px 2px; background: var(--c-bg); }
-.aim-bar { display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 8px 10px 8px 22px; border-radius: 999px; background: var(--c-navy-2); color: #fff; box-shadow: var(--shadow-1); }
-.aim-bar .aim-dot { flex: none; width: 10px; height: 10px; border-radius: 50%; background: #8a949e; }
-.aim-bar .aim-dot.st-red { background: #ff6b5b; box-shadow: 0 0 0 4px rgba(255, 107, 91, 0.3); animation: blink 1.4s infinite; }
-.aim-bar .aim-dot.st-yellow { background: #fdb022; box-shadow: 0 0 0 4px rgba(253, 176, 34, 0.3); }
-.aim-bar .aim-dot.st-green { background: #3ddc84; box-shadow: 0 0 0 4px rgba(61, 220, 132, 0.25); }
-.aim-bar .aim-w { min-width: 0; font-size: var(--fs-s); }
-.aim-bar .aim-t { flex: none; font-size: var(--fs-xs); color: rgba(255, 255, 255, 0.72); }
-.aim-bar .aim-open { flex: none; height: 36px; padding: 0 16px; border: 1px solid rgba(255, 255, 255, 0.55); border-radius: var(--r-l); background: transparent; color: #fff; font-size: var(--fs-xs); font-weight: 700; cursor: pointer; }
-.aim-bar .aim-open:hover { background: rgba(255, 255, 255, 0.12); }
-.aim-bar .aim-open:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
-@media (max-width: 760px) { .aim-bar { flex-wrap: wrap; border-radius: var(--r-xl); } .aim-bar .aim-t { flex: 1 1 100%; } }
-@media (prefers-reduced-motion: reduce) { .aim-bar .aim-dot.st-red { animation: none; } }
 
 /* 질문 모음 */
 .ex-main ~ .drawer, .explore .drawer { position: fixed; right: 0; top: 0; bottom: 0; width: min(560px, 96vw); background: #fff; z-index: 95; box-shadow: var(--shadow-2); display: flex; flex-direction: column; }

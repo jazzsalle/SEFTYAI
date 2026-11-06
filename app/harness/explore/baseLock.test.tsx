@@ -37,6 +37,8 @@ const srv = vi.hoisted(() => ({
   wx: null as unknown,
   /** POST /api/agent/jobs/{id}/cancel 받은 작업 */
   cancels: [] as string[],
+  /** AI 모드 점검 부름(/api/ai-mode·/api/ai-mode/check) */
+  aim: [] as { path: string; base?: unknown }[],
 }));
 const job = (id: string, source: JobSource, state: JobState): JobSummary => ({
   id, account_id: ACC.id, conv_id: null, turn_no: null, source, library_id: null, question_user: "q", question_sent: "q", state, t3q_status: null, http_status: null,
@@ -49,6 +51,7 @@ beforeEach(() => {
   srv.post = null;
   srv.wx = WX;
   srv.cancels = [];
+  srv.aim = [];
   vi.stubGlobal("fetch", async (path: string, init?: { method?: string; body?: string }) => {
     const u = String(path);
     if (u === "/api/auth/me") return reply({ account: ACC });
@@ -58,6 +61,10 @@ beforeEach(() => {
     if (u === "/api/checks") return reply({});
     if (u.startsWith("/api/regions")) return reply({ items: [{ code: "26", name: "부산광역시" }, { code: "11", name: "서울특별시" }] });
     if (u.startsWith("/api/agent/jobs?")) return reply({ jobs: srv.jobs, medianMs: null });
+    if (u.startsWith("/api/ai-mode")) {
+      srv.aim.push({ path: u.split("?")[0], ...(init?.body ? { base: JSON.parse(init.body).base } : {}) });
+      return reply({ supported: true, managed: false, running: true, view: null });
+    }
     if (u === "/api/agent/jobs" && init?.method === "POST") return reply(await srv.post!(JSON.parse(init.body ?? "{}")));
     const cx = u.match(/^\/api\/agent\/jobs\/([^/?]+)\/cancel$/);
     if (cx && init?.method === "POST") {
@@ -78,7 +85,7 @@ beforeEach(() => {
   nav.pushed = [];
   localStorage.clear();
 });
-vi.mock("@/lib/briefing", async (orig) => ({ ...(await orig<typeof import("@/lib/briefing")>()), useBriefItems: () => [] }));
+vi.mock("@/lib/briefing", async (orig) => ({ ...(await orig<typeof import("@/lib/briefing")>()), useBriefItems: () => [], useBriefingSet: () => ({ items: [], checked: [], loaded: true }) }));
 
 import { SessionProvider, useSession } from "@/lib/session";
 import BasePicker from "@/components/BasePicker";
@@ -180,13 +187,12 @@ describe("SessionProvider — 기준지역 잠금(실제 session 코드)", () =>
   });
 });
 
-// ── 기준지역을 바꾸면 AI 모드가 꺼진다(R47) — 진행 중 점검 취소 · 새 지역 점검 없음 · 늦게 돌아온 점검도 취소 · 계정별 켜짐 ──
-type Sent = { source: string; aiMode?: { trigger: string }; condition?: { base?: { name?: string } | null } };
+// ── 기준지역을 바꾸면 AI 모드가 꺼진다(R47) — 새 지역 점검 없음 · 켜짐은 적어 두지 않음(R52 — 개발서버 useAiMode: 새로 고치면 꺼진 채로) ──
 /** 머리줄(AppShell)처럼 AI 모드가 켜져 있을 때만 창을 그린다 */
 const renderAim = async () => {
   const AiModeModal = (await import("@/components/explore/AiModeModal")).default;
   function AimHost() {
-    return useSession().aimOn ? <AiModeModal /> : null;
+    return useSession().aimOn ? <AiModeModal open onClose={() => {}} /> : null;
   }
   render(
     <SessionProvider>
@@ -199,62 +205,32 @@ const renderAim = async () => {
   await waitFor(() => expect(S.weather).not.toBeNull());
 };
 
-describe("기준지역을 바꾸면 AI 모드가 꺼진다(R47)", () => {
-  it("진행 중인 점검은 취소되고 새 지역 점검은 나가지 않는다 — 창이 닫히고 켜짐 저장도 꺼짐", async () => {
-    const sent: Sent[] = [];
-    srv.post = async (b) => {
-      sent.push(b as never);
-      const j = job(`a${sent.length}`, "AI_MODE", "RUNNING");
-      srv.jobs = [...(srv.jobs as JobSummary[]), j];
-      return { job: j };
-    };
+describe("기준지역을 바꾸면 AI 모드가 꺼진다(R47 · R52)", () => {
+  it("점검이 도는 동안에도 바꿀 수 있고, 바꾸면 창이 닫히고 새 지역으로 점검하지 않는다", async () => {
     await renderAim();
     act(() => S.setAimOn(true));
-    await waitFor(() => expect(sent).toHaveLength(1));
-    expect(sent[0].aiMode?.trigger).toBe("START");
-    expect(sent[0].condition?.base?.name).toBe("부산광역시");
-    await waitFor(() => expect(document.querySelector(".modal.aim")!.textContent).toContain("점검 중"));
-    expect(localStorage.getItem(`sa.aim.${ACC.id}`)).toBe("true");
-    // 점검이 도는 동안에도 바꿀 수 있고(R44), 바꾸면 AI 모드가 꺼진다
-    expect(S.asking).toBe(false);
+    await waitFor(() => expect(srv.aim).toHaveLength(1));
+    expect(srv.aim[0]).toEqual({ path: "/api/ai-mode/check", base: { code: "26", name: "부산광역시", level: "SIDO" } });
+    await waitFor(() => expect(document.querySelector(".modal.aim")!.textContent).toContain("상황을 확인하는 중"));
+    expect(S.asking).toBe(false); // AI 모드 점검은 기준지역을 잠그지 않는다(R44)
     act(() => {
       expect(S.setBase(SEOUL)).toBe(true);
     });
     expect(S.aimOn).toBe(false);
-    expect(localStorage.getItem(`sa.aim.${ACC.id}`)).toBe("false");
-    await waitFor(() => expect(srv.cancels).toEqual(["a1"]));
     await waitFor(() => expect(document.querySelector(".modal.aim")).toBeNull());
-    // 새 지역(서울특별시)으로 다시 점검하지 않는다
-    await new Promise((r) => setTimeout(r, 1800));
-    expect(sent).toHaveLength(1);
+    await new Promise((r) => setTimeout(r, 300));
+    expect(srv.aim).toHaveLength(1);
   });
 
-  it("점검 접수를 기다리는 사이 바꾸면 — 늦게 돌아온 점검(진행 중)도 취소", async () => {
-    const pend = deferred<unknown>();
-    srv.post = () => pend.promise;
-    await renderAim();
-    act(() => S.setAimOn(true));
-    await act(async () => {});
-    act(() => {
-      expect(S.setBase(SEOUL)).toBe(true);
-    });
-    expect(S.aimOn).toBe(false);
-    await act(async () => {
-      pend.resolve({ job: job("late", "AI_MODE", "RUNNING") });
-      await pend.promise;
-    });
-    await waitFor(() => expect(srv.cancels).toEqual(["late"]));
-  });
-
-  it("AI 모드 켜짐은 계정별로 저장 — 같은 브라우저의 다른 계정 값은 이어지지 않는다", async () => {
-    localStorage.setItem("sa.aim.inje", "true");
-    localStorage.setItem("sa.aim", "true"); // 예전 판(브라우저 하나에 저장)의 값도 읽지 않는다
-    await mount();
-    expect(S.aimOn).toBe(false);
-    cleanup();
+  it("AI 모드 켜짐은 적어 두지 않는다 — 다시 들어오면 꺼진 채(예전 판이 남긴 값도 읽지 않음)", async () => {
     localStorage.setItem(`sa.aim.${ACC.id}`, "true");
     await mount();
-    expect(S.aimOn).toBe(true);
+    expect(S.aimOn).toBe(false);
+    act(() => S.setAimOn(true));
+    expect(localStorage.getItem(`sa.aim.${ACC.id}`)).toBe("true"); // 건드리지 않는다
+    cleanup();
+    await mount();
+    expect(S.aimOn).toBe(false);
   });
 });
 

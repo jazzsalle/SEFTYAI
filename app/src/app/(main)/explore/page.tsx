@@ -4,7 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useSession, uid, type Conversation, type SubmitArgs, type Turn } from "@/lib/session";
 import { useSop } from "@/lib/sopState";
 import { useBriefingSet } from "@/lib/briefing";
-import { briefRequest, DEMO_SHOW, demoAsk, fillText, presetLines, presetManual, type DemoItem, type LibraryQuestion, type ShowItem } from "@/lib/library";
+import { briefRequest, DAY_ITEMS, DEMO_SHOW, demoAsk, fillText, presetLines, presetManual, type DemoItem, type LibraryQuestion, type ShowItem } from "@/lib/library";
 import { REGIONS } from "@/lib/config";
 import { api } from "@/lib/api";
 import type { Citation } from "@/lib/contract/agent";
@@ -273,10 +273,10 @@ function Explore() {
     ask({ question: q.replaceAll("{지역}", regionName), source: "BRIEFING", warnings: s.aimOn ? liveWarnings() : null, ...showPin(q, 0) }, undefined, true).catch(toastErr);
   /**
    * 브리핑 항목 글이 질문 모음 「시연」 질문과 같으면 그 항목의 고정 답을 쓴다 — 받아 둔 답을 몇 초 뒤 차례로 보인다(사용자 지시 2026-11-02).
-   * 받아 둔 답이 없으면 새로 받아 고정한다
+   * 「한눈 요약 질의」 항목도 찾는다(개발서버 useBriefing storedAnswer — 질문 글로 받아 둔 답을 찾음). 받아 둔 답은 시연 모드일 때만 쓰고, 아니면 실시간(서버 판단 — R52)
    */
   const showPin = (q: string, i: number) => {
-    const d = DEMO_SHOW.find((x) => x.text === q.trim());
+    const d = DEMO_SHOW.find((x) => x.text === q.trim()) ?? DAY_ITEMS.find((x) => x.text === q.trim());
     return d ? { pinId: d.id, revealMs: 3000 + i * 1500 } : {};
   };
   /** 질문 모음 「한눈 요약 질의」(받아 둔 답이 없을 때) — 질문 모음 질문과 같은 경로(자동 조회 먼저), 항목의 조건 프리셋은 이 질문에만 싣는다(세션 조건 그대로) */
