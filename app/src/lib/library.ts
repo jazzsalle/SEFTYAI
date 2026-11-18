@@ -17,7 +17,7 @@ export interface LibraryQuestion {
   /** T3Q 빠른질의 — QQ-03 = 행동매뉴얼 대응절차(T3Q-28) */
   quickQueryId?: string;
   /** 이 질문을 쓸 수 있는 지역(없으면 공통) */
-  regions?: ("busan" | "inje" | "yeongcheon")[];
+  regions?: ("busan" | "inje" | "yeongcheon" | "daejeon")[];
   template?: string;
 }
 
@@ -150,7 +150,8 @@ export function presetLines(p: CondPreset): string[] {
   return out;
 }
 
-export type PilotRegion = "busan" | "inje" | "yeongcheon";
+/** 질문 묶음 지역 — 시범 3곳 + 대전(2026-11-19 대전시청 시연용 한눈 요약 질의, 기준지역 대전광역시 30) */
+export type PilotRegion = "busan" | "inje" | "yeongcheon" | "daejeon";
 
 /**
  * 질문 모음 묶음 항목(「시연」·「한눈 요약 질의」) — 질문 글은 개발서버(DemoPinSeed · dayScript) 글자 그대로({지역} 자리 없음).
@@ -272,6 +273,13 @@ const DAY_ROWS: DayRow[] = [
   ["DD-IJ-04", "inje", "S1", "복구", "과거 피해 이력", "진동리 과거 호우·태풍 피해", "인제군 기린면 진동리(설피골천·진동계곡 일원)에서 과거 호우·태풍 때 난 공공시설·산사태 피해를 연도별로 피해 내용·피해액과 함께 보여줘.", { disasterType: "호우" }, true],
   ["DD-IJ-05", "inje", "S2", "복구", "특보·문자", "2020년 9월 태풍 때 특보·문자", "2020년 9월 1일~7일 태풍 마이삭·하이선 때 인제군에 발령된 홍수특보·기상특보와 통제·대피 안내 긴급재난문자를 시간순으로 보여줘.", { disasterType: "태풍", periodFrom: "2020-09-01", periodTo: "2020-09-07" }, true],
   ["DD-IJ-07-R", "inje", "S3", "복구", "과거 피해 이력", "2020년 9월 태풍 피해액·복구비 합계와 근거 쪽", "2020년 9월 1일~7일 태풍 마이삭·하이선(T10105-20200901-0001) 때 인제군 공공시설 피해액·복구비 합계와 근거 문서 이름·쪽을 알려줘.", { disasterType: "태풍" }, true],
+  // ── 대전 — 하천 침수(2026-11-19 대전시청 시연, 사용자가 준 질문 원문 그대로 · 기준지역 대전광역시) ──
+  ["IG-DJ-01", "daejeon", "1", "특보", "침수 이력", "하천 산책로·하상도로 주변", "대전 갑천·유등천·대전천 하천 산책로·하상도로 주변의 침수 위험 지역은?", {}],
+  ["IG-DJ-02", "daejeon", "2", "특보", "통제·대피 대상", "갑천 대응수위", "갑천 주변 홍수취약지구와 특보지점, 대응수위를 알려줘.", {}],
+  ["IG-DJ-03", "daejeon", "3", "복구", "특보·문자", "2024년 7월 10일 호우 — 대피·통제 문자", "2024년 7월 10일 대전 호우 때 대전에 보낸 긴급재난문자 가운데 대피·통제 안내를 시간순으로 보여주고, 그 호우가 재해연보 몇 쪽에 실렸는지도 알려줘.", { disasterType: "호우", periodFrom: "2024-07-10", periodTo: "2024-07-10" }, true],
+  ["IG-DJ-04", "daejeon", "4", "복구", "과거 피해 이력", "정림동 과거 침수사례 및 유사사례", "대전광역시 서구 정림동에서 과거 집중호우로 발생한 침수 사례를 찾아줘. 당시 피해 규모와 침수 원인을 알려주고, 관련 위치와 주변 위험·취약지역을 지도에 표시해줘.", { disasterType: "호우" }, true],
+  ["IG-DJ-05", "daejeon", "5", "복구", "과거 피해 이력", "용촌동 마을 침수 위험지역·피해이력", "2024년 7월 집중호우 당시 대전 서구 용촌동 정방마을 일대에서 발생한 침수 피해와 관련 사례를 찾아줘. 주변 하천 및 자연재해 위험지역 정보도 지도에서 함께 보여줘.", { disasterType: "호우" }, true],
+  ["IG-DJ-06", "daejeon", "6", "평시", "계획·정비", "유등천·유등교 하천기본계획 활용", "대전 유등천의 하천기본계획에서 계획홍수위와 제방고 정보를 확인해줘. 정비가 필요한 구간이나 시설물이 있다면 지도에 표시하고, 관련 과거 호우 피해 사례도 함께 알려줘.", {}],
   ["YC-02", "yeongcheon", "S1", "복구", "과거 피해 이력", "과거 호우 피해 큰 사례", "영천시에서 과거 호우로 피해가 컸던 사례는?", { disasterType: "호우" }, true],
   ["DD-YC-04", "yeongcheon", "S2", "복구", "과거 피해 이력", "힌남노 때 북안면 피해·복구", "2022년 태풍 힌남노 때 영천시 북안면 공공시설 피해·복구 항목을 시설유형별로 정리하고, 당리 대평지와 명주리 북안명주 지구 일대에 피해가 있었는지도 알려줘.", { disasterType: "태풍" }, true],
   ["DD-YC-05", "yeongcheon", "S3", "복구", "특보·문자", "힌남노 때 홍수특보·문자", "2022년 태풍 힌남노 때 영천시에 내려진 홍수특보와 긴급재난문자를 시간순으로 보여줘.", { disasterType: "태풍" }, true],
@@ -282,7 +290,7 @@ export const DAY_ITEMS: DayItem[] = DAY_ROWS.map(([id, region, scene, stage, cat
   ...(cond.disasterType ? { disasterTypes: [cond.disasterType] } : {}),
   ...(similar ? { similar, preview: ["SIMILAR_EVENT"] as PreviewApi[] } : {}),
 }));
-/** 그 지역의 한눈 요약 질의(시범 지역이 아니면 빈 목록) */
+/** 그 지역의 한눈 요약 질의(시범 지역·대전이 아니면 빈 목록) */
 export const dayItemsFor = (region: string) => DAY_ITEMS.filter((d) => d.regions[0] === region);
 
 /** 묶음 항목을 보낼 모양 — 질문 모음 「시연」·「한눈 요약 질의」. 출처는 질문 모음과 같다(QUICK — 개발서버 askDay·DemoPinService, 전 LIBRARY → T3Q SUGGEST) */

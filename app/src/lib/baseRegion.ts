@@ -99,3 +99,8 @@ export function parseBaseWire(v: unknown): BaseWire | null {
 
 /** 기준지역 → T3Q region(계약 common.py:79-96) — 코드를 10자리로 채운다 */
 export const baseToT3q = (w: BaseWire): T3qRegion => ({ admin_code: w.code.padEnd(10, "0"), level: w.level, name: w.name });
+
+/** 한눈 요약 질의 묶음 지역 — 시범 지역(baseQuestionPilot)에 더해 대전광역시(30) 아래면 daejeon(2026-11-19 대전시청 시연) */
+export function baseDayRegion(b: BaseRegion | null | undefined): string {
+  return baseKey(b).startsWith("30") ? "daejeon" : baseQuestionPilot(b);
+}

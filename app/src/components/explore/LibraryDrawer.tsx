@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { api } from "@/lib/api";
 import { demoAsk, dayItemsFor, fillText, libraryFor, type DayItem, type DemoItem, type LibraryQuestion, type Stage } from "@/lib/library";
-import { baseQuestionPilot } from "@/lib/baseRegion";
+import { baseDayRegion, baseQuestionPilot } from "@/lib/baseRegion";
 import { useSession } from "@/lib/session";
 
 /**
@@ -45,7 +45,9 @@ export default function LibraryDrawer({ regionName, busy = false, onClose, onAsk
   };
   // 시·도까지만 골라도 인제·영천 질문(R48 — lib/baseRegion baseQuestionPilot)
   const qr = baseQuestionPilot(s.cond.base);
-  const day = useMemo(() => dayItemsFor(qr), [qr]);
+  // 한눈 요약 질의는 대전도(lib/baseRegion baseDayRegion)
+  const dr = baseDayRegion(s.cond.base);
+  const day = useMemo(() => dayItemsFor(dr), [dr]);
   const list = useMemo(() => libraryFor(qr === "national" ? "" : qr), [qr]);
   // 받아 둔 답 상태 — 「한눈 요약 질의」를 열었을 때만, 5초마다(한 건이 40초~2분이라 끝나는 때를 알 길이 이것뿐)
   const [pins, setPins] = useState<Record<string, Pin>>({});

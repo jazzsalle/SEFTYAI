@@ -70,12 +70,14 @@ export interface DemoStep {
   play?: string
 }
 
-export type DemoRegion = "busan" | "inje"
+export type DemoRegion = "busan" | "inje" | "daejeon"
 
 /** 장면의 기준지역 — 개발서버 DemoRegions(부산광역시 2600000000 · 인제군 5181000000)를 우리 기준지역(브이월드 이름·코드)으로 */
 export const DemoRegions: Record<DemoRegion, BaseRegion> = {
   busan: { sido: { code: "26", name: "부산광역시" } },
   inje: { sido: { code: "51", name: "강원특별자치도" }, sigungu: { code: "51810", name: "인제군" } },
+  /** 2026-11-19 대전시청 시연 — 대전광역시(시·도) */
+  daejeon: { sido: { code: "30", name: "대전광역시" } },
 }
 
 export interface AutoScene {
