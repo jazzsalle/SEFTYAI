@@ -431,7 +431,7 @@ export const AutoScript: AutoScene[] = [
     intro: "주의보가 내려지면 담당자는 지금 상황을 한 번에 정리해 봅니다.",
     steps: [
       // 채팅창의 [브리핑 세트]보다 AI 모드 창의 [브리핑 시작]으로 건다(사용자 지시 2026-11-04).
-      { click: { sel: UI.aiButton, text: "AI" }, waitFor: AimBriefGo, say: "AI 모드 창을 열어" },
+      { click: { sel: UI.aiButton, text: "AI" }, waitFor: AimBriefGo, focus: ["aimode"], say: "AI 모드 창을 열어" },
       { scroll: { sel: AimBrief }, focus: [{ sel: AimBrief }], say: "현재 상황 브리핑을 시작합니다." },
       {
         click: { sel: AimBriefGo },
@@ -467,7 +467,15 @@ export const AutoScript: AutoScene[] = [
         focus: ["panel"],
         say: "특히 위험등급이 좋지 않은 급경사지는 과거 점검에서 어떤 문제가 있었는지도 중요합니다.",
       },
-      { click: { sel: `${Panel} .sm-link` }, focus: ["panel"], say: "위치와 점검 이력을 함께 확인해 현장 점검의 우선순위를 검토합니다." },
+      // 한눈 요약 표의 이름을 누르면 상세 탭은 생기되 보이는 것은 지도다(개발서버 openEntity) — 탭을 눌러 점검 기록까지 보인다(11/19 녹화 검수)
+      { click: { sel: `${Panel} .sm-link` }, remember: true, focus: ["panel"], say: "이름을 누르면 지도에서 위치를 보여 주고,", wait: 400 },
+      { click: { sel: Tab, text: "$picked" }, wait: 700 },
+      {
+        scroll: { sel: DetailRecord },
+        focus: [{ sel: DetailRecord }],
+        orElse: [{ scroll: { sel: DetailKv }, focus: [{ sel: DetailKv }] }],
+        say: "상세에서는 점검 이력까지 함께 확인해 현장 점검의 우선순위를 검토합니다.",
+      },
       {
         scroll: { sel: Body },
         focus: [{ sel: BodyBox }],
@@ -744,10 +752,10 @@ export const AutoScript: AutoScene[] = [
         say: "침수면적이 넓은 지구부터 침수면적과 평균 침수심, 발생일을 함께 정리해 줍니다. 가장 넓게 잠긴 곳은 침산새들지구입니다.",
       },
       {
+        // 가장 큰 묶음을 누르면 산속 침수흔적 둘로 깊게 당겨져 하천이 안 보였다(11/19 녹화 검수) — 대전 전체 화면 그대로
         open: "map",
-        click: { sel: MapCluster, largest: true, visible: true },
         focus: ["panel"],
-        say: "지도에는 침수흔적이 실제로 잠겼던 범위 그대로 그려져, 하천과 얼마나 가까운지 바로 보입니다.",
+        say: "지도에는 침수흔적이 실제로 잠겼던 범위 그대로 그려져, 하천을 따라 어디에 몰려 있는지 바로 보입니다.",
         wait: 800,
       },
     ],
@@ -807,7 +815,7 @@ export const AutoScript: AutoScene[] = [
         click: { sel: `${Panel} .sm-map-toggle`, text: "요약 보기" },
         focus: ["panel"],
         wait: 1500,
-        say: "요약 보기로 바꾸면 하천 주변 침수 위험지역과 지하차도가 자치구별로 몇 곳인지 색의 진하기로 한눈에 비교할 수 있습니다.",
+        say: "요약 보기로 바꾸면 하천 주변 침수 위험지역과 지하차도가 자치구별로 몇 곳인지 한눈에 비교할 수 있습니다.",
       },
       { silentClick: { sel: `${Panel} .sm-map-toggle`, text: "지도 보기" }, wait: 300 },
       { click: { sel: Entity, text: "정림" }, wait: 600 },
@@ -909,7 +917,7 @@ export const DemoScenarios: DemoScenario[] = [
     id: "busan-daejeon",
     name: "부산 + 대전",
     desc: "부산에서 AI 모드 특보 감지·브리핑 → 점검 우선순위 → 대응절차, 이어서 대전 과거 침수사례 → 위험·취약정보 → 하천계획·시설",
-    minutes: "약 7~9분",
+    minutes: "약 9분",
     scenes: [...BusanAim, ...Daejeon, "마무리"],
     text: {
       마무리: {
@@ -928,7 +936,7 @@ DemoScenarios.push({
   id: "busan-inje-daejeon",
   name: "부산 + 인제 + 대전",
   desc: "부산에서 AI 모드 특보 감지·브리핑 → 점검 우선순위 → 대응절차, 이어서 인제 계곡 숙박·야영장, 대전 과거 침수흔적 → 하천 주변 위험지역",
-  minutes: "약 10~12분",
+  minutes: "약 11분",
   scenes: [...BusanAim, "전환 · 인제군", "인제 · 진동리 계곡 숙박·야영장 주변", ...Daejeon, "마무리"],
   text: {
     "전환 · 인제군": {

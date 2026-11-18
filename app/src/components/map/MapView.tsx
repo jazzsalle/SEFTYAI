@@ -491,7 +491,7 @@ interface Api {
   restyle(): void;
   focus(duration: number): void;
   toRegion(): void;
-  toBase(code: string): void;
+  toBase(code: string, onlyIfEmpty?: boolean): void;
   /** 거르기가 바뀜 → 다시 그리고 그 범위로 맞춤 */
   applyFilter(): void;
   /** 말풍선 자리 다시 잡기 (닫기·다시 열기) */
@@ -925,11 +925,14 @@ export default function MapView(p: Props) {
      * 우리 경계는 WMS 타일이라 모양이 없어, 요약 보기가 쓰는 시·군·구 경계(/api/map/sigungu)를 받아 범위를 잡는다.
      * 먼 섬 조각(가장 큰 덩어리의 5% 미만)은 범위에서 뺀다. 못 받으면 시범 지역 중심(toRegion)으로.
      */
-    const toBase = (code: string) => {
+    const toBase = (code: string, onlyIfEmpty = false) => {
       const sido = code.slice(0, 2);
       if (!/^\d{2}$/.test(sido)) return toRegion();
       void sigunguShapes(sido).then((list) => {
         if (propsRef.current.baseCode !== code) return;
+        // 위치 없는 답이라 경계로 돌아가려던 참에 그 답의 대상이 그려졌으면 그대로 둔다
+        const P = propsRef.current;
+        if (onlyIfEmpty && P.features.some((f) => f.jobId === P.activeJobId)) return;
         const pick = code.length >= 5 ? (list ?? []).filter((x) => x.code.startsWith(code.slice(0, 5))) : (list ?? []);
         if (!pick.length) return toRegion();
         const fmt = new GeoJSON();
@@ -1319,6 +1322,19 @@ export default function MapView(p: Props) {
     a.toBase(p.baseCode);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [p.baseCode, ready]);
+
+  // 지금 답에 지도에 그릴 대상이 하나도 없으면 기준지역 경계로 돌아간다 — 앞 답에서 당겨 둔 화면(산속 침수흔적 등)이
+  // 이 답과 상관없이 남아 있었다(11/19 대전 녹화 검수). 답마다 한 번만.
+  const emptySeen = useRef<string | null>(null);
+  useEffect(() => {
+    const a = api.current;
+    const j = p.activeJobId;
+    if (!a || !j || p.resultStatus || !p.baseCode || emptySeen.current === j) return;
+    emptySeen.current = j;
+    if (p.features.some((f) => f.jobId === j)) return;
+    a.toBase(p.baseCode, true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [p.activeJobId, p.resultStatus, ready]);
 
   const selFeature = p.selectedKey ? p.features.find((f) => f.key === p.selectedKey) : undefined;
   const satOn = p.basemap === "Satellite";
