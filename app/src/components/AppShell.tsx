@@ -4,6 +4,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useSession } from "@/lib/session";
 import { IcBell, IcChevR, IcDoc, IcPause, IcPlay } from "./Icons";
+import DemoModePill from "./DemoModePill";
 import { useSopOptional } from "@/lib/sopState";
 import { manualPanel, useManualPanel } from "@/lib/manualPanel";
 import { Toast } from "./krds/Toast";
@@ -240,7 +241,9 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             <Link key={href} href={href} className={path?.startsWith(href) ? "on" : ""}>{label}</Link>
           ))}
           {/* 자동 시연(개발서버 머리 메뉴 [자동 시연] — R54) — 질문 모음을 열지 않고 통합 탐색에서 대본대로 돈다 */}
-          <button type="button" className="gnb-demo" disabled={demo.running || askLocked} onClick={() => (path?.startsWith("/explore") ? window.dispatchEvent(new CustomEvent(AUTODEMO_START_EVENT)) : router.push("/explore?autodemo=1"))}>
+          {/* 시연 모드 — 개발서버처럼 메뉴 끝에 흐린 알약(운영자만 켜고 끔, 다른 계정은 표시만) */}
+          <DemoModePill operator={account.role === "운영자"} />
+          <button type="button" className="demo-mode-btn gnb-demo" disabled={demo.running || askLocked} onClick={() => (path?.startsWith("/explore") ? window.dispatchEvent(new CustomEvent(AUTODEMO_START_EVENT)) : router.push("/explore?autodemo=1"))}>
             자동 시연
           </button>
         </nav>
@@ -263,8 +266,12 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           <i /> {aimOn || demo.aim ? "AI 모드 실행 중" : "AI 모드"}
         </button>
         <div className="user">
-          <button onClick={() => setMenu((m) => !m)} aria-expanded={menu}>
-            {account.org.replace("강원특별자치도 ", "").replace("경상북도 ", "")} · {account.id} ▾
+          <button className="user-trigger" onClick={() => setMenu((m) => !m)} aria-expanded={menu} aria-haspopup="menu" aria-label={`내 정보 — ${account.org} ${account.id}`}>
+            {/* 개발서버 UserMenu — 사람 아이콘 + 소속(회색) · 아이디(남색 굵게), ▾ 없음 */}
+            <PersonIcon />
+            <span className="user-team">{account.org.replace("강원특별자치도 ", "").replace("경상북도 ", "")}</span>
+            <span className="user-sep" aria-hidden="true">·</span>
+            <span className="user-id">{account.id}</span>
           </button>
           {menu && (
             <div className="menu" onMouseLeave={() => setMenu(false)}>
@@ -308,5 +315,15 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       {toastMsg && <Toast message={toastMsg} durationMs={2600} onDone={() => {}} />}
     </div>
     </SopProvider>
+  );
+}
+
+/** 개발서버 UserMenu PersonIcon 그대로 */
+function PersonIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+      <circle cx="8" cy="5" r="2.6" stroke="currentColor" strokeWidth="1.3" fill="none" />
+      <path d="M2.8 14c0-2.7 2.3-4.4 5.2-4.4s5.2 1.7 5.2 4.4" stroke="currentColor" strokeWidth="1.3" fill="none" />
+    </svg>
   );
 }

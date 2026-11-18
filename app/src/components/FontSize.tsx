@@ -17,7 +17,7 @@ export default function FontSize() {
   const [open, setOpen] = useState(false);
   return (
     <>
-      <button className="hbtn" onClick={() => setOpen(true)} aria-haspopup="dialog" aria-label="글자 크기">가 글자 크기</button>
+      <button className="hbtn" onClick={() => setOpen(true)} aria-haspopup="dialog" aria-label="글자 크기"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M2 3h12M8 3v10" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>글자 크기</button>
       {open && <FontSizeModal onClose={() => setOpen(false)} />}
     </>
   );

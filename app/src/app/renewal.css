@@ -11,17 +11,25 @@
 .gnb a { height: 56px; display: inline-flex; align-items: center; padding: 0 12px; font-size: var(--fs-s); font-weight: 600; color: var(--c-sub); border-bottom: 3px solid transparent; }
 .gnb a.on { color: var(--c-navy); border-bottom-color: var(--c-navy); font-weight: 800; }
 .gnb a:hover { color: var(--c-primary-dk); }
-/* 머리 메뉴 끝 [자동 시연](R54 — 개발서버 demo-mode-btn 처럼 흐리게) */
-.gnb .gnb-demo { height: 56px; padding: 0 10px; border: 0; background: none; font-size: var(--fs-xs); font-weight: 600; color: #8a949e; cursor: pointer; white-space: nowrap; }
-.gnb .gnb-demo:hover:not(:disabled) { color: var(--c-primary-dk); }
-.gnb .gnb-demo:disabled { opacity: 0.5; cursor: default; }
+/* 머리 메뉴 끝 「시연 모드」·[자동 시연] — 개발서버 .demo-mode-btn 그대로(흐린 회색 알약, 2026-11-19) */
+.demo-mode-btn { align-self: center; margin-left: 8px; padding: 2px 8px; border: 1px solid #e6e8ea; border-radius: 999px; background: #f4f5f6; color: #b1b8be;
+  font: inherit; font-size: calc(11px * var(--fs-scale, 1)); font-weight: 400; line-height: 1.5; white-space: nowrap; font-variant-numeric: tabular-nums; cursor: pointer; opacity: 0.7; }
+.demo-mode-btn:hover:not(:disabled) { opacity: 1; color: #8a949e; }
+.demo-mode-btn:focus-visible { outline: 2px solid var(--c-primary); outline-offset: 2px; opacity: 1; }
+.demo-mode-btn.is-on { color: #8a949e; }
+.demo-mode-btn:disabled { cursor: default; }
+span.demo-mode-btn { cursor: default; }
 .gh.one .scope { display: flex; align-items: center; gap: 6px; min-width: 0; flex: 0 1 auto; }
 /* 기준지역 고르기 셋(시·도·시·군·구·읍·면·동)이 들어가도 머리줄 한 줄 — 고르기가 먼저 줄어든다 */
 .gh.one .logo, .gh.one .gnb a, .gh.one .scope > span, .gh.one .hbtn, .gh.one .ai-pill, .gh.one .user > button { white-space: nowrap; }
-.gh.one .scope .select.sm { max-width: 170px; min-width: 84px; flex: 0 1 auto; text-overflow: ellipsis; }
+/* 개발서버 .region-select — 높이 32 · 최대 140 · 13px · 테두리 #cdd1d5 · 모서리 6 · 바탕 #fafbfc, 「기준지역」 이름표 12px 회색 */
+.gh.one .scope .select.sm { height: 32px; max-width: 140px; min-width: 84px; flex: 0 1 auto; padding: 0 24px 0 10px; font-size: var(--fs-xs); color: var(--c-text);
+  border: 1px solid #cdd1d5; border-radius: 6px; background-color: #fafbfc; background-position: right 9px center; text-overflow: ellipsis; cursor: pointer; }
+.gh.one .scope .select.sm:hover:not(:disabled) { border-color: #256ef4; }
+.gh.one .scope > .xs.muted { font-size: calc(12px * var(--fs-scale, 1)); color: #6d7882; }
 .gh.one .scope .select.sm:disabled { background-color: var(--c-sec-sub); color: var(--c-sub); cursor: not-allowed; }
 .gh.one .scope-err { display: inline-flex; align-items: center; gap: 6px; color: var(--c-dang-dk); white-space: nowrap; }
-.hbtn { height: 34px; padding: 0 10px; border: 0; background: none; font-size: var(--fs-xs); color: var(--c-sub); border-radius: var(--r-m); }
+.hbtn { display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 10px; border: 0; background: none; font-size: var(--fs-xs); color: var(--c-sub); border-radius: var(--r-m); }
 .hbtn:hover { background: var(--c-sec-sub); }
 .sysbar { flex: none; padding: 6px 24px; background: var(--c-dang-sub); color: var(--c-dang-dk); font-size: var(--fs-xs); font-weight: 600; }
 .dd { position: relative; display: inline-flex; }
