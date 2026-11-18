@@ -241,8 +241,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             <Link key={href} href={href} className={path?.startsWith(href) ? "on" : ""}>{label}</Link>
           ))}
           {/* 자동 시연(개발서버 머리 메뉴 [자동 시연] — R54) — 질문 모음을 열지 않고 통합 탐색에서 대본대로 돈다 */}
-          {/* 시연 모드 — 개발서버처럼 메뉴 끝에 흐린 알약(운영자만 켜고 끔, 다른 계정은 표시만) */}
-          <DemoModePill operator={account.role === "운영자"} />
+          {/* 시연 모드 — 개발서버 DemoModeButton(누구나 켜고 끔, 48시간 뒤 저절로 꺼짐) */}
+          <DemoModePill />
           <button type="button" className="demo-mode-btn gnb-demo" disabled={demo.running || askLocked} onClick={() => (path?.startsWith("/explore") ? window.dispatchEvent(new CustomEvent(AUTODEMO_START_EVENT)) : router.push("/explore?autodemo=1"))}>
             자동 시연
           </button>

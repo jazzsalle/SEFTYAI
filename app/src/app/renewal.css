@@ -18,7 +18,7 @@
 .demo-mode-btn:focus-visible { outline: 2px solid var(--c-primary); outline-offset: 2px; opacity: 1; }
 .demo-mode-btn.is-on { color: #8a949e; }
 .demo-mode-btn:disabled { cursor: default; }
-span.demo-mode-btn { cursor: default; }
+.demo-mode-note { margin: 0; font-size: var(--fs-xs); color: var(--c-sub); }
 .gh.one .scope { display: flex; align-items: center; gap: 6px; min-width: 0; flex: 0 1 auto; }
 /* 기준지역 고르기 셋(시·도·시·군·구·읍·면·동)이 들어가도 머리줄 한 줄 — 고르기가 먼저 줄어든다 */
 .gh.one .logo, .gh.one .gnb a, .gh.one .scope > span, .gh.one .hbtn, .gh.one .ai-pill, .gh.one .user > button { white-space: nowrap; }
