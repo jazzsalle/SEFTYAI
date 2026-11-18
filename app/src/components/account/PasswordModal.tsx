@@ -27,6 +27,29 @@ const PLACEHOLDER: Record<Field, string> = { cur: "현재 비밀번호를 입력
 /** 첫 칸 이름 — 초기 비밀번호를 아직 쓰는 중이면 「초기 비밀번호」(개발서버 PasswordChangePage currentLabel) */
 const curLabel = (forced?: boolean) => (forced ? "초기 비밀번호" : "현재 비밀번호");
 const AUTOCOMPLETE: Record<Field, string> = { cur: "current-password", next: "new-password", confirm: "new-password" };
+/** 변경 완료·통신 실패 토스트(SCR-UNE-101006 ⑭⑮ — 개발서버 PasswordChangePage 글자 그대로, R61) */
+export const PW_DONE_MSG = "비밀번호를 변경했습니다.";
+export const PW_FAIL_MSG = "비밀번호가 변경되지 않았습니다. 잠시 후 다시 시도하세요.";
+
+/** 화면을 새로 띄운 뒤에 띄울 알림 — 첫 로그인 변경은 끝나면 화면을 다시 불러오므로 알림을 넘겨 둔다(개발서버 navigate state.notice) */
+const NOTICE_KEY = "sa-notice";
+function stashNotice(m: string) {
+  try {
+    window.sessionStorage.setItem(NOTICE_KEY, m);
+  } catch {
+    /* 저장소를 못 쓰면 알림만 빠진다 */
+  }
+}
+/** 넘겨 둔 알림을 한 번 꺼낸다(꺼내면 지운다 — 새로고침해도 다시 뜨지 않게) */
+export function takeNotice(): string | null {
+  try {
+    const m = window.sessionStorage.getItem(NOTICE_KEY);
+    if (m !== null) window.sessionStorage.removeItem(NOTICE_KEY);
+    return m;
+  } catch {
+    return null;
+  }
+}
 
 /** forced = 첫 로그인·재설정 후 비밀번호 변경 강제(Figma 101002) — 닫기·취소 없음 */
 export function PasswordModal({ onClose, onDone, forced }: { onClose: () => void; onDone?: () => void; forced?: boolean }) {
@@ -68,13 +91,21 @@ export function PasswordModal({ onClose, onDone, forced }: { onClose: () => void
     setBusy(true);
     try {
       await api<{ ok: true }>("/api/auth/password", { method: "POST", json: { current: v.cur, next: v.next } });
-      toast("비밀번호를 변경했습니다.");
+      // 완료 토스트는 이 창이 사라진 뒤에 뜬다 — 첫 로그인 변경은 화면을 다시 불러오므로 넘겨 두고, 평소 변경은 창을 닫으며 띄운다
+      if (forced) stashNotice(PW_DONE_MSG);
+      else toast(PW_DONE_MSG);
       onDone?.();
       onClose();
     } catch (e2) {
+      // 통신 장애 등(서버 문구가 없는 실패)은 칸 오류가 아니라 실패 토스트로 알린다(SCR-UNE-101006 ⑮)
+      if (!(e2 instanceof ApiError) || e2.status >= 500) {
+        toast(PW_FAIL_MSG);
+        setBusy(false);
+        return;
+      }
       // 서버 문구 그대로 — 해당 칸 아래에, 그 밖의 오류는 위 알림으로
-      const m = e2 instanceof ApiError ? e2.message : "서버에 연결하지 못했습니다. 잠시 후 다시 시도하세요.";
-      const at: Field | "form" = e2 instanceof ApiError && e2.status === 400 ? (m.startsWith("현재 비밀번호") ? "cur" : m.startsWith("새 비밀번호") || m === PW_CHAR_MSG ? "next" : "form") : "form";
+      const m = e2.message;
+      const at: Field | "form" = e2.status === 400 ? (m.startsWith("현재 비밀번호") ? "cur" : m.startsWith("새 비밀번호") || m === PW_CHAR_MSG ? "next" : "form") : "form";
       setErr({ [at]: m });
       if (at !== "form") refs[at].current?.focus();
       setBusy(false);

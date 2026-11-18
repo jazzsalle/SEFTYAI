@@ -51,8 +51,8 @@ async function session(acc) {
     errors.push(`${acc}: ${r.status()} ${r.request().method()} ${u.pathname}`);
   });
   await page.goto(base + "/login");
-  await page.getByPlaceholder("아이디를 입력하세요").fill(acc);
-  await page.getByPlaceholder("비밀번호를 입력하세요").fill(pwOf(acc));
+  await page.locator("#lgn-id").fill(acc);
+  await page.locator("#lgn-pw").fill(pwOf(acc));
   await page.getByRole("button", { name: "로그인", exact: true }).click();
   await page.waitForURL(/\/(explore|admin)/, { timeout: 30000 });
   await page.waitForTimeout(1500);

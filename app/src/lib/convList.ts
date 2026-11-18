@@ -5,15 +5,15 @@
  *  · 키워드는 대화 제목만(질문·답 본문은 보지 않음), 기간은 최종 대화일시(끝날은 그날 끝까지)
  *  · 지역: 시·도 전체(빈 값) = 조건 없음, 「전국」(NATION) = 기준지역이 전국이었던 대화만, 그 밖은 코드 앞자리 — 시·도만 고르면 그 아래 시·군·구 대화까지
  *  · 최근 대화가 위(최종 대화일시 내림차순), 한 쪽 10줄
- *  · 만료: 상류(T3Q-25)가 대화 문맥을 마지막 활동으로부터 24시간만 들고 있다 — 우리 시계로 센다(상류에 묻지 않음)
+ *  · 만료: 상류가 대화 문맥을 마지막 활동으로부터 7일 들고 있다(T3Q 3차 회신 3-B20 · 정의서 v1.75 UFR-006-001-04 · 개발서버 256e5ec — R62, 전에는 24시간) — 우리 시계로 센다(상류에 묻지 않음)
  */
 import type { Conversation } from "./session";
 
 export const PAGE_SIZE = 10;
 /** 「전국」 — 지역 조건 없음과 다르다. 기준지역이 전국이었던 대화만 고른다 */
 export const NATION = "NATION";
-/** 상류가 대화 문맥을 들고 있는 시간(T3Q-25 「마지막 활동 24시간 뒤 EXPIRED」) */
-export const CONTEXT_TTL_MS = 24 * 3600_000;
+/** 상류가 대화 문맥을 들고 있는 시간 — 마지막 활동 7일(T3Q context_idle_timeout_hours 168 · 개발서버 ConversationService ContextTtl) */
+export const CONTEXT_TTL_MS = 7 * 24 * 3600_000;
 
 export interface ConvForm {
   keyword: string;
@@ -57,7 +57,7 @@ export function lastTurnAt(c: Conversation): string {
   return best || c.updatedAt;
 }
 
-/** 이어서 물을 수 없는 대화인지 — 마지막 활동으로부터 24시간이 지났으면. 질문이 없는 대화는 만료가 아니다 */
+/** 이어서 물을 수 없는 대화인지 — 마지막 활동으로부터 7일이 지났으면. 질문이 없는 대화는 만료가 아니다 */
 export function isExpired(c: Conversation | null | undefined, now = Date.now()): boolean {
   if (!c || !c.turns?.length) return false;
   const at = new Date(lastTurnAt(c)).getTime();

@@ -125,7 +125,7 @@ describe("① 유사사례 한눈 요약 — 개발서버 SimilarSummary·cases"
     const { container } = render(<SimilarSummary ctx={ctx} answer={CASE_ANSWER} regionName="부산광역시" onEvent={onEvent} />);
     await waitFor(() => expect(container.querySelector(".sim-card")).not.toBeNull());
     const req = h.calls.find((c) => c.api === "T3Q-04")!;
-    expect(req.body).toEqual({ query_context: ctx, page: { page: 1, size: 20 } });
+    expect(req.body).toEqual({ query_context: ctx, page: { page: 1, size: 100 } }); // R63 — 개발서버 SimilarPageSize
     expect(container.querySelector(".sm-cond")!.textContent).toBe("부산광역시 · 유사사례 2건");
     expect(container.querySelector(".sm-counts")!.textContent).toBe("호우2");
     const rows = [...container.querySelectorAll(".sims-rank li")];

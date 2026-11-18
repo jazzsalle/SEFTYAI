@@ -24,8 +24,8 @@ const shot = async (name, el) => {
 };
 
 await page.goto(base + "/login");
-await page.getByPlaceholder("아이디를 입력하세요").fill(id);
-await page.getByPlaceholder("비밀번호를 입력하세요").fill(pw);
+await page.locator("#lgn-id").fill(id);
+await page.locator("#lgn-pw").fill(pw);
 await page.getByRole("button", { name: "로그인", exact: true }).click();
 await page.waitForURL("**/explore", { timeout: 20000 });
 await page.waitForTimeout(1500);

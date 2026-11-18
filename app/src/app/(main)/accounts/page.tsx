@@ -104,7 +104,7 @@ export default function AccountsPage() {
     );
 
   return (
-    <div className="page adm acc-page">
+    <div id="main-content" tabIndex={-1} className="page adm acc-page">
       <div className="page-in">
         <div className="ph">
           <div>

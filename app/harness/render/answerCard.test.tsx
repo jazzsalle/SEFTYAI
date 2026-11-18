@@ -394,14 +394,14 @@ describe("C10 — 답변 복사", () => {
 });
 
 describe("진행 중", () => {
-  it("aria-busy · 경과 시계 「1분 45초째」 · 예상 시간·이용 안내 같은 설명 없음", () => {
+  it("aria-busy · 경과 시계 「1분 45초」(개발서버 formatElapsed, R63) · 예상 시간·이용 안내 같은 설명 없음", () => {
     vi.useFakeTimers({ toFake: ["Date"] });
     vi.setSystemTime(new Date(2026, 9, 28, 2, 47, 45));
     const job = makeJob({ state: "RUNNING", created_at: local(2, 46), finished_at: null });
     const { container } = wrap(<AnswerCard job={job} full={undefined} />);
     const card = container.querySelector(".acard")!;
     expect(card.getAttribute("aria-busy")).toBe("true");
-    expect(card.textContent).toContain("답변을 만드는 중입니다 · 1분 45초째");
+    expect(card.textContent).toContain("답변을 만들고 있습니다… 1분 45초");
     expect(card.textContent).not.toContain("보통");
     expect(card.textContent).not.toContain("기다리는 동안");
   });

@@ -18,7 +18,7 @@ export default function MePage() {
     ["세션", "로그인(또는 [시간 연장])부터 4시간 뒤 로그아웃 · 남은 시간과 [시간 연장]은 사용자 메뉴"],
   ];
   return (
-    <div className="page">
+    <div id="main-content" tabIndex={-1} className="page">
       <div className="page-in narrow">
         <div className="ph"><div><h1>내 권한 정보</h1><p>권한 변경은 시스템 운영자에게 요청하세요.</p></div></div>
         <dl className="kv panel" style={{ gridTemplateColumns: "180px 1fr" }}>

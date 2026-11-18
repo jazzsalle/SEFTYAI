@@ -3,13 +3,15 @@ import { useEffect, useMemo, useState } from "react";
 import { useSession } from "@/lib/session";
 import { isActive, SOURCE_LABEL, STATE_LABEL, type JobSummary } from "@/lib/jobTypes";
 import { queueBad, queueCounts, queueFilter, QUEUE_EMPTY, QUEUE_FILTERS, type QueueFilter } from "@/lib/queueList";
+import { recentDone } from "@/lib/dialogue";
 import "./queue.css";
 
 /** 새로 끝난 답으로 세는 시간 — 다시 들어왔을 때 옛 작업이 모두 「새 답」으로 서지 않게(우리 목록은 계정의 지난 작업도 싣는다) */
 const FRESH_MS = 15 * 60_000;
 
 /**
- * 질문 목록 패널 (R2, 사용자 아이디어 17 · 개발서버 AskList·asklist.css kjw 998facb) — 좌측 슬라이드, 숨김 가능.
+ * 질문 현황 패널 (R2, 사용자 아이디어 17 · 개발서버 AskList·asklist.css kjw 998facb · 352a97c 이름 「질문 현황」·최근 20개 — R62) — 좌측 슬라이드, 숨김 가능.
+ * 최근 20개까지만 올린다 — 도는 질문은 늘 보이고, 넘으면 오래된 끝난 질문부터 목록에서만 뺀다(대화에는 남는다). 중단한 질문은 「중단」(개발서버 AskList).
  * 상태 칩(전체·진행 중·완료·실패·중단 — 칩마다 건수, 누르면 그 상태만·칩별 빈 문구), 맨 위 「(브리핑 이름) 전체 보기」 줄(브리핑을 걸었으면).
  * 접힌 탭에는 진행(파랑·도는 고리) · 새 답(초록) · 새 실패·중단(빨강)을 따로 센다 — 펼쳐서 본 것·골라 본 것은 «본 것».
  * AI 모드 점검(source AI_MODE)은 넣지 않는다(R39). 진행 중인 질문도 누를 수 있다(우리 기능 — 진행 상황 카드로 간다).
@@ -30,8 +32,8 @@ export default function QueuePanel({ open, setOpen, onPick, currentJobIds, brief
   const active = list.filter((j) => isActive(j.state));
   // 완료 순서(finished_at 최신 위)
   const done = useMemo(
-    () => list.filter((j) => !isActive(j.state)).sort((a, b) => (b.finished_at ?? b.created_at).localeCompare(a.finished_at ?? a.created_at)).slice(0, 30),
-    [list],
+    () => recentDone(list.filter((j) => !isActive(j.state)).sort((a, b) => (b.finished_at ?? b.created_at).localeCompare(a.finished_at ?? a.created_at)), active.length),
+    [list, active.length],
   );
   // 펼쳐 둔 동안 끝난 것은 본 것
   useEffect(() => {
@@ -55,9 +57,9 @@ export default function QueuePanel({ open, setOpen, onPick, currentJobIds, brief
       <button
         className="qp-tab"
         onClick={() => setOpen(true)}
-        aria-label={["질문 목록 펼치기", active.length > 0 && `진행 중 ${active.length}건`, freshOk > 0 && `새로 끝난 답 ${freshOk}건`, freshBad > 0 && `실패·중단 ${freshBad}건`].filter(Boolean).join(" — ")}
+        aria-label={["질문 현황 펼치기", active.length > 0 && `진행 중 ${active.length}건`, freshOk > 0 && `새로 끝난 답 ${freshOk}건`, freshBad > 0 && `실패·중단 ${freshBad}건`].filter(Boolean).join(" — ")}
       >
-        <span>질문 목록</span>
+        <span>질문 현황</span>
         {active.length > 0 && <span className="qp-badge run" aria-hidden="true">{active.length}</span>}
         {freshOk > 0 && <span className="qp-badge ok" aria-hidden="true">{freshOk}</span>}
         {freshBad > 0 && <span className="qp-badge bad" aria-hidden="true">{freshBad}</span>}
@@ -66,12 +68,12 @@ export default function QueuePanel({ open, setOpen, onPick, currentJobIds, brief
   const counts = queueCounts(active, done);
   const shownDone = queueFilter(done, filter);
   return (
-    <aside className="qpanel" aria-label="질문 목록">
+    <aside className="qpanel" aria-label="질문 현황">
       <div className="qp-h">
-        <b>질문 목록</b>
+        <b>질문 현황</b>
         <span className="xs muted">진행 {active.length}</span>
         <span className="sp" />
-        <button className="lnk xs" onClick={() => setOpen(false)} aria-label="질문 목록 접기">접기 ‹</button>
+        <button className="lnk xs" onClick={() => setOpen(false)} aria-label="질문 현황 접기">접기 ‹</button>
       </div>
       <div className="qp-filter" role="group" aria-label="질문 상태로 거르기">
         {QUEUE_FILTERS.map((f) => (
@@ -110,7 +112,7 @@ export default function QueuePanel({ open, setOpen, onPick, currentJobIds, brief
                 <span className={`qp-st ${bad ? "bad" : "ok"}`}>{bad ? "!" : "✓"}</span>
                 <span className="qp-q">{j.question_user}</span>
                 <span className="qp-m xs">
-                  {SOURCE_LABEL[j.source]} · {j.state === "DONE" ? (bad ? "실패" : j.cached_from ? "이전 답변" : `${Math.round((j.elapsed_ms ?? 0) / 1000)}초`) : STATE_LABEL[j.state]}
+                  {SOURCE_LABEL[j.source]} · {j.state === "DONE" ? (bad ? "실패" : j.cached_from ? "이전 답변" : `${Math.round((j.elapsed_ms ?? 0) / 1000)}초`) : j.state === "CANCELLED" ? "중단" : STATE_LABEL[j.state]}
                   {isFresh ? " · 새 답변" : ""}
                 </span>
               </button>

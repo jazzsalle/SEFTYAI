@@ -1,6 +1,7 @@
 import "server-only";
 import { libById, type PreviewApi } from "../library";
 import { t3qData } from "./demoMode";
+import { t3qSimilarAll } from "./similarAll";
 
 /**
  * 자동 조회 데이터 (R3) — 정의된 질문만, 매핑된 T3Q Data API 를 동시에 부르고 원응답을 그대로 담는다.
@@ -22,7 +23,7 @@ const SPEC: Record<PreviewApi, { apiId: string; label: string; path: string; bod
   RISK_AREA: { apiId: "T3Q-05", label: "위험·취약지역 목록", path: "/risk-knowledge/search", body: (qc) => ({ data_group: "RISK_AREA", region: qc.region ?? null, page: { page: 1, size: 50 } }) },
   RISK_FACILITY: { apiId: "T3Q-05", label: "잠재 위험요소·취약시설 목록", path: "/risk-knowledge/search", body: (qc) => ({ data_group: "RISK_FACTOR_FACILITY", region: qc.region ?? null, page: { page: 1, size: 50 } }) },
   FLOOD_TRACE: { apiId: "T3Q-30", label: "침수흔적 목록", path: "/flood-traces/search", body: (qc) => ({ region: qc.region ?? null, page: { page: 1, size: 50 } }) },
-  SIMILAR_EVENT: { apiId: "T3Q-04", label: "유사재난 사례", path: "/similar-events/search", body: (qc) => ({ query_context: qc, page: { page: 1, size: 20 } }) },
+  SIMILAR_EVENT: { apiId: "T3Q-04", label: "유사재난 사례", path: "/similar-events/search", body: (qc) => ({ query_context: qc }) },
   PLAN: { apiId: "T3Q-06", label: "계획문서 목록", path: "/plans/search", body: (qc) => ({ region: qc.region ?? null, page: { page: 1, size: 20 } }) },
 };
 
@@ -35,6 +36,11 @@ export async function runPreview(accountId: string, libraryId: string, qc: Recor
   return Promise.all(
     apis.map(async (api) => {
       const s = SPEC[api];
+      // 유사사례는 한 쪽 100건씩 total_count 만큼 이어받아 한 봉투로(개발서버 similarApi.search, R63) — request 는 첫 쪽 본문
+      if (api === "SIMILAR_EVENT") {
+        const r = await t3qSimilarAll(accountId, s.path, s.body(qc), { timeoutMs: 8000 });
+        return { api, apiId: s.apiId, label: s.label, method: "POST" as const, path: s.path, request: r.request, http: r.http, ms: r.ms, response: r.body };
+      }
       const request = s.body(qc);
       const r = await t3qData(accountId, "POST", s.path, request, { timeoutMs: 8000 });
       return { api, apiId: s.apiId, label: s.label, method: "POST" as const, path: s.path, request, http: r.http, ms: r.ms, response: r.body };

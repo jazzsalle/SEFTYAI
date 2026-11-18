@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useSession } from "@/lib/session";
 import { isActive, receivedAt, STATE_LABEL, type JobFull, type JobSummary, type T3qRef, type WxSeen } from "@/lib/jobTypes";
 import { ANSWER_FAILED, BRIEF_FAILED, failureText, isAnswerOk } from "@/lib/answerText";
-import { fmtAgo, fmtElapsed, fmtRunning } from "@/lib/format";
+import { fmtAgo, fmtElapsed } from "@/lib/format";
 import { activeAdvisories, advLabel, advTime } from "@/lib/wxref";
 import { legacyAdvIds, seenArea, wxCovers, wxTargetOfT3q, type WxTarget } from "@/lib/wxMatch";
 import type { Advisory, WeatherResponse } from "@/lib/contract/agent";
@@ -13,6 +13,7 @@ import { IcChevD } from "../Icons";
 import { AnswerMarkdown, entityLabel, mdPlainText } from "./Markdown";
 import DocRefs from "./DocRefs";
 import AnswerFeedback from "./AnswerFeedback";
+import FollowUps from "./FollowUps";
 import DemoInfoPanel, { hasDemoInfographic } from "./DemoInfographic";
 import AutoInfoPanel from "./AutoInfographic";
 import CompactSummary from "../summary/CompactSummary";
@@ -94,6 +95,8 @@ export function fmtYmdHm(iso: string): string {
 const advText = (a: Advisory) => `${a.area} ${advLabel(a)} ${advTime(a.issuedAt)}`;
 /** 「이전 답변 재사용」 띠·머리의 처리 시간 — 끔(사용자 지시 2026-11-02 — 시연) */
 const SHOW_REUSE = false;
+/** 진행 중 경과 — 개발서버 AnswerPanel formatElapsed 그대로(「45초」·「1분 5초」, 지난 초만 · 내림) */
+const fmtWaiting = (ms: number) => fmtElapsed(Number.isFinite(ms) ? Math.max(0, Math.floor(ms / 1000)) * 1000 : 0);
 
 /** noActions — 브리핑 항목 카드처럼 머리에 취소·다시 시도 단추가 따로 있는 자리에서는 카드 안 단추를 뺀다 · brief — 브리핑 항목(받지 못한 답 문구가 대화창과 다르다) */
 type CardProps = { job: JobSummary; full: JobFull | undefined; compact?: boolean; noActions?: boolean; brief?: boolean };
@@ -144,21 +147,24 @@ function Card({ job, full, compact, noActions, brief }: CardProps) {
   if (active) {
     const ms = now - new Date(job.created_at).getTime();
     const lv = s.live?.[job.id];
+    const partial = lv?.text ?? "";
+    // 개발서버 AnswerPanel·BriefingItemCard(b818af0) 글자 그대로 — 글이 흘러오기 시작하면 「작성하고 있습니다」, 진행 단계는 글이 오기 전까지만
+    const waitText = brief ? "확인하고 있습니다…" : partial ? "답변을 작성하고 있습니다…" : "답변을 만들고 있습니다…";
     return (
       <div className="acard loading" aria-busy="true">
         <div className="acard-h"><span className="ai-dot spin" /> <b>재난안전 AI</b> <span className="xs muted">{STATE_LABEL[job.state]}</span></div>
         <div className="s" style={{ marginTop: 8 }}>
-          답변을 만드는 중입니다 · <b>{fmtRunning(ms)}</b>
-          {lv?.stage && !lv.text && <span className="xs muted"> · {lv.stage}</span>}
+          {waitText} <b>{fmtWaiting(ms)}</b>
+          {!partial && lv?.stage ? <span className="answer-stage"> · {lv.stage}</span> : null}
         </div>
-        {/* 스트리밍(T3Q v0.4) — 받은 글 조각 그대로. 끝나면 저장된 원응답(final)으로 바뀐다 */}
-        {lv?.text && (
-          <div className="acard-body" style={{ marginTop: 8 }}>
-            <AnswerMarkdown text={lv.text} refs={lv.refs} />
+        {/* 스트리밍(T3Q v0.4) — 받은 글 조각 그대로 자라는 글. 끝나면 저장된 원응답(final)으로 완성 답 카드가 이 자리를 대신한다 */}
+        {partial && (
+          <div className={`acard-body ${brief ? "briefing-item-streaming" : "answer-streaming"}`} aria-live="polite">
+            <AnswerMarkdown text={partial} refs={lv?.refs ?? []} />
           </div>
         )}
         {!noActions && <div className="row" style={{ marginTop: 10 }}>
-          <button className="btn sm" onClick={() => s.cancel(job.id).catch(() => s.toast("취소하지 못했습니다."))}>질의 취소</button>
+          <button className="btn sm" onClick={() => s.cancel(job.id).catch(() => s.toast("취소하지 못했습니다."))}>취소</button>
         </div>}
       </div>
     );
@@ -347,6 +353,8 @@ function Card({ job, full, compact, noActions, brief }: CardProps) {
       </div>
       {showRaw && <pre className="rawbox">{answer ?? JSON.stringify(raw, null, 2)}</pre>}
       <AnswerFeedback jobId={job.id} />
+      {/* 이어서 물어보기 — 추천 후속질문(개발서버 AnswerPanel · FUN-UFR-301003, R62). 브리핑 항목 카드에는 없다(개발서버 브리핑 결과에 onFollowUp 없음) */}
+      {!brief && <FollowUps list={res?.follow_up_questions} onAsk={x.askSuggested} />}
     </div>
   );
 }

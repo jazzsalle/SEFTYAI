@@ -182,10 +182,6 @@ export const SHOW_PRE_WARNING = {
   source: "시연 시나리오(가상 특보 · 기상청 발표 아님)",
   items: [{ warning_key: "SCN-BS-PRE-1", kind: "호우", level: "예비특보", area: "부산광역시", announced_at: null, effective_at: null, change: "예비특보 발표(주의보 발표 예상 · 시연 기준시각 이후 3시간 이내 가정 · 침수·범람 발생 여부 미확인)" }],
 };
-export const SHOW_GROUPS: { group: 1 | 2; title: string; note: string }[] = [
-  { group: 1, title: "1. 호우 예비특보 — AI 모드 브리핑", note: "부산광역시 호우 예비특보(주의보 발표 예상) 가정 · 강우 조건 입력 없음" },
-  { group: 2, title: "2. 온천천 시간당 30mm 집중호우", note: "기준지역 부산광역시 · 조건은 1시간 강우량 30mm 만" },
-];
 // ②묶음 순서·장면 번호는 사용자 지시(2026-11-02)대로 — 항목 id(SH-2-x)는 고정 답 열쇠라 그대로 둔다. 2-3 은 질문 둘(과거 유사재난 사례 · 침수흔적도)
 export const DEMO_SHOW: ShowItem[] = [
   { id: "SH-1-1", group: 1, regions: ["busan"], scene: "1-1", title: "특보 상황·관측정보·경계 기준", category: "특보·문자", stage: "특보",

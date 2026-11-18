@@ -38,7 +38,7 @@ export default function ContactsPage() {
   const mine = !!orgId && canManage(account, orgId);
 
   return (
-    <div className="page">
+    <div id="main-content" tabIndex={-1} className="page">
       <div className="page-in" style={{ maxWidth: 1480 }}>
         <div className="ph">
           <div>

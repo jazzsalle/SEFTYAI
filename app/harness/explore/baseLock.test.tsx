@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-// 기준지역 잠금(R32)에서 AI 모드 점검 빼기(R44) — 대화 질의(그 밖의 출처)가 보내는 중·대기·제출·답변 생성 중일 때만 잠근다.
+// 기준지역 잠금(R32)에서 AI 모드 점검 빼기(R44) — R62(개발서버 352a97c)로 잠금 자체를 없앰: asking 은 그대로 세지만 setBase·고르기는 막지 않는다.
 //  · 판정 함수(lib/jobTypes locksBase · sourceLocksBase)
 //  · 실제 SessionProvider(lib/session — fetch 만 흉내): 진행 중 AI_MODE 작업만 있으면 asking false · setBase 허용 · 머리줄 고르기(BasePicker) 열림,
 //    USER 작업이 있으면 막힘, AI_MODE 접수 중에는 보내는 중으로 세지 않음
@@ -61,6 +61,7 @@ beforeEach(() => {
     if (u === "/api/checks") return reply({});
     if (u.startsWith("/api/regions")) return reply({ items: [{ code: "26", name: "부산광역시" }, { code: "11", name: "서울특별시" }] });
     if (u.startsWith("/api/agent/jobs?")) return reply({ jobs: srv.jobs, medianMs: null });
+    if (u === "/api/ai-mode/switch") return reply(null, 204); // 켬/끔 기록(R63) — 점검 부름이 아니다
     if (u.startsWith("/api/ai-mode")) {
       srv.aim.push({ path: u.split("?")[0], ...(init?.body ? { base: JSON.parse(init.body).base } : {}) });
       return reply({ supported: true, managed: false, running: true, view: null });
@@ -113,7 +114,7 @@ const deferred = <T,>() => {
   return { promise, resolve };
 };
 
-describe("SessionProvider — 기준지역 잠금(실제 session 코드)", () => {
+describe("SessionProvider — 기준지역 잠금 없음(R62 · 실제 session 코드)", () => {
   it("진행 중인 작업이 AI 모드 점검뿐이면 잠그지 않는다 — asking false · setBase 허용 · 고르기 열림", async () => {
     srv.jobs = [job("a1", "AI_MODE", "RUNNING"), job("a2", "AI_MODE", "QUEUED")];
     await mount();
@@ -127,17 +128,17 @@ describe("SessionProvider — 기준지역 잠금(실제 session 코드)", () =>
     expect(S.cond.base).toEqual(SEOUL);
   });
 
-  it("대화 질의(USER)가 진행 중이면 잠근다 — asking true · setBase 막힘 · 고르기 막힘", async () => {
+  it("대화 질의(USER)가 진행 중이어도 잠그지 않는다(R62 — 개발서버 352a97c 답변 중 변경 허용) — asking true 지만 setBase 허용 · 고르기 열림", async () => {
     srv.jobs = [job("a1", "AI_MODE", "RUNNING"), job("u1", "USER", "RUNNING")];
     await mount();
     expect(S.asking).toBe(true);
-    expect(sido().disabled).toBe(true);
-    let ok = true;
+    expect(sido().disabled).toBe(false);
+    let ok = false;
     act(() => {
       ok = S.setBase(SEOUL);
     });
-    expect(ok).toBe(false);
-    expect(S.cond.base).not.toEqual(SEOUL);
+    expect(ok).toBe(true);
+    expect(S.cond.base).toEqual(SEOUL);
   });
 
   it("AI 모드 점검 접수 중에는 보내는 중으로 세지 않고, 대화 질의 접수 중에는 센다(끝나면 풀림)", async () => {
@@ -172,11 +173,11 @@ describe("SessionProvider — 기준지역 잠금(실제 session 코드)", () =>
     });
     await act(async () => {});
     expect(S.asking).toBe(true);
-    expect(sido().disabled).toBe(true);
+    expect(sido().disabled).toBe(false); // 답변 중에도 바꿀 수 있다(R62)
     act(() => {
       ok = S.setBase(null);
     });
-    expect(ok).toBe(false);
+    expect(ok).toBe(true);
     await act(async () => {
       ask.resolve({ job: job("u9", "USER", "DONE") });
       await p2;

@@ -72,8 +72,8 @@ async function session(acc, before) {
     errors.push(`${acc}: ${r.status()} ${r.request().method()} ${u.pathname}${u.search}`);
   });
   await page.goto(base + "/login");
-  await page.getByPlaceholder("아이디를 입력하세요").fill(acc);
-  await page.getByPlaceholder("비밀번호를 입력하세요").fill(pwOf(acc));
+  await page.locator("#lgn-id").fill(acc);
+  await page.locator("#lgn-pw").fill(pwOf(acc));
   await page.getByRole("button", { name: "로그인", exact: true }).click();
   await page.waitForURL("**/explore", { timeout: 20000 });
   await page.waitForTimeout(1500);
@@ -158,8 +158,8 @@ await p.waitForFunction((q) => document.querySelector(q)?.disabled === true, SID
 const dis = await p.$$eval(".scope select", (ss) => ss.map((s) => ({ d: s.disabled, t: s.title })));
 ok(dis.length === 3 && dis.every((x) => x.d && x.t === BUSY), `질의 진행 중 — 고르기 ${dis.length}개(시·도·시·군·구·읍·면·동) 모두 막힘, 제목 「${dis[0]?.t}」`);
 await shot(p, "04_busy_selects_disabled");
-// 질의 취소 → 다시 고를 수 있음
-await p.getByRole("button", { name: "질의 취소" }).first().click();
+// 질의 [취소] → 다시 고를 수 있음
+await p.getByRole("button", { name: "취소", exact: true }).first().click();
 await enabledAgain(p);
 ok(true, "질의를 취소하면 다시 고를 수 있음");
 

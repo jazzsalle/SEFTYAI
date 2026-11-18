@@ -1,0 +1,58 @@
+/* 대화 흐름(R62) — 개발서버 styles/renewal/ds-search.css(kjw 352a97c) 그대로. 개발서버 rem(1rem = 10px)은 px 로 옮기고, 글자 크기는 [글자 크기] 배율을 따른다(R58) */
+
+/* 같은 시·도 안 기준지역 변경 구분선 — 「기준지역이 변경되었습니다 · 이전 → 새 지역 · 시각」(정의서 UFR-001-001-01) */
+.answer-region-break {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 8px 0;
+  list-style: none;
+  font-size: calc(14px * var(--fs-scale));
+  line-height: calc(22px * var(--fs-scale));
+  color: #464c53;
+}
+.answer-region-break::before,
+.answer-region-break::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #cdd1d5;
+}
+
+/* 이어서 물어보기 — 추천 후속질문 1~3개(정의서 UFR-001-002-01 · Figma 「이어서 물어보기」) */
+.answer-followups {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid #e6e8ea;
+}
+.answer-followups h4 {
+  margin: 0 0 8px;
+  font-size: calc(15px * var(--fs-scale));
+  font-weight: 700;
+  line-height: calc(23px * var(--fs-scale));
+  color: #1e2124;
+}
+.answer-followups ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.answer-followup {
+  padding: 8px 14px;
+  font-family: inherit;
+  font-size: calc(15px * var(--fs-scale));
+  line-height: calc(23px * var(--fs-scale));
+  text-align: left;
+  color: #0b50d0;
+  background: #fff;
+  border: 1px solid #b1cefb;
+  border-radius: 20px;
+  cursor: pointer;
+}
+.answer-followup:hover {
+  background: #ecf2fe;
+  border-color: #256ef4;
+}

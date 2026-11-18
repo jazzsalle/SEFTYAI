@@ -17,8 +17,8 @@ const page = await browser.newPage({ viewport: { width: 1920, height: 1200 }, lo
 const errors = [];
 page.on("pageerror", (e) => errors.push(String(e)));
 await page.goto(base + "/login");
-await page.getByPlaceholder("아이디를 입력하세요").fill(id);
-await page.getByPlaceholder("비밀번호를 입력하세요").fill(pw);
+await page.locator("#lgn-id").fill(id);
+await page.locator("#lgn-pw").fill(pw);
 await page.getByRole("button", { name: "로그인", exact: true }).click();
 await page.waitForURL("**/explore", { timeout: 90000 });
 await page.waitForTimeout(2500);

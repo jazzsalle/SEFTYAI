@@ -93,6 +93,10 @@
 /* 답 카드 */
 .ex-main .acard, .aim .acard { background: #fff; border: 1px solid var(--c-bd); border-radius: var(--r-xl); padding: 18px 22px; box-shadow: var(--shadow-1); }
 .acard.loading { border-style: dashed; }
+/* 스트리밍 — 진행 단계·흘러오는 글(개발서버 index.css b818af0). 끝나면 완성 답 카드가 이 자리를 대신한다 */
+.answer-stage { color: var(--c-sub); font-weight: 400; }
+.answer-streaming { margin-top: 8px; }
+.briefing-item-streaming { margin-top: 8px; opacity: .92; }
 .acard.err { border-color: #f3c5ba; }
 .acard-h { display: flex; align-items: center; gap: 8px; }
 .acard-body.folded { max-height: 360px; overflow: hidden; -webkit-mask-image: linear-gradient(#000 70%, transparent); mask-image: linear-gradient(#000 70%, transparent); }

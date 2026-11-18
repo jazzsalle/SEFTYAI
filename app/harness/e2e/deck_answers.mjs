@@ -32,8 +32,8 @@ try {
     const ctx = await browser.newContext({ viewport: { width: 1600, height: 1000 }, locale: "ko-KR" });
     const page = await ctx.newPage();
     await page.goto(base + "/login");
-    await page.getByPlaceholder("아이디를 입력하세요").fill(acc);
-    await page.getByPlaceholder("비밀번호를 입력하세요").fill(pwOf(acc));
+    await page.locator("#lgn-id").fill(acc);
+    await page.locator("#lgn-pw").fill(pwOf(acc));
     await page.getByRole("button", { name: "로그인", exact: true }).click();
     await page.waitForURL(/\/explore/, { timeout: 60000 });
     const convs = await page.evaluate(async () => (await fetch("/api/conversations")).json());

@@ -102,7 +102,7 @@ export default function HistoryPage() {
 
   return (
     <div className="page conv-page">
-      <main className="conv-body">
+      <main id="main-content" tabIndex={-1} className="conv-body">
         <div className="conv-head">
           <h1 className="conv-title">대화 이력</h1>
           <div className="conv-keyword">

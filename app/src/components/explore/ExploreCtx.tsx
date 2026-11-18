@@ -36,6 +36,8 @@ export interface ExploreApi {
   followUp: (jobId: string, refs: T3qRef[]) => void;
   /** 실패·유실·시간 초과한 답 다시 질의 — 같은 요청(문맥 포함)으로 */
   retry: (jobId: string) => void;
+  /** 「이어서 물어보기」 추천 후속질문을 누름 — 그 글 그대로 이 대화에 이어 묻는다(개발서버 AnswerPanel onFollowUp · FUN-UFR-301003). 없으면 추천 후속질문을 보이지 않는다 */
+  askSuggested?: (text: string) => void;
 }
 
 export const ExploreContext = createContext<ExploreApi | null>(null);

@@ -1,10 +1,13 @@
 "use client";
-import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession, uid, type Conversation, type SubmitArgs, type Turn } from "@/lib/session";
 import { useSop } from "@/lib/sopState";
 import { useBriefingSet } from "@/lib/briefing";
-import { briefRequest, DAY_ITEMS, DEMO_SHOW, demoAsk, fillText, presetLines, presetManual, type DemoItem, type LibraryQuestion, type ShowItem } from "@/lib/library";
+import { briefRequest, DAY_ITEMS, DEMO_SHOW, fillText, presetLines, presetManual, type DemoItem, type LibraryQuestion } from "@/lib/library";
+import { activityOf, BARE_COND, baseFromSaved, baseProvince, convProvince, defaultTitleOf, LEAVE_OK, LEAVE_TITLE, leaveMessage, openConvBus, REGION_BREAK_EVENT, regionBreakText, restoreCond, type RegionBreak } from "@/lib/dialogue";
+import { Dialog } from "@/components/account/Dialog";
+import "@/components/explore/dialogue.css";
 import { REGIONS } from "@/lib/config";
 import { api } from "@/lib/api";
 import type { Citation } from "@/lib/contract/agent";
@@ -38,8 +41,15 @@ const SUMMARY_TAB: PanelTab = { key: "summary", kind: "summary", title: "한눈 
 /** 지도에서 집어 둔 참조 객체(개발 서버 useObjectRefs) — eid = lib/mapRef entityKey */
 interface PickedRef { eid: string; ref: RefLike }
 type AskArgs = Omit<SubmitArgs, "convId" | "turnNo">;
-/** 대화를 시작한 기준지역(이름)이 지금 기준지역과 다른가(R32 — 대화 하나는 기준지역 하나). 이름이 없는 예전 대화는 따지지 않는다 */
-const otherBase = (c: Conversation | null | undefined, now: BaseRegion | null) => !!c?.baseName && c.baseName !== baseName(now);
+/**
+ * 대화를 시작한 기준지역과 지금 기준지역의 시·도가 다른가 — 대화 하나는 시·도 하나(R62, 개발서버 352a97c: 같은 시·도 안에서 바꾸면 대화 유지).
+ * 전에는 기준지역이 조금만 달라도 새 대화였다(R32). 시·도 코드가 없는 예전 대화는 이름으로 견준다. 이름도 없으면 따지지 않는다
+ */
+const otherBase = (c: Conversation | null | undefined, now: BaseRegion | null) => {
+  const p = convProvince(c?.baseCode);
+  if (p !== undefined) return p !== baseProvince(now);
+  return !!c?.baseName && c.baseName !== baseName(now);
+};
 
 export default function ExplorePage() {
   return (
@@ -138,6 +148,10 @@ function Explore() {
   const latest = useRef(new Map<string, Conversation>());
   const sRef = useRef(s);
   sRef.current = s;
+  // 지금 보는 대화를 머리줄(기준지역 변경 창)·다음에 열 대화와 나눈다(lib/dialogue openConvBus). 빈 화면으로 처음 열 때는 마지막으로 본 대화를 그대로 둔다 — 비우는 것은 [새 대화]뿐
+  useEffect(() => {
+    if (conv) openConvBus.set({ convId: conv.id, turns: conv.turns });
+  }, [conv]);
 
   // 기준지역(R32) — 이름(질문의 {지역})·특보 맞추기는 지금 고른 기준지역으로
   const regionName = baseName(s.cond.base);
@@ -145,6 +159,7 @@ function Explore() {
 
   /** 새 대화 — 빈 대화(시작 화면)로. [＋ 새 대화] 단추와 머리줄 기준지역 변경(sa:new-conv)이 함께 쓴다 */
   const newConv = useCallback(() => {
+    openConvBus.reset();
     setConv(null);
     setFollow(null);
     resetPicks();
@@ -155,6 +170,46 @@ function Explore() {
     return () => window.removeEventListener("sa:new-conv", newConv);
   }, [newConv]);
 
+  /*
+    대화 전환 중지 안내창(개발서버 SearchSessionProvider requestLeave · FUN-UFR-306004 — R62).
+    떠날 대화(지금 보는 대화, 다른 화면에 다녀왔으면 마지막으로 본 대화 — lib/dialogue openConvBus)에 답변 생성 중·대기 중인 질문이 있으면 먼저 묻는다.
+    확인하면 답변 생성 중인 질문은 상류에서도 멈추고(취소), 대기 중·보내는 중인 질문은 보내지 않는다. 질문이 없으면 묻지 않고 바로 한다
+  */
+  const [leave, setLeave] = useState<{ kind: "new" | "open"; action: () => void; onCancel?: () => void } | null>(null);
+  const leaving = () => {
+    const cur = openConvBus.get();
+    return { cur, act: activityOf(cur.turns, (id) => sRef.current.jobs[id]?.state) };
+  };
+  const requestLeave = (kind: "new" | "open", action: () => void, onCancel?: () => void) => {
+    const { act } = leaving();
+    if (act.running === 0 && act.waiting === 0) return action();
+    setLeave({ kind, action, onCancel });
+  };
+  const confirmLeave = () => {
+    const next = leave;
+    setLeave(null);
+    if (!next) return;
+    const { cur, act } = leaving();
+    openConvBus.markLeft(cur.convId);
+    for (const id of act.jobIds) void sRef.current.cancel(id).catch(() => {});
+    next.action();
+  };
+  const cancelLeave = () => {
+    leave?.onCancel?.();
+    setLeave(null);
+  };
+  const leaveAct = leave ? leaving().act : null;
+
+  /** 대화를 열면 화면 상단 기준지역·재난유형·발생기간을 그 대화의 조건(마지막으로 답을 받았을 때)으로(개발서버 SearchPage · FUN-UFR-307004). 새 대화를 만들지 않고 알림도 없다 */
+  const restoreTop = useCallback(async (c: Conversation) => {
+    const ss = sRef.current;
+    const b = baseFromSaved(c.baseCode, c.baseName);
+    if (b !== undefined && baseKey(b) !== baseKey(ss.cond.base)) ss.setBase(b);
+    const last = [...c.turns].reverse().find((t) => t.jobId);
+    const f = last ? await ss.loadFull(last.jobId) : null;
+    const qc = (f?.request as { query_context?: Record<string, unknown> | null } | undefined)?.query_context ?? null;
+    sRef.current.setCond(restoreCond(qc));
+  }, []);
 
   // 이력에서 연 대화 (?c=) — 그 id 로 한 번만 연다(이후 새 대화를 시작해도 되돌아가지 않게)
   const openedC = useRef<string | null>(null);
@@ -164,9 +219,38 @@ function Explore() {
     const c = s.convs.find((x) => x.id === id);
     if (c && c.v === 2) {
       openedC.current = id;
-      setConv(latest.current.get(c.id) ?? c);
+      const prev = openConvBus.get().convId;
+      const open = () => {
+        setConv(latest.current.get(c.id) ?? c);
+        void restoreTop(c);
+      };
+      // 같은 대화를 다시 여는 것이면 묻지 않는다. 취소하면 하던 대화에 머문다(주소만 치움)
+      if (prev === c.id) return open();
+      requestLeave("open", open, () => {
+        const back = prev ? latest.current.get(prev) ?? sRef.current.convs.find((x) => x.id === prev) : null;
+        if (back) setConv(back);
+        router.replace("/explore");
+      });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sp, s.convs]);
+
+  /*
+    같은 시·도 안 기준지역 변경 구분선(개발서버 useConversation breaks · AnswerPanel BreakLine — 정의서 UFR-001-001-01 G).
+    대화마다 화면에만 둔다(개발서버도 저장하지 않음 — 대화를 다시 열면 없다). 대화가 없으면(시작 화면) 남기지 않는다
+  */
+  const [breaks, setBreaks] = useState<Record<string, RegionBreak[]>>({});
+  useEffect(() => {
+    const on = (e: Event) => {
+      const d = (e as CustomEvent<{ from: string; to: string }>).detail;
+      const c = convRef.current;
+      if (!c || !d) return;
+      const afterTurnId = c.turns.length ? c.turns[c.turns.length - 1].id : null;
+      setBreaks((m) => ({ ...m, [c.id]: [...(m[c.id] ?? []), { afterTurnId, from: d.from, to: d.to, at: new Date().toISOString() }] }));
+    };
+    window.addEventListener(REGION_BREAK_EVENT, on);
+    return () => window.removeEventListener(REGION_BREAK_EVENT, on);
+  }, []);
 
   // 대화를 바꾸면 이어서 묻기 해제
   useEffect(() => {
@@ -243,7 +327,8 @@ function Explore() {
       const c: Conversation = base
         ? { ...base, turns: [...base.turns, ...add], updatedAt: now }
         : {
-            id: uid("c"), title: title.slice(0, 200), region: own ? basePilot(area) : sRef.current.cond.region, baseName: baseName(own ? area : sRef.current.cond.base), baseCode: baseKey(own ? area : sRef.current.cond.base),
+            // 새 대화 기본 제목 = 첫 질문 앞 30자(개발서버 defaultTitleOf · FUN-UFR-306005 — 전에는 200자). 첫 답의 T3Q 대화 제목·사람이 고친 제목이 앞선다
+            id: uid("c"), title: defaultTitleOf(title), region: own ? basePilot(area) : sRef.current.cond.region, baseName: baseName(own ? area : sRef.current.cond.base), baseCode: baseKey(own ? area : sRef.current.cond.base),
             disasterType: sRef.current.cond.disasterType, createdAt: now, updatedAt: now, turns: add, v: 2,
           };
       return commit(c, !baseId);
@@ -266,6 +351,8 @@ function Explore() {
       try {
         const job = await sRef.current.submit({ ...a, convId, turnNo });
         patchTurn(convId, turnId, { jobId: job.id, pending: undefined, error: undefined });
+        // 보내는 사이 이 대화를 떠났다(중지 안내창에서 확인 — 대기 중인 질문은 보내지 않는다) — 받은 작업을 바로 멈춘다
+        if (openConvBus.isLeft(convId)) void sRef.current.cancel(job.id).catch(() => {});
         return job;
       } catch (e) {
         patchTurn(convId, turnId, { pending: undefined, error: (e as Error).message });
@@ -275,12 +362,15 @@ function Explore() {
     [patchTurn],
   );
 
-  /** 질문 보내기 — 이력에서 다시 연 대화의 기준지역이 지금과 다르면 새 대화로(질문은 지금 기준지역으로 가므로) */
+  /**
+   * 질문 보내기 — 이 대화를 시작한 시·도와 지금 기준지역의 시·도가 다르면 새 대화로(질문은 지금 기준지역으로 가므로).
+   * bare = 질문 모음 — 재난상황 조건·집어 둔 참조 객체 없이 질문 문장 그대로(개발서버 bareConditions · UFR-006-001-11, R62)
+   */
   const ask = useCallback(
-    async (a0: AskArgs, extra?: Partial<Turn>, newConv = false) => {
-      const a = withRefs(a0);
+    async (a0: AskArgs, extra?: Partial<Turn>, newConv = false, bare = false) => {
+      const a = bare ? { ...a0, condPatch: { ...BARE_COND, ...a0.condPatch } } : withRefs(a0);
       const open = convRef.current;
-      // 이 질문에만 실은 기준지역(「이 특보로 질의」 — a.base)이 있으면 그 지역으로 대화를 가린다(R32 대화 하나는 기준지역 하나)
+      // 이 질문에만 실은 기준지역(「이 특보로 질의」 — a.base)이 있으면 그 지역으로 대화를 가린다(대화 하나는 시·도 하나 — R62)
       const area = a.base !== undefined ? a.base : sRef.current.cond.base;
       const moved = !newConv && otherBase(open, area);
       if (moved) sRef.current.toast(`기준지역이 이 대화(${open?.baseName})와 달라 새 대화로 보냅니다.`);
@@ -327,8 +417,9 @@ function Explore() {
       { refAdv: { type: a.type, level: a.level, area: a.area, issuedAt: a.issuedAt, ...(a.scenario ? { scenario: true } : {}) } },
     ).catch(toastErr);
   };
-  const askLib = (q: LibraryQuestion, source: "LIBRARY" | "BRIEFING" = "LIBRARY") =>
-    ask({ question: fillText(q, regionName), source, libraryId: q.id, quickQueryId: q.quickQueryId ?? null, warnings: source === "BRIEFING" && s.aimOn ? liveWarnings() : null }, undefined, source === "BRIEFING").catch(toastErr);
+  /** 질문 모음 「지역 질문」 하나 — 재난상황 조건 없이 질문 문장 그대로(기준지역만 따라간다 — {지역} 자리, 개발서버 askLibrary · FUN-UFR-301007) */
+  const askLib = (q: LibraryQuestion) =>
+    ask({ question: fillText(q, regionName), source: "LIBRARY", libraryId: q.id, quickQueryId: q.quickQueryId ?? null, warnings: null }, undefined, false, true).catch(toastErr);
   /** 브리핑 항목 하나 질의 (시작 화면 타일 · 질의 줄 메뉴 · AI 모드 타일) — q 는 질의문 원형. 개발서버처럼 질의문 그대로(출처 BRIEFING) */
   const askBrief = (q: string) =>
     ask({ question: q.replaceAll("{지역}", regionName), source: "BRIEFING", warnings: s.aimOn ? liveWarnings() : null, ...showPin(q, 0) }, undefined, true).catch(toastErr);
@@ -340,13 +431,13 @@ function Explore() {
     const d = DEMO_SHOW.find((x) => x.text === q.trim()) ?? DAY_ITEMS.find((x) => x.text === q.trim());
     return d ? { pinId: d.id, revealMs: 3000 + i * 1500 } : {};
   };
-  /** 질문 모음 「한눈 요약 질의」(받아 둔 답이 없을 때) — 질문 모음 질문과 같은 경로(자동 조회 먼저), 항목의 조건 프리셋은 이 질문에만 싣는다(세션 조건 그대로) */
-  const askDemo = (d: DemoItem) => ask(demoAsk(d)).catch(toastErr);
-  /** 질문 모음 「시연」 — 고정해 둔 답이 있으면 바로, 없으면 새로 받아 고정 */
-  const askShow = async (ds: DemoItem[]) => {
-    setLibOpen(false);
-    for (const d of ds) await ask({ ...demoAsk(d), pinId: d.id, warnings: (d as ShowItem).warnings ?? null }).catch(toastErr);
-  };
+  /**
+   * 질문 모음 「한눈 요약 질의」 한 건 — 질문 글만 조건 없이(개발서버 askDay · UFR-006-001-11 I열). 전에는 항목의 가정 조건(프리셋)을 얹고 받아 둔 답이 있으면 그것을 세웠다.
+   * 자동 조회(질문 모음 경로)는 그대로. 받아 두기·받아 둔 답(sa_demo_pins)은 자동 시연·브리핑 시연이 쓴다
+   */
+  const askDemo = (d: DemoItem) => ask({ question: d.text, source: "LIBRARY", libraryId: d.id, quickQueryId: d.quickQueryId ?? null }, undefined, false, true).catch(toastErr);
+  /** 「이어서 물어보기」 추천 후속질문 — 질문 글 그대로 이 대화에 이어 묻는다(개발서버 onFollowUp: FOLLOW_UP · 지금 조건 · FUN-UFR-301003) */
+  const askSuggested = (text: string) => ask({ question: text, source: "FOLLOW_UP" }).catch(toastErr);
   /** 자동 시연(개발서버 features/demoMode — R54) — 받아 둔 답을 대본대로 놓고 음성으로 안내. 시연 배치 = 질의 목록 접고 대화 55% */
   const autoDemo = useExploreAutoDemo({
     newConv,
@@ -434,12 +525,6 @@ function Explore() {
     router.replace("/explore");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sp, s.account, briefLoaded]);
-
-  const askMany = async (qs: LibraryQuestion[]) => {
-    setLibOpen(false);
-    // 넷까지 함께 — 빈 자리만큼만 보낸다(개발서버 useConversation ask 는 넷이 차면 더 보내지 않음)
-    for (const q of qs.slice(0, lock.free)) await askLib(q);
-  };
 
   // ── 지도: 지금 보는 답(턴 기준 표시 — 개발 서버 mapRefs)의 refs + 서버가 미리 받은 도형(geo) ──
   // 새 턴이 붙으면 고른 답을 놓고 마지막 답을 따라간다
@@ -558,15 +643,37 @@ function Explore() {
       const t = c?.turns.find((x) => x.jobId === jobId);
       if (c && t) retryTurn(c.id, t);
     },
+    askSuggested,
   };
 
+  /**
+   * 질문 현황에서 고름 — 그 질문 위치로(답변 생성 중인 질문도 · 개발서버 selectAsk · FUN-UFR-301010). 브리핑 항목이면 그 브리핑 묶음으로.
+   * 다른 대화의 질문이면 대화를 옮기는 일이라 지금 대화에 도는 질문이 있으면 중지 안내창을 먼저(FUN-UFR-306004)
+   */
   const pickFromQueue = (j: JobSummary) => {
-    const c = convRef.current?.turns.some((t) => t.jobId === j.id) ? convRef.current : s.convs.find((cv) => cv.turns.some((t) => t.jobId === j.id));
-    if (c) setConv(latest.current.get(c.id) ?? c);
-    // 대화에 없는 작업(다른 기기·운영자 예열 등) — 그 질문 하나로 새 대화를 연다
-    else appendTurns(j.question_user, [{ id: uid("t"), jobId: j.id, q: j.question_user, source: j.source, libraryId: j.library_id, at: j.created_at }], null);
-    setTimeout(() => document.getElementById(`job-${j.id}`)?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+    const here = !!convRef.current?.turns.some((t) => t.jobId === j.id);
+    const c = here ? convRef.current : s.convs.find((cv) => cv.turns.some((t) => t.jobId === j.id));
+    const go = () => {
+      const g = (latest.current.get(c?.id ?? "") ?? c)?.turns.find((t) => t.jobId === j.id)?.group;
+      setTimeout(() => (document.getElementById(`job-${j.id}`) ?? (g ? document.getElementById(`brief-${g.id}`) : null))?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+    };
+    if (here) return go();
+    requestLeave("open", () => {
+      if (c) setConv(latest.current.get(c.id) ?? c);
+      // 대화에 없는 작업(다른 기기·운영자 예열 등) — 그 질문 하나로 새 대화를 연다
+      else appendTurns(j.question_user, [{ id: uid("t"), jobId: j.id, q: j.question_user, source: j.source, libraryId: j.library_id, at: j.created_at }], null);
+      go();
+    });
   };
+
+  /** 구분선 — 이 블록 뒤에 설 것(턴 id 로 짚는다). afterTurnId 가 null 이면 첫 블록 앞 */
+  const convBreaks = conv ? breaks[conv.id] ?? [] : [];
+  const breaksAfter = (ts: Turn[]) => convBreaks.filter((b) => b.afterTurnId !== null && ts.some((t) => t.id === b.afterTurnId));
+  const breakLine = (b: RegionBreak, i: number) => (
+    <div key={`rb-${b.at}-${i}`} className="answer-region-break" role="note" aria-label="기준지역 변경">
+      <span>{regionBreakText(b.from, b.to, new Date(b.at))}</span>
+    </div>
+  );
 
   const fixedTabs = sop.enabled ? [MAP_TAB, SUMMARY_TAB, SOP_TAB] : [MAP_TAB, SUMMARY_TAB];
   const panelTabs = [...fixedTabs, ...tabs.filter((t) => t.kind !== "map" && t.kind !== "sop" && t.kind !== "summary")];
@@ -590,7 +697,7 @@ function Explore() {
 
   return (
     <ExploreContext.Provider value={x}>
-      <div className={`explore ${panelOpen ? "with-panel" : ""} ${queueOpen ? "with-queue" : ""} ${dragging ? "dragging" : ""}`} style={{ "--chat-w": `${chatW}%` } as React.CSSProperties}>
+      <div id="main-content" tabIndex={-1} className={`explore ${panelOpen ? "with-panel" : ""} ${queueOpen ? "with-queue" : ""} ${dragging ? "dragging" : ""}`} style={{ "--chat-w": `${chatW}%` } as React.CSSProperties}>
         <QueuePanel open={queueOpen} setOpen={setQueueOpen} onPick={pickFromQueue} currentJobIds={turnJobIds} briefing={briefRow} />
         <main className="ex-main" ref={mainRef}>
           {!panelOpen && (
@@ -608,10 +715,13 @@ function Explore() {
                   }}
                 />
                 <span className="sp" />
-                <button className="btn sm" onClick={newConv}>＋ 새 대화</button>
+                {/* [새 대화] — 도는 질문이 있으면 중지 안내창을 먼저(개발서버 startNewConversation · FUN-UFR-306004) */}
+                <button className="btn sm" onClick={() => requestLeave("new", newConv)}>＋ 새 대화</button>
               </div>
-              {blocks.map((b, bi) =>
-                b.group ? (
+              {convBreaks.filter((b) => b.afterTurnId === null).map(breakLine)}
+              {blocks.map((b, bi) => (
+                <Fragment key={b.group ? `g:${b.group.id}:${bi}` : `t:${b.turns[0].id}`}>
+                {b.group ? (
                   <section key={`${b.group.id}:${bi}`} className="brief-block" id={`brief-${b.group.id}`}>
                     <div className="qbubble">
                       <ol>{b.turns.map((t) => <li key={t.id}>{t.q}</li>)}</ol>
@@ -641,8 +751,10 @@ function Explore() {
                       <TurnBody t={t} onRetry={() => retryTurn(conv.id, t)} />
                     </section>
                   ))
-                ),
-              )}
+                )}
+                {breaksAfter(b.turns).map(breakLine)}
+                </Fragment>
+              ))}
               <div ref={endRef} />
             </div>
           ) : (
@@ -707,12 +819,26 @@ function Explore() {
             busy={lock.locked}
             onClose={() => setLibOpen(false)}
             onAsk={(q) => { setLibOpen(false); askLib(q); }}
-            onAskMany={askMany}
             onAskDemo={(d) => { setLibOpen(false); askDemo(d); }}
-            onAskShow={askShow}
           />
         )}
         <AutoDemoBar demo={autoDemo}><AimPrep /></AutoDemoBar>
+        {/* 대화 전환 확인 — 제목·단추는 개발서버 글자 그대로, 본문은 상황별 짧은 문구(leaveMessage) */}
+        {leave && leaveAct && (
+          <Dialog
+            role="alertdialog"
+            size="sm"
+            title={LEAVE_TITLE[leave.kind]}
+            desc={leaveMessage(leaveAct.running, leaveAct.waiting)}
+            onClose={cancelLeave}
+            footer={
+              <>
+                <button type="button" className="acm-btn" onClick={cancelLeave}>취소</button>
+                <button type="button" className="acm-btn pri" onClick={confirmLeave}>{LEAVE_OK[leave.kind]}</button>
+              </>
+            }
+          />
+        )}
       </div>
     </ExploreContext.Provider>
   );

@@ -44,7 +44,7 @@
 /* 「브리핑 항목 설정」 — 이제 창을 여는 단추(R53, 전에는 /settings/briefing 길) */
 .bs-act button.bs-set { width: 100%; border: 0; background: none; font-family: inherit; cursor: pointer; text-align: left; }
 
-/* 대화 만료 안내 (SCR-UNE-203001 「대화 만료」, 개발서버 index.css .query-expired) — 상류가 대화 문맥을 마지막 활동으로부터 24시간만 들고 있다 */
+/* 대화 만료 안내 (SCR-UNE-203001 「대화 만료」, 개발서버 index.css .query-expired) — 상류가 대화 문맥을 마지막 활동으로부터 7일 들고 있다 */
 .query-expired { margin: 0 0 12px; padding: 12px 16px; background: #fdf6e4; border: 1px solid #f0d9a8; border-radius: 6px; }
 .query-expired-head { display: flex; gap: 6px; align-items: center; margin: 0; font-size: calc(16px * var(--fs-scale)); font-weight: 700; line-height: calc(24px * var(--fs-scale)); color: #8a6116; }
 .query-expired-sub { margin: 2px 0 0 26px; font-size: var(--fs-s); line-height: calc(23px * var(--fs-scale)); color: #6d5a2e; }

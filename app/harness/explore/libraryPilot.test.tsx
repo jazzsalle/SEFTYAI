@@ -5,7 +5,7 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { baseName, basePilot, type BaseRegion } from "@/lib/baseRegion";
-import { dayItemsFor, DEMO_SHOW, fillText, libById, type DemoItem, type LibraryQuestion } from "@/lib/library";
+import { dayItemsFor, fillText, libById, type DemoItem, type LibraryQuestion } from "@/lib/library";
 
 const session = vi.hoisted(() => ({ s: {} as Record<string, unknown> }));
 vi.mock("@/lib/session", () => ({ useSession: () => session.s, uid: (p: string) => `${p}x` }));
@@ -25,9 +25,9 @@ const INJE: BaseRegion = { sido: { code: "51", name: "강원특별자치도" }, 
 const CHUNCHEON: BaseRegion = { sido: { code: "51", name: "강원특별자치도" }, sigungu: { code: "51110", name: "춘천시" } };
 const GYEONGBUK: BaseRegion = { sido: { code: "47", name: "경상북도" } };
 
-const drawer = (base: BaseRegion, onAskDemo: (d: DemoItem) => void = () => {}, onAskShow?: (ds: DemoItem[]) => void) => {
+const drawer = (base: BaseRegion, onAskDemo: (d: DemoItem) => void = () => {}) => {
   session.s = { cond: { base, region: basePilot(base) } };
-  return render(<LibraryDrawer regionName={baseName(base)} onClose={() => {}} onAsk={() => {}} onAskMany={() => {}} onAskDemo={onAskDemo} onAskShow={onAskShow} />).container;
+  return render(<LibraryDrawer regionName={baseName(base)} onClose={() => {}} onAsk={() => {}} onAskDemo={onAskDemo} />).container;
 };
 const dayTitles = (c: HTMLElement) => [...c.querySelectorAll(".day-btn b")].map((b) => b.textContent);
 const libTexts = (c: HTMLElement) => [...c.querySelectorAll(".lib-q > button.lnk")].map((b) => b.textContent);
@@ -41,7 +41,7 @@ describe("질문 모음 — 시·도까지만 고른 기준지역(R48)", () => {
     expect(dayItemsFor("inje").map((d) => d.id)).toEqual(["IG-IJ-01", "IG-IJ-02", "IG-IJ-03", "IG-IJ-04", "IG-IJ-05", "IG-IJ-06", "IG-IJ-07", "DD-IJ-04", "DD-IJ-05", "DD-IJ-07-R"]);
     expect(c.textContent).not.toContain("한눈 요약 질의가 없습니다");
     fireEvent.click(c.querySelector(".day-btn")!);
-    expect((ask.mock.calls[0][0] as DemoItem).id).toBe("IG-IJ-01"); // 받아 둔 답 없음 → 그 자리에서 묻는다
+    expect((ask.mock.calls[0][0] as DemoItem).id).toBe("IG-IJ-01"); // 질문 글만 묻는다
 
     fireEvent.click(screen.getByRole("tab", { name: "지역 질문" }));
     const texts = libTexts(c);
@@ -72,36 +72,23 @@ describe("질문 모음 — 시·도까지만 고른 기준지역(R48)", () => {
   });
 });
 
-describe("질문 모음 「시연」 — 받아 둔 답이 없는 질문은 회색(개발서버 QuestionLibrary 와 같게)", () => {
-  it("SH-1-1 만 받아 둔 답 → 그것만 눌림 · 나머지 회색 · 받기 단추 없음 · 13개(개발서버 시연 13개)", async () => {
-    pins.v = { "SH-1-1": { at: "2026-11-05T05:00:00.000Z", jobId: "j1", pending: null } };
-    const show = vi.fn();
-    const c = drawer({ sido: { code: "26", name: "부산광역시" }, sigungu: null }, () => {}, show);
-    fireEvent.click(screen.getByRole("tab", { name: "시연" }));
-    await screen.findByText(/저장된 답 · .* 받음/);
-    const btns = [...c.querySelectorAll<HTMLButtonElement>(".day-btn")];
-    expect(btns).toHaveLength(13);
-    expect(btns.map((b) => b.querySelector("b")?.textContent)).toEqual(DEMO_SHOW.map((d) => d.title));
-    expect(btns.filter((b) => !b.disabled)).toHaveLength(1);
-    expect(c.textContent).not.toContain("다시 받기");
-    fireEvent.click(btns[1]); // 회색 — 눌리지 않는다
-    fireEvent.click(btns[0]);
-    expect(show).toHaveBeenCalledTimes(1);
-    expect((show.mock.calls[0][0] as DemoItem[]).map((d) => d.id)).toEqual(["SH-1-1"]);
-    pins.v = {};
+describe("질문 모음 — 「시연」 갈피 없음 · 한눈 요약 질의는 질문 글만(R62 — 개발서버 256e5ec·352a97c)", () => {
+  it("갈피는 「지역 질문」·「한눈 요약 질의」 둘 — 「시연」·[이 묶음 차례로 보내기] 없음", () => {
+    drawer({ sido: { code: "26", name: "부산광역시" }, sigungu: null });
+    expect(screen.getAllByRole("tab").map((t) => t.textContent)).toEqual(["지역 질문", "한눈 요약 질의"]);
+    expect(screen.queryByText("이 묶음 차례로 보내기")).toBeNull();
   });
 
-  it("한눈 요약 질의 — 받아 둔 답이 있으면 그것을(onAskShow), 응답 n/m · 다시 받기·지우기", async () => {
+  it("한눈 요약 질의 — 받아 둔 답이 있어도 질문만 묻는다(onAskDemo), 응답 n/m · 다시 받기·지우기는 그대로", async () => {
     pins.v = { "IG-IJ-02": { at: "2026-11-05T05:00:00.000Z", jobId: "j2", pending: null } };
-    const show = vi.fn();
     const live = vi.fn();
-    const c = drawer(INJE, live, show);
+    const c = drawer(INJE, live);
     fireEvent.click(screen.getByRole("tab", { name: "한눈 요약 질의" }));
     await screen.findByText(`응답 1/${dayItemsFor("inje").length}`);
     expect(c.textContent).toContain("지우기");
+    expect(c.textContent).not.toContain("붙는 조건");
     fireEvent.click(c.querySelectorAll(".day-btn")[1]);
-    expect((show.mock.calls[0][0] as DemoItem[]).map((d) => d.id)).toEqual(["IG-IJ-02"]);
-    expect(live).not.toHaveBeenCalled();
+    expect((live.mock.calls[0][0] as DemoItem).id).toBe("IG-IJ-02");
     pins.v = {};
   });
 });

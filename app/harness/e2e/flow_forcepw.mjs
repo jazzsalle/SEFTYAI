@@ -27,8 +27,8 @@ const browser = await chromium.launch({ executablePath: exe, headless: true });
 try {
   const page = await browser.newPage({ viewport: { width: 1920, height: 1080 }, locale: "ko-KR" });
   await page.goto(base + "/login");
-  await page.getByPlaceholder("아이디를 입력하세요").fill(id);
-  await page.getByPlaceholder("비밀번호를 입력하세요").fill(pw);
+  await page.locator("#lgn-id").fill(id);
+  await page.locator("#lgn-pw").fill(pw);
   await page.getByRole("button", { name: "로그인", exact: true }).click();
   await page.waitForURL("**/explore", { timeout: 20000 });
   const dlg = page.getByRole("dialog", { name: "초기 비밀번호 변경" });

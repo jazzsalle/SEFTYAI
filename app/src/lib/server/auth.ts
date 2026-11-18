@@ -1,5 +1,5 @@
 import "server-only";
-import { createHmac, randomBytes, scrypt as _scrypt, timingSafeEqual } from "node:crypto";
+import { createHmac, pbkdf2 as _pbkdf2, randomBytes, scrypt as _scrypt, timingSafeEqual } from "node:crypto";
 import { promisify } from "node:util";
 import { ACCOUNTS, type Account } from "../config";
 import { inspectPw, issuedAccount, PW_CHAR_MSG, pwRuleOk } from "../accountRules";
@@ -9,12 +9,14 @@ import { db, ensureSchema } from "./db";
  * 로그인·세션 (R7, UFR-007) — 고정 7계정(R50 개발서버 아이디)과 계정 발급 화면에서 만든 계정(R55), scrypt 해시, 서명 쿠키 sa_sid
  * 세션 수명 240분(개발서버 Jwt:AccessTokenMinutes — R57, R34 유휴 4시간·절대 12시간 대체): 로그인한 때 또는 사람이 [시간 연장]을 누른 때부터 센다.
  *   화면 조작·폴링·새로고침은 수명을 늘리지 않는다(개발서버 AuthService.IsOver·RefreshAsync extend). 다하면 다음 요청부터 401(AUTH_SESSION_EXPIRED)
- * 비밀번호 9자 이상 + 영문·숫자·특수문자 · 5회 실패 15분 잠금
+ * 비밀번호 9자 이상 + 영문·숫자·특수문자 · 5회 실패 15분 잠금(잠그는 그 5회째 응답부터 잠금 문구 — 개발서버 AuthService lockedNow, R61)
+ * 저장 형식: 우리가 만드는 해시는 scrypt$N$r$p$salt$hash, 개발서버에서 옮겨 온 비밀번호는 pbkdf2-sha256$반복$salt$hash(개발서버 PasswordHasher — R61 harness/devsync/import_pw.mjs)
  * 한 사람당 접속 하나 — 개발서버 AuthService(R53): 비밀번호가 맞았는데 다른 곳에서 접속 중이면(자취 beat_at 이 2분 안·이 브라우저의 세션이 아님)
  * 바로 들이지 않고 409 AUTH_SESSION_EXISTS 로 되묻는다(SCR-UNE-101003). force 면 그 접속을 끊고(revoked_reason TAKEN_OVER) 들어간다.
  * 끊긴 쪽은 다음 두드림(/api/auth/ping)에서 AUTH_SESSION_TAKEN_OVER 를 받아 「접속이 종료되었습니다」(101004)를 띄운다.
  */
 const scrypt = promisify(_scrypt) as (pw: string, salt: Buffer, len: number, opt: object) => Promise<Buffer>;
+const pbkdf2 = promisify(_pbkdf2);
 export const COOKIE = "sa_sid";
 /** 세션 수명 — 로그인·[시간 연장]부터 240분(개발서버 appsettings Jwt:AccessTokenMinutes 240, R57) */
 export const SESSION_MS = 240 * 60_000;
@@ -48,9 +50,24 @@ export async function hashPw(pw: string) {
   return `scrypt$${N}$${R}$${P}$${salt.toString("base64")}$${h.toString("base64")}`;
 }
 
-async function verifyPw(pw: string, stored: string) {
-  const [algo, n, r, p, salt, hash] = stored.split("$");
-  if (algo !== "scrypt") return false;
+/** 개발서버에서 옮겨 온 비밀번호의 형식 머리 — 개발서버 PasswordHasher(PBKDF2-HMAC-SHA256, 비밀번호는 UTF-8 바이트) */
+export const DEV_PW_ALGO = "pbkdf2-sha256";
+
+/** 비밀번호 확인 — scrypt(우리 것)와 pbkdf2-sha256(개발서버에서 옮겨 온 것) 두 형식. 모르는 형식·깨진 값은 거절 */
+export async function verifyPw(pw: string, stored: string) {
+  const part = (stored ?? "").split("$");
+  if (part[0] === DEV_PW_ALGO) {
+    // pbkdf2-sha256$<반복>$<솔트 base64>$<해시 base64>
+    const [, it, salt, hash] = part;
+    const iterations = Number(it);
+    if (part.length !== 4 || !Number.isInteger(iterations) || iterations <= 0 || !salt || !hash) return false;
+    const want = Buffer.from(hash, "base64");
+    if (!want.length) return false;
+    const got = await pbkdf2(Buffer.from(pw, "utf8"), Buffer.from(salt, "base64"), iterations, want.length, "sha256");
+    return timingSafeEqual(want, got);
+  }
+  const [algo, n, r, p, salt, hash] = part;
+  if (algo !== "scrypt" || !salt || !hash) return false;
   const want = Buffer.from(hash, "base64");
   const got = await scrypt(pw, Buffer.from(salt, "base64"), want.length, { N: +n, r: +r, p: +p, maxmem: 64 * 1024 * 1024 });
   return timingSafeEqual(want, got);
@@ -76,17 +93,23 @@ export function sessionCookie(value: string, maxAgeSec: number) {
 export type LoginResult = { ok: true; account: Account; cookie: string; expiresAt: string } | { ok: false; error: string; status: number; code?: string };
 /** 화면설계 SCR-UNE-101003 의 확정 문구 */
 export const SESSION_EXISTS_MSG = "다른 곳에서 이 계정으로 접속 중입니다. 로그인하면 그 접속은 종료됩니다.";
-const LOCKED_MSG = "비밀번호를 5회 잘못 입력해 잠시 잠겼습니다. 15분 뒤 다시 시도하거나 운영자에게 해제를 요청하세요.";
+/** 화면설계 SCR-UNE-101001 의 확정 문구(개발서버 AuthService LockedMessage 글자 그대로 — R61) */
+export const LOCKED_MSG = `로그인에 ${MAX_FAIL}회 연속 실패하여 계정이 잠겼습니다. 시스템 운영자에게 문의하세요.`;
 
-/** 실패 1회를 원자적으로 센다 — 5회째에 15분 잠금. 실패 경로에서는 잠금 시각을 지우지 않는다(동시 시도에도 안전) */
-async function countFailure(id: string) {
-  await db().query(
+/**
+ * 실패 1회를 원자적으로 센다 — 5회째에 15분 잠금. 실패 경로에서는 잠금 시각을 지우지 않는다(동시 시도에도 안전).
+ * 돌려주는 값 = 이 실패가 계정을 잠갔는가(잠그면 횟수를 0 으로 되돌리므로, 센 뒤 0 이면 이번에 잠근 것)
+ */
+async function countFailure(id: string): Promise<boolean> {
+  const rows = (await db().query(
     `update sa_accounts set
        failed_count = case when failed_count + 1 >= $2 then 0 else failed_count + 1 end,
        locked_until = case when failed_count + 1 >= $2 then now() + make_interval(secs => $3) else locked_until end
-     where id = $1`,
+     where id = $1
+     returning failed_count = 0 as locked_now`,
     [id, MAX_FAIL, LOCK_MS / 1000],
-  );
+  )) as { locked_now: boolean }[];
+  return !!rows[0]?.locked_now;
 }
 
 /**
@@ -104,7 +127,8 @@ export async function login(id: string, pw: string, ua: string, opts: { force?: 
   if (!row || !account || row.status !== "ACTIVE") return generic;
   if (row.locked) return { ok: false, error: LOCKED_MSG, status: 423 };
   if (!(await verifyPw(pw, row.pw_hash))) {
-    await countFailure(id);
+    // 잠그는 바로 그 실패(5회째)는 잠금 문구로 알린다(개발서버 AuthService lockedNow — SCR-UNE-101001 ③). 그 전까지는 일반 문구만
+    if (await countFailure(id)) return { ok: false, error: LOCKED_MSG, status: 423 };
     return generic;
   }
   // 다른 곳에서 접속 중이면 되묻는다 — 비밀번호를 확인한 «뒤에»(먼저 물으면 아이디만으로 접속 여부가 드러난다), 실패 기록을 지우기 전에

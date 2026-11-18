@@ -24,8 +24,8 @@ async function open(width, height) {
   const page = await browser.newPage({ viewport: { width, height }, locale: "ko-KR" });
   page.on("pageerror", (e) => errors.push(String(e)));
   await page.goto(base + "/login");
-  await page.getByPlaceholder("아이디를 입력하세요").fill(id);
-  await page.getByPlaceholder("비밀번호를 입력하세요").fill(pw);
+  await page.locator("#lgn-id").fill(id);
+  await page.locator("#lgn-pw").fill(pw);
   await page.getByRole("button", { name: "로그인", exact: true }).click();
   await page.waitForURL("**/explore", { timeout: 90000 }); // 개발 서버는 고친 직후 첫 화면 컴파일이 길다
   await page.waitForTimeout(2500);

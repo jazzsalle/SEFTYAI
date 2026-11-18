@@ -5,7 +5,7 @@ import { api, ApiError } from "./api";
 import { endReason, ping, useHeartbeat } from "./heartbeat";
 import type { Account } from "./config";
 import { isActive, locksBase, sourceLocksBase, type JobFull, type JobSource, type JobSummary, type T3qRef } from "./jobTypes";
-import { basePilot, baseWire, defaultBase, type BaseRegion } from "./baseRegion";
+import { baseKey, basePilot, baseWire, defaultBase, type BaseRegion } from "./baseRegion";
 import { presetCondition, wireCondition, type CondPreset } from "./library";
 
 /** 지난 상황으로 보관할 때 함께 보내는 화면 정보 (조치 이름·단계 — 누가·언제는 서버 값) */
@@ -87,8 +87,11 @@ export interface SubmitArgs {
    * 없으면(undefined) 세션 기준지역. 세션 기준지역은 바꾸지 않는다
    */
   base?: BaseRegion | null;
-  /** 이 질문에 얹는 조건(특보 종류·단계 — 「이 특보로 질의」). 프리셋(cond)이 없을 때 세션 조건 위에 덮는다 */
-  condPatch?: Pick<Cond, "warningKind" | "warningLevel">;
+  /**
+   * 이 질문에 얹는 조건(특보 종류·단계 — 「이 특보로 질의」, 질문 모음은 재난상황 조건을 비움 — lib/dialogue BARE_COND). 프리셋(cond)이 없을 때 세션 조건 위에 덮는다.
+   * 세션 조건은 바꾸지 않는다
+   */
+  condPatch?: Partial<Omit<Cond, "base" | "region">>;
   /** 고정 답을 바로 받았을 때 화면에 내보이기까지 기다리는 시간(ms) — AI 모드 점검·브리핑 시연(사용자 지시 2026-11-02). 요청에는 넣지 않는다 */
   revealMs?: number;
 }
@@ -120,10 +123,10 @@ interface SessionState {
   cond: Cond;
   /** 기준지역 밖의 조건(재난유형·기준시각·상황 상세정보) */
   setCond: (c: Partial<Omit<Cond, "base" | "region">>) => void;
-  /** 기준지역 바꾸기 — 질의·응답이 진행 중이면(asking 과 같은 기준 — AI 모드 점검은 빼고, R44) 바꾸지 않고 false. 바꾸면 특보 참조를 떼고, AI 모드를 켜 두었으면 끄고 진행 중인 점검을 취소한다(R47) */
+  /** 기준지역 바꾸기 — 답변 중에도 바꾼다(R62 — 늘 true). 바꾸면 특보 참조를 떼고, AI 모드를 켜 두었으면 끈다(R47) */
   setBase: (b: BaseRegion | null) => boolean;
   /**
-   * 이 계정의 질의·응답이 진행 중(보내는 중이거나 작업이 대기·제출·답변 생성 중) — 기준지역을 바꿀 수 없다.
+   * 이 계정의 질의·응답이 진행 중(보내는 중이거나 작업이 대기·제출·답변 생성 중). 기준지역 잠금에는 이제 쓰지 않는다(R62).
    * AI 모드 점검(AI_MODE)은 세지 않는다(R44 — jobTypes locksBase · sourceLocksBase)
    */
   asking: boolean;
@@ -181,6 +184,13 @@ const msOf = (iso: string | null | undefined): number | null => {
   const t = iso ? new Date(iso).getTime() : NaN;
   return Number.isFinite(t) ? t : null;
 };
+/**
+ * AI 모드 켬/끔을 서버 기록에 남긴다(FUN-UFR-907002, 개발서버 aiModeApi.switched) — 기록일 뿐이라 실패해도 화면은 아무 일도 하지 않는다.
+ * region = 기준지역의 가장 아래 단계 행정구역 코드(전국이면 빈 글자 → 서버가 「-」)
+ */
+export function logAimSwitch(on: boolean, region: string) {
+  void api("/api/ai-mode/switch", { method: "POST", json: { on, region } }).catch(() => undefined);
+}
 export function SessionProvider({ children }: { children: React.ReactNode }) {
   const [ready, setReady] = useState(false);
   const [account, setAccount] = useState<Account | null>(null);
@@ -215,6 +225,10 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   accountRef.current = account;
   const aimOnRef = useRef(aimOn);
   aimOnRef.current = aimOn;
+  /** 서버 기록(FUN-UFR-907002)에 마지막으로 알린 AI 모드 켬/끔 — 같은 상태를 다시 알리지 않는다(개발서버 useAiMode loggedOnRef) */
+  const aimLoggedRef = useRef(false);
+  const condRef = useRef(cond);
+  condRef.current = cond;
 
   const toast = useCallback((m: string) => {
     setToast(m);
@@ -228,6 +242,11 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   const setAimOn = useCallback((v: boolean) => {
     aimOnRef.current = v;
     setAimOnS(v);
+    // 켬/끔 기록(FUN-UFR-907002, 개발서버 useAiMode) — 같은 상태는 다시 알리지 않는다
+    if (aimLoggedRef.current !== v) {
+      aimLoggedRef.current = v;
+      logAimSwitch(v, baseKey(condRef.current.base));
+    }
     if (v) setWxRef(null);
   }, []);
 
@@ -257,6 +276,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     setTaken(false);
     setCondS(condFor(r.account));
     setAimOnS(false);
+    aimLoggedRef.current = false;
   }, []);
 
   const logout = useCallback(async () => {
@@ -264,6 +284,8 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     setAccount(null);
     setExpiresAtS(null);
     setAimOnS(false);
+    // 로그아웃은 화면을 떠나는 것 — 개발서버처럼 「끔」으로 기록하지 않는다
+    aimLoggedRef.current = false;
     setWeather(null);
     setWxRef(null);
     setJobs({});
@@ -381,7 +403,12 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
 
   const setCond = useCallback((c: Partial<Omit<Cond, "base" | "region">>) => setCondS((p) => ({ ...p, ...c })), []);
   const setBase = useCallback((b: BaseRegion | null) => {
-    if (sendingRef.current > 0 || Object.values(jobsRef.current).some(locksBase)) return false;
+    // 답변 중에도 바꿀 수 있다(개발서버 352a97c FUN-UFR-101002 — R62, 전 R32·R44 잠금 없앰). 이미 보낸 질문은 보낼 때의 기준지역으로 그대로 처리된다
+    // 기준지역이 바뀌어 AI 모드가 저절로 꺼지는 것도 「끔」 — 바뀌기 전 지역으로 기록(FUN-UFR-907002, 개발서버 useAiMode)
+    if (aimLoggedRef.current) {
+      aimLoggedRef.current = false;
+      logAimSwitch(false, baseKey(condRef.current.base));
+    }
     setCondS((p) => ({ ...p, base: b, region: basePilot(b) }));
     setWxRef(null);
     // R47 — 기준지역을 바꾸면 AI 모드를 끝낸다(새 지역으로 따라가지 않음 — 다시 켜서 쓴다). 서버 점검은 사람 화면과 무관하게 끝까지 돌고 기록만 남는다(개발서버와 같음 — R52)
@@ -565,10 +592,12 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
         setSending(sendingRef.current);
       }
       try {
-        const r = await api<{ job: JobSummary }>("/api/agent/jobs", { method: "POST", json: { ...submitBody(c, a), stream: true } });
+        // AI 모드 점검·시연 고정 질문(pinId)은 스트리밍하지 않고 기존 ASYNC 그대로(개발서버 b818af0)
+        const stream = a.source !== "AI_MODE" && !a.pinId;
+        const r = await api<{ job: JobSummary }>("/api/agent/jobs", { method: "POST", json: { ...submitBody(c, a), stream } });
         if (a.revealMs && a.pinId && r.job.cached_from && r.job.state === "DONE") await new Promise((ok) => setTimeout(ok, a.revealMs));
         putJob(r.job);
-        if (r.job.state === "QUEUED") void openStream(r.job.id);
+        if (stream && r.job.state === "QUEUED") void openStream(r.job.id);
         return r.job;
       } finally {
         if (lock) {

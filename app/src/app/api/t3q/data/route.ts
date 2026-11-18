@@ -1,5 +1,6 @@
 import { fail, json, whoami } from "@/lib/server/who";
 import { t3qData } from "@/lib/server/demoMode";
+import { t3qSimilarAll } from "@/lib/server/similarAll";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 30;
@@ -37,7 +38,9 @@ export async function POST(req: Request) {
   const r = route(b!.id ? encodeURIComponent(b!.id) : undefined);
   if (!r) return fail(400, "ID 가 필요합니다.");
   const qs = b!.query ? "?" + new URLSearchParams(b!.query).toString() : "";
-  const res = await t3qData(who.id, r.method, r.path + qs, r.method === "POST" ? (b!.body ?? {}) : undefined);
+  // 유사사례는 total_count 만큼 100건씩 이어받아 한 봉투로(개발서버 similarApi.search, R63)
+  const res = b!.api === "T3Q-04" ? await t3qSimilarAll(who.id, r.path + qs, b!.body) : await t3qData(who.id, r.method, r.path + qs, r.method === "POST" ? (b!.body ?? {}) : undefined);
   if (!res.envelope) return fail(502, res.error ?? "정보를 불러오지 못했습니다.", { http: res.http });
   return json({ api: b!.api, http: res.http, ms: res.ms, envelope: res.body });
 }
+

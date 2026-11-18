@@ -25,7 +25,7 @@ export default function Composer({ onAsk, onBriefing, onLibrary, followUpLabel, 
   /** 지도에서 집어 둔 참조 객체(「객체 참조」) — id = 화면 열쇠, name = 받은 이름 */
   objectRefs?: { id: string; name: string }[];
   onDropRef?: (id: string) => void;
-  /** 이어서 물을 수 없는 대화(마지막 활동 24시간 뒤 — 개발서버 QueryBox expired) — 입력·[질의]를 막고 「이 대화는 만료되었습니다」 */
+  /** 이어서 물을 수 없는 대화(마지막 활동 7일 뒤 — 개발서버 QueryBox expired) — 입력·[질의]를 막고 「이 대화는 만료되었습니다」 */
   expired?: boolean;
   /** 질문을 더 받을 수 없다(개별 질문 넷이 다 돌거나 브리핑 세트가 도는 중 — 개발서버 askLocked). 입력을 막고 단추는 「질의 중…」 */
   locked?: boolean;

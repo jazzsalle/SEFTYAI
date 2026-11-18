@@ -1,0 +1,24 @@
+/* [본문 바로가기] (FUN-UFR-908009) — 개발서버 header.css .skip-link 그대로(R61). 평소에는 화면 밖에 두고, Tab 으로 초점이 오면 왼쪽 위에 나타낸다.
+   글자 크기는 개발서버처럼 따로 정하지 않는다(물려받음 — [글자 크기]를 따른다) */
+.skip-link {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+  padding: 10px 16px;
+  color: #fff;
+  background: #1c1c1c;
+  font-weight: 700;
+  transform: translateY(-120%);
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+  outline: 3px solid #ffe14d;
+  outline-offset: -3px;
+}
+
+/* 본문 바로가기로 초점이 옮겨 온 본문에는 테두리를 두르지 않는다 */
+#main-content:focus {
+  outline: none;
+}

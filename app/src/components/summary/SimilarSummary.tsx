@@ -2,12 +2,13 @@
 import { useMemo, useState } from "react";
 import { useT3qData, type T3qEnvelope } from "@/lib/t3qData";
 import { parseCases, type CaseMetric, type SimilarCase } from "@/lib/similarCases";
+import { SIMILAR_PAGE_SIZE } from "@/lib/similarPages";
 import "./summary.css";
 import "./similar.css";
 
 /**
  * 유사사례 한눈 요약 — 개발서버 features/search/similar/SimilarSummary(kjw 998facb) 그대로(R59).
- * 데이터·동작: T3Q-04 유사사례 순위(그 답을 보낸 조건 + 질문에서 읽은 재난유형 · 20건) + 1위 사건의 T3Q-10 요약·T3Q-13 피해, 누르면 사건 상세.
+ * 데이터·동작: T3Q-04 유사사례 순위(그 답을 보낸 조건 + 질문에서 읽은 재난유형 · 전체 — 서버가 100건씩 total_count 만큼 이어받음, R63) + 1위 사건의 T3Q-10 요약·T3Q-13 피해, 누르면 사건 상세.
  * 모양: 조건 줄 · 재난유형별 사례 수 칩 · 2열 모듈(유사도 순위 / 1위 사건) · 「답에 나온 수치」(답 글 표의 강우·침수흔적 막대, CaseSummary MetricBars).
  * 값은 받은 그대로(금액만 억·만 원 — 원 값은 마우스를 올리면). 사례 비교 카드(CaseSummary)는 개발서버에서도 화면에 붙지 않아 막대만 쓴다.
  */
@@ -50,7 +51,7 @@ export default function SimilarSummary({ ctx, answer, regionName, onEvent }: {
   regionName?: string | null;
   onEvent?: (ev: OpenEvent) => void;
 }) {
-  const list = useT3qData<T3qEnvelope<{ total_count?: number; items?: SimilarItem[] }>>({ api: "T3Q-04", body: { query_context: ctx, page: { page: 1, size: 20 } } });
+  const list = useT3qData<T3qEnvelope<{ total_count?: number; items?: SimilarItem[] }>>({ api: "T3Q-04", body: { query_context: ctx, page: { page: 1, size: SIMILAR_PAGE_SIZE } } });
   const [all, setAll] = useState(false);
   const cases = useMemo(() => parseCases(answer), [answer]);
 

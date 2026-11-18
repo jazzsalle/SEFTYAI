@@ -188,7 +188,7 @@ export default function AdminPage() {
 
   const activeN = jobs.data?.active.length ?? 0;
   return (
-    <div className="page adm">
+    <div id="main-content" tabIndex={-1} className="page adm">
       <div className="page-in">
         <div className="ph">
           <div>

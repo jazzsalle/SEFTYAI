@@ -69,11 +69,12 @@ describe("조회", () => {
   });
 });
 
-describe("대화 만료(T3Q-25 — 마지막 활동 24시간)", () => {
+describe("대화 만료(마지막 활동 7일 — R62, 개발서버 256e5ec · 전에는 24시간)", () => {
   const now = new Date(2026, 10, 6, 12).getTime();
-  it("마지막 질문으로부터 24시간이 지나면 만료, 그 안이면 아님", () => {
-    expect(isExpired(conv("a", "x", new Date(now - 24 * 3600_000 - 1000).toISOString()), now)).toBe(true);
-    expect(isExpired(conv("a", "x", new Date(now - 23 * 3600_000).toISOString()), now)).toBe(false);
+  it("마지막 질문으로부터 7일이 지나면 만료, 그 안이면 아님(24시간·6일은 아직 이어 물을 수 있다)", () => {
+    expect(isExpired(conv("a", "x", new Date(now - 7 * 24 * 3600_000 - 1000).toISOString()), now)).toBe(true);
+    expect(isExpired(conv("a", "x", new Date(now - 6 * 24 * 3600_000).toISOString()), now)).toBe(false);
+    expect(isExpired(conv("a", "x", new Date(now - 24 * 3600_000 - 1000).toISOString()), now)).toBe(false);
   });
   it("질문이 없거나 대화가 없으면 만료가 아니다", () => {
     expect(isExpired(null, now)).toBe(false);

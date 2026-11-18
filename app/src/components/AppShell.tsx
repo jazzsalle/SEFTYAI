@@ -21,7 +21,8 @@ import AiModeModal from "./explore/AiModeModal";
 import { AUTODEMO_START_EVENT, autoDemoBus, useAutoDemoBus } from "@/lib/autoDemoBus";
 import { useAskLock } from "@/lib/askLock";
 import FontSize from "./FontSize";
-import { PasswordModal } from "./account/PasswordModal";
+import { PasswordModal, takeNotice } from "./account/PasswordModal";
+import SkipLink from "./SkipLink";
 import { MyInfoModal } from "./account/MyInfoModal";
 import { SessionExpiredModal } from "./account/SessionExpiredModal";
 import { SessionCountdown } from "./account/SessionCountdown";
@@ -253,7 +254,7 @@ export function WxBar() {
  * 로고 · 메인 메뉴 · 기준지역 · 도움말 · 글자 크기 · AI 모드 · 사용자. KRDS 공식 배너 띠는 생략(허용됨).
  */
 export default function AppShell({ children }: { children: React.ReactNode }) {
-  const { ready, account, logout, cond, toastMsg, aimOn, setAimOn, weather, t3qOk, expiresAt, renew } = useSession();
+  const { ready, account, logout, cond, toast, toastMsg, aimOn, setAimOn, weather, t3qOk, expiresAt, renew } = useSession();
   const router = useRouter();
   const path = usePathname();
   const [menu, setMenu] = useState(false);
@@ -270,6 +271,13 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (ready && !account) router.replace("/login");
   }, [ready, account, router]);
+  // 앞 화면에서 끝낸 일의 알림(첫 로그인 비밀번호 변경 완료 — 화면이 바뀐 뒤 뜬다, 개발서버 SearchPage location.state.notice · R61). 한 번 읽고 지운다
+  const signedIn = !!account;
+  useEffect(() => {
+    if (!signedIn) return;
+    const n = takeNotice();
+    if (n) toast(n);
+  }, [signedIn, toast]);
 
   if (!ready || !account) return null;
   // AI 모드 단추 색 — 지금 기준지역을 덮는 발효 특보로(R32). 기상청 실시간이 끊긴 계정(R45)에 덮는 특보가 없으면 녹색(특보 없음)이 아니라 회색(lib/wxref aimTone)
@@ -283,6 +291,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     <SopProvider>
     <div className="app">
       <header className="gh one">
+        {/* 첫 초점 요소 — [본문 바로가기](FUN-UFR-908009, R61) */}
+        <SkipLink />
         <Link href="/explore" className="logo">
           <GovLogo />
           <span>행정안전부 <small>재난안전 AI</small></span>
