@@ -190,7 +190,7 @@ interface Rec {
   primary: boolean;
 }
 
-const FONT = `Pretendard, "Pretendard Variable", "Noto Sans KR", "Malgun Gothic", sans-serif`;
+const FONT = `"Pretendard GOV", "Noto Sans KR", "Malgun Gothic", sans-serif`;
 /** 핀 폭(px) — 기본 · 호버 · 선택(커진 핀) · 흐림 */
 const PIN_W: Record<St, number> = { dim: 24, base: 30, hover: 32, sel: 40 };
 const Z: Record<St, number> = { dim: 10, base: 20, hover: 30, sel: 40 };

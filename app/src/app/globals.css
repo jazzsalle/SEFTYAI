@@ -2,12 +2,27 @@
    재난안전 AI 시범서비스 — KRDS 기반 디자인 토큰 & 공통 컴포넌트
    출처: 승인 목업(300. 시범서비스 화면설계 시연_261001) :root 토큰 계승
    ===================================================================== */
+/* 개발서버 index.css:1-27 과 같이 KRDS 기본 글꼴 「Pretendard GOV」 subset 을 등록(폐쇄망에서도 뜨게) */
 @font-face {
-  font-family: "Pretendard";
-  src: url("/fonts/PretendardVariable.woff2") format("woff2-variations");
-  font-weight: 45 920;
-  font-style: normal;
+  font-family: "Pretendard GOV";
+  font-weight: 400;
   font-display: swap;
+  src: url("/krds/fonts/PretendardGOV-Regular.subset.woff2") format("woff2"),
+       url("/krds/fonts/PretendardGOV-Regular.subset.woff") format("woff");
+}
+@font-face {
+  font-family: "Pretendard GOV";
+  font-weight: 500;
+  font-display: swap;
+  src: url("/krds/fonts/PretendardGOV-Medium.subset.woff2") format("woff2"),
+       url("/krds/fonts/PretendardGOV-Medium.subset.woff") format("woff");
+}
+@font-face {
+  font-family: "Pretendard GOV";
+  font-weight: 700;
+  font-display: swap;
+  src: url("/krds/fonts/PretendardGOV-Bold.subset.woff2") format("woff2"),
+       url("/krds/fonts/PretendardGOV-Bold.subset.woff") format("woff");
 }
 
 /* 토큰 : KRDS — Figma(26_과기부_nia 디지털트윈) 변수 대조 반영, docs/design/02_figma_design_system.md */
@@ -51,7 +66,7 @@
   --r-m: 6px;
   --r-l: 8px;
   --r-xl: 12px;
-  --f: "Pretendard", -apple-system, BlinkMacSystemFont, "Malgun Gothic", sans-serif;
+  --f: "Pretendard GOV", -apple-system, BlinkMacSystemFont, "Malgun Gothic", sans-serif;
   /* 글자 크기 — 모두 이 배율을 곱한다(머리줄 [글자 크기]가 바꾼다, R58). 토큰에 없는 크기는 calc(Npx * var(--fs-scale)) */
   --fs-scale: 1;
   --fs-2xs: calc(12px * var(--fs-scale));

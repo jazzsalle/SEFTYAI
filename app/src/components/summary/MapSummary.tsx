@@ -140,7 +140,7 @@ export default function MapSummary({ map, source, onActive, onRegion }: {
         if (n > 0) out.push(new Style({
           geometry: ft.get("label"),
           text: new Text({
-            text: `${ft.get("name")} ${n}곳`, font: `600 ${scaledPx(11)}px Pretendard, sans-serif`, fill: new Fill({ color: "#fff" }),
+            text: `${ft.get("name")} ${n}곳`, font: `600 ${scaledPx(11)}px "Pretendard GOV", sans-serif`, fill: new Fill({ color: "#fff" }),
             backgroundFill: new Fill({ color: "rgba(19,20,22,0.78)" }), padding: [2, 6, 2, 6], overflow: true,
           }),
         }));
