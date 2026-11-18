@@ -87,3 +87,11 @@
 .brief-ai b { color: var(--c-navy, #0b2a55); }
 .brief-summary { margin: 4px 0 0; color: #1e2124; }
 .brief-summary.err { color: #8a4b00; font-weight: 600; }
+
+/* ── 개발서버 ds-search.css .briefing-item 과 같게(2026-11-19 「개발서버와 동일하게」) — 항목은 회색 상자(안쪽 16/20, 사이 8),
+   번호 표지 24 · 15px, 요약 17px #464c53. 크게 보기(big)는 흰 바탕 그대로 ── */
+.brief-card .brief-item:not(.big) { margin: 8px 24px; padding: 16px 20px; background: #f4f5f6; border: 0; border-radius: 8px; }
+.brief-card .brief-item:not(.big):last-child { margin-bottom: 24px; }
+.brief-card .brief-item:not(.big) .acard { background: transparent; }
+.brief-item-h .num { width: auto; min-width: 24px; height: 24px; padding: 0 8px; border-radius: 4px; font-size: calc(15px * var(--fs-scale)); font-weight: 400; }
+.brief-item-summary { font-size: calc(17px * var(--fs-scale)); line-height: 1.53; color: #464c53; }

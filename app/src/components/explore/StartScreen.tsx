@@ -5,7 +5,7 @@ import { IcChevR } from "../Icons";
 /**
  * 시작 화면 (Figma 201001) — 개발서버 StartGuide 그대로(R53): 인사말 · 현재 상황 브리핑 · 브리핑 항목 타일(등록 항목 전부 — 체크하지 않은 것도).
  * 타일을 누르면 바로 묻지 않고 질문 칸에 넣는다 — 바로 거는 자리는 [브리핑 시작]과 [브리핑 세트▾] 메뉴다.
- * (지역 질문 타일은 개발서버 시작 화면에 없어 뺐다 — 지역 질문은 [질문 목록 보기])
+ * (지역 질문 타일은 개발서버 시작 화면에 없어 뺐다 — 지역 질문은 [질문 모음 보기])
  */
 export default function StartScreen({ regionName, onBriefing, onPick }: {
   regionName: string;

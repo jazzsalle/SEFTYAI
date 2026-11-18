@@ -15,7 +15,7 @@ import { DocPane } from "../sop/DocPane";
 import DetailPane from "./DetailPane";
 import PosterSummary, { type SummarySource } from "../summary/PosterSummary";
 import MapSummary from "../summary/MapSummary";
-import { IcExpand, IcPushpin, IcX } from "../Icons";
+import { IcExpand, IcLayers, IcPushpin, IcX } from "../Icons";
 
 const MapView = dynamic(() => import("../map/MapView"), { ssr: false, loading: () => <div className="olmap" /> });
 
@@ -221,7 +221,7 @@ function MapPanel(p: Props) {
       </MapView>
       {tile === "osm" && <div className="map-note">배경지도(VWorld)를 불러오지 못해 OpenStreetMap 으로 표시합니다.</div>}
       <div className="map-tools">
-        <button className="btn sm" onClick={() => setLp((v) => !v)} aria-expanded={lp}>지도 표시</button>
+        <button type="button" className="btn sm map-layers-btn" onClick={() => setLp((v) => !v)} aria-expanded={lp}><IcLayers size={14} /> 지도 표시</button>
         {lp && (
           <div className="map-layerpanel">
             <div className="xs b">배경지도</div>

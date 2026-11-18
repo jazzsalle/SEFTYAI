@@ -49,7 +49,7 @@ if (await done.count()) {
   }
 }
 // 질문 모음
-await page.getByRole("button", { name: "질문 목록 보기" }).click().catch(() => {});
+await page.getByRole("button", { name: "질문 모음 보기" }).click().catch(() => {});
 await page.waitForTimeout(800);
 await shot("06_library");
 await page.keyboard.press("Escape");

@@ -443,7 +443,7 @@ describe("통합 탐색 화면 흐름 — 질문 현황은 지금 대화만 · [
     await mountExplore();
     await openAsks();
     await waitFor(() => expect(srv.posts).toHaveLength(1));
-    fireEvent.click(screen.getByRole("button", { name: "＋ 새 대화" }));
+    fireEvent.click(screen.getByRole("button", { name: "새 대화" }));
     const dlg = screen.getByRole("dialog", { name: "새 대화를 시작하시겠습니까?" });
     expect(dlg.querySelector(".acm-desc")?.textContent).toBe("답변 생성 중인 질문 1개는 중단됩니다.");
     expect([...dlg.querySelectorAll(".acm-ft button")].map((b) => b.textContent)).toEqual(["취소", "새 대화 시작"]);
@@ -458,7 +458,7 @@ describe("통합 탐색 화면 흐름 — 질문 현황은 지금 대화만 · [
 
   it("질문 모음에서 보낸 질문은 출처 QUICK(개발서버 askLibrary — 전 LIBRARY) · 질문 말풍선 출처 이름은 「지역 질문」", async () => {
     await mountExplore();
-    fireEvent.click(await screen.findByRole("button", { name: "질문 목록 보기" }));
+    fireEvent.click(await screen.findByRole("button", { name: "질문 모음 보기" }));
     const drawer = await screen.findByRole("dialog", { name: "질문 모음" });
     fireEvent.click(drawer.querySelector<HTMLButtonElement>(".lib-q button")!);
     await waitFor(() => expect(srv.posts.length).toBeGreaterThan(0));

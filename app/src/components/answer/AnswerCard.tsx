@@ -9,7 +9,7 @@ import { legacyAdvIds, seenArea, wxCovers, wxTargetOfT3q, type WxTarget } from "
 import type { Advisory, WeatherResponse } from "@/lib/contract/agent";
 import { SCN_SENT_LABEL, sentWithScenario } from "@/lib/scenario";
 import { useExplore } from "../explore/ExploreCtx";
-import { IcChevD } from "../Icons";
+import { IcChevD, IcSpark } from "../Icons";
 import { AnswerMarkdown, entityLabel, mdPlainText } from "./Markdown";
 import DocRefs from "./DocRefs";
 import AnswerFeedback from "./AnswerFeedback";
@@ -289,8 +289,8 @@ function Card({ job, full, compact, noActions, brief }: CardProps) {
   return (
     <div className="acard ans">
       <div className="acard-h">
-        <span className="ai-dot" /> <b>재난안전 AI</b>
-        <span className="xs muted">
+        <span className="acard-icon" aria-hidden="true"><IcSpark size={16} /></span> <b>재난안전 AI</b>
+        <span className="acard-at">
           {[
             raw.meta?.base_time ? `${raw.meta.base_time} 기준` : null,
             SHOW_REUSE && typeof elapsed === "number" ? `처리 ${fmtElapsed(elapsed)}` : null,

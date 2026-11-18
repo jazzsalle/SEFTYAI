@@ -78,13 +78,20 @@ span.demo-mode-btn { cursor: default; }
 /* 대화 */
 /* --thread-pt: 위 여백 — 안에서 붙는(sticky) 것은 이 여백만큼 아래에 붙으므로 끝에 딱 붙일 때 뺀다(브리핑 접힌 줄) */
 /* position: relative — 안의 절대 위치 요소(한눈 요약 표 머리 .sr-only 등)가 대화 칸 기준으로 잡혀 함께 구르게. 없으면 문서 높이가 늘어 자동 시연 굴리기가 화면 전체를 밀어 올린다(2026-11-18) */
-.ex-main .thread { position: relative; --thread-pt: 16px; flex: 1; min-height: 0; overflow-y: auto; padding: var(--thread-pt) 28px 24px; max-width: 1040px; width: 100%; margin: 0 auto; }
+/* 개발서버 .answer-panel — 흰 바탕 · 모서리 12 · 안쪽 24, 회색 바탕 위에 띄운다(2026-11-19 「개발서버와 동일하게」) */
+.ex-main .thread { position: relative; --thread-pt: 24px; flex: 1; min-height: 0; overflow-y: auto; padding: var(--thread-pt) 24px 24px; max-width: 1040px; width: calc(100% - 48px); margin: 24px auto 16px; background: #fff; border-radius: 12px; }
 /* 패널이 닫혀 있으면 오른쪽 위 [패널 펼치기] 단추(약 150px) 밑으로 대화(브리핑 접힌 줄 포함)가 들어가지 않게 — 좁은 화면에서만 효과 */
 .explore:not(.with-panel) .ex-main .thread,
 .explore:not(.with-panel) .ex-main .composer { max-width: min(1040px, calc(100% - 340px)); }
-.thread-h { display: flex; align-items: center; gap: 10px; padding: 6px 0 12px; border-bottom: 1px solid var(--c-bd); margin-bottom: 16px; }
+.thread-h { display: flex; align-items: center; gap: 16px; padding: 0 0 12px; border-bottom: 1px solid #cdd1d5; margin-bottom: 16px; }
+.thread-h > b { font-size: calc(17px * var(--fs-scale)); font-weight: 700; line-height: 1.53; color: #464c53; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.thread-h > .lnk { font-size: calc(15px * var(--fs-scale)); }
+/* [새 대화] — 개발서버 .answer-new(높이 40 · 연파랑 · 파란 테두리 · + 아이콘) */
+.thread-h .answer-new { display: inline-flex; flex: none; align-items: center; gap: 4px; height: 40px; padding: 0 12px; font: inherit; font-size: calc(15px * var(--fs-scale)); line-height: 1.53; color: #0b50d0; background: #ecf2fe; border: 1px solid #256ef4; border-radius: 6px; cursor: pointer; }
+.thread-h .answer-new:hover { background: #d8e5fd; }
 .turn, .brief-block { margin-bottom: 26px; }
-.qbubble { margin-left: auto; max-width: 78%; width: fit-content; padding: 12px 18px; background: var(--c-primary-sub); border: 1px solid var(--c-primary-bd); border-radius: var(--r-l); font-size: var(--fs-s); margin-bottom: 12px; white-space: pre-wrap; }
+/* 질문 말풍선 — 개발서버 .answer-ask(안쪽 16/20 · #ecf2fe · 파란 테두리 · 모서리 8 · 17px) */
+.qbubble { margin-left: auto; max-width: 80%; width: fit-content; padding: 16px 20px; background: #ecf2fe; border: 1px solid #256ef4; border-radius: 8px; font-size: calc(17px * var(--fs-scale)); line-height: 1.53; color: #464c53; margin-bottom: 12px; white-space: pre-wrap; }
 .qbubble ol { margin: 0; padding-left: 20px; }
 .qb-meta { color: var(--c-primary-dk); font-weight: 700; margin-bottom: 2px; }
 .sentq pre { white-space: pre-wrap; background: #fff; border: 1px dashed var(--c-bd); border-radius: var(--r-m); padding: 8px; margin-top: 6px; }
@@ -100,7 +107,8 @@ span.demo-mode-btn { cursor: default; }
 .brief-item .acard { border: 0; padding: 0; box-shadow: none; }
 
 /* 답 카드 */
-.ex-main .acard, .aim .acard { background: #fff; border: 1px solid var(--c-bd); border-radius: var(--r-xl); padding: 18px 22px; box-shadow: var(--shadow-1); }
+/* 답 카드 — 개발서버 .answer-card(ds-conv: 안쪽 24 · 테두리 #b1b8be · 그림자 없음) */
+.ex-main .acard, .aim .acard { background: #fff; border: 1px solid #b1b8be; border-radius: 12px; padding: 24px; box-shadow: none; }
 /* 진행 중 — 개발서버 index.css answer-running·answer-spinner·answer-cancel + ds-conv.css(회색 띠) · briefing-item-wait·briefing-cancel(2026-11-18, 전 점선 카드) */
 .answer-running { display: flex; align-items: center; gap: 16px; padding: 12px 16px; background: #f4f5f6; border-radius: 8px; }
 .answer-running p { flex: 1; margin: 0; font-size: calc(15px * var(--fs-scale)); line-height: 1.53; color: #1e2124; }
@@ -118,6 +126,11 @@ span.demo-mode-btn { cursor: default; }
 .briefing-item-streaming { margin-top: 8px; opacity: .92; }
 .acard.err { border-color: #f3c5ba; }
 .acard-h { display: flex; align-items: center; gap: 8px; }
+.acard.ans > .acard-h { padding-bottom: 16px; }
+/* 머리 — 개발서버 answer-card-icon(32 원 · #ecf2fe/#0b50d0) + 「재난안전 AI」 15px #464c53 + 기준 시각 */
+.acard-icon { display: inline-flex; flex: none; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; color: #0b50d0; background: #ecf2fe; }
+.acard-h > b { font-size: calc(15px * var(--fs-scale)); line-height: 1.53; color: #464c53; }
+.acard-h > .acard-at { font-size: calc(15px * var(--fs-scale)); line-height: 1.53; color: #464c53; }
 .acard-body.folded { max-height: 360px; overflow: hidden; -webkit-mask-image: linear-gradient(#000 70%, transparent); mask-image: linear-gradient(#000 70%, transparent); }
 .acard-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--c-line); }
 /* 답변 평가 — 개발서버 AnswerFeedback(index.css · ds-conv.css answer-rate) — 답 끝에 선을 긋고 한 줄로(R60) */
@@ -200,12 +213,23 @@ span.demo-mode-btn { cursor: default; }
 @media (max-width: 1300px) { .start-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 
 /* 입력창 */
-.ex-main .composer { flex: none; max-width: 1040px; width: calc(100% - 56px); margin: 0 auto 16px; background: #fff; border: 2px solid var(--c-primary); border-radius: var(--r-xl); padding: 14px 20px; box-shadow: var(--shadow-2); display: flex; flex-direction: column; gap: 10px; }
+/* 개발서버 composer.css .query-box — 파란 2px 테두리 · 모서리 12 · 그림자, 입력칸은 안쪽 테두리 없이(포커스는 바깥 상자 빛) */
+.ex-main .composer { flex: none; max-width: 1040px; width: calc(100% - 48px); margin: 0 auto 16px; background: #fff; border: 2px solid #256ef4; border-radius: 12px; padding: 14px 20px; box-shadow: 0 6px 20px rgba(38,89,166,.16); display: flex; flex-direction: column; gap: 10px; }
+.ex-main .composer:focus-within { box-shadow: 0 0 0 3px rgba(37,110,244,.16), 0 6px 20px rgba(38,89,166,.16); }
 .cmp-cond { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
 .cmp-follow { display: flex; gap: 8px; align-items: center; background: var(--c-primary-sub); padding: 6px 10px; border-radius: var(--r-m); }
-.cmp-input { width: 100%; min-height: 56px; max-height: 180px; resize: vertical; border: 1px solid var(--c-input-bd); border-radius: var(--r-l); padding: 14px 16px; font: inherit; font-size: var(--fs-s); }
-.cmp-input:focus { outline: 2px solid var(--c-primary); outline-offset: 0; }
+.cmp-input { display: block; width: 100%; min-height: 52px; max-height: 180px; resize: none; border: 0; border-radius: 0; background: transparent; padding: 6px 2px; font: inherit; font-size: calc(15px * var(--fs-scale)); line-height: 1.47; }
+.cmp-input:focus, .cmp-input:focus-visible { outline: none; }
 .cmp-row { display: flex; align-items: center; gap: 8px; }
+.cmp-row .briefing-set { height: 32px; padding: 0 12px; font: inherit; font-size: calc(13px * var(--fs-scale)); line-height: 1.54; color: var(--c-text); background: #fff; border: 1px solid #cdd1d5; border-radius: 6px; cursor: pointer; }
+.cmp-row .briefing-set:hover:not(:disabled) { background: #fafbfc; border-color: #b1b8be; }
+.cmp-row .briefing-set:disabled { color: #8a949e; cursor: not-allowed; }
+.cmp-row .query-library { height: 32px; padding: 0 12px; font: inherit; font-size: calc(13px * var(--fs-scale)); font-weight: 500; color: #464c53; background: transparent; border: 1px solid transparent; border-radius: 6px; cursor: pointer; }
+.cmp-row .query-library:hover { background: #eef2f7; }
+.cmp-row .query-library.is-open { color: #0b50d0; background: #ecf2fe; }
+.cmp-row .query-count { font-size: calc(12px * var(--fs-scale)); color: #6d7882; }
+.cmp-row .query-submit { height: 40px; padding: 0 16px; font-size: calc(15px * var(--fs-scale)); font-weight: 700; border-radius: 6px; }
+.cmp-row .query-submit:disabled { color: #8a949e; background: #fff; border: 1px solid #cdd1d5; }
 
 /* 모달 */
 .modal-bg { position: fixed; inset: 0; background: rgba(15, 20, 30, 0.45); z-index: 100; display: flex; align-items: center; justify-content: center; padding: 20px; }
@@ -282,3 +306,10 @@ body:has(.gh.one) .help-btn { display: none; }
 /* 운영관리 — 시연 시나리오 특보 */
 .adm-scn { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin-top: 12px; }
 .adm-scn input[type="datetime-local"] { height: 36px; padding: 0 8px; border: 1px solid var(--c-input-bd); border-radius: var(--r-m); font: inherit; font-size: var(--fs-xs); }
+
+/* 지도 위 단추 — 개발서버 renewal/map.css(「지도 표시」 높이 30 · 13px 600 · 레이어 아이콘, 확대·축소 30×30 · 모서리 6) */
+.mapwrap .map-tools .map-layers-btn { display: inline-flex; align-items: center; gap: 4px; height: 30px; padding: 0 10px; font-size: var(--fs-xs); font-weight: 600; color: var(--c-text); border-color: #b1b8be; border-radius: 6px; }
+.mapwrap .map-zoom { gap: 2px; }
+.mapwrap .map-zoom .btn { width: 30px; height: 30px; padding: 0; font-size: calc(16px * var(--fs-scale)); border-color: #b1b8be; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; }
+/* 오른쪽 패널 — 개발서버 .side-panel(테두리 #dde1e6 · 모서리 12 · 그림자 없음), 대화 틀과 같은 위 여백 24 */
+.rpanel { margin: 24px 24px 16px 0; border: 1px solid #dde1e6; border-radius: 12px; box-shadow: none; }

@@ -29,7 +29,7 @@ await page.locator("#lgn-pw").fill(pw);
 await page.getByRole("button", { name: "로그인", exact: true }).click();
 await page.waitForURL("**/explore", { timeout: 20000 });
 await page.waitForTimeout(1500);
-await page.getByRole("button", { name: "질문 목록 보기" }).click();
+await page.getByRole("button", { name: "질문 모음 보기" }).click();
 await page.getByRole("button", { name: qText, exact: true }).first().click();
 await page.waitForSelector(".datacard", { timeout: 30000 });
 await page.waitForTimeout(1500);

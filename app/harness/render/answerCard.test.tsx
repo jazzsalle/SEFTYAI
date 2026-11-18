@@ -103,7 +103,7 @@ describe("답변 카드 — 받은 값만, 센 값·설명 없음", () => {
     const job = makeJob({ source: "BRIEFING" });
     const scn = { ...BUSAN, weather_warnings: { source: "시연 시나리오(가상 특보)", items: [{ warning_key: "SCN-BS-1", kind: "호우", level: "경보", area: "부산" }] } };
     const kma = { ...BUSAN, weather_warnings: { source: "기상청 기상특보 조회서비스", items: [{ warning_key: "KMA-호우경보-부산", kind: "호우", level: "경보", area: "부산" }] } };
-    const a = wrap(<AnswerCard job={job} full={makeFull(job, makeRaw(), scn)} />).container.querySelector(".acard-h .muted")!;
+    const a = wrap(<AnswerCard job={job} full={makeFull(job, makeRaw(), scn)} />).container.querySelector(".acard-h .acard-at")!;
     expect(a.textContent).toContain("시연 시나리오 특보와 함께 보낸 질문");
     cleanup();
     const b = wrap(<AnswerCard job={job} full={makeFull(job, makeRaw(), kma)} />).container.querySelector(".acard-h")!;

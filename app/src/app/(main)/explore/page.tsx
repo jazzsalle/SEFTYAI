@@ -30,7 +30,7 @@ import QueuePanel from "@/components/queue/QueuePanel";
 import AnswerCard, { AnswerWait } from "@/components/answer/AnswerCard";
 import DataCard from "@/components/answer/DataCard";
 import type { MapFeature } from "@/components/map/MapView";
-import { IcChevL } from "@/components/Icons";
+import { IcChevL, IcPlus } from "@/components/Icons";
 import { AutoDemoBar } from "@/components/autodemo/AutoDemoBar";
 import AimPrep from "@/components/autodemo/AimPrep";
 import { ScenarioPicker } from "@/components/autodemo/ScenarioPicker";
@@ -751,7 +751,7 @@ function Explore() {
                 />
                 <span className="sp" />
                 {/* [새 대화] — 도는 질문이 있으면 중지 안내창을 먼저(개발서버 startNewConversation · FUN-UFR-306004) */}
-                <button className="btn sm" onClick={() => requestLeave("new", newConv)}>＋ 새 대화</button>
+                <button type="button" className="answer-new" onClick={() => requestLeave("new", newConv)}><IcPlus size={16} /> 새 대화</button>
               </div>
               {convBreaks.filter((b) => b.afterTurnId === null).map(breakLine)}
               {blocks.map((b, bi) => (
@@ -803,6 +803,7 @@ function Explore() {
             onAsk={askText}
             onBriefing={() => startBriefing().catch(toastErr)}
             onLibrary={() => setLibOpen(true)}
+            libraryOpen={libOpen}
             followUpLabel={follow?.label}
             clearFollowUp={() => setFollow(null)}
             objectRefs={picked.map((x) => ({ id: x.eid, name: x.ref.display_name ?? x.ref.ref }))}

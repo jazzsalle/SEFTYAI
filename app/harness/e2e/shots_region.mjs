@@ -252,7 +252,7 @@ const toast2 = await toastWith("다시 보낼 수");
 ok(toast2 === "기준지역이 이 대화(부산광역시 수영구)와 달라 다시 보낼 수 없습니다.", `다른 기준지역에서 다시 보내기 — 안내: ${toast2}`);
 await shot(p, "15_retry_blocked_other_base");
 ok(posts === before && (await p.$(".acard.err")) !== null, "다시 보내기를 보내지 않음(접수 요청 없음, 접수 실패 그대로)");
-await p.getByRole("button", { name: "＋ 새 대화" }).click();
+await p.getByRole("button", { name: "새 대화" }).click();
 await p.waitForSelector(".start", { timeout: 15000 });
 await pick(p, SGG, "26500");
 await p.unroute("**/api/agent/jobs");

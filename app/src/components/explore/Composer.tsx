@@ -16,10 +16,12 @@ export const fillQuery = (q: string) => window.dispatchEvent(new CustomEvent(FIL
  * 질의 입력 (Figma 201001 하단 · 201003 조건 편집) — 적용 조건 요약 · 입력 2,000자 · [브리핑 세트▾] · [질의]
  * 보낸 뒤 바로 비운다. 개별 질문은 넷까지 함께 돌고, 넷이 다 돌거나 브리핑 세트가 도는 동안은 입력·[질의]를 막는다(개발서버 QueryBox busy · SearchPage askLocked — R57).
  */
-export default function Composer({ onAsk, onBriefing, onLibrary, followUpLabel, clearFollowUp, objectRefs = [], onDropRef, expired = false, locked = false, briefDisabled = false }: {
+export default function Composer({ onAsk, onBriefing, onLibrary, libraryOpen = false, followUpLabel, clearFollowUp, objectRefs = [], onDropRef, expired = false, locked = false, briefDisabled = false }: {
   onAsk: (q: string) => Promise<void>;
   onBriefing: () => void;
   onLibrary: () => void;
+  /** 질문 모음이 열려 있는지 — 단추를 눌린 모양으로(개발서버 query-library is-open) */
+  libraryOpen?: boolean;
   followUpLabel?: string | null;
   clearFollowUp?: () => void;
   /** 지도에서 집어 둔 참조 객체(「객체 참조」) — id = 화면 열쇠, name = 받은 이름 */
@@ -128,10 +130,11 @@ export default function Composer({ onAsk, onBriefing, onLibrary, followUpLabel, 
       />
       <div className="cmp-row">
         <BriefSetMenu onBriefing={onBriefing} disabled={briefDisabled} />
-        <button className="btn sm ghost" onClick={onLibrary}>질문 목록 보기</button>
+        {/* 「질문 목록」은 왼쪽 보낸 질문 목록 이름이다 — 여는 것은 「질문 모음」(개발서버 QueryBox) */}
+        <button type="button" className={libraryOpen ? "query-library is-open" : "query-library"} aria-expanded={libraryOpen} onClick={onLibrary}>질문 모음 보기</button>
         <span className="sp" />
-        <span className="xs muted">{q.length.toLocaleString()} / 2,000</span>
-        <button className="btn primary" disabled={!q.trim() || busy || expired || locked} onClick={send}>{locked ? "질의 중…" : "질의"}</button>
+        <span className="query-count">{q.length.toLocaleString()} / 2,000</span>
+        <button className="btn primary query-submit" disabled={!q.trim() || busy || expired || locked} onClick={send}>{locked ? "질의 중…" : "질의"}</button>
       </div>
       {condOpen && <CondModal onClose={() => setCondOpen(false)} />}
     </div>
@@ -191,7 +194,7 @@ function BriefSetMenu({ onBriefing, disabled = false }: { onBriefing: () => void
   };
   return (
     <div className="dd" ref={box}>
-      <button ref={btn} className="btn sm" disabled={disabled} onClick={() => setOpen((v) => !v)} aria-expanded={open} aria-controls="bs-pop">브리핑 세트 ▾</button>
+      <button ref={btn} className="briefing-set" disabled={disabled} onClick={() => setOpen((v) => !v)} aria-expanded={open} aria-controls="bs-pop">브리핑 세트 ▾</button>
       {open && (
         <div id="bs-pop" className="bs-pop" role="dialog" aria-label="브리핑 세트">
           <div className="bs-act">
