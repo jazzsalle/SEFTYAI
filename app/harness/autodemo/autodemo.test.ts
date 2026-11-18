@@ -11,7 +11,7 @@ import { baseKey } from "@/lib/baseRegion";
 
 /** R54 — 자동 시연(개발서버 kjw 998facb features/demoMode) */
 describe("자동 시연 대본", () => {
-  it("장면은 개발서버와 같은 13개 차례·이름 그대로 + 마무리 앞 대전 5장면(2026-11-19 대전시청 시연)", () => {
+  it("장면은 개발서버와 같은 13개 차례·이름 그대로 + 마무리 앞 대전 4장면(2026-11-19 대전시청 시연 — 연도별 장면 뺌)", () => {
     expect(AutoScript.map((s) => s.label)).toEqual([
       "프롤로그 · AI 모드 소개",
       "11:00 · 호우 예비특보, AI 모드 시작",
@@ -30,7 +30,6 @@ describe("자동 시연 대본", () => {
       "대전 · 2024년 7월 집중호우 침수흔적",
       "대전 · 2024년 7월 10일 호우 대피·통제",
       "대전 · 3대 하천 산책로·하상도로 주변",
-      "대전 · 연도별 침수 이력",
       "마무리",
     ]);
   });
@@ -39,7 +38,7 @@ describe("자동 시연 대본", () => {
     const { answers, aiMode } = scriptPinIds();
     const day = new Set(DAY_ITEMS.map((d) => d.id));
     expect(answers.filter((id) => !day.has(id))).toEqual([]);
-    expect(answers.sort()).toEqual(["CQ-BS-01", "CQ-BS-02", "IG-BS-01", "IG-BS-02", "IG-BS-08", "IG-BS-11", "IG-DJ-01", "IG-DJ-03", "IG-DJ-07", "IG-DJ-08", "IG-IJ-01", "SIM-SH-1-3"]);
+    expect(answers.sort()).toEqual(["CQ-BS-01", "CQ-BS-02", "IG-BS-01", "IG-BS-02", "IG-BS-08", "IG-BS-11", "IG-DJ-01", "IG-DJ-03", "IG-DJ-07", "IG-IJ-01", "SIM-SH-1-3"]);
     expect(aiMode.sort()).toEqual(AIM_DEMO.map((a) => a.id).sort());
   });
 
@@ -153,7 +152,7 @@ describe("자동 시연 시나리오(2026-11-18 사용자 지시 — 부산+인�
     const { scenarioScenes } = await import("@/components/autodemo/autoScript");
     const sc = scenarioScenes("busan-daejeon");
     const pins = sc.map((s) => s.pinId).filter(Boolean);
-    expect(pins).toEqual(["IG-BS-11", "IG-DJ-07", "IG-DJ-03", "IG-DJ-01", "IG-DJ-08"]);
+    expect(pins).toEqual(["IG-BS-11", "IG-DJ-07", "IG-DJ-03", "IG-DJ-01"]);
     expect(sc.map((s) => s.label)).toEqual([
       "프롤로그 · AI 모드 소개",
       "11:00 · 호우 예비특보, AI 모드 시작",
@@ -165,7 +164,6 @@ describe("자동 시연 시나리오(2026-11-18 사용자 지시 — 부산+인�
       "대전 · 2024년 7월 집중호우 침수흔적",
       "대전 · 2024년 7월 10일 호우 대피·통제",
       "대전 · 3대 하천 산책로·하상도로 주변",
-      "대전 · 연도별 침수 이력",
       "마무리",
     ]);
     expect(sc.at(-1)?.intro).toContain("부산과 대전처럼");
@@ -174,7 +172,7 @@ describe("자동 시연 시나리오(2026-11-18 사용자 지시 — 부산+인�
   });
 
   it("시나리오를 주면 scenesFrom 이 그 장면만 — 주지 않으면 대본 전체", () => {
-    expect(scenesFrom([], "busan-daejeon")).toHaveLength(12);
+    expect(scenesFrom([], "busan-daejeon")).toHaveLength(11);
     expect(scenesFrom([])).toHaveLength(AutoScript.length);
   });
 });
