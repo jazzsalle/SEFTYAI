@@ -6,7 +6,7 @@
 //    답 파일은 저장소에 커밋하지 않는다(harness/recordings 밖 임시 폴더에 두고 쓴 뒤 지운다). 이 도구는 답을 만들거나 고치지 않는다 — 봉투 원문 그대로 넣는다
 //  · 짝 규칙(개발서버와 같음): pin_id 가 질문 모음 「시연」(DEMO_SHOW) 또는 「한눈 요약 질의」(DAY_ITEMS) 항목이고 질문 글이 글자까지 같을 때만. 글이 다르면 그 답은 이 질문의 답이 아니다
 //    봉투 status 가 SUCCESS 인 것만(우리 고정 답 규칙 — 일부 제공 등은 고정하지 않는다)
-//  · 기본은 미리 보기(쓰지 않음). --apply 를 붙이면 app/.env.local 의 DATABASE_URL(운영 Neon)에 작업 행(출처 LIBRARY · 원래 답)을 넣고 고정 답으로 올린다
+//  · 기본은 미리 보기(쓰지 않음). --apply 를 붙이면 app/.env.local 의 DATABASE_URL(운영 Neon)에 작업 행(출처 QUICK — 질문 모음, 개발서버 DemoPinService · 원래 답)을 넣고 고정 답으로 올린다
 //    작업 행 명의 = --account(기본 unes 운영자). 받은 시각 = received_de. 비밀값은 출력하지 않는다
 //  · 자동 시연 AI 모드 장면(R54·R55 — lib/autoDemoAim AIM_DEMO 의 AIM-BS-01·03)도 가져온다: 개발서버 ai_demo_pin 의 AIM 행은 T3Q 봉투가 아니라
 //    개발서버가 만든 AI 모드 점검(AiModeView — checkId·answer·guides·warnings…)을 response_json 에 담고, 상류 상태는 t3q_status 칸에 있다.
@@ -103,7 +103,7 @@ for (const p of ok) {
   const request = { imported_from: "devserver ai_demo_pin", pin_id: p.id };
   await sql.query(
     `insert into sa_agent_jobs (id, account_id, source, library_id, question_user, question_sent, request, cache_key, state, t3q_status, http_status, raw, t3q_conversation_id, created_at, finished_at)
-     values ($1, $2, 'LIBRARY', $3, $4, $4, $5, $6, 'DONE', $7, 200, $8, $9, $10, $10)`,
+     values ($1, $2, 'QUICK', $3, $4, $4, $5, $6, 'DONE', $7, 200, $8, $9, $10, $10)`,
     [jobId, account, p.id, p.item.text, JSON.stringify(request), `import:${p.id}:${jobId}`, p.env.status, JSON.stringify(p.env), p.env.conversation_id ?? null, p.at],
   );
   await sql.query(

@@ -12,7 +12,7 @@ const h = vi.hoisted(() => ({
   toast: vi.fn(),
   replace: vi.fn(),
   /** 비밀번호 변경 api 의 결과 — ok · net(통신 장애) · bad(서버 문구 있는 400) · down(503) */
-  pwMode: "ok" as "ok" | "net" | "bad" | "down",
+  pwMode: "ok" as "ok" | "net" | "bad" | "down" | "same",
 }));
 vi.mock("@/lib/api", () => {
   class ApiError extends Error {
@@ -30,6 +30,7 @@ vi.mock("@/lib/api", () => {
       if (h.pwMode === "net") throw new TypeError("Failed to fetch");
       if (h.pwMode === "down") throw new ApiError(503, "서버 DB가 연결되지 않았습니다.");
       if (h.pwMode === "bad") throw new ApiError(400, "현재 비밀번호가 올바르지 않습니다.");
+      if (h.pwMode === "same") throw new ApiError(400, "현재 비밀번호와 같은 비밀번호는 사용할 수 없습니다. 다른 비밀번호를 입력하세요.", { code: "AUTH_PASSWORD_SAME" });
       return { ok: true };
     },
   };
@@ -219,18 +220,21 @@ describe("③ 비밀번호 변경 토스트(901003 — 개발서버 PasswordChan
     expect(takeNotice()).toBeNull();
     expect(read("components/AppShell.tsx")).toContain("const n = takeNotice();");
   });
-  it("통신 실패(응답 없음·서버 장애)는 실패 토스트, 창은 그대로", async () => {
-    for (const mode of ["net", "down"] as const) {
-      h.pwMode = mode;
-      h.toast.mockReset();
-      const onClose = vi.fn();
-      render(<PasswordModal onClose={onClose} />);
-      fill("현재 비밀번호");
-      await waitFor(() => expect(h.toast).toHaveBeenCalledWith(PW_FAIL_MSG));
-      expect(onClose).not.toHaveBeenCalled();
-      expect(screen.queryByRole("alert")).toBeNull();
-      cleanup();
-    }
+  it("응답 없는 실패(통신 장애)는 실패 토스트, 창은 그대로", async () => {
+    h.pwMode = "net";
+    const onClose = vi.fn();
+    render(<PasswordModal onClose={onClose} />);
+    fill("현재 비밀번호");
+    await waitFor(() => expect(h.toast).toHaveBeenCalledWith(PW_FAIL_MSG));
+    expect(onClose).not.toHaveBeenCalled();
+    expect(screen.queryByRole("alert")).toBeNull();
+  });
+  it("서버 장애(503)처럼 코드를 모르는 응답은 개발서버처럼 첫 칸 아래에 서버 문구(R64)", async () => {
+    h.pwMode = "down";
+    render(<PasswordModal onClose={() => {}} />);
+    fill("현재 비밀번호");
+    await waitFor(() => expect(screen.getByRole("alert").textContent).toBe("서버 DB가 연결되지 않았습니다."));
+    expect(h.toast).not.toHaveBeenCalled();
   });
   it("서버 문구가 있는 실패는 지금처럼 칸 아래에", async () => {
     h.pwMode = "bad";
@@ -238,6 +242,40 @@ describe("③ 비밀번호 변경 토스트(901003 — 개발서버 PasswordChan
     fill("현재 비밀번호");
     await waitFor(() => expect(screen.getByRole("alert").textContent).toBe("현재 비밀번호가 올바르지 않습니다."));
     expect(h.toast).not.toHaveBeenCalled();
+  });
+});
+
+describe("⑤ 비밀번호 변경 창 — 개발서버 PasswordChangePage 그대로(R64)", () => {
+  it("세 칸이 다 차야 [변경] · 새 비밀번호 칸 위 안내 한 줄 · 규칙 체크 목록·폼 위 알림 없음", () => {
+    render(<PasswordModal onClose={() => {}} />);
+    const btn = screen.getByRole("button", { name: "변경" }) as HTMLButtonElement;
+    expect(btn.disabled).toBe(true);
+    expect(screen.getByText("영문·숫자·특수문자를 모두 넣어 9자 이상, 현재 비밀번호와 다르게 입력하세요.")).toBeTruthy();
+    expect(screen.queryByLabelText("비밀번호 규칙")).toBeNull();
+    fireEvent.change(screen.getByLabelText("현재 비밀번호"), { target: { value: "a" } });
+    fireEvent.change(screen.getByLabelText("새 비밀번호"), { target: { value: "b" } });
+    fireEvent.change(screen.getByLabelText("새 비밀번호 확인"), { target: { value: "b" } });
+    expect(btn.disabled).toBe(false);
+  });
+  it("화면에서는 두 칸이 같은지만 본다 — 다르면 확인 칸 아래 「새 비밀번호가 일치하지 않습니다.」, 서버에 안 보냄", async () => {
+    render(<PasswordModal onClose={() => {}} />);
+    fireEvent.change(screen.getByLabelText("현재 비밀번호"), { target: { value: "x" } });
+    fireEvent.change(screen.getByLabelText("새 비밀번호"), { target: { value: "short" } });
+    fireEvent.change(screen.getByLabelText("새 비밀번호 확인"), { target: { value: "other" } });
+    fireEvent.click(screen.getByRole("button", { name: "변경" }));
+    await waitFor(() => expect(screen.getByRole("alert").textContent).toBe("새 비밀번호가 일치하지 않습니다."));
+    expect(screen.getByLabelText("새 비밀번호 확인").getAttribute("aria-invalid")).toBe("true");
+  });
+  it("서버 코드로 칸을 고른다 — AUTH_PASSWORD_SAME 은 새 비밀번호 칸 아래", async () => {
+    h.pwMode = "same";
+    render(<PasswordModal onClose={() => {}} />);
+    fireEvent.change(screen.getByLabelText("현재 비밀번호"), { target: { value: "Old-pass-1" } });
+    fireEvent.change(screen.getByLabelText("새 비밀번호"), { target: { value: "Old-pass-1" } });
+    fireEvent.change(screen.getByLabelText("새 비밀번호 확인"), { target: { value: "Old-pass-1" } });
+    fireEvent.click(screen.getByRole("button", { name: "변경" }));
+    await waitFor(() => expect(screen.getByLabelText("새 비밀번호").getAttribute("aria-invalid")).toBe("true"));
+    expect(screen.getByRole("alert").textContent).toBe("현재 비밀번호와 같은 비밀번호는 사용할 수 없습니다. 다른 비밀번호를 입력하세요.");
+    await waitFor(() => expect(document.activeElement).toBe(screen.getByLabelText("새 비밀번호")));
   });
 });
 

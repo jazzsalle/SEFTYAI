@@ -38,9 +38,33 @@ describe("로그인·세션", () => {
     for (let i = 0; i < 5; i++) expect((await A.login("01000", "Wrong!pass999", "ua")).ok).toBe(false);
     const r = await A.login("01000", PW, "ua");
     expect(r.ok).toBe(false);
-    if (!r.ok) expect(r.status).toBe(423);
+    if (!r.ok) expect([r.status, r.code]).toEqual([403, A.ACCOUNT_LOCKED]);
     await A.unlock("01000");
     expect((await A.login("01000", PW, "ua")).ok).toBe(true);
+  });
+
+  it("잠금은 시간이 지나도 풀리지 않고 운영자가 풀 때까지 간다(개발서버 lock_de — R64) · 예전 15분 잠금으로 남은 행도 잠김", async () => {
+    await A.upsertAccount("01000", PW, false);
+    for (let i = 0; i < 5; i++) await A.login("01000", "Wrong!pass999", "ua");
+    const [acc] = await sql.query("select failed_count, locked_until from sa_accounts where id = '01000'");
+    expect(acc.failed_count).toBe(5);
+    expect(acc.locked_until).not.toBeNull();
+    // 하루가 지난 것처럼 — 예전 규칙이면 풀렸을 시각
+    await sql.query("update sa_accounts set locked_until = now() - interval '1 day' where id = '01000'");
+    const r = await A.login("01000", PW, "ua");
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.error).toBe(A.LOCKED_MSG);
+    // 잠긴 동안의 실패는 더 세지 않는다
+    expect((await sql.query("select failed_count from sa_accounts where id = '01000'"))[0].failed_count).toBe(5);
+    await A.unlock("01000");
+    expect((await sql.query("select failed_count, locked_until from sa_accounts where id = '01000'"))[0]).toEqual({ failed_count: 0, locked_until: null });
+    expect((await A.login("01000", PW, "ua", { force: true })).ok).toBe(true);
+  });
+
+  it("비밀번호 변경의 현재 비밀번호 오입력은 잠금 횟수에 세지 않는다(개발서버 ChangePasswordAsync — R64)", async () => {
+    await A.upsertAccount("01000", PW, false);
+    for (let i = 0; i < 6; i++) expect(await A.changePw("01000", "Wrong!pass999", "New!pass4567", null)).toEqual({ code: A.PW_MISMATCH, message: "현재 비밀번호가 일치하지 않습니다." });
+    expect((await sql.query("select failed_count, locked_until from sa_accounts where id = '01000'"))[0]).toEqual({ failed_count: 0, locked_until: null });
   });
 
   it("동시에 틀려도 실패 횟수가 사라지지 않는다(원자적 집계)", async () => {
@@ -98,7 +122,13 @@ describe("로그인·세션", () => {
     const r1 = await A.login("inje", PW, "ua", { force: true });
     if (!r1.ok) throw new Error("login");
     const ck1 = cookieOf(r1.cookie);
-    expect(await A.changePw("inje", PW, PW, A.currentSid(req(ck1)))).toMatch(/다른 비밀번호/);
+    expect(await A.changePw("inje", PW, PW, A.currentSid(req(ck1)))).toEqual({ code: A.PW_SAME, message: "현재 비밀번호와 같은 비밀번호는 사용할 수 없습니다. 다른 비밀번호를 입력하세요." });
+    // 개발서버 ChangePasswordAsync 문구 그대로 — 규칙 위반(공백·한글 포함)은 한 문구, 초기 비밀번호를 쓰는 중이면 「초기 비밀번호」(R64)
+    expect(await A.changePw("inje", PW, "short", null)).toEqual({ code: A.PW_RULE, message: "비밀번호 규칙에 맞지 않습니다. 영문·숫자·특수문자를 모두 넣어 9자 이상 입력하세요." });
+    expect(await A.changePw("inje", PW, "New pass!4567", null)).toMatchObject({ code: A.PW_RULE });
+    await sql.query("update sa_accounts set must_change_pw = true where id = 'inje'");
+    expect(await A.changePw("inje", "Wrong!pass999", "New!pass4567", null)).toMatchObject({ message: "초기 비밀번호가 일치하지 않습니다." });
+    await sql.query("update sa_accounts set must_change_pw = false where id = 'inje'");
     // 다른 기기 세션을 하나 더 만든다(새 로그인은 기존 세션을 끊으므로 직접 넣음)
     await sql.query("insert into sa_sessions (sid, account_id, created_at, last_seen_at, expires_at) values ('other-device', 'inje', now(), now(), now() + interval '1 hour')");
     expect(await A.changePw("inje", PW, "New!pass4567", A.currentSid(req(ck1)))).toBeNull();

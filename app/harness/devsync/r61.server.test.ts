@@ -28,7 +28,7 @@ beforeAll(async () => {
 });
 
 describe("902002 — 5회째 실패로 잠그는 그 응답에서 잠금 문구(개발서버 AuthService lockedNow)", () => {
-  it("1~4회는 일반 문구(401), 5회째는 잠금 문구(423), 잠긴 뒤에도 같은 문구", async () => {
+  it("1~4회는 일반 문구(401), 5회째는 잠금 문구(403 — 개발서버 AuthController), 잠긴 뒤에도 같은 문구", async () => {
     const pw = rnd();
     await A.upsertAccount("hang", pw, false);
     for (let i = 0; i < 4; i++) {
@@ -42,7 +42,7 @@ describe("902002 — 5회째 실패로 잠그는 그 응답에서 잠금 문구(
     const fifth = await A.login("hang", pw + "x", "ua");
     expect(fifth.ok).toBe(false);
     if (!fifth.ok) {
-      expect(fifth.status).toBe(423);
+      expect(fifth.status).toBe(403);
       expect(fifth.error).toBe("로그인에 5회 연속 실패하여 계정이 잠겼습니다. 시스템 운영자에게 문의하세요.");
     }
     const after = await A.login("hang", pw, "ua");

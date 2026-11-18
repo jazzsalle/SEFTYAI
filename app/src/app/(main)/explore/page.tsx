@@ -15,7 +15,8 @@ import { activeAdvisories, advName, warningsPayload } from "@/lib/wxref";
 import { baseKey, baseName, basePilot, baseTarget, type BaseRegion } from "@/lib/baseRegion";
 import { detailIdOf, entityKey, objectIdOf, type RefLike } from "@/lib/mapRef";
 import { WX_ASK_EVENT, takeWxAsk, wxAskQuestion, type WxAskRequest } from "@/lib/wxAsk";
-import { SOURCE_LABEL, receivedAt, type JobSummary, type T3qRef } from "@/lib/jobTypes";
+import { receivedAt, sourceLabel, type JobSummary, type T3qRef } from "@/lib/jobTypes";
+import type { AskEntry } from "@/lib/queueList";
 import { basisTime } from "@/lib/summary";
 import { ExploreContext, type ExploreApi, type PanelTab } from "@/components/explore/ExploreCtx";
 import RightPanel from "@/components/explore/RightPanel";
@@ -25,7 +26,7 @@ import StartScreen from "@/components/explore/StartScreen";
 import LibraryDrawer from "@/components/explore/LibraryDrawer";
 import BriefBoard, { type BriefGroup } from "@/components/explore/BriefBoard";
 import QueuePanel from "@/components/queue/QueuePanel";
-import AnswerCard from "@/components/answer/AnswerCard";
+import AnswerCard, { AnswerWait } from "@/components/answer/AnswerCard";
 import DataCard from "@/components/answer/DataCard";
 import type { MapFeature } from "@/components/map/MapView";
 import { IcChevL } from "@/components/Icons";
@@ -59,6 +60,9 @@ export default function ExplorePage() {
   );
 }
 
+/** 질문 현황 펼침 — 이 탭 메모리(개발서버 asksOpen 은 라우터 위 상태, 기본 접힘) */
+let queueOpenMem = false;
+
 function Explore() {
   const s = useSession();
   const sop = useSop();
@@ -66,7 +70,13 @@ function Explore() {
   const router = useRouter();
   const { checked: briefItems, loaded: briefLoaded } = useBriefingSet();
   const [conv, setConv] = useState<Conversation | null>(null);
-  const [queueOpen, setQueueOpen] = useState(true);
+  // 질문 현황은 접고 시작한다(개발서버 SearchSessionProvider asksOpen — 지도를 넓게). 펼침 상태는 개발서버처럼 저장소에 두지 않고
+  // 이 탭이 살아 있는 동안만 기억한다(그쪽은 라우터 위 Provider 상태 — 다른 화면에 다녀와도 그대로, 새로고침하면 접힘)
+  const [queueOpen, setQueueOpenS] = useState(() => queueOpenMem);
+  const setQueueOpen = useCallback((v: boolean) => {
+    queueOpenMem = v;
+    setQueueOpenS(v);
+  }, []);
   const [libOpen, setLibOpen] = useState(false);
   const [panelOpen, setPanelOpen] = useState(false);
   // 대화 ↔ 지도 패널 너비 — 대화 칸 비율(%). 가운데 막대를 끌거나 버튼으로 바꾼다(사용자 지시 2026-11-02). 이 브라우저에 기억
@@ -269,7 +279,6 @@ function Explore() {
   }, [sop.openReq, sop.enabled]);
 
   // 대화의 작업 상태 따라가기 + 완료되면 원응답 받기
-  const turnJobIds = useMemo(() => new Set((conv?.turns ?? []).map((t) => t.jobId).filter(Boolean)), [conv]);
   useEffect(() => {
     for (const t of conv?.turns ?? []) {
       if (!t.jobId) continue;
@@ -417,9 +426,9 @@ function Explore() {
       { refAdv: { type: a.type, level: a.level, area: a.area, issuedAt: a.issuedAt, ...(a.scenario ? { scenario: true } : {}) } },
     ).catch(toastErr);
   };
-  /** 질문 모음 「지역 질문」 하나 — 재난상황 조건 없이 질문 문장 그대로(기준지역만 따라간다 — {지역} 자리, 개발서버 askLibrary · FUN-UFR-301007) */
+  /** 질문 모음 「지역 질문」 하나 — 재난상황 조건 없이 질문 문장 그대로(기준지역만 따라간다 — {지역} 자리, 개발서버 askLibrary · FUN-UFR-301007). 출처 QUICK(개발서버 askLibrary — 전 LIBRARY) */
   const askLib = (q: LibraryQuestion) =>
-    ask({ question: fillText(q, regionName), source: "LIBRARY", libraryId: q.id, quickQueryId: q.quickQueryId ?? null, warnings: null }, undefined, false, true).catch(toastErr);
+    ask({ question: fillText(q, regionName), source: "QUICK", libraryId: q.id, quickQueryId: q.quickQueryId ?? null, warnings: null }, undefined, false, true).catch(toastErr);
   /** 브리핑 항목 하나 질의 (시작 화면 타일 · 질의 줄 메뉴 · AI 모드 타일) — q 는 질의문 원형. 개발서버처럼 질의문 그대로(출처 BRIEFING) */
   const askBrief = (q: string) =>
     ask({ question: q.replaceAll("{지역}", regionName), source: "BRIEFING", warnings: s.aimOn ? liveWarnings() : null, ...showPin(q, 0) }, undefined, true).catch(toastErr);
@@ -435,7 +444,7 @@ function Explore() {
    * 질문 모음 「한눈 요약 질의」 한 건 — 질문 글만 조건 없이(개발서버 askDay · UFR-006-001-11 I열). 전에는 항목의 가정 조건(프리셋)을 얹고 받아 둔 답이 있으면 그것을 세웠다.
    * 자동 조회(질문 모음 경로)는 그대로. 받아 두기·받아 둔 답(sa_demo_pins)은 자동 시연·브리핑 시연이 쓴다
    */
-  const askDemo = (d: DemoItem) => ask({ question: d.text, source: "LIBRARY", libraryId: d.id, quickQueryId: d.quickQueryId ?? null }, undefined, false, true).catch(toastErr);
+  const askDemo = (d: DemoItem) => ask({ question: d.text, source: "QUICK", libraryId: d.id, quickQueryId: d.quickQueryId ?? null }, undefined, false, true).catch(toastErr);
   /** 「이어서 물어보기」 추천 후속질문 — 질문 글 그대로 이 대화에 이어 묻는다(개발서버 onFollowUp: FOLLOW_UP · 지금 조건 · FUN-UFR-301003) */
   const askSuggested = (text: string) => ask({ question: text, source: "FOLLOW_UP" }).catch(toastErr);
   /** 자동 시연(개발서버 features/demoMode — R54) — 받아 둔 답을 대본대로 놓고 음성으로 안내. 시연 배치 = 질의 목록 접고 대화 55% */
@@ -647,24 +656,15 @@ function Explore() {
   };
 
   /**
-   * 질문 현황에서 고름 — 그 질문 위치로(답변 생성 중인 질문도 · 개발서버 selectAsk · FUN-UFR-301010). 브리핑 항목이면 그 브리핑 묶음으로.
-   * 다른 대화의 질문이면 대화를 옮기는 일이라 지금 대화에 도는 질문이 있으면 중지 안내창을 먼저(FUN-UFR-306004)
+   * 질문 현황에서 고름 — 그 질문 위치로(답변 생성 중인 대화 질문도 · 개발서버 selectAsk · FUN-UFR-301010). 브리핑 항목이면 그 항목(없으면 브리핑 묶음)으로.
+   * 질문 현황은 지금 대화의 질문만 올리므로 대화를 옮기는 일은 없다(개발서버 useAskList). 답이 있는 줄이면 지도·한눈 요약도 그 답으로(개발서버 asks.select → mapTurnOf)
    */
-  const pickFromQueue = (j: JobSummary) => {
-    const here = !!convRef.current?.turns.some((t) => t.jobId === j.id);
-    const c = here ? convRef.current : s.convs.find((cv) => cv.turns.some((t) => t.jobId === j.id));
-    const go = () => {
-      const g = (latest.current.get(c?.id ?? "") ?? c)?.turns.find((t) => t.jobId === j.id)?.group;
-      setTimeout(() => (document.getElementById(`job-${j.id}`) ?? (g ? document.getElementById(`brief-${g.id}`) : null))?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
-    };
-    if (here) return go();
-    requestLeave("open", () => {
-      if (c) setConv(latest.current.get(c.id) ?? c);
-      // 대화에 없는 작업(다른 기기·운영자 예열 등) — 그 질문 하나로 새 대화를 연다
-      else appendTurns(j.question_user, [{ id: uid("t"), jobId: j.id, q: j.question_user, source: j.source, libraryId: j.library_id, at: j.created_at }], null);
-      go();
-    });
+  const pickFromQueue = (e: AskEntry) => {
+    if (e.jobId) setMapJob(e.jobId);
+    setTimeout(() => (document.getElementById(`job-${e.jobId}`) ?? (e.groupId ? document.getElementById(`brief-${e.groupId}`) : null))?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
   };
+  // 질문 현황에서 고른 줄 — 지도가 따라가는 답(mapJob)의 턴
+  const pickedTurnId = mapJob ? conv?.turns.find((t) => t.jobId === mapJob)?.id ?? null : null;
 
   /** 구분선 — 이 블록 뒤에 설 것(턴 id 로 짚는다). afterTurnId 가 null 이면 첫 블록 앞 */
   const convBreaks = conv ? breaks[conv.id] ?? [] : [];
@@ -692,13 +692,24 @@ function Explore() {
   // 질문 목록 맨 위 「(브리핑 이름) 전체 보기」 — 이 대화의 마지막 브리핑 묶음으로(개발서버 AskList briefingTitle)
   const lastBrief = [...blocks].reverse().find((b) => b.group)?.group;
   const briefRow = lastBrief
-    ? { title: lastBrief.title || "현재 상황 브리핑", onShow: () => document.getElementById(`brief-${lastBrief.id}`)?.scrollIntoView({ behavior: "smooth", block: "start" }) }
+    ? {
+        title: lastBrief.title || "현재 상황 브리핑",
+        // 브리핑 전체로 — 고른 답을 놓는다(지도도 브리핑 묶음 전체로 · 개발서버 asks.clear)
+        onShow: () => {
+          setMapJob(null);
+          document.getElementById(`brief-${lastBrief.id}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+        },
+        shown: mapScope.key === `b:${lastBrief.id}`,
+      }
     : null;
 
   return (
     <ExploreContext.Provider value={x}>
-      <div id="main-content" tabIndex={-1} className={`explore ${panelOpen ? "with-panel" : ""} ${queueOpen ? "with-queue" : ""} ${dragging ? "dragging" : ""}`} style={{ "--chat-w": `${chatW}%` } as React.CSSProperties}>
-        <QueuePanel open={queueOpen} setOpen={setQueueOpen} onPick={pickFromQueue} currentJobIds={turnJobIds} briefing={briefRow} />
+      <div id="main-content" tabIndex={-1} className={`explore ${panelOpen ? "with-panel" : ""} ${queueOpen && conv?.turns.length ? "with-queue" : ""} ${dragging ? "dragging" : ""}`} style={{ "--chat-w": `${chatW}%` } as React.CSSProperties}>
+        {/* 질문 현황 — 지금 대화의 질문만, 질문이 하나라도 있을 때(개발서버 SearchPage asks.any) */}
+        {conv && conv.turns.length > 0 && (
+          <QueuePanel open={queueOpen} setOpen={setQueueOpen} turns={conv.turns} selectedId={pickedTurnId} onPick={pickFromQueue} briefing={briefRow} />
+        )}
         <main className="ex-main" ref={mainRef}>
           {!panelOpen && (
             <button className="btn panel-open" onClick={() => setPanelOpen(true)}><IcChevL size={14} /> 패널 펼치기</button>
@@ -738,7 +749,7 @@ function Explore() {
                   b.turns.map((t) => (
                     <section key={t.id} className="turn" id={t.jobId ? `job-${t.jobId}` : undefined}>
                       <div className="qbubble">
-                        <div className="qb-meta xs">{SOURCE_LABEL[t.source]}{t.refAdv ? ` · 참조 특보 ${t.refAdv.area} ${advName(t.refAdv)}` : ""}</div>
+                        <div className="qb-meta xs">{sourceLabel(t.source, t.libraryId)}{t.refAdv ? ` · 참조 특보 ${t.refAdv.area} ${advName(t.refAdv)}` : ""}</div>
                         {t.q}
                         {t.args?.cond && (
                           <div className="qb-cond xs">
@@ -823,11 +834,9 @@ function Explore() {
           />
         )}
         <AutoDemoBar demo={autoDemo}><AimPrep /></AutoDemoBar>
-        {/* 대화 전환 확인 — 제목·단추는 개발서버 글자 그대로, 본문은 상황별 짧은 문구(leaveMessage) */}
+        {/* 대화 전환 확인 — 제목·단추는 개발서버 글자 그대로, 본문은 상황별 짧은 문구(leaveMessage) · 모양은 개발서버 Modal(role dialog) */}
         {leave && leaveAct && (
           <Dialog
-            role="alertdialog"
-            size="sm"
             title={LEAVE_TITLE[leave.kind]}
             desc={leaveMessage(leaveAct.running, leaveAct.waiting)}
             onClose={cancelLeave}
@@ -855,10 +864,11 @@ function TurnBody({ t, compact, inBrief, onRetry }: { t: Turn; compact?: boolean
         {!inBrief && <div className="row" style={{ marginTop: 10 }}><button className="btn sm primary" onClick={onRetry}>다시 보내기</button></div>}
       </div>
     );
-  if (t.pending || !t.jobId) return <div className="acard loading" aria-busy="true"><span className="ai-dot spin" /> 질문을 보내는 중…</div>;
+  // 보내는 중 — 개발서버는 보내는 즉시 「답변을 만들고 있습니다…」(브리핑 항목은 「확인하고 있습니다…」)로 센다. 작업 번호를 받기 전이라 취소 단추는 없다
+  if (t.pending || !t.jobId) return <AnswerWait text={inBrief ? "확인하고 있습니다…" : "답변을 만들고 있습니다…"} since={t.at} brief={inBrief} />;
   const job = s.jobs[t.jobId];
   const full = s.full[t.jobId];
-  if (!job) return <div className="acard loading" aria-busy="true"><span className="ai-dot spin" /> 불러오는 중…</div>;
+  if (!job) return <AnswerWait text="불러오는 중…" brief={inBrief} />;
   return (
     <>
       {full?.preview && full.preview.length > 0 && <DataCard items={full.preview} />}

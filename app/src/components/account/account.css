@@ -33,37 +33,8 @@
 .acm-btn.danger:hover:not(:disabled) { border-color: var(--c-dang-dk); background: var(--c-dang-dk); }
 .acm-btn:disabled { border-color: var(--c-line); background: var(--c-line); color: var(--c-dis); cursor: not-allowed; }
 
-/* 입력 */
-.acm-field { margin-top: 20px; }
-.acm-field > label { display: block; margin-bottom: 8px; font-size: var(--fs-s); }
-.acm-hint { margin: -2px 0 8px; font-size: var(--fs-xs); color: var(--c-sub); }
-.acm-pw { position: relative; }
-.acm-pw input {
-  width: 100%; height: 48px; padding: 0 52px 0 16px; border: 1px solid var(--c-input-bd); border-radius: var(--r-l);
-  background: #fff; font-size: var(--fs-m);
-}
-.acm-pw input::placeholder { color: var(--c-dis); }
-.acm-pw input:focus { outline: none; border-color: var(--c-primary); box-shadow: inset 0 0 0 1px var(--c-primary); }
-.acm-pw input[aria-invalid="true"] { border-color: var(--c-dang); box-shadow: inset 0 0 0 1px var(--c-dang); }
-.acm-eye {
-  position: absolute; top: 50%; right: 6px; width: 40px; height: 40px; transform: translateY(-50%);
-  display: grid; place-items: center; border: 0; border-radius: var(--r-m); background: transparent; color: var(--c-text);
-}
-.acm-eye:hover { background: var(--c-sec-sub); }
-.acm-err { display: flex; align-items: flex-start; gap: 6px; margin: 8px 0 0; font-size: var(--fs-xs); color: var(--c-dang-dk); }
-.acm-err::before {
-  content: "!"; flex: none; display: inline-grid; place-items: center; width: 16px; height: 16px; margin-top: 1px;
-  border-radius: 50%; background: var(--c-dang); color: #fff; font-size: calc(11px * var(--fs-scale)); font-weight: 800;
-}
-.acm-rules { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 8px; font-size: var(--fs-xs); color: var(--c-mute); }
-.acm-rules li { display: inline-flex; align-items: center; gap: 4px; }
-.acm-rules li::before { content: "·"; font-weight: 800; }
-.acm-rules li.ok { color: var(--c-ok); font-weight: 600; }
-.acm-rules li.ok::before { content: "✓"; }
-.acm-alert {
-  margin-top: 20px; padding: 12px 14px; border: 1px solid #f8cdc9; border-radius: var(--r-l);
-  background: var(--c-dang-sub); color: var(--c-dang-dk); font-size: var(--fs-s);
-}
+/* 입력 — 칸은 KRDS 패키지(components/krds PasswordField · fields.css .modal-fields, R64) */
+.acm-fields { margin-top: 20px; }
 
 /* 내 권한정보 */
 .acm-kv { margin: 20px 0 0; }

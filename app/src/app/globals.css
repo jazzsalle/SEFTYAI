@@ -206,6 +206,9 @@ label.chk input { width: 18px; height: 18px; accent-color: var(--c-primary); }
 .gh .logo { display: flex; align-items: center; gap: 10px; font-size: calc(21px * var(--fs-scale)); font-weight: 700; color: #33363d; }
 .gh .logo small { font-size: var(--fs-xs); font-weight: 600; color: var(--c-primary-dk); padding: 2px 8px;
   border: 1px solid var(--c-primary-bd); border-radius: 999px; background: var(--c-primary-sub); }
+/* 로고 그림(개발서버 assets/brand/mois_logo.svg — 상징과 「행정안전부」가 한 장) — 높이 32px, 서비스 이름 알약과 10px(개발서버 header.css .gov-logo-img, R64) */
+.gh .logo .gov-logo-img { display: block; height: 32px; width: auto; flex: none; }
+.gh.one .logo > .gov-logo-img + small { margin-left: 0; }
 .gnav { display: flex; gap: 2px; margin-left: 12px; }
 .gnav a { height: 40px; display: inline-flex; align-items: center; padding: 0 14px; border-radius: var(--r-m);
   font-weight: 600; color: var(--c-sub); font-size: var(--fs-s); }
@@ -508,7 +511,6 @@ label.chk input { width: 18px; height: 18px; accent-color: var(--c-primary); }
 .panel { background: #fff; border: 1px solid var(--c-bd); border-radius: var(--r-xl); padding: 20px 22px; }
 .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-.toast { position: fixed; left: 50%; bottom: 32px; transform: translateX(-50%); z-index: 200; background: var(--c-navy); color: #fff; padding: 12px 20px; border-radius: var(--r-l); font-size: var(--fs-xs); box-shadow: var(--shadow-2); }
 
 /* 로그인 */
 .login { min-height: 100vh; display: grid; grid-template-columns: 1.05fr 1fr; background: #fff; }

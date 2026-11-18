@@ -126,12 +126,13 @@ describe("③ 비밀번호 글자 규칙(개발서버 AccountRules.Inspect)", ()
     expect(inspectPw("ab 1")).toEqual({ letter: true, digit: true, special: false, other: true });
     expect(inspectPw("~")).toEqual({ letter: false, digit: false, special: true, other: false });
     expect(PW_CHAR_MSG).toBe("비밀번호에는 공백이나 한글을 쓸 수 없습니다.");
-    expect(read("lib/server/auth.ts")).toContain("if (inspectPw(newPw).other) return PW_CHAR_MSG;");
+    // 비밀번호 변경 서버는 개발서버 ChangePasswordAsync 문구 하나로 거절(R64) — 공백·한글도 규칙 위반으로 같은 문구
+    expect(read("lib/server/auth.ts")).toContain('if (!pwRule(newPw)) return { code: PW_RULE, message: "비밀번호 규칙에 맞지 않습니다. 영문·숫자·특수문자를 모두 넣어 9자 이상 입력하세요." };');
   });
 });
 
 describe("④ 첫 로그인 비밀번호 변경(개발서버 PasswordChangePage)", () => {
-  it("첫 칸 「초기 비밀번호」 · 설명 · 나가는 길은 [로그아웃] · 공백·한글 알림", async () => {
+  it("첫 칸 「초기 비밀번호」 · 설명 · 나가는 길은 [로그아웃] · 규칙은 화면에서 먼저 보지 않고 서버로(R64 — 개발서버 PasswordChangePage)", async () => {
     render(<PasswordModal forced onClose={() => {}} />);
     expect(screen.getByText("새 비밀번호를 설정해야 서비스를 이용할 수 있습니다.")).toBeTruthy();
     expect(screen.getByLabelText("초기 비밀번호")).toBeTruthy();
@@ -139,8 +140,10 @@ describe("④ 첫 로그인 비밀번호 변경(개발서버 PasswordChangePage)
     fireEvent.change(screen.getByLabelText("초기 비밀번호"), { target: { value: "Init1234!" } });
     fireEvent.change(screen.getByLabelText("새 비밀번호"), { target: { value: "새비밀번호12!a" } });
     fireEvent.change(screen.getByLabelText("새 비밀번호 확인"), { target: { value: "새비밀번호12!a" } });
+    h.calls.length = 0;
     fireEvent.click(screen.getByRole("button", { name: "변경" }));
-    expect(screen.getByRole("alert").textContent).toBe(PW_CHAR_MSG);
+    await waitFor(() => expect(h.calls.at(-1)).toEqual({ path: "/api/auth/password", json: { current: "Init1234!", next: "새비밀번호12!a" } }));
+    expect(screen.queryByRole("alert")).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "로그아웃" }));
     await waitFor(() => expect(h.push).toHaveBeenCalledWith("/login"));
     expect(h.logout).toHaveBeenCalled();

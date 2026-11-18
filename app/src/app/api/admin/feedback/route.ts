@@ -21,7 +21,7 @@ export async function GET(req: Request) {
         sql.query(
           `select f.job_id, f.account_id, f.response_id, f.rating, f.comment, f.rated_at,
                   f.t3q_result->>'status' as t3q_feedback_status,
-                  left(j.question_user, 500) as question_user, j.source, j.created_at as asked_at
+                  left(j.question_user, 500) as question_user, j.source, j.library_id, j.created_at as asked_at
              from sa_feedback f
              left join sa_agent_jobs j on j.id = f.job_id
             order by f.rated_at desc

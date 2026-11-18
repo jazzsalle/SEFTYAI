@@ -17,7 +17,7 @@ import "./brief.css";
  *   답이 와도 「오류」 — 받지 못한 답으로 본다(개발서버 useBriefing isSuccess, 2026-11-06).
  * 유엔이가 센 값·설명 문구·핵심 결과 한 줄·공통 한계 줄 없음(R25).
  * 칸을 누르면 그 항목으로 간다. 현황판이 위로 지나가면 40px 한 줄이 붙는다. 답이 오면 aria-live 로 한 번 알린다.
- * 항목 카드 머리(개발 서버 BriefingItemCard 이식) — 진행 중이면 [취소](그 항목 하나만), 오류·취소됨이면 [다시 시도](그 항목 하나만),
+ * 항목 카드 머리(개발 서버 BriefingItemCard 이식) — 진행 중 [취소](그 항목 하나만)는 기다리는 줄 안(AnswerCard brief), 오류·취소됨이면 [다시 시도](그 항목 하나만),
  *   답이 오면 [크게 보기] — 그 항목 하나만 펼쳐 읽는 자리(개발 서버 BriefingAnswer).
  *   답은 처음에 첫 문단 한 줄만(개발 서버 BriefingItemCard — 「초기 브리핑 결과에는 상세를 과도하게 표출하지 않음」), 더 있으면 [더보기]·[n건 더보기](답변 대상 수)로
  *   카드 전체(AnswerCard)를 펴고 [접기]로 다시 한 줄. 펼치면 미리보기 줄을 거둔다(첫 줄이 두 번 보이지 않게).
@@ -292,7 +292,6 @@ export default function BriefBoard({ turns, regionName, renderBody, onRetry }: B
     if (!onRetry) return;
     for (const t of turns) if (retryable(cellOf(t.id)?.kind ?? "wait")) onRetry(t);
   };
-  const cancel = (jobId: string) => s.cancel(jobId).catch(() => s.toast("취소하지 못했습니다."));
   const open = (id: string | null) => {
     const back = bigId;
     setBigId(id);
@@ -323,16 +322,13 @@ export default function BriefBoard({ turns, regionName, renderBody, onRetry }: B
   const tools = (t: Turn) => {
     const c = cellOf(t.id);
     if (!c) return null;
-    const job = t.jobId ? s.jobs[t.jobId] : undefined;
     const label = `${c.no}번${c.label ? ` ${c.label}` : ""}`;
     const text = c.answered ? answerOf(t) : null;
     const more = !!text && big?.id !== t.id && headlineOf(text).rest.length > 0;
     const isOpen = opened.has(t.id);
     return (
       <span className="brief-item-tools">
-        {c.kind === "run" && job && isActive(job.state) && (
-          <button type="button" className="btn xs" onClick={() => cancel(job.id)} aria-label={`${label} 취소`}>취소</button>
-        )}
+        {/* 진행 중 [취소]는 머리가 아니라 기다리는 줄 안에 둔다(개발서버 BriefingItemCard briefing-cancel — AnswerCard brief) */}
         {retryable(c.kind) && onRetry && (
           <button type="button" className="btn xs pri" onClick={() => onRetry(t)} aria-label={`${label} 다시 시도`}>다시 시도</button>
         )}

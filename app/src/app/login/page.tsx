@@ -2,6 +2,8 @@
 /**
  * 로그인 (SCR-UNE-101001 기본·에러·세션 만료 후 진입 · R7·UFR-007) — 개발서버 features/auth/pages/LoginPage 그대로(R61, 사용자 지시 「로그인 페이지도 동일하게」)
  * - 머리: 누리집 띠 + 한 줄 머리(로고 · 도움말 · 글자 크기) — 개발서버 GovHeader compact masthead. 맨 앞은 [본문 바로가기]
+ *   로고는 개발서버 그림 그대로(public/mois_logo.svg — 개발서버 assets/brand/mois_logo.svg, 높이 32px) + 서비스 이름 알약(R64)
+ * - 칸은 KRDS 패키지(@une-front/krds) Input·InputMessage — 개발서버 TextField·PasswordField(components/krds, R64)
  * - 왼쪽 서비스 소개 배너(격자·빛 무리 장식), 오른쪽 로그인 폼. 칸 둘(아이디·비밀번호, 자리 글 「내용을 입력하세요」), 비밀번호 칸에 보기/숨기기
  * - 실패 안내는 칸에 붙이지 않고 폼 위에 한 덩어리로(서버 문구 그대로 — 어느 칸이 틀렸는지 알려주면 계정 존재 여부가 드러난다).
  *   실패하면 비밀번호만 비우고 아이디 칸으로 초점을 되돌린다
@@ -14,7 +16,8 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ApiError } from "@/lib/api";
 import { useSession } from "@/lib/session";
-import { GovLogo, IcEye, IcEyeOff } from "@/components/Icons";
+import { TextField } from "@/components/krds/TextField";
+import { PasswordField } from "@/components/krds/PasswordField";
 import { Dialog } from "@/components/account/Dialog";
 import { SESSION_EXISTS } from "@/lib/heartbeat";
 import GovMasthead from "@/components/GovMasthead";
@@ -31,7 +34,6 @@ export default function LoginPage() {
   const router = useRouter();
   const [id, setId] = useState("");
   const [pw, setPw] = useState("");
-  const [showPw, setShowPw] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [expired, setExpired] = useState(false);
@@ -77,7 +79,6 @@ export default function LoginPage() {
       setError(err instanceof ApiError ? err.message : "로그인하지 못했습니다.");
       // 비밀번호만 비우고 아이디 칸으로 초점을 되돌린다(개발서버 LoginPage — 시안 주석)
       setPw("");
-      setShowPw(false);
       setBusy(false);
       window.setTimeout(() => idRef.current?.focus(), 0);
     }
@@ -101,8 +102,10 @@ export default function LoginPage() {
         <GovMasthead />
         <div className="gh one">
           <span className="logo">
-            <GovLogo />
-            <span>행정안전부 <small>재난안전 AI데이터 활용 서비스</small></span>
+            {/* Figma 「logo/행정안전부」 심볼을 벡터 그대로 뽑은 것 — 상징과 글자가 한 장이다(개발서버 GovHeader MoisLogo) */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img className="gov-logo-img" src="/mois_logo.svg" alt="행정안전부" width={111} height={32} />
+            <small>재난안전 AI데이터 활용 서비스</small>
           </span>
           <span className="sp" />
           <button type="button" className="hbtn" onClick={() => openHelp()}>도움말</button>
@@ -163,54 +166,26 @@ export default function LoginPage() {
             )}
 
             <div className="lgn-fields">
-              <div className="lgn-field">
-                <label htmlFor="lgn-id">아이디</label>
-                <div className="lgn-input">
-                  <input
-                    id="lgn-id"
-                    ref={idRef}
-                    name="username"
-                    autoComplete="username"
-                    autoCapitalize="none"
-                    spellCheck={false}
-                    autoFocus
-                    placeholder="내용을 입력하세요"
-                    value={id}
-                    maxLength={64}
-                    disabled={busy}
-                    onChange={(e) => setId(e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div className="lgn-field">
-                <label htmlFor="lgn-pw">비밀번호</label>
-                {/* 칸 안쪽 오른쪽에 보기/숨기기 단추(개발서버 PasswordField) — 기본은 숨김, 상태는 aria-pressed */}
-                <div className="lgn-input has-trailing">
-                  <input
-                    id="lgn-pw"
-                    type={showPw ? "text" : "password"}
-                    name="password"
-                    autoComplete="current-password"
-                    placeholder="내용을 입력하세요"
-                    value={pw}
-                    maxLength={128}
-                    disabled={busy}
-                    onChange={(e) => setPw(e.target.value)}
-                  />
-                  <button
-                    type="button"
-                    className="lgn-trailing"
-                    aria-label={showPw ? "비밀번호 숨기기" : "비밀번호 보기"}
-                    aria-pressed={showPw}
-                    aria-controls="lgn-pw"
-                    disabled={busy}
-                    onClick={() => setShowPw((v) => !v)}
-                  >
-                    {showPw ? <IcEyeOff size={24} /> : <IcEye size={24} />}
-                  </button>
-                </div>
-              </div>
+              <TextField
+                id="lgn-id"
+                ref={idRef}
+                label="아이디"
+                value={id}
+                onChange={setId}
+                placeholder="내용을 입력하세요"
+                autoComplete="username"
+                autoFocus
+                disabled={busy}
+              />
+              <PasswordField
+                id="lgn-pw"
+                label="비밀번호"
+                value={pw}
+                onChange={setPw}
+                placeholder="내용을 입력하세요"
+                autoComplete="current-password"
+                disabled={busy}
+              />
             </div>
 
             <button type="submit" className="lgn-submit" disabled={busy}>

@@ -213,8 +213,10 @@ const openFromHistory = async (hasText) => {
   await p.waitForSelector(".thread .turn", { timeout: 15000 });
 };
 /** 그 글이 든 안내(토스트)가 뜰 때까지 — 앞서 뜬 다른 안내를 읽지 않게 */
+/** 토스트 한 장 — KRDS ToastProvider 가 body 바로 아래에 그리는 상자 안의 role=status(R64, 전에는 .toast) */
+const TOAST = 'body > div[aria-live="polite"][aria-atomic="false"] [role="status"]';
 const toastWith = (part) =>
-  p.waitForFunction((t) => document.querySelector(".toast")?.textContent?.includes(t), part, { timeout: 5000 }).catch(() => {}).then(() => text(p, ".toast"));
+  p.waitForFunction(([s, t]) => document.querySelector(s)?.textContent?.includes(t), [TOAST, part], { timeout: 5000 }).catch(() => {}).then(() => text(p, TOAST));
 /** 대화 이력의 한 줄 — 칸마다 글자(기준지역 = 5번째, 질문 수 = 6번째) */
 const historyRow = (hasText) => p.locator(".tbl tbody tr", { hasText }).first().locator("td").allTextContents();
 await openFromHistory(q1);
@@ -244,7 +246,7 @@ ok((await value(p, SGG)) === "26470", "시작 화면에서 연제구로 바꿈")
 await openFromHistory(q2);
 const before = posts;
 // 앞선 안내가 사라진 뒤에 누른다(앞 안내의 닫힘 시계가 새 안내를 일찍 닫지 않게 — 화면 사진에 안내가 남도록)
-await p.waitForSelector(".toast", { state: "detached", timeout: 8000 }).catch(() => {});
+await p.waitForSelector(TOAST, { state: "detached", timeout: 8000 }).catch(() => {});
 await p.locator(".acard.err").getByRole("button", { name: "다시 보내기" }).click();
 const toast2 = await toastWith("다시 보낼 수");
 ok(toast2 === "기준지역이 이 대화(부산광역시 수영구)와 달라 다시 보낼 수 없습니다.", `다른 기준지역에서 다시 보내기 — 안내: ${toast2}`);

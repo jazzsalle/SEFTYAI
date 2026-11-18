@@ -2,14 +2,16 @@ import "server-only";
 import { createHmac, pbkdf2 as _pbkdf2, randomBytes, scrypt as _scrypt, timingSafeEqual } from "node:crypto";
 import { promisify } from "node:util";
 import { ACCOUNTS, type Account } from "../config";
-import { inspectPw, issuedAccount, PW_CHAR_MSG, pwRuleOk } from "../accountRules";
+import { issuedAccount, pwRuleOk } from "../accountRules";
 import { db, ensureSchema } from "./db";
 
 /**
  * 로그인·세션 (R7, UFR-007) — 고정 7계정(R50 개발서버 아이디)과 계정 발급 화면에서 만든 계정(R55), scrypt 해시, 서명 쿠키 sa_sid
  * 세션 수명 240분(개발서버 Jwt:AccessTokenMinutes — R57, R34 유휴 4시간·절대 12시간 대체): 로그인한 때 또는 사람이 [시간 연장]을 누른 때부터 센다.
  *   화면 조작·폴링·새로고침은 수명을 늘리지 않는다(개발서버 AuthService.IsOver·RefreshAsync extend). 다하면 다음 요청부터 401(AUTH_SESSION_EXPIRED)
- * 비밀번호 9자 이상 + 영문·숫자·특수문자 · 5회 실패 15분 잠금(잠그는 그 5회째 응답부터 잠금 문구 — 개발서버 AuthService lockedNow, R61)
+ * 비밀번호 9자 이상 + 영문·숫자·특수문자 · 5회 연속 실패하면 잠금(잠그는 그 5회째 응답부터 잠금 문구 — 개발서버 AuthService lockedNow, R61)
+ *   잠금은 시간이 지나도 저절로 풀리지 않는다 — 운영자가 잠금 해제·비밀번호 재발급으로 풀 때까지(개발서버 acc_user.lock_de · IsLocked = lock_de 가 있음, R64).
+ *   sa_accounts.locked_until 칸은 이름만 옛것이고 «잠근 시각»을 담는다 — null 이 아니면 잠김(예전 15분 잠금으로 남은 값도 풀릴 때까지 잠김)
  * 저장 형식: 우리가 만드는 해시는 scrypt$N$r$p$salt$hash, 개발서버에서 옮겨 온 비밀번호는 pbkdf2-sha256$반복$salt$hash(개발서버 PasswordHasher — R61 harness/devsync/import_pw.mjs)
  * 한 사람당 접속 하나 — 개발서버 AuthService(R53): 비밀번호가 맞았는데 다른 곳에서 접속 중이면(자취 beat_at 이 2분 안·이 브라우저의 세션이 아님)
  * 바로 들이지 않고 409 AUTH_SESSION_EXISTS 로 되묻는다(SCR-UNE-101003). force 면 그 접속을 끊고(revoked_reason TAKEN_OVER) 들어간다.
@@ -20,7 +22,6 @@ const pbkdf2 = promisify(_pbkdf2);
 export const COOKIE = "sa_sid";
 /** 세션 수명 — 로그인·[시간 연장]부터 240분(개발서버 appsettings Jwt:AccessTokenMinutes 240, R57) */
 export const SESSION_MS = 240 * 60_000;
-const LOCK_MS = 15 * 60_000;
 const MAX_FAIL = 5;
 const N = 2 ** 15, R = 8, P = 1;
 /** 이 시간 안에 자취가 있으면 「접속 중」(개발서버 SessionLife.Window) */
@@ -95,19 +96,27 @@ export type LoginResult = { ok: true; account: Account; cookie: string; expiresA
 export const SESSION_EXISTS_MSG = "다른 곳에서 이 계정으로 접속 중입니다. 로그인하면 그 접속은 종료됩니다.";
 /** 화면설계 SCR-UNE-101001 의 확정 문구(개발서버 AuthService LockedMessage 글자 그대로 — R61) */
 export const LOCKED_MSG = `로그인에 ${MAX_FAIL}회 연속 실패하여 계정이 잠겼습니다. 시스템 운영자에게 문의하세요.`;
+/** 잠김 코드(개발서버 AccountErrorCodes.AccountLocked) */
+export const ACCOUNT_LOCKED = "AUTH_ACCOUNT_LOCKED";
+/** 잠김 응답 — 개발서버 AuthController 처럼 403(denied.Locked ? 403 : 401, R64). 화면은 서버 문구만 띄운다 */
+const LOCKED = { ok: false as const, error: LOCKED_MSG, status: 403, code: ACCOUNT_LOCKED };
+
+/** 잠겼는가 — 잠근 시각이 있으면 잠김(개발서버 User.IsLocked => LockDe is not null). 시간이 지나도 풀리지 않는다 */
+const LOCKED_SQL = "(locked_until is not null)";
 
 /**
- * 실패 1회를 원자적으로 센다 — 5회째에 15분 잠금. 실패 경로에서는 잠금 시각을 지우지 않는다(동시 시도에도 안전).
- * 돌려주는 값 = 이 실패가 계정을 잠갔는가(잠그면 횟수를 0 으로 되돌리므로, 센 뒤 0 이면 이번에 잠근 것)
+ * 실패 1회를 원자적으로 센다 — 5회째에 잠근다(개발서버 AuthService: LoginFailCnt++ · 5 이상이면 LockDe = 지금).
+ * 이미 잠긴 계정은 세지 않는다(동시 시도에도 한 번만 잠근다). 실패 횟수는 잠근 뒤에도 남는다 — 잠금 해제·재발급이 0 으로 되돌린다.
+ * 돌려주는 값 = 이 실패가 계정을 잠갔는가
  */
 async function countFailure(id: string): Promise<boolean> {
   const rows = (await db().query(
     `update sa_accounts set
-       failed_count = case when failed_count + 1 >= $2 then 0 else failed_count + 1 end,
-       locked_until = case when failed_count + 1 >= $2 then now() + make_interval(secs => $3) else locked_until end
-     where id = $1
-     returning failed_count = 0 as locked_now`,
-    [id, MAX_FAIL, LOCK_MS / 1000],
+       failed_count = failed_count + 1,
+       locked_until = case when failed_count + 1 >= $2 then now() else null end
+     where id = $1 and locked_until is null
+     returning locked_until is not null as locked_now`,
+    [id, MAX_FAIL],
   )) as { locked_now: boolean }[];
   return !!rows[0]?.locked_now;
 }
@@ -121,14 +130,14 @@ export async function login(id: string, pw: string, ua: string, opts: { force?: 
   // 화면설계 SCR-UNE-101001 의 확정 문구 — 어느 칸이 틀렸는지도, 그 계정이 있는지도 알려 주지 않는다
   const generic = { ok: false as const, error: "아이디 또는 비밀번호를 잘못 입력했습니다. 다시 입력하세요.", status: 401 };
   const [row] = (await sql.query(
-    "select id, pw_hash, status, grade, team_sn, (locked_until is not null and locked_until > now()) as locked from sa_accounts where id = $1", [id],
+    `select id, pw_hash, status, grade, team_sn, ${LOCKED_SQL} as locked from sa_accounts where id = $1`, [id],
   )) as { id: string; pw_hash: string; status: string; grade: number | null; team_sn: number | null; locked: boolean }[];
   const account = row ? accountOf(row.id, row.grade, row.team_sn) : null;
   if (!row || !account || row.status !== "ACTIVE") return generic;
-  if (row.locked) return { ok: false, error: LOCKED_MSG, status: 423 };
+  if (row.locked) return LOCKED;
   if (!(await verifyPw(pw, row.pw_hash))) {
     // 잠그는 바로 그 실패(5회째)는 잠금 문구로 알린다(개발서버 AuthService lockedNow — SCR-UNE-101001 ③). 그 전까지는 일반 문구만
-    if (await countFailure(id)) return { ok: false, error: LOCKED_MSG, status: 423 };
+    if (await countFailure(id)) return LOCKED;
     return generic;
   }
   // 다른 곳에서 접속 중이면 되묻는다 — 비밀번호를 확인한 «뒤에»(먼저 물으면 아이디만으로 접속 여부가 드러난다), 실패 기록을 지우기 전에
@@ -142,9 +151,9 @@ export async function login(id: string, pw: string, ua: string, opts: { force?: 
   }
   // 성공 — 그 사이 다른 실패로 잠겼다면 들이지 않는다
   const [ok] = (await sql.query(
-    "update sa_accounts set failed_count = 0, locked_until = null, last_login_at = now() where id = $1 and (locked_until is null or locked_until <= now()) returning must_change_pw", [id],
+    "update sa_accounts set failed_count = 0, last_login_at = now() where id = $1 and locked_until is null returning must_change_pw", [id],
   )) as { must_change_pw: boolean }[];
-  if (!ok) return { ok: false, error: LOCKED_MSG, status: 423 };
+  if (!ok) return LOCKED;
   const sid = randomBytes(32).toString("hex");
   const now = Date.now();
   // 앞의 접속은 끊는다 — 끊긴 쪽이 「다른 곳에서 로그인했습니다」를 알 수 있게 까닭을 적는다
@@ -250,20 +259,26 @@ export async function upsertAccount(id: string, pw: string, mustChange = true) {
   await db().query("update sa_sessions set revoked_at = now(), revoked_reason = 'RESET' where account_id = $1 and revoked_at is null", [id]);
 }
 
-/** 비밀번호 변경 — 현재 비밀번호 오입력도 잠금 횟수에 센다. 같은 비밀번호 금지. 이 세션 말고 다른 세션은 끊는다 */
-export async function changePw(id: string, oldPw: string, newPw: string, keepSid: string | null) {
-  const [row] = (await db().query(
-    "select pw_hash, (locked_until is not null and locked_until > now()) as locked from sa_accounts where id = $1", [id],
-  )) as { pw_hash: string; locked: boolean }[];
-  if (!row) return "계정을 찾을 수 없습니다.";
-  if (row.locked) return LOCKED_MSG;
-  if (!(await verifyPw(oldPw, row.pw_hash))) {
-    await countFailure(id);
-    return "현재 비밀번호가 올바르지 않습니다.";
-  }
-  if (newPw === oldPw) return "현재 비밀번호와 다른 비밀번호로 바꾸세요.";
-  if (inspectPw(newPw).other) return PW_CHAR_MSG;
-  if (!pwRule(newPw)) return "새 비밀번호는 9자 이상이며 영문·숫자·특수문자를 모두 포함해야 합니다.";
+/** 비밀번호 변경 실패 코드(개발서버 AccountErrorCodes) — 화면은 메시지 글자가 아니라 코드로 칸을 고른다 */
+export const PW_MISMATCH = "AUTH_PASSWORD_MISMATCH";
+export const PW_RULE = "AUTH_PASSWORD_RULE";
+export const PW_SAME = "AUTH_PASSWORD_SAME";
+export type PwChangeError = { code: string; message: string };
+
+/**
+ * 비밀번호 변경 — 개발서버 AuthService.ChangePasswordAsync 그대로(R64): 현재 비밀번호 확인 → 규칙 → 같은 비밀번호 금지, 문구도 그대로.
+ * 칸 이름은 아직 초기 비밀번호를 쓰는 중이면 「초기 비밀번호」, 아니면 「현재 비밀번호」.
+ * 현재 비밀번호 오입력은 잠금 횟수에 세지 않고 잠금도 보지 않는다(개발서버와 같음 — 이미 로그인한 사람의 일).
+ * 바꾸면 이 세션 말고 다른 세션은 끊는다.
+ */
+export async function changePw(id: string, oldPw: string, newPw: string, keepSid: string | null): Promise<PwChangeError | null> {
+  const [row] = (await db().query("select pw_hash, must_change_pw from sa_accounts where id = $1", [id])) as { pw_hash: string; must_change_pw: boolean }[];
+  if (!row) return { code: "AUTH_ACCOUNT_NOT_FOUND", message: "계정을 찾을 수 없습니다." };
+  const label = row.must_change_pw ? "초기 비밀번호" : "현재 비밀번호";
+  if (!(await verifyPw(oldPw, row.pw_hash))) return { code: PW_MISMATCH, message: `${label}가 일치하지 않습니다.` };
+  // 화면설계 「문구 주석 · SCR-UNE-101002/101006」의 확정 문구(개발서버 글자 그대로)
+  if (!pwRule(newPw)) return { code: PW_RULE, message: "비밀번호 규칙에 맞지 않습니다. 영문·숫자·특수문자를 모두 넣어 9자 이상 입력하세요." };
+  if (newPw === oldPw) return { code: PW_SAME, message: `${label}와 같은 비밀번호는 사용할 수 없습니다. 다른 비밀번호를 입력하세요.` };
   await db().query("update sa_accounts set pw_hash = $2, must_change_pw = false, failed_count = 0 where id = $1", [id, await hashPw(newPw)]);
   await db().query("update sa_sessions set revoked_at = now(), revoked_reason = 'PASSWORD' where account_id = $1 and revoked_at is null and sid <> $2", [id, keepSid ?? ""]);
   return null;

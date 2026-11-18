@@ -3,7 +3,7 @@ import { Suspense, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { useSession } from "@/lib/session";
 import { REGIONS } from "@/lib/config";
-import { SOURCE_LABEL, type T3qRef } from "@/lib/jobTypes";
+import { sourceLabel, type T3qRef } from "@/lib/jobTypes";
 import { AnswerMarkdown } from "@/components/answer/Markdown";
 import { RawFoot } from "@/components/answer/AnswerCard";
 import { statusKo } from "@/lib/labels";
@@ -29,7 +29,7 @@ function Report() {
         const scn = t.jobId ? sentWithScenario(s.full[t.jobId]?.request) : false;
         return (
           <section key={t.id} className="rep-turn">
-            <h2>{i + 1}. {t.q} <span className="xs muted">({SOURCE_LABEL[t.source]}{scn ? ` · ${SCN_SENT_LABEL}` : ""})</span></h2>
+            <h2>{i + 1}. {t.q} <span className="xs muted">({sourceLabel(t.source, t.libraryId)}{scn ? ` · ${SCN_SENT_LABEL}` : ""})</span></h2>
             {raw?.result?.answer ? (
               <AnswerMarkdown text={raw.result.answer} refs={(raw.result.refs ?? []) as T3qRef[]} />
             ) : (

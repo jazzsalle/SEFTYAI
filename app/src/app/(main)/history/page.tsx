@@ -15,6 +15,7 @@ import { useSession, type Conversation } from "@/lib/session";
 import { REGIONS } from "@/lib/config";
 import { loadAreas } from "@/components/BasePicker";
 import { Dialog } from "@/components/account/Dialog";
+import { Toast } from "@/components/krds/Toast";
 import type { AreaPick } from "@/lib/baseRegion";
 import {
   NATION, PAGE_SIZE, appliedTags, dropTag, filterConvs, initialForm, lastTurnAt, pagerPages, whenLabel, type ConvForm,
@@ -58,11 +59,6 @@ export default function HistoryPage() {
   const tagSigungus = useAreas("sigungu", applied.sido && applied.sido !== NATION ? applied.sido : null);
   const tagEmds = useAreas("emd", applied.sigungu || null);
 
-  useEffect(() => {
-    if (!toast) return;
-    const t = window.setTimeout(() => setToast(null), 3000);
-    return () => window.clearTimeout(t);
-  }, [toast]);
 
   const list = useMemo(() => filterConvs(convs, applied), [convs, applied]);
   const tags = useMemo(() => {
@@ -286,7 +282,8 @@ export default function HistoryPage() {
           }
         />
       )}
-      {toast && <div className="toast" role="status">{toast}</div>}
+      {/* KRDS Toast — 3초 뒤 스스로 사라진다(개발서버 shared/components/Toast, R64) */}
+      {toast && <Toast message={toast} onDone={() => setToast(null)} />}
     </div>
   );
 }

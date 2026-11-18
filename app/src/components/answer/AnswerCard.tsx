@@ -27,7 +27,7 @@ export { entityLabel } from "./Markdown";
 
 /**
  * 에이전트 답 카드 (Figma 203001 · 시각 설계 08 C·D — 적용 범위 R25) — 답 글은 개발서버와 같은 화면 처리를 거쳐 그린다(lib/answerText, 사용자 결정 2026-11-06).
- * 진행 중: 경과 시계(「1분 45초째」)·취소 / 완료: 머리(처리 시간 = 제공처 meta.elapsed_ms · 도구: 답변 대상 거르기·답변 복사) ·
+ * 진행 중: 개발서버 진행 중 모양(기다리는 한 줄 — 글·경과·단계·취소, 흐르는 글 칸) / 완료: 머리(처리 시간 = 제공처 meta.elapsed_ms · 도구: 답변 대상 거르기·답변 복사) ·
  * 주의(재사용 D5 · 받은 뒤 특보 C9 · 경고 바로가기 — 있을 때만) · 마크다운 · 답변 대상(refs 순서 그대로, 종류 거르기 C3) ·
  * 경고(제자리, 문구 그대로 — 정보 부족·한계는 개발서버처럼 내지 않음) · 원문 보기·복사(C10, 받은 글 그대로) · 평가 · 이어서 묻기.
  * 받지 못한 답은 정해 둔 안내 문구만(개발서버 agentRun describe — 기술 사유는 내지 않음).
@@ -98,6 +98,37 @@ const SHOW_REUSE = false;
 /** 진행 중 경과 — 개발서버 AnswerPanel formatElapsed 그대로(「45초」·「1분 5초」, 지난 초만 · 내림) */
 const fmtWaiting = (ms: number) => fmtElapsed(Number.isFinite(ms) ? Math.max(0, Math.floor(ms / 1000)) * 1000 : 0);
 
+/** 흐르는 글에는 답변 대상 이름을 잇지 않는다(개발서버) */
+const NO_REFS: T3qRef[] = [];
+
+/**
+ * 답 카드가 서기 전 기다리는 한 줄(보내는 중·불러오는 중) — 진행 중과 같은 모양(개발서버 answer-running · briefing-item-wait), 취소 단추는 없다(작업 번호를 아직 모른다)
+ */
+export function AnswerWait({ text, since, brief }: { text: string; since?: string; brief?: boolean }) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    if (!since) return;
+    const t = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, [since]);
+  const from = since ? Date.parse(since) : NaN;
+  const clock = Number.isFinite(from) ? <> <strong>{fmtWaiting(now - from)}</strong></> : null;
+  if (brief)
+    return (
+      <p className="briefing-item-wait" aria-busy="true">
+        <span className="answer-spinner" aria-hidden="true" />
+        {text}
+        {clock}
+      </p>
+    );
+  return (
+    <div className="answer-running" aria-busy="true">
+      <span className="answer-spinner" aria-hidden="true" />
+      <p>{text}{clock}</p>
+    </div>
+  );
+}
+
 /** noActions — 브리핑 항목 카드처럼 머리에 취소·다시 시도 단추가 따로 있는 자리에서는 카드 안 단추를 뺀다 · brief — 브리핑 항목(받지 못한 답 문구가 대화창과 다르다) */
 type CardProps = { job: JobSummary; full: JobFull | undefined; compact?: boolean; noActions?: boolean; brief?: boolean };
 
@@ -148,30 +179,50 @@ function Card({ job, full, compact, noActions, brief }: CardProps) {
     const ms = now - new Date(job.created_at).getTime();
     const lv = s.live?.[job.id];
     const partial = lv?.text ?? "";
-    // 개발서버 AnswerPanel·BriefingItemCard(b818af0) 글자 그대로 — 글이 흘러오기 시작하면 「작성하고 있습니다」, 진행 단계는 글이 오기 전까지만
-    const waitText = brief ? "확인하고 있습니다…" : partial ? "답변을 작성하고 있습니다…" : "답변을 만들고 있습니다…";
+    const cancel = () => s.cancel(job.id).catch(() => s.toast("취소하지 못했습니다."));
+    /*
+      진행 중 모양 — 개발서버 BriefingItemCard·AnswerPanel(b818af0) 글자·순서 그대로. 머리줄·상태 딱지·점선 카드 없이 기다리는 한 줄 + 흐르는 글 칸.
+      흐르는 글은 받은 글 조각 그대로(답변 대상 이름 연결 없음 — 개발서버 AnswerText 에 refs 를 주지 않는다). 끝나면 저장된 원응답으로 완성 답 카드가 이 자리를 대신한다
+    */
+    if (brief)
+      return (
+        <>
+          <p className="briefing-item-wait" aria-busy="true">
+            <span className="answer-spinner" aria-hidden="true" />
+            확인하고 있습니다… <strong>{fmtWaiting(ms)}</strong>
+            {/* 한 건이 1~5분 — 그만두는 것은 이 항목 하나(개발서버 briefing-cancel, 줄 안) */}
+            {!partial && lv?.stage ? <span className="answer-stage"> · {lv.stage}</span> : null}
+            <button type="button" className="briefing-cancel" onClick={cancel}>취소</button>
+          </p>
+          {partial && (
+            <div className="briefing-item-streaming" aria-live="polite">
+              <AnswerMarkdown text={partial} refs={NO_REFS} />
+            </div>
+          )}
+        </>
+      );
     return (
-      <div className="acard loading" aria-busy="true">
-        <div className="acard-h"><span className="ai-dot spin" /> <b>재난안전 AI</b> <span className="xs muted">{STATE_LABEL[job.state]}</span></div>
-        <div className="s" style={{ marginTop: 8 }}>
-          {waitText} <b>{fmtWaiting(ms)}</b>
-          {!partial && lv?.stage ? <span className="answer-stage"> · {lv.stage}</span> : null}
+      <>
+        <div className="answer-running" aria-busy="true">
+          <span className="answer-spinner" aria-hidden="true" />
+          <p>
+            {partial ? "답변을 작성하고 있습니다…" : "답변을 만들고 있습니다…"} <strong>{fmtWaiting(ms)}</strong>
+            {!partial && lv?.stage ? <span className="answer-stage"> · {lv.stage}</span> : null}
+          </p>
+          {/* 실제로 25~100초가 걸린다. 기다리다 그만둘 수 있어야 한다 */}
+          {!noActions && <button type="button" className="answer-cancel" onClick={cancel}>취소</button>}
         </div>
-        {/* 스트리밍(T3Q v0.4) — 받은 글 조각 그대로 자라는 글. 끝나면 저장된 원응답(final)으로 완성 답 카드가 이 자리를 대신한다 */}
         {partial && (
-          <div className={`acard-body ${brief ? "briefing-item-streaming" : "answer-streaming"}`} aria-live="polite">
-            <AnswerMarkdown text={partial} refs={lv?.refs ?? []} />
-          </div>
+          <article className="acard answer-streaming" aria-live="polite">
+            <AnswerMarkdown text={partial} refs={NO_REFS} />
+          </article>
         )}
-        {!noActions && <div className="row" style={{ marginTop: 10 }}>
-          <button className="btn sm" onClick={() => s.cancel(job.id).catch(() => s.toast("취소하지 못했습니다."))}>취소</button>
-        </div>}
-      </div>
+      </>
     );
   }
 
   // 완료됐지만 원응답을 아직 못 받은 경우 — 실패가 아니라 불러오는 중
-  if (job.state === "DONE" && !raw) return <div className="acard loading" aria-busy="true"><span className="ai-dot spin" /> 답변을 불러오는 중…</div>;
+  if (job.state === "DONE" && !raw) return <AnswerWait text="답변을 불러오는 중…" brief={brief} />;
   if (job.state !== "DONE" || !raw) {
     // 정해 둔 문구만(개발서버와 같은 문장) — 서버가 준 사유·경고 글은 기술 용어가 섞여 내지 않는다
     return (

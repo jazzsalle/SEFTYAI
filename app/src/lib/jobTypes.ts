@@ -129,9 +129,16 @@ export const sourceLocksBase = (src: JobSource) => src !== "AI_MODE";
 /** 이 작업이 기준지역을 잠그는가 — 진행 중(대기·제출·답변 생성 중)이고 AI 모드 점검이 아님(R32·R44). lib/session 의 asking·setBase 가 쓴다 */
 export const locksBase = (j: Pick<JobSummary, "state" | "source">) => isActive(j.state) && sourceLocksBase(j.source);
 
+/**
+ * 출처 한국어 이름. LIBRARY 는 예전 질문 모음 행(그대로 읽는다) — 지금은 질문 모음도 개발서버처럼 QUICK 으로 보낸다.
+ * QUICK 은 특보 질문과 질문 모음이 함께 쓰므로 둘을 가르려면 sourceLabel(질문 모음 문항 번호가 있으면 질문 모음)을 쓴다
+ */
 export const SOURCE_LABEL: Record<JobSource, string> = {
   USER: "직접 질문", BRIEFING: "브리핑", QUICK: "특보 질문", SUGGEST: "추천 질문", LIBRARY: "지역 질문", FOLLOW_UP: "이어서 묻기", AI_MODE: "AI 모드",
 };
+/** 출처 이름 — QUICK 에 질문 모음 문항 번호(library_id)가 붙어 있으면 질문 모음(예전 LIBRARY 와 같은 「지역 질문」), 아니면 SOURCE_LABEL */
+export const sourceLabel = (source: JobSource, libraryId?: string | null): string =>
+  source === "QUICK" && libraryId ? SOURCE_LABEL.LIBRARY : (SOURCE_LABEL[source] ?? source);
 export const STATE_LABEL: Record<JobState, string> = {
   QUEUED: "대기 중", SUBMITTED: "보내는 중", RUNNING: "답변 생성 중", DONE: "완료", FAILED: "실패", CANCELLED: "취소됨", LOST: "유실", TIMEOUT: "시간 초과",
 };

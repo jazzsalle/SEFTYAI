@@ -73,7 +73,7 @@ export async function listAccounts(): Promise<AccountSummary[]> {
   await ensureSchema();
   const rows = (await db().query(
     `select id, grade, team_sn, memo, created_at, created_by, must_change_pw, failed_count, status,
-            (locked_until is not null and locked_until > now()) as locked
+            (locked_until is not null) as locked
        from sa_accounts order by created_at, id`,
   )) as Row[];
   return rows.map((r) => {

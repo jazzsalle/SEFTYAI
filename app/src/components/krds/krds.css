@@ -1,0 +1,10 @@
+/* =====================================================================
+   KRDS 패키지(@une-front/krds portable 번들 — app/layout 에서 읽음)에 덧대는 것(R64)
+   ===================================================================== */
+/* 토스트 자리 — 패키지는 z-index 100 이라 우리 모달(계정 400 · 브리핑 설정 1200) 뒤로 숨는다.
+   모달 안에서 낸 토스트(브리핑 항목 최대 · 비밀번호 변경 실패)가 보이도록 모달보다 위로 올린다.
+   ToastProvider 가 document.body 바로 아래에 그리는 「aria-live=polite · aria-atomic=false」 상자 */
+body > div[aria-live="polite"][aria-atomic="false"] { z-index: 1300; }
+
+/* 글자 크기 — 개발서버는 루트 글자 크기를 바꿔 KRDS(rem)도 함께 커진다. 우리는 portable 번들의 단위(--krds-unit, 기본 10px)에 같은 배율을 곱한다 */
+:root { --krds-unit: calc(10px * var(--fs-scale, 1)); }

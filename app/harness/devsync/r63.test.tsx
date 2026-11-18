@@ -3,7 +3,7 @@
 // npx vitest run harness/devsync/r63
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ACCOUNTS } from "@/lib/config";
@@ -54,33 +54,49 @@ describe("① 스트리밍 — 진행 단계와 자라는 글(개발서버 글�
     sess.on = false;
   });
 
-  it("글이 오기 전: 「답변을 만들고 있습니다… 1분 5초 · {진행 단계}」 + [취소]", () => {
+  it("글이 오기 전: 「답변을 만들고 있습니다… 1분 5초 · {진행 단계}」 + [취소] — 개발서버 answer-running 한 줄(머리줄·카드 없음)", () => {
     sess.live = { j1: { text: "", stage: "데이터 조회", refs: [] } };
     const { container } = wrap(<AnswerCard job={running()} full={undefined} />);
-    const card = container.querySelector(".acard")!;
-    expect(card.textContent).toContain("답변을 만들고 있습니다… 1분 5초 · 데이터 조회");
+    const card = container.querySelector(".answer-running")!;
+    expect(card.querySelector("p")!.textContent).toBe("답변을 만들고 있습니다… 1분 5초 · 데이터 조회");
+    expect(card.querySelector("p strong")!.textContent).toBe("1분 5초");
     expect(card.querySelector(".answer-stage")!.textContent).toBe(" · 데이터 조회");
-    expect(card.querySelector(".answer-streaming")).toBeNull();
+    // 순서: 도는 고리 → 글 → [취소](줄 오른쪽 끝)
+    expect([...card.children].map((c) => c.className || c.tagName)).toEqual(["answer-spinner", "P", "answer-cancel"]);
+    expect(container.querySelector(".answer-streaming")).toBeNull();
     expect(screen.getByRole("button", { name: "취소" })).toBeTruthy();
+    expect(container.querySelector(".acard")).toBeNull();
+    expect(container.textContent).not.toContain("재난안전 AI");
     expect(card.textContent).not.toContain("째");
   });
 
-  it("글이 흘러오면: 「답변을 작성하고 있습니다…」 · 진행 단계는 감춤 · 받은 글 그대로 aria-live 칸에", () => {
-    sess.live = { j1: { text: "### 결론\n\n부산 **저지대**", stage: "데이터 조회", refs: [] } };
+  it("글이 흘러오면: 「답변을 작성하고 있습니다…」 · 진행 단계는 감춤 · 받은 글 그대로 aria-live 칸에(답변 대상 이름 연결 없음 — 개발서버)", () => {
+    sess.live = { j1: { text: "### 결론\n\n부산 [[저지대]](ref:r1) **저지대**", stage: "데이터 조회", refs: [{ ref: "r1", display_name: "저지대", entity_type: "RISK_AREA" }] } };
     const { container } = wrap(<AnswerCard job={running()} full={undefined} />);
-    const card = container.querySelector(".acard")!;
-    expect(card.textContent).toContain("답변을 작성하고 있습니다… 1분 5초");
-    expect(card.querySelector(".answer-stage")).toBeNull();
-    const body = card.querySelector(".answer-streaming")!;
+    const line = container.querySelector(".answer-running")!;
+    expect(line.textContent).toContain("답변을 작성하고 있습니다… 1분 5초");
+    expect(line.querySelector(".answer-stage")).toBeNull();
+    // 흐르는 글 칸은 기다리는 줄 아래(형제) — 완성 답 카드와 같은 틀(article)
+    const body = line.nextElementSibling!;
+    expect(body.tagName).toBe("ARTICLE");
+    expect(body.classList.contains("answer-streaming")).toBe(true);
     expect(body.getAttribute("aria-live")).toBe("polite");
-    expect(body.textContent).toContain("부산 저지대");
+    expect(body.textContent).toContain("부산");
+    expect(body.querySelector("button")).toBeNull(); // 이름을 눌러 상세로 가는 연결이 없다
   });
 
-  it("브리핑 항목: 「확인하고 있습니다…」 · 흘러오는 글은 .briefing-item-streaming · 카드 안 [취소] 없음(머리에 있음)", () => {
+  it("브리핑 항목: 「확인하고 있습니다…」 · [취소]는 그 줄 안(개발서버 briefing-cancel) · 흘러오는 글은 .briefing-item-streaming", () => {
     sess.live = { j1: { text: "", stage: "데이터 조회", refs: [] } };
     const { container, rerender } = wrap(<AnswerCard job={running({ source: "BRIEFING" })} full={undefined} brief noActions />);
-    expect(container.textContent).toContain("확인하고 있습니다… 1분 5초 · 데이터 조회");
-    expect(screen.queryByRole("button", { name: "취소" })).toBeNull();
+    const line = container.querySelector("p.briefing-item-wait")!;
+    expect(line.textContent).toBe("확인하고 있습니다… 1분 5초 · 데이터 조회취소");
+    expect(line.querySelector("button.briefing-cancel")?.textContent).toBe("취소");
+    expect(container.querySelector(".acard")).toBeNull();
+    // 그만두는 것은 이 항목 하나
+    const cancel = vi.spyOn(sess, "cancel");
+    fireEvent.click(line.querySelector("button.briefing-cancel")!);
+    expect(cancel).toHaveBeenCalledWith("j1");
+    cancel.mockRestore();
     sess.live = { j1: { text: "강수 50mm", stage: "데이터 조회", refs: [] } };
     rerender(<ExploreContext.Provider value={x}><AnswerCard job={running({ source: "BRIEFING" })} full={{ ...running(), request: {}, raw: null, preview: null, geo: null } as JobFull} brief noActions /></ExploreContext.Provider>);
     expect(container.textContent).toContain("확인하고 있습니다… 1분 5초");
@@ -159,9 +175,11 @@ describe("③ 유사사례 — 100건씩 total_count 만큼", () => {
     expect(asked.at(-1)).toBe(20);
     expect(big.result!.items).toHaveLength(2000);
   });
-  it("화면 프록시·자동 조회가 이어받기를 쓴다 · 유사사례 한눈 요약은 100건 쪽으로 묻는다", () => {
+  it("화면 프록시가 이어받기를 쓴다 · 자동 조회(우리 카드)는 첫 쪽 20건만(접수 30초 한도) · 유사사례 한눈 요약은 100건 쪽으로 묻는다", () => {
     expect(read("app/api/t3q/data/route.ts")).toMatch(/b!\.api === "T3Q-04" \? await t3qSimilarAll\(/);
-    expect(read("lib/server/preview.ts")).toMatch(/api === "SIMILAR_EVENT"[\s\S]*t3qSimilarAll\(/);
+    const preview = read("lib/server/preview.ts");
+    expect(preview).not.toMatch(/t3qSimilarAll/);
+    expect(preview).toMatch(/SIMILAR_EVENT: \{[^\n]*query_context: qc, page: \{ page: 1, size: 20 \}/);
     expect(read("components/summary/SimilarSummary.tsx")).toContain("page: { page: 1, size: SIMILAR_PAGE_SIZE }");
   });
 });
@@ -233,7 +251,7 @@ describe("④ AI 모드 켬/끔 기록", () => {
     // 스트리밍은 대화 질의만 — AI 모드 점검·시연 고정 질문은 기존 ASYNC(개발서버 b818af0)
     await act(async () => {
       await S.submit({ question: "q", source: "USER" });
-      await S.submit({ question: "q", source: "LIBRARY", pinId: "SH-1-3" });
+      await S.submit({ question: "q", source: "QUICK", pinId: "SH-1-3" });
       await S.submit({ question: "q", source: "AI_MODE" });
     });
     expect(posted.map((p) => p.stream)).toEqual([true, false, false]);

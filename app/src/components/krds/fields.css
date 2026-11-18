@@ -1,0 +1,31 @@
+/* =====================================================================
+   KRDS 입력 칸 틀(TextField·PasswordField) — 개발서버 index.css 의 .form-conts.has-trailing · .field-trailing-btn,
+   그리고 개발서버가 KRDS 원본 CSS 에서 받는 .form-group(세로로 8px 간격)을 옮겼다(R64).
+   개발서버는 1rem = 10px — 여기서는 px 로. 칸 치수는 쓰는 곳(로그인 .lgn-fields · 모달 .modal-fields)이 정한다.
+   ===================================================================== */
+.form-group { display: flex; flex-direction: column; gap: 8px; }
+.form-tit label { display: block; }
+
+/* 칸 안쪽 오른쪽에 붙는 단추(비밀번호 보기) */
+.form-conts.has-trailing { position: relative; }
+.form-conts.has-trailing .krds-input { padding-right: 56px; }
+.field-trailing-btn {
+  position: absolute; top: 50%; right: 16px; display: inline-flex; padding: 0; border: 0; background: none; color: #58616a;
+  transform: translateY(-50%); cursor: pointer;
+}
+.field-trailing-btn:disabled { color: #b1b8be; cursor: not-allowed; }
+
+/* ── 모달 안 칸(비밀번호 변경 — 개발서버 index.css .modal-fields) ── */
+.modal-fields { display: flex; flex-direction: column; gap: 16px; }
+.modal-fields .form-tit { line-height: calc(23px * var(--fs-scale)); }
+.modal-fields .form-tit label { font-size: var(--fs-s); line-height: calc(23px * var(--fs-scale)); color: #464c53; }
+.modal-fields .krds-input {
+  width: 100%; height: 48px; padding: 0 16px; border: 1px solid #58616a; border-radius: 6px; background: #fff;
+  font-size: var(--fs-m); line-height: calc(26px * var(--fs-scale)); color: #1e2124;
+}
+.modal-fields .form-conts.has-trailing .krds-input { padding-right: 56px; }
+.modal-fields .krds-input::placeholder { color: #8a949e; }
+.modal-fields .krds-input:focus-visible { outline: 2px solid #256ef4; outline-offset: 1px; }
+/* 오류는 색만으로 알리지 않는다 — 테두리까지 바뀌고 aria-invalid 가 함께 붙는다. */
+.modal-fields .is-error .krds-input { border-color: #de3412; }
+.modal-fields .field-trailing-btn svg { width: 20px; height: 20px; }

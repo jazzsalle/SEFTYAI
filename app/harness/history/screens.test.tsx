@@ -26,6 +26,7 @@ vi.mock("@/lib/api", () => ({
 
 import HistoryPage from "@/app/(main)/history/page";
 import { BriefingSettingsModal } from "@/components/briefing/BriefingSettingsModal";
+import { ToastHost } from "@/components/krds/Toast";
 
 afterEach(() => cleanup());
 
@@ -85,7 +86,8 @@ describe("대화 이력 목록", () => {
   it("선택 삭제 — 확인 창, 실패하면 창을 두고 알림, 성공하면 「대화를 삭제했습니다.」", async () => {
     const del = vi.fn().mockRejectedValueOnce(new Error("x")).mockResolvedValueOnce(1);
     session.s = { convs, deleteConvs: del };
-    render(<HistoryPage />);
+    // 토스트는 KRDS ToastProvider(앱에서는 app/layout 의 ToastHost)가 그린다(R64)
+    render(<HistoryPage />, { wrapper: ToastHost });
     const btn = screen.getByRole("button", { name: "선택 삭제" }) as HTMLButtonElement;
     expect(btn.disabled).toBe(true);
     fireEvent.click(screen.getByLabelText("부산 호우 대응 선택"));
@@ -106,7 +108,7 @@ describe("브리핑 설정 창", () => {
     session.s = { account: undefined };
     const onClose = vi.fn();
     await act(async () => {
-      render(<BriefingSettingsModal onClose={onClose} />);
+      render(<BriefingSettingsModal onClose={onClose} />, { wrapper: ToastHost });
     });
     return onClose;
   };

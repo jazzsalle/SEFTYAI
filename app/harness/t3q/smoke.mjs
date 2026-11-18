@@ -33,7 +33,7 @@ const w = await call("GET", "/api/weather");
 ok(w.status === 200, `기상특보 ${w.json?.status?.message ?? w.status} · 특보 ${w.json?.advisories?.length ?? "-"}건`);
 const { LIBRARY } = await import("../../src/lib/library.ts").catch(() => ({ LIBRARY: null }));
 const q = LIBRARY?.find((x) => x.id === lib)?.text?.replaceAll("{지역}", "부산광역시") ?? "부산광역시의 자연재해위험개선지구 중 «가» 등급 지구는 어디인가요?";
-const sub = await call("POST", "/api/agent/jobs", { question: q, source: "LIBRARY", libraryId: lib, condition: { region: me.json?.account?.region } });
+const sub = await call("POST", "/api/agent/jobs", { question: q, source: "QUICK", libraryId: lib, condition: { region: me.json?.account?.region } });
 ok(sub.status === 201, `질의 접수 ${sub.status} · ${sub.json?.job?.state} · ${Date.now() - t0}ms${sub.json?.job?.cached_from ? " · 캐시" : ""}`);
 const jid = sub.json?.job?.id;
 const f1 = await call("GET", `/api/agent/jobs/${jid}?full=1`);
@@ -47,7 +47,7 @@ while (["QUEUED", "SUBMITTED", "RUNNING"].includes(st) && Date.now() - t0 < 15 *
 const fin = await call("GET", `/api/agent/jobs/${jid}?full=1`);
 const raw = fin.json?.job?.raw;
 ok(st === "DONE", `답 완료 ${st} · ${Math.round((Date.now() - t0) / 1000)}초 · 봉투 ${raw?.status} · 답 ${raw?.result?.answer?.length ?? 0}자 · refs ${raw?.result?.refs?.length ?? 0} · 도형 ${fin.json?.job?.geo?.result?.features?.length ?? 0}`);
-const again = await call("POST", "/api/agent/jobs", { question: q, source: "LIBRARY", libraryId: lib, condition: { region: me.json?.account?.region } });
+const again = await call("POST", "/api/agent/jobs", { question: q, source: "QUICK", libraryId: lib, condition: { region: me.json?.account?.region } });
 ok(again.json?.job?.state === "DONE" && !!again.json?.job?.cached_from, `같은 질문 재질의 → 캐시 ${again.json?.job?.state}`);
 const out = await call("POST", "/api/auth/logout");
 ok(out.status === 200, "로그아웃");

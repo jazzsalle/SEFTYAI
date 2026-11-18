@@ -12,6 +12,7 @@ import { useEffect, useRef, useState } from "react";
 import { useSession } from "@/lib/session";
 import { BRIEFING_RULES, briefingDefaults, loadBriefing, saveBriefing, type BriefingItem } from "@/lib/briefing";
 import { Dialog } from "@/components/account/Dialog";
+import { Toast } from "@/components/krds/Toast";
 
 const OPEN_EVT = "sa:briefing-settings";
 const NEW_LABEL = "새 브리핑 항목";
@@ -59,11 +60,6 @@ export function BriefingSettingsModal({ onClose }: { onClose: () => void }) {
       alive = false;
     };
   }, [account?.id]);
-  useEffect(() => {
-    if (!toast) return;
-    const t = window.setTimeout(() => setToast(null), 3000);
-    return () => window.clearTimeout(t);
-  }, [toast]);
 
   const list = items ?? [];
   const checkedCount = list.filter((x) => x.checked).length;
@@ -218,7 +214,8 @@ export function BriefingSettingsModal({ onClose }: { onClose: () => void }) {
           }
         />
       )}
-      {toast && <div className="toast bset-toast" role="status">{toast}</div>}
+      {/* KRDS Toast — 3초 뒤 스스로 사라진다(개발서버 shared/components/Toast, R64) */}
+      {toast && <Toast message={toast} onDone={() => setToast(null)} />}
     </>
   );
 }

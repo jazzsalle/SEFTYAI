@@ -66,10 +66,9 @@ describe("브리핑 항목 카드 — 취소 · 다시 시도 · 크게 보기",
     return { cancel, onRetry, body, item };
   };
 
-  it("상태마다 머리 단추 하나 — 생성 중 = 취소, 오류 = 다시 시도, 완료 = 크게 보기", () => {
+  it("머리 단추 — 생성 중 = 없음([취소]는 기다리는 줄 안 — 개발서버 BriefingItemCard briefing-cancel), 오류 = 다시 시도, 완료 = 크게 보기", () => {
     const { item } = setup(["RUNNING", "FAILED", "DONE"]);
-    expect(within(item("a")).getByRole("button", { name: "1번 기상 취소" })).toBeTruthy();
-    expect(within(item("a")).queryByRole("button", { name: /다시 시도|크게 보기/ })).toBeNull();
+    expect(within(item("a").querySelector<HTMLElement>(".brief-item-h")!).queryByRole("button")).toBeNull();
     expect(within(item("b")).getByRole("button", { name: "2번 피해 다시 시도" })).toBeTruthy();
     expect(within(item("b")).queryByRole("button", { name: /취소|크게 보기/ })).toBeNull();
     expect(within(item("c")).getByRole("button", { name: "3번 대피 크게 보기" })).toBeTruthy();
@@ -77,11 +76,10 @@ describe("브리핑 항목 카드 — 취소 · 다시 시도 · 크게 보기",
     expect(document.querySelector(".brief-card-row .btn")).toBeNull();
   });
 
-  it("취소·다시 시도는 그 항목 하나만", () => {
+  it("다시 시도는 그 항목 하나만(취소는 AnswerCard brief 의 줄 안 단추 — harness/devsync/r63)", () => {
     const { cancel, onRetry } = setup(["RUNNING", "CANCELLED", "RUNNING"]);
-    fireEvent.click(screen.getByRole("button", { name: "1번 기상 취소" }));
-    expect(cancel).toHaveBeenCalledTimes(1);
-    expect(cancel).toHaveBeenCalledWith("job-a");
+    expect(screen.queryByRole("button", { name: "취소" })).toBeNull();
+    expect(cancel).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole("button", { name: "2번 피해 다시 시도" }));
     expect(onRetry).toHaveBeenCalledTimes(1);
     expect(onRetry.mock.calls[0][0].id).toBe("b");

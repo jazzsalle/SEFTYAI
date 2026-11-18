@@ -14,3 +14,10 @@
 .qp-badge.bad { background: #de3412; }
 @keyframes qp-spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .qp-badge.run::after { animation: none; } }
+/* 브리핑 전체가 지금 보이면(개발서버 ask-briefing-all.is-active) */
+.qp-brief-all.cur { border-color: #256ef4; background: #ecf2fe; color: #0b50d0; }
+/* 줄 앞 표 — 도는 고리(answer-spinner)·완료·실패·중단 그림(개발서버 AskList) */
+.qp-item .answer-spinner { width: 16px; height: 16px; border-width: 2px; margin-top: 2px; }
+.qp-item svg.qp-st { margin-top: 2px; }
+div.qp-item.act { cursor: default; }
+div.qp-item.act:hover { background: none; }

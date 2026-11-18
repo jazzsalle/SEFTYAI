@@ -10,7 +10,8 @@ import { t3qConfigured } from "@/lib/t3q/client";
 export const dynamic = "force-dynamic";
 export const maxDuration = 30;
 
-const SOURCES: JobSource[] = ["USER", "BRIEFING", "QUICK", "SUGGEST", "LIBRARY", "FOLLOW_UP", "AI_MODE"];
+// 받는 출처 — 질문 모음은 개발서버처럼 QUICK(전 LIBRARY). 예전 LIBRARY 행은 그대로 읽고 다시 질의(retry)도 그 출처 그대로지만 새로 받지는 않는다(USER 로)
+const SOURCES: JobSource[] = ["USER", "BRIEFING", "QUICK", "SUGGEST", "FOLLOW_UP", "AI_MODE"];
 const recent = new Map<string, number>(); // 같은 글 3초 안 연타 차단(UFR 중복 전송)
 
 /** GET /api/agent/jobs?active=1&all=1 — 질문 큐(본인, 운영자는 all) */

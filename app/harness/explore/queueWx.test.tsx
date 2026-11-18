@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 // 질문 목록(QueuePanel)·특보 줄(WxBar) — R39·R40
-//  · 질문 목록에 AI 모드 점검(source AI_MODE)이 보이지 않는다(진행 중·완료·배지 수 모두)
+//  · 질문 현황은 지금 대화의 질문만 — AI 모드 점검·다른 대화 작업이 보이지 않는다(진행 중·완료·배지 수 모두)
 //  · 특보 줄 — 2건 이상이면 5초마다 한 건씩(개발 서버 AlertBanner: 최대 5건 · 정지/다시 시작 · 「i / N」 · 올림·초점 멈춤 · 움직임 줄이기 · 줄면 첫 건), [모두 보기] = 발효 특보 전체(기상청 실응답 원문으로)
 // npx vitest run harness/explore/queueWx
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
@@ -30,37 +30,44 @@ const job = (id: string, source: JobSummary["source"], state: JobSummary["state"
   created_at: now, submitted_at: now, finished_at: state === "DONE" ? now : null, elapsed_ms: state === "DONE" ? 9000 : null, t3q_conversation_id: null,
 });
 
-describe("질문 목록 — AI 모드 점검 빼기(R39)", () => {
+describe("질문 현황 — 지금 대화의 질문만(개발서버 useAskList — AI 모드 점검·계정의 다른 작업은 오르지 않는다)", () => {
   const jobs = [
     job("u1", "USER", "RUNNING", "부산 침수 위험지구는?"),
     job("a1", "AI_MODE", "RUNNING", "제공된 기상특보 정보를 기준으로 점검 중"),
     job("u2", "USER", "DONE", "인제 산사태 이력은?"),
     job("a2", "AI_MODE", "DONE", "제공된 기상특보 정보를 기준으로 점검 끝"),
+    job("o1", "USER", "DONE", "다른 대화의 질문"),
   ];
   const set = () => {
     session.s = { jobOrder: jobs.map((j) => j.id), jobs: Object.fromEntries(jobs.map((j) => [j.id, j])), t3qOk: true };
   };
+  // 지금 대화의 턴 — u1·u2 만
+  const turns = [
+    { id: "t1", jobId: "u1", q: "부산 침수 위험지구는?", source: "USER" as const, at: now },
+    { id: "t2", jobId: "u2", q: "인제 산사태 이력은?", source: "FOLLOW_UP" as const, at: now },
+  ];
 
-  it("펼친 목록 — 진행 중·완료 어디에도 점검이 없고, 진행 수도 점검을 세지 않는다", () => {
+  it("펼친 목록 — 이 대화의 질문만, 점검·다른 대화 작업은 없고 진행 수도 세지 않는다", () => {
     set();
-    const { container } = render(<QueuePanel open setOpen={() => {}} onPick={() => {}} currentJobIds={new Set()} />);
+    const { container } = render(<QueuePanel open setOpen={() => {}} turns={turns} onPick={() => {}} />);
     const text = container.textContent ?? "";
     expect(text).toContain("부산 침수 위험지구는?");
     expect(text).toContain("인제 산사태 이력은?");
     expect(text).not.toContain("기상특보 정보를 기준으로");
+    expect(text).not.toContain("다른 대화의 질문");
     expect(container.querySelectorAll(".qp-item")).toHaveLength(2);
     expect(text).toContain("진행 1");
   });
 
-  it("접힌 탭 — 배지 수에 점검이 들지 않는다", () => {
+  it("접힌 탭 — 진행 1 · 새로 끝난 답 1", () => {
     set();
-    const { container } = render(<QueuePanel open={false} setOpen={() => {}} onPick={() => {}} currentJobIds={new Set()} />);
+    const { container } = render(<QueuePanel open={false} setOpen={() => {}} turns={turns} onPick={() => {}} />);
     expect([...container.querySelectorAll(".qp-badge")].map((b) => b.textContent)).toEqual(["1", "1"]);
   });
 
-  it("점검만 있으면 빈 목록", () => {
-    session.s = { jobOrder: ["a1", "a2"], jobs: { a1: jobs[1], a2: jobs[3] }, t3qOk: true };
-    const { container } = render(<QueuePanel open={false} setOpen={() => {}} onPick={() => {}} currentJobIds={new Set()} />);
+  it("대화에 질문이 없으면 빈 목록", () => {
+    set();
+    const { container } = render(<QueuePanel open={false} setOpen={() => {}} turns={[]} onPick={() => {}} />);
     expect(container.querySelectorAll(".qp-badge")).toHaveLength(0);
   });
 });

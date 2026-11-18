@@ -154,7 +154,7 @@ export type PilotRegion = "busan" | "inje" | "yeongcheon";
 
 /**
  * 질문 모음 묶음 항목(「시연」·「한눈 요약 질의」) — 질문 글은 개발서버(DemoPinSeed · dayScript) 글자 그대로({지역} 자리 없음).
- * 보낼 때 출처는 질문 모음(LIBRARY)과 같고 cond 가 그 질문에만 실린다. base = 그 질문의 기준지역(계정 기본과 다를 때 — 화면에서는 진행자가 머리줄에서 바꾼다)
+ * 보낼 때 출처는 질문 모음(QUICK — 개발서버 askDay)과 같고 cond 가 그 질문에만 실린다. base = 그 질문의 기준지역(계정 기본과 다를 때 — 화면에서는 진행자가 머리줄에서 바꾼다)
  */
 export interface DemoItem extends LibraryQuestion {
   regions: [PilotRegion];
@@ -285,8 +285,8 @@ export const DAY_ITEMS: DayItem[] = DAY_ROWS.map(([id, region, scene, stage, cat
 /** 그 지역의 한눈 요약 질의(시범 지역이 아니면 빈 목록) */
 export const dayItemsFor = (region: string) => DAY_ITEMS.filter((d) => d.regions[0] === region);
 
-/** 묶음 항목을 보낼 모양 — 질문 모음 「시연」·「한눈 요약 질의」. 출처는 질문 모음과 같다(LIBRARY → T3Q SUGGEST) */
-export const demoAsk = (d: DemoItem) => ({ question: d.text, source: "LIBRARY" as const, libraryId: d.id, quickQueryId: d.quickQueryId ?? null, cond: d.cond });
+/** 묶음 항목을 보낼 모양 — 질문 모음 「시연」·「한눈 요약 질의」. 출처는 질문 모음과 같다(QUICK — 개발서버 askDay·DemoPinService, 전 LIBRARY → T3Q SUGGEST) */
+export const demoAsk = (d: DemoItem) => ({ question: d.text, source: "QUICK" as const, libraryId: d.id, quickQueryId: d.quickQueryId ?? null, cond: d.cond });
 
 export const libById = (id: string): LibraryQuestion | undefined =>
   LIBRARY.find((q) => q.id === id) ?? DEMO_SHOW.find((q) => q.id === id) ?? DAY_ITEMS.find((q) => q.id === id);

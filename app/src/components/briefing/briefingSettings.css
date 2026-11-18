@@ -1,7 +1,6 @@
 /* 브리핑 설정 창 (SCR-UNE-202004) — 개발서버 index.css 「브리핑 설정 모달」(rem ×10 px). 틀은 계정 모달(Dialog)을 쓰고 너비만 넓힌다 */
 .acm-dlg.bset-dlg { width: min(760px, calc(100vw - 40px)); }
 .bset-pre { white-space: pre-line; }
-.bset-toast { z-index: 1200; }
 
 .briefing-set-head { display: flex; align-items: center; justify-content: space-between; margin-top: 16px; }
 .briefing-set-count { font-size: var(--fs-s); font-weight: 700; line-height: calc(22px * var(--fs-scale)); color: #1e2124; }

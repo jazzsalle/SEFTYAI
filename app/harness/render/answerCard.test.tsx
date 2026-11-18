@@ -399,16 +399,21 @@ describe("진행 중", () => {
     vi.setSystemTime(new Date(2026, 9, 28, 2, 47, 45));
     const job = makeJob({ state: "RUNNING", created_at: local(2, 46), finished_at: null });
     const { container } = wrap(<AnswerCard job={job} full={undefined} />);
-    const card = container.querySelector(".acard")!;
+    // 개발서버 진행 중 모양(answer-running) — 머리줄(「재난안전 AI」·상태 딱지)·카드 테두리 없이 한 줄 + [취소]
+    const card = container.querySelector(".answer-running")!;
     expect(card.getAttribute("aria-busy")).toBe("true");
     expect(card.textContent).toContain("답변을 만들고 있습니다… 1분 45초");
+    expect(card.querySelector("button.answer-cancel")?.textContent).toBe("취소");
+    expect(container.querySelector(".acard")).toBeNull();
+    expect(container.textContent).not.toContain("재난안전 AI");
     expect(card.textContent).not.toContain("보통");
     expect(card.textContent).not.toContain("기다리는 동안");
   });
-  it("완료됐는데 원응답을 아직 못 받았으면 불러오는 중(aria-busy)", () => {
+  it("완료됐는데 원응답을 아직 못 받았으면 불러오는 중(aria-busy) — 진행 중과 같은 모양", () => {
     const job = makeJob();
     const { container } = wrap(<AnswerCard job={job} full={undefined} />);
-    expect(container.querySelector(".acard")!.getAttribute("aria-busy")).toBe("true");
+    expect(container.querySelector(".answer-running")!.getAttribute("aria-busy")).toBe("true");
+    expect(container.textContent).toContain("답변을 불러오는 중…");
   });
 });
 

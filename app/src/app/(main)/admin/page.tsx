@@ -13,7 +13,7 @@ import { useSession } from "@/lib/session";
 import { ACCOUNTS } from "@/lib/config";
 import { briefingDefaults } from "@/lib/briefingSet";
 import { PILOT_T3Q } from "@/lib/t3q/region";
-import { SOURCE_LABEL, STATE_LABEL, isActive, type JobSource, type JobState, type JobSummary } from "@/lib/jobTypes";
+import { STATE_LABEL, isActive, sourceLabel, type JobSource, type JobState, type JobSummary } from "@/lib/jobTypes";
 import { SCN_ACCOUNT, SCN_DEFAULT_HOURS, SCN_DEFS, SCN_LABEL, SCN_MAX_HOURS, SCN_REGIONS, SCN_SOURCE, scenarioLive, type ScnRegion } from "@/lib/scenario";
 import {
   DEMO_DEFAULT_ACCOUNTS,
@@ -381,7 +381,7 @@ function JobsTab({ jobs, onOpen }: { jobs: JobsHook; onOpen: (id: string) => voi
           }
         >
           <p className="acm-sub">
-            <b>{target.account_id}</b> · {SOURCE_LABEL[target.source] ?? target.source} · {STATE_LABEL[target.state] ?? target.state}
+            <b>{target.account_id}</b> · {sourceLabel(target.source, target.library_id)} · {STATE_LABEL[target.state] ?? target.state}
             <br />
             {target.question_user}
           </p>
@@ -420,7 +420,7 @@ function JobTable({ rows, now, onOpen, onCancel, empty }: { rows: AdminJobRow[];
                 <td className="num xs nowrap">{fmtDT(j.created_at)}</td>
                 <td className="xs nowrap">{j.account_id}</td>
                 <td className="xs nowrap">
-                  {SOURCE_LABEL[j.source] ?? j.source}
+                  {sourceLabel(j.source, j.library_id)}
                   {j.library_id && <div className="mute2">{j.library_id}</div>}
                 </td>
                 <td className="adm-q">
@@ -866,7 +866,7 @@ function AccountsTab() {
   };
 
   const status = (a: AdminAccountRow): [string, string] =>
-    !a.issued ? ["미발급", "neutral"] : a.status !== "ACTIVE" ? [`사용 중지 (${a.status ?? "—"})`, "neutral"] : a.locked ? [`잠김 · ${fmtHM(a.locked_until)}까지`, "danger"] : ["사용", "ok"];
+    !a.issued ? ["미발급", "neutral"] : a.status !== "ACTIVE" ? [`사용 중지 (${a.status ?? "—"})`, "neutral"] : a.locked ? ["잠김", "danger"] : ["사용", "ok"];
 
   return (
     <>
@@ -926,7 +926,7 @@ function AccountsTab() {
           </table>
         </div>
         <p className="adm-note">
-          비밀번호를 5회 연속 잘못 입력하면 15분 동안 잠깁니다. [잠금 해제]는 잠금과 연속 실패 횟수를 함께 0으로 되돌립니다. 같은 계정으로 새로 로그인하면 기존 접속은 종료됩니다.
+          로그인에 5회 연속 실패하면 계정이 잠깁니다. 시간이 지나도 저절로 풀리지 않습니다. [잠금 해제]는 잠금과 연속 실패 횟수를 함께 0으로 되돌립니다. 같은 계정으로 새로 로그인하면 기존 접속은 종료됩니다.
           <br />
           새 계정 발급·비밀번호 재발급·폐기는 계정 발급자(issuer)의 [계정 발급] 화면에서 합니다. 고정 7계정의 비밀번호는 운영 스크립트 <code>app/scripts/seed_accounts.mjs</code>(서버 SEED_SECRET 필요)로 바꿉니다.
         </p>
@@ -1004,7 +1004,7 @@ function FeedbackTab({ onOpen }: { onOpen: (id: string) => void }) {
                     <td className="nowrap"><span className={`badge ${tone}`}>{label}</span></td>
                     <td className="adm-q">
                       <span className="clamp" title={r.question_user ?? undefined}>{r.question_user ?? "(질의 기록 없음)"}</span>
-                      {r.source && <div className="xs mute2">{SOURCE_LABEL[r.source as JobSource] ?? r.source} · {fmtDT(r.asked_at)} 질의</div>}
+                      {r.source && <div className="xs mute2">{sourceLabel(r.source, r.library_id)} · {fmtDT(r.asked_at)} 질의</div>}
                     </td>
                     <td className="xs" style={{ maxWidth: 320, whiteSpace: "pre-wrap" }}>{r.comment || "—"}</td>
                     <td className="xs nowrap">
@@ -1237,7 +1237,7 @@ function JobDetail({ id, onClose, onOpen }: { id: string; onClose: () => void; o
             <>
               <dl className="kv two">
                 <dt>계정</dt><dd>{job.account_id}</dd>
-                <dt>출처</dt><dd>{SOURCE_LABEL[job.source] ?? job.source}{job.library_id ? ` · ${job.library_id}` : ""}</dd>
+                <dt>출처</dt><dd>{sourceLabel(job.source, job.library_id)}{job.library_id ? ` · ${job.library_id}` : ""}</dd>
                 <dt>상태</dt>
                 <dd>
                   <span className={`badge ${STATE_TONE[job.state] ?? "neutral"}`}>{STATE_LABEL[job.state] ?? job.state}</span>

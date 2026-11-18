@@ -278,7 +278,7 @@ describe("답 재사용(R52) — 시연 모드를 켠 동안만 · 켠 뒤 받�
     const on = await J.submitJob(busan, { question: "브리핑 고정 시험 2", source: "BRIEFING", queryContext: QC.busan, pinId: "SH-R52" });
     expect(on.cached_from).toBe(pinned.id);
     await D.demoSet(admin, false);
-    const lib = await J.submitJob(busan, { question: "브리핑 고정 시험 3", source: "LIBRARY", queryContext: QC.busan, pinId: "SH-R52" });
+    const lib = await J.submitJob(busan, { question: "브리핑 고정 시험 3", source: "QUICK", queryContext: QC.busan, pinId: "SH-R52" });
     expect(lib.cached_from).toBe(pinned.id);
   });
 

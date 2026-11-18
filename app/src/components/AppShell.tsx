@@ -3,7 +3,8 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useSession } from "@/lib/session";
-import { GovLogo, IcChevR, IcPause, IcPlay, IcSiren } from "./Icons";
+import { IcChevR, IcPause, IcPlay, IcSiren } from "./Icons";
+import { Toast } from "./krds/Toast";
 import type { Advisory } from "@/lib/contract/agent";
 import { advName, advTime, advTone, aimTone, wxLabel } from "@/lib/wxref";
 import { SCN_CUT_LABEL, SCN_LABEL } from "@/lib/scenario";
@@ -293,10 +294,12 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       <header className="gh one">
         {/* 첫 초점 요소 — [본문 바로가기](FUN-UFR-908009, R61) */}
         <SkipLink />
-        <Link href="/explore" className="logo">
-          <GovLogo />
-          <span>행정안전부 <small>재난안전 AI</small></span>
-        </Link>
+        {/* 개발서버 GovHeader MoisLogo — 그림 한 장(상징 + 「행정안전부」) + 서비스 이름 알약. 링크가 아니다(개발서버와 같음, R64) */}
+        <span className="logo">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img className="gov-logo-img" src="/mois_logo.svg" alt="행정안전부" width={111} height={32} />
+          <small>재난안전 AI데이터 활용 서비스</small>
+        </span>
         <nav className="gnb" aria-label="메인 메뉴">
           {nav.map(([href, label]) => (
             <Link key={href} href={href} className={path?.startsWith(href) ? "on" : ""}>{label}</Link>
@@ -366,7 +369,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       {modal === "me" && <MyInfoModal onClose={() => setModal(null)} />}
       <SessionExpiredModal />
       <BriefingSettingsHost />
-      {toastMsg && <div className="toast" role="status">{toastMsg}</div>}
+      {/* 토스트는 KRDS Toast(개발서버 shared/components/Toast — R64). 지우는 때는 session.toast 가 정한다(2.6초) */}
+      {toastMsg && <Toast message={toastMsg} durationMs={2600} onDone={() => {}} />}
     </div>
     </SopProvider>
   );

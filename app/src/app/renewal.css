@@ -92,7 +92,17 @@
 
 /* 답 카드 */
 .ex-main .acard, .aim .acard { background: #fff; border: 1px solid var(--c-bd); border-radius: var(--r-xl); padding: 18px 22px; box-shadow: var(--shadow-1); }
-.acard.loading { border-style: dashed; }
+/* 진행 중 — 개발서버 index.css answer-running·answer-spinner·answer-cancel + ds-conv.css(회색 띠) · briefing-item-wait·briefing-cancel(2026-11-18, 전 점선 카드) */
+.answer-running { display: flex; align-items: center; gap: 16px; padding: 12px 16px; background: #f4f5f6; border-radius: 8px; }
+.answer-running p { flex: 1; margin: 0; font-size: calc(15px * var(--fs-scale)); line-height: 1.53; color: #1e2124; }
+.answer-spinner { flex: none; display: inline-block; width: 20px; height: 20px; border: 3px solid #cdd1d5; border-top-color: #256ef4; border-radius: 50%; animation: answer-spin .9s linear infinite; }
+.answer-running .answer-spinner { border-width: 2px; }
+@keyframes answer-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .answer-spinner { animation: none; } }
+.answer-cancel { flex: none; padding: 0 12px; height: 40px; font: inherit; font-size: calc(15px * var(--fs-scale)); color: #1e2124; background: none; border: 1px solid #58616a; border-radius: 6px; cursor: pointer; }
+.briefing-item-wait { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 0; font-size: calc(15px * var(--fs-scale)); line-height: 1.47; color: #6d7882; }
+.briefing-cancel { margin-left: 8px; padding: 0 8px; font: inherit; font-size: calc(13px * var(--fs-scale)); line-height: 24px; color: #58616a; background: none; border: 1px solid #cdd1d5; border-radius: 4px; cursor: pointer; }
+.briefing-cancel:hover { color: #1e2124; background: #f0f2f5; }
 /* 스트리밍 — 진행 단계·흘러오는 글(개발서버 index.css b818af0). 끝나면 완성 답 카드가 이 자리를 대신한다 */
 .answer-stage { color: var(--c-sub); font-weight: 400; }
 .answer-streaming { margin-top: 8px; }

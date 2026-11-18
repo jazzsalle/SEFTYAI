@@ -95,6 +95,7 @@ const WX_WAIT_MS = 3000;
 const ADMIT_LOCK = 424201;
 
 const T3Q_SOURCE: Record<JobSource, string> = {
+  // LIBRARY = 예전 질문 모음 행(다시 질의할 때만) — 지금 질문 모음은 QUICK(개발서버 askLibrary)
   USER: "USER", BRIEFING: "BRIEFING", QUICK: "QUICK", SUGGEST: "SUGGEST", LIBRARY: "SUGGEST", FOLLOW_UP: "FOLLOW_UP", AI_MODE: "AI_MODE",
 };
 const T3Q_ROLE: Record<Account["role"], string> = { 지자체: "LOCAL_GOV_OFFICER", 중앙정부: "CENTRAL_GOV_OFFICER", 운영자: "SYSTEM_OPERATOR" };

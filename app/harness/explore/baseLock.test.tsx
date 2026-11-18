@@ -4,7 +4,7 @@
 //  · 실제 SessionProvider(lib/session — fetch 만 흉내): 진행 중 AI_MODE 작업만 있으면 asking false · setBase 허용 · 머리줄 고르기(BasePicker) 열림,
 //    USER 작업이 있으면 막힘, AI_MODE 접수 중에는 보내는 중으로 세지 않음
 //  · 기준지역을 바꾸면 AI 모드가 꺼진다(R47): 진행 중인 점검은 취소, 새 지역 점검은 나가지 않음, 접수를 기다리던 점검이 늦게 돌아와도 취소.
-//    AI 모드 켜짐은 계정별로 저장. 머리줄 고르기는 바꿀 때마다 「기준지역 변경」 확인 창 — AI 모드를 켜 두었으면 두 줄(종료 안내 + 새 대화), 아니면 한 줄
+//    AI 모드 켜짐은 계정별로 저장. 머리줄 고르기는 개발서버 requestRegionChange 판정 — 잃을 것(지금 대화의 질문·AI 모드)이 있을 때만 확인 창(개발서버 Modal 글자)
 //  · 참조 특보 떼기 안내(R45) — 끊긴 계정의 기상청 특보 참조 · 시나리오 끔·만료 · 화면 쪽 조회 실패면 그대로
 // npx vitest run harness/explore/baseLock
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
@@ -90,6 +90,7 @@ vi.mock("@/lib/briefing", async (orig) => ({ ...(await orig<typeof import("@/lib
 
 import { SessionProvider, useSession } from "@/lib/session";
 import BasePicker from "@/components/BasePicker";
+import { openConvBus } from "@/lib/dialogue";
 
 let S: ReturnType<typeof useSession>;
 function Probe() {
@@ -235,29 +236,40 @@ describe("기준지역을 바꾸면 AI 모드가 꺼진다(R47 · R52)", () => {
   });
 });
 
-describe("머리줄 기준지역 고르기 — 바꿀 때마다 「기준지역 변경」 확인 창(R47)", () => {
-  const dialog = () => screen.getByRole("alertdialog", { name: "기준지역 변경" });
+describe("머리줄 기준지역 고르기 — 잃을 것이 있을 때만 확인 창(개발서버 requestRegionChange · Modal 글자, 전 R47 「기준지역 변경」 번호 줄)", () => {
+  const NEW = "기준지역을 바꾸면 새 대화로 시작합니다. 지금 대화는 대화 이력에 남습니다.";
+  const AIM = "기준지역을 바꾸면 AI 모드가 종료됩니다. 다시 실행하여 주십시오.";
   const pickSeoul = async () => {
     await waitFor(() => expect([...sido().options].some((o) => o.textContent === "서울특별시")).toBe(true));
     fireEvent.change(sido(), { target: { value: "11" } });
   };
+  afterEach(() => openConvBus.reset());
 
-  it("AI 모드가 꺼져 있으면 한 줄 — 대화가 비어도 띄우고, [취소]면 그대로", async () => {
+  it("대화가 비고 AI 모드가 꺼져 있으면 묻지 않고 바꾼다", async () => {
     await mount();
     await pickSeoul();
-    expect(dialog().textContent).toContain("기준지역을 바꾸면 새 대화로 시작합니다. 지금 대화는 대화 이력에 남습니다.");
-    expect(dialog().textContent).not.toContain("AI 모드");
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(S.cond.base).toEqual(SEOUL);
+  });
+
+  it("지금 대화에 질문이 있으면 제목 한 줄(본문 없음) — [취소]면 그대로", async () => {
+    await mount();
+    openConvBus.set({ convId: "c1", turns: [{ jobId: "d1" }] });
+    await pickSeoul();
+    const dlg = screen.getByRole("dialog", { name: NEW });
+    expect(dlg.querySelector(".acm-desc")).toBeNull();
+    expect(dlg.textContent).not.toContain("AI 모드");
     fireEvent.click(screen.getByRole("button", { name: "취소" }));
-    expect(screen.queryByRole("alertdialog")).toBeNull();
+    expect(screen.queryByRole("dialog")).toBeNull();
     expect(S.cond.base?.sido.name).toBe("부산광역시");
   });
 
-  it("AI 모드가 켜져 있으면 두 줄 — [새 대화로 시작]이면 바꾸고 AI 모드를 끄고 새 대화로", async () => {
+  it("AI 모드가 켜져 있으면 제목 AI 모드 종료 · 본문 새 대화 — [새 대화로 시작]이면 바꾸고 AI 모드를 끄고 새 대화로", async () => {
     await mount();
     act(() => S.setAimOn(true));
     await pickSeoul();
-    const lines = [...dialog().querySelectorAll(".acm-desc > div")].map((d) => d.textContent);
-    expect(lines).toEqual(["1. 기준지역을 바꾸면 AI 모드가 종료됩니다. 다시 실행하여 주십시오.", "2. 새 대화로 시작합니다. 지금 대화는 대화 이력에 남습니다."]);
+    const dlg = screen.getByRole("dialog", { name: AIM });
+    expect(dlg.querySelector(".acm-desc")?.textContent).toBe("새 대화로 시작합니다. 지금 대화는 대화 이력에 남습니다.");
     const newConv = vi.fn();
     window.addEventListener("sa:new-conv", newConv);
     fireEvent.click(screen.getByRole("button", { name: "새 대화로 시작" }));
@@ -268,13 +280,15 @@ describe("머리줄 기준지역 고르기 — 바꿀 때마다 「기준지역 
     expect(nav.pushed).toEqual([]);
   });
 
-  it("통합 탐색 밖(대화 이력 등)에서 바꾸면 확인 뒤 통합 탐색 새 대화로 간다", async () => {
+  it("통합 탐색 밖(대화 이력 등)에서 바꾸면 그 자리에 머문다 — 지금 대화를 비우고(통합 탐색은 열 때 빈 대화) 옮기지 않는다(개발서버)", async () => {
     nav.path = "/history";
     await mount();
+    openConvBus.set({ convId: "c1", turns: [{ jobId: "d1" }] });
     await pickSeoul();
     fireEvent.click(screen.getByRole("button", { name: "새 대화로 시작" }));
     expect(S.cond.base).toEqual(SEOUL);
-    expect(nav.pushed).toEqual(["/explore"]);
+    expect(nav.pushed).toEqual([]);
+    expect(openConvBus.get().turns).toEqual([]);
   });
 });
 

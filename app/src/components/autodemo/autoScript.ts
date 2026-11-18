@@ -126,7 +126,7 @@ export const UI = {
   /** 답 카드·본문·받는 중(개발서버 .answer-card · .answer-md · .answer-running) */
   answerCard: ".acard.ans",
   answerBody: ".md",
-  answerRunning: ".acard.loading",
+  answerRunning: ".answer-running, .briefing-item-wait[aria-busy=\"true\"]",
   /** 질문 말풍선(개발서버 .answer-ask) */
   question: ".qbubble",
   /** 한눈 요약 압축 카드(개발서버 .sm-mod) */

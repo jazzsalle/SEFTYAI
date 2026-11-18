@@ -105,6 +105,7 @@ export interface AdminAccountRow {
   known: boolean;
   status: string | null;
   failed_count: number;
+  /** 잠근 시각(칸 이름만 옛것 — R64부터 운영자가 풀 때까지 잠김, 시각은 화면에 쓰지 않음) */
   locked_until: string | null;
   locked: boolean;
   last_login_at: string | null;
@@ -124,6 +125,8 @@ export interface AdminFeedbackRow {
   t3q_feedback_status: string | null;
   question_user: string | null;
   source: JobSource | null;
+  /** 질문 모음 문항 번호 — 출처 이름(QUICK 이 특보 질문인지 질문 모음인지) */
+  library_id?: string | null;
   asked_at: string | null;
 }
 

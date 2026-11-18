@@ -4,7 +4,7 @@ import { collectSimilarPages, similarPageBody, type SimilarPageEnvelope } from "
 
 /**
  * T3Q-04 유사사례 검색을 전체 건수(total_count)만큼 — 한 쪽 100건씩 이어받아 한 봉투로(개발서버 similarApi.search, R63).
- * 화면 프록시(/api/t3q/data)와 자동 조회(preview)가 함께 쓴다.
+ * 화면 프록시(/api/t3q/data)가 쓴다. 자동 조회(preview)는 접수 30초 한도를 지키려고 첫 쪽만 받는다(2026-11-18).
  * - 첫 쪽 봉투를 못 받았거나 2xx 가 아니면 첫 쪽 결과를 그대로 돌려준다(이어받지 않음).
  * - 다음 쪽이 실패(봉투 없음·2xx 아님)하면 그때까지 받은 만큼만.
  * request = 첫 쪽에 보낸 본문(원응답 기록용).

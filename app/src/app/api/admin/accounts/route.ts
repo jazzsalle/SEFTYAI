@@ -25,7 +25,7 @@ export async function GET(req: Request) {
     await ensureSchema();
     const rows = (await db().query(
       `select a.id, a.name, a.org, a.role, a.status, a.failed_count, a.locked_until, a.grade, a.team_sn,
-              (a.locked_until is not null and a.locked_until > now()) as locked,
+              (a.locked_until is not null) as locked,
               a.last_login_at, a.created_at,
               (select max(s.last_seen_at) from sa_sessions s
                 where s.account_id = a.id and s.revoked_at is null and s.expires_at > now()) as session_seen_at

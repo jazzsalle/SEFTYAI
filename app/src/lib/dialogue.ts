@@ -54,6 +54,38 @@ export function leaveMessage(running: number, waiting: number): string {
 export const LEAVE_TITLE = { new: "새 대화를 시작하시겠습니까?", open: "다른 대화를 여시겠습니까?" } as const;
 export const LEAVE_OK = { new: "새 대화 시작", open: "대화 열기" } as const;
 
+/**
+ * 기준지역을 바꾸려 할 때 할 일(개발서버 SearchSessionProvider requestRegionChange 판정 그대로).
+ *  · same — 같은 시·도 안이고 AI 모드가 꺼져 있다: 묻지 않고 바꾸고 대화를 유지(구분선)
+ *  · apply — 잃을 것이 없다(지금 대화에 질문이 하나도 없고 AI 모드도 꺼져 있다): 묻지 않고 바꾼다(새 대화)
+ *  · ask — 확인 창을 띄운다
+ */
+export function regionChangeStep(o: { same: boolean; aimOn: boolean; hasTurns: boolean }): "same" | "apply" | "ask" {
+  if (o.same && !o.aimOn) return "same";
+  if (!o.hasTurns && !o.aimOn) return "apply";
+  return "ask";
+}
+
+/**
+ * 기준지역 변경 확인 창의 글(개발서버 SearchSessionProvider 의 Modal 글자 그대로).
+ * 제목 = AI 모드가 켜져 있으면 AI 모드 종료 안내, 아니면 새 대화 안내. 본문 = (AI 모드 켬 · 다른 시·도) 새 대화 한 마디 + (다른 시·도) 중지 안내 — 없으면 본문 없음.
+ * 단추 = 같은 시·도 안이면 [기준지역 변경], 아니면 [새 대화로 시작]
+ */
+export function regionChangeDialog(o: { same: boolean; aimOn: boolean; running: number; waiting: number }): { title: string; desc: string | undefined; ok: string } {
+  const title = o.aimOn
+    ? "기준지역을 바꾸면 AI 모드가 종료됩니다. 다시 실행하여 주십시오."
+    : "기준지역을 바꾸면 새 대화로 시작합니다. 지금 대화는 대화 이력에 남습니다.";
+  const desc =
+    [
+      o.aimOn && !o.same ? "새 대화로 시작합니다. 지금 대화는 대화 이력에 남습니다." : null,
+      // 같은 시·도 안의 변경은 대화를 옮기는 것이 아니라 질문을 멈추지 않는다 — 중단 문구를 붙이지 않는다
+      o.same ? null : leaveMessage(o.running, o.waiting) || null,
+    ]
+      .filter((x): x is string => x !== null)
+      .join(" ") || undefined;
+  return { title, desc, ok: o.same ? "기준지역 변경" : "새 대화로 시작" };
+}
+
 /** 같은 시·도 안에서 기준지역이 바뀐 자리의 구분선 글(정의서 UFR-001-001-01 G) */
 export function regionBreakText(from: string, to: string, at: Date): string {
   const p = (n: number) => String(n).padStart(2, "0");
@@ -79,11 +111,17 @@ interface TurnLike {
   jobId?: string;
   pending?: boolean;
   error?: string;
+  /** 브리핑 세트 묶음이면 있다 — 대기는 브리핑 항목에만 있다 */
+  group?: unknown;
 }
 
 /**
- * 대화의 진행 상황 — 답변 생성 중(보냄·답변 생성 중)과 대기(보내는 중·우리 대기열에서 차례를 기다림 QUEUED).
- * 개발서버는 개별 질문 = 답변 생성 중, 차례가 오지 않은 브리핑 항목 = 대기로 센다 — 우리는 대기열(QUEUED)이 그 자리다
+ * 대화의 진행 상황 — 개발서버 SearchSessionProvider activity 기준(정의서 UFR-006-001-04 · FUN-UFR-306004).
+ * 「개별 질문은 보내는 즉시 도므로 대기가 없고, 브리핑 항목 가운데 아직 차례가 오지 않은 것이 대기다.」
+ *  · 개별 질문(묶음 없음) — 보내는 중·대기열(QUEUED)·보냄·답변 생성 중 모두 답변 생성 중
+ *  · 브리핑 항목(묶음) — 아직 차례가 오지 않은 것(보내는 중·우리 대기열 QUEUED — 계정 동시 4건 한도 뒤)은 대기, 보냄·답변 생성 중은 답변 생성 중
+ *    (개발서버는 브라우저가 넷씩 차례로 보내 나머지가 waiting — 우리는 한꺼번에 보내고 서버 대기열이 넷을 넘는 것을 QUEUED 로 둔다)
+ * jobIds = 멈출 작업(작업 ID 를 받은 것). 아직 접수 응답을 기다리는 질문은 openConvBus.markLeft 로 받는 즉시 멈춘다
  */
 export function activityOf(turns: readonly TurnLike[], stateOf: (jobId: string) => string | undefined): { running: number; waiting: number; jobIds: string[] } {
   let running = 0;
@@ -91,13 +129,19 @@ export function activityOf(turns: readonly TurnLike[], stateOf: (jobId: string) 
   const jobIds: string[] = [];
   for (const t of turns) {
     if (t.error) continue;
+    const brief = !!t.group;
     if (!t.jobId) {
-      if (t.pending) waiting++;
+      if (t.pending) {
+        if (brief) waiting++;
+        else running++;
+      }
       continue;
     }
     const st = stateOf(t.jobId);
-    if (st === "QUEUED") waiting++;
-    else if (st !== undefined && ACTIVE_RUNNING.includes(st)) running++;
+    if (st === "QUEUED") {
+      if (brief) waiting++;
+      else running++;
+    } else if (st !== undefined && ACTIVE_RUNNING.includes(st)) running++;
     else continue;
     jobIds.push(t.jobId);
   }
