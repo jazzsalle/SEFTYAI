@@ -258,11 +258,23 @@ export function useAutoDemo(actions: AutoDemoActions) {
             document.querySelector(s)?.scrollIntoView({ behavior: "smooth", block: "center" })
             // 위의 한눈 요약 카드가 늦게 다 만들어져 커지면 짚은 곳이 화면 밖으로 밀린다 —
             // 이 걸음 동안 밀려 나가면 다시 굴린다(2026-11-18 자동 시연 점검).
+            // 화면 갱신이 느린 PC(창 가림·원격 등)에서는 부드러운 굴림이 끝나지 않는다 —
+            // 세 번(약 1.2초) 연달아 밖이면 바로 옮긴다(2026-11-18 운영 실측에서 강조가 빈 걸음).
+            let out = 0
             keep = window.setInterval(() => {
               const el = document.querySelector(s)
-              const box = el?.closest(UI.scroll)?.getBoundingClientRect()
               const r = el?.getBoundingClientRect()
-              if (el && box && r && (r.top > box.bottom - 60 || r.bottom < box.top + 60)) el.scrollIntoView({ behavior: "smooth", block: "center" })
+              const box = el?.closest(UI.scroll)?.getBoundingClientRect() ?? { top: 0, bottom: window.innerHeight }
+              if (!el || !r || !(r.top > box.bottom - 60 || r.bottom < box.top + 60)) {
+                out = 0
+                return
+              }
+              out++
+              if (out === 1) el.scrollIntoView({ behavior: "smooth", block: "center" })
+              else if (out >= 3) {
+                el.scrollIntoView({ behavior: "auto", block: "center" })
+                out = 0
+              }
             }, 400)
           } else missing = true
           await wait(500, run)
