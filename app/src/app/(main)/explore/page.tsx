@@ -32,6 +32,7 @@ import type { MapFeature } from "@/components/map/MapView";
 import { IcChevL } from "@/components/Icons";
 import { AutoDemoBar } from "@/components/autodemo/AutoDemoBar";
 import AimPrep from "@/components/autodemo/AimPrep";
+import { ScenarioPicker } from "@/components/autodemo/ScenarioPicker";
 import { useExploreAutoDemo } from "@/components/autodemo/useExploreAutoDemo";
 import { askLockBus, askLockOf, countRunning } from "@/lib/askLock";
 
@@ -834,6 +835,7 @@ function Explore() {
           />
         )}
         <AutoDemoBar demo={autoDemo}><AimPrep /></AutoDemoBar>
+        {autoDemo.picking && <ScenarioPicker onPick={autoDemo.choose} onClose={autoDemo.cancelPick} />}
         {/* 대화 전환 확인 — 제목·단추는 개발서버 글자 그대로, 본문은 상황별 짧은 문구(leaveMessage) · 모양은 개발서버 Modal(role dialog) */}
         {leave && leaveAct && (
           <Dialog

@@ -1,12 +1,12 @@
 "use client";
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { api } from "@/lib/api";
 import { useSession } from "@/lib/session";
 import { baseKey } from "@/lib/baseRegion";
 import { DAY_ITEMS, demoAsk, type DemoItem } from "@/lib/library";
 import { aimDemoAdvisory, aimDemoById } from "@/lib/autoDemoAim";
 import { AUTODEMO_START_EVENT, autoDemoBus } from "@/lib/autoDemoBus";
-import { DemoRegions, type DemoPin } from "./autoScript";
+import { DemoRegions, type DemoPin, type DemoScenarioId } from "./autoScript";
 import { useAutoDemo } from "./useAutoDemo";
 import { loadAimPins } from "./AimPrep";
 
@@ -74,9 +74,16 @@ export function useExploreAutoDemo(p: {
   const idle = demo.phase === "idle" || demo.phase === "done";
   const idleRef = useRef(idle);
   idleRef.current = idle;
+  // 누르면 먼저 시나리오를 고른다(ScenarioPicker — 사용자 지시 2026-11-18)
+  const [picking, setPicking] = useState(false);
+  const choose = useCallback((id: DemoScenarioId) => {
+    setPicking(false);
+    void startRef.current(id);
+  }, []);
+  const cancelPick = useCallback(() => setPicking(false), []);
   useEffect(() => {
     const on = () => {
-      if (idleRef.current) void startRef.current();
+      if (idleRef.current) setPicking(true);
     };
     window.addEventListener(AUTODEMO_START_EVENT, on);
     return () => window.removeEventListener(AUTODEMO_START_EVENT, on);
@@ -88,7 +95,7 @@ export function useExploreAutoDemo(p: {
     if (u.searchParams.get("autodemo") !== "1") return;
     u.searchParams.delete("autodemo");
     window.history.replaceState(null, "", u.pathname + u.search);
-    void startRef.current();
+    setPicking(true);
   }, [ready]);
 
   // 도는 동안 머리 메뉴 [자동 시연]을 막는다. 화면을 떠나면 가상 특보·AI 모드 창도 걷는다
@@ -96,5 +103,5 @@ export function useExploreAutoDemo(p: {
   useEffect(() => autoDemoBus.set({ running }), [running]);
   useEffect(() => () => autoDemoBus.set({ running: false, aim: null, aimOpen: false, warnings: null }), []);
 
-  return demo;
+  return { ...demo, picking, choose, cancelPick };
 }

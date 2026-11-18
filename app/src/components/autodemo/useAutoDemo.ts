@@ -5,7 +5,7 @@
 // 저장된 답이 없는 장면은 건너뛴다. 일시정지는 읽던 문장을 끊고, 계속하면 그 문장부터 다시 읽는다
 // (Chrome 의 speechSynthesis.pause 가 믿을 만하지 않아서).
 import { useCallback, useEffect, useRef, useState } from "react"
-import { type AutoScene, DefaultDwellMs, type DemoPin, type DemoRegion, type DemoStep, type FocusTarget, type Target, UI, scenesFrom } from "./autoScript"
+import { type AutoScene, DefaultDwellMs, type DemoPin, type DemoRegion, type DemoScenarioId, type DemoStep, type FocusTarget, type Target, UI, scenesFrom } from "./autoScript"
 import { clearMapMarks, markOnMap, parseMapSel } from "@/lib/autoDemoMap"
 import { koreanVoices, pick, saveVoiceName, sentences, speakOne, speech } from "./speech"
 
@@ -163,7 +163,7 @@ export function useAutoDemo(actions: AutoDemoActions) {
     if (el?.isConnected && el.checked) el.click()
   }, [])
 
-  const start = useCallback(async () => {
+  const start = useCallback(async (scenario?: DemoScenarioId | null) => {
     const alive = (run: Run) => {
       if (tokenRef.current !== run.token) throw new Stopped()
     }
@@ -375,7 +375,7 @@ export function useAutoDemo(actions: AutoDemoActions) {
       const pins = await act.current.list()
       pinsRef.current = new Map(pins.map((p) => [p.pin_id, p]))
       if (tokenRef.current !== token) return
-      const plan = scenesFrom(pins)
+      const plan = scenesFrom(pins, scenario)
       setTotal(plan.length)
       act.current.reset()
       act.current.layout()

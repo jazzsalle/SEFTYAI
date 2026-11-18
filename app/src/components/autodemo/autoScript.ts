@@ -807,10 +807,107 @@ export interface DemoPin {
   received_at: string | null
 }
 
+/**
+ * 시연 시나리오(사용자 지시 2026-11-18) — [자동 시연]을 누르면 고른다. 장면은 AutoScript 를 이름(label)으로 골라 쓰고,
+ * 시나리오에 맞지 않는 안내만 바꿔 읽는다.
+ *  · 부산 + 인제 = 부산 하루 전체 + 인제
+ *  · 부산 + 대전 = 부산은 AI 모드 흐름(예비특보 → 주의보 → 브리핑)만, 지역 정보 조회는 대전 4장면 전부(대전과 겹치는
+ *    부산 위험지역·대응수위·과거 사례·강우 조건 장면과 점검 우선순위는 뺀다 — 7~8분)
+ */
+export type DemoScenarioId = "busan-inje" | "busan-daejeon"
+export interface DemoScenario {
+  id: DemoScenarioId
+  name: string
+  desc: string
+  /** 대략 걸리는 시간(분) — 고르는 창에 보인다 */
+  minutes: string
+  scenes: string[]
+  /** 장면 이름 → 이 시나리오에서 바꿔 읽는 안내 */
+  text?: Record<string, Partial<Pick<AutoScene, "intro" | "outro">>>
+}
+
+const BusanDay = [
+  "프롤로그 · AI 모드 소개",
+  "11:00 · 호우 예비특보, AI 모드 시작",
+  "11:30 · 온천천 주변 위험지역",
+  "11:40 · 동래·연제·금정 위험지구 전체",
+  "15:00 · 호우주의보, AI 모드 자동 감지",
+  "15:05 · 현재 상황 브리핑",
+  "15:10 · 점검 우선순위",
+  "15:20 · 강우 조건으로 묻고 대응절차까지",
+  "15:50 · 온천천 대응수위",
+  "15:55 · 과거 침수 사례와 당시 대응",
+]
+const Daejeon = [
+  "전환 · 대전광역시",
+  "대전 · 정림동 과거 침수사례",
+  "대전 · 2024년 7월 10일 호우 대피·통제",
+  "대전 · 3대 하천 산책로·하상도로 주변",
+  "대전 · 유등천 하천기본계획과 시설",
+]
+
+export const DemoScenarios: DemoScenario[] = [
+  {
+    id: "busan-inje",
+    name: "부산 + 인제",
+    desc: "부산 담당자의 하루(예비특보부터 과거 사례까지) 뒤 인제 계곡 숙박·야영장",
+    minutes: "약 13~15분",
+    scenes: [...BusanDay, "전환 · 인제군", "인제 · 진동리 계곡 숙박·야영장 주변", "마무리"],
+    text: {
+      마무리: {
+        intro:
+          "지금까지 호우 예비특보에서 주의보로 상황이 바뀌는 동안, 재난안전 담당자가 어떤 정보를 확인하고 업무에 활용하는지 살펴봤습니다. " +
+          "특보의 변화를 확인하고, 위험지역과 시설을 찾아보고, 상세정보와 과거 피해·대응 기록까지 연결해서 검토했습니다. " +
+          "부산과 인제처럼 지역이 달라도 같은 방식으로 지역의 위험정보를 확인하고 대응에 활용할 수 있습니다. " +
+          "이상으로 시연을 마치겠습니다.",
+      },
+    },
+  },
+  {
+    id: "busan-daejeon",
+    name: "부산 + 대전",
+    desc: "부산에서 AI 모드가 특보 변화를 잡아 브리핑하는 흐름 뒤 대전 과거 침수사례 → 위험·취약정보 → 하천계획·시설",
+    minutes: "약 7~8분",
+    scenes: [
+      "프롤로그 · AI 모드 소개",
+      "11:00 · 호우 예비특보, AI 모드 시작",
+      "15:00 · 호우주의보, AI 모드 자동 감지",
+      "15:05 · 현재 상황 브리핑",
+      ...Daejeon,
+      "마무리",
+    ],
+    text: {
+      "15:00 · 호우주의보, AI 모드 자동 감지": {
+        outro: "이제는 사전에 위험요소를 파악하는 것에서 더 나아가, 지금 상황을 한눈에 정리하고 무엇부터 확인할지 판단할 때입니다.",
+      },
+      마무리: {
+        intro:
+          "지금까지 부산에서는 호우 예비특보가 주의보로 바뀌는 동안 AI 모드가 특보 변화를 알리고 상황을 정리하는 흐름을, " +
+          "대전에서는 과거 침수 사례에서 출발해 지역의 위험·취약정보, 하천계획과 시설정보까지 이어서 살펴봤습니다. " +
+          "부산과 대전처럼 지역이 달라도 같은 방식으로 지역의 위험정보를 확인하고 대응에 활용할 수 있습니다. " +
+          "이상으로 시연을 마치겠습니다.",
+      },
+    },
+  },
+]
+
+export const scenarioById = (id: string | null | undefined): DemoScenario | undefined => DemoScenarios.find((s) => s.id === id)
+
+/** 시나리오의 장면 — 이름 순서대로, 바꿔 읽는 안내를 입혀서. 시나리오가 없으면 대본 전체 */
+export function scenarioScenes(id?: DemoScenarioId | null): AutoScene[] {
+  const sc = scenarioById(id)
+  if (!sc) return AutoScript
+  return sc.scenes.map((label) => {
+    const scene = AutoScript.find((s) => s.label === label)
+    if (!scene) throw new Error(`자동 시연 시나리오 ${sc.id}: 장면 없음 ${label}`)
+    return { ...scene, ...(sc.text?.[label] ?? {}) }
+  })
+}
+
 /** 이번에 돌릴 장면들과 그 질문. 질문이 목록에 없으면 pin 은 null(내레이션 장면과 같이 다룬다). */
-export function scenesFrom(pins: DemoPin[]): { scene: AutoScene; pin: DemoPin | null; fallback: DemoPin | null }[] {
+export function scenesFrom(pins: DemoPin[], scenario?: DemoScenarioId | null): { scene: AutoScene; pin: DemoPin | null; fallback: DemoPin | null }[] {
   const byId = new Map(pins.map((p) => [p.pin_id, p]))
-  return AutoScript.map((scene) => ({
+  return scenarioScenes(scenario).map((scene) => ({
     scene,
     pin: scene.pinId ? (byId.get(scene.pinId) ?? null) : null,
     fallback: scene.fallbackPinId ? (byId.get(scene.fallbackPinId) ?? null) : null,

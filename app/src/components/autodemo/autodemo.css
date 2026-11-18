@@ -224,3 +224,12 @@
   color: transparent;
   font-size: 0;
 }
+
+/* 시나리오 고르기(ScenarioPicker) */
+.autodemo-pick-list { display: flex; flex-direction: column; gap: 8px; padding: 4px 24px 8px; }
+.autodemo-pick-item { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; padding: 14px 16px; text-align: left;
+  background: #fff; border: 1px solid var(--c-bd); border-radius: 8px; cursor: pointer; }
+.autodemo-pick-item:hover, .autodemo-pick-item:focus-visible { border-color: var(--c-primary); background: var(--c-primary-sub, #eef4ff); outline: none; }
+.autodemo-pick-name { display: flex; align-items: baseline; gap: 8px; font-size: var(--fs-s); font-weight: 700; color: var(--c-text); }
+.autodemo-pick-name small { font-size: var(--fs-2xs); font-weight: 400; color: var(--c-sub); }
+.autodemo-pick-desc { font-size: var(--fs-xs); color: var(--c-sub); line-height: 1.5; }

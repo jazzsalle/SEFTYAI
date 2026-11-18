@@ -130,3 +130,48 @@ describe("대전 한눈 요약 질의(2026-11-19 대전시청 시연)", () => {
     expect(dayItemsFor("daejeon").map((d) => d.id)).toEqual(["IG-DJ-01", "IG-DJ-02", "IG-DJ-03", "IG-DJ-04", "IG-DJ-05", "IG-DJ-06"]);
   });
 });
+
+describe("자동 시연 시나리오(2026-11-18 사용자 지시 — 부산+인제 · 부산+대전)", () => {
+  it("두 시나리오만, 장면 이름이 모두 대본에 있다", async () => {
+    const { DemoScenarios, scenarioScenes } = await import("@/components/autodemo/autoScript");
+    expect(DemoScenarios.map((s) => s.id)).toEqual(["busan-inje", "busan-daejeon"]);
+    for (const s of DemoScenarios) expect(() => scenarioScenes(s.id)).not.toThrow();
+  });
+
+  it("부산+인제 = 대전 장면 없이 부산 하루 + 인제 + 마무리, 마무리에 대전 언급 없음", async () => {
+    const { scenarioScenes } = await import("@/components/autodemo/autoScript");
+    const sc = scenarioScenes("busan-inje");
+    expect(sc.some((s) => s.region === "daejeon")).toBe(false);
+    expect(sc.map((s) => s.label)).toContain("인제 · 진동리 계곡 숙박·야영장 주변");
+    expect(sc.at(-1)?.label).toBe("마무리");
+    expect(sc.at(-1)?.intro).toContain("부산과 인제처럼");
+    expect(sc.at(-1)?.intro).not.toContain("대전");
+  });
+
+  it("부산+대전 = 대전 질의 전부, 대전과 겹치는 부산 장면·점검 우선순위·인제는 뺀다", async () => {
+    const { scenarioScenes } = await import("@/components/autodemo/autoScript");
+    const sc = scenarioScenes("busan-daejeon");
+    const pins = sc.map((s) => s.pinId).filter(Boolean);
+    expect(pins).toEqual(["IG-DJ-04", "IG-DJ-03", "IG-DJ-01", "IG-DJ-06"]);
+    expect(sc.map((s) => s.label)).toEqual([
+      "프롤로그 · AI 모드 소개",
+      "11:00 · 호우 예비특보, AI 모드 시작",
+      "15:00 · 호우주의보, AI 모드 자동 감지",
+      "15:05 · 현재 상황 브리핑",
+      "전환 · 대전광역시",
+      "대전 · 정림동 과거 침수사례",
+      "대전 · 2024년 7월 10일 호우 대피·통제",
+      "대전 · 3대 하천 산책로·하상도로 주변",
+      "대전 · 유등천 하천기본계획과 시설",
+      "마무리",
+    ]);
+    expect(sc.at(-1)?.intro).toContain("부산과 대전처럼");
+    expect(sc.at(-1)?.intro).not.toContain("인제");
+    expect(sc.at(-1)?.region).toBe("busan");
+  });
+
+  it("시나리오를 주면 scenesFrom 이 그 장면만 — 주지 않으면 대본 전체", () => {
+    expect(scenesFrom([], "busan-daejeon")).toHaveLength(10);
+    expect(scenesFrom([])).toHaveLength(AutoScript.length);
+  });
+});
