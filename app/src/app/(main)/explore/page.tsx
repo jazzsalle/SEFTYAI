@@ -144,13 +144,13 @@ function Explore() {
   // 집어 둔 것은 그 지역·그 사람의 객체다 — 두면 부산 질문에 강원도 지구가 딸려 간다
   const baseK = baseKey(s.cond.base);
   useEffect(() => resetPicks(), [baseK, s.account?.id, resetPicks]);
-  // 기준지역을 옮기면 앞 지역 대상 상세 탭(예: 부산 「만덕동 산100」)은 닫고 지도로 — 지도는 새 기준지역 경계로 맞춰진다(MapView baseCode)
+  // 기준지역을 옮기면 앞 지역 대상 상세 탭(예: 부산 「만덕동 산100」)은 닫고, 한눈 요약 등을 보고 있었어도 지도 탭으로(대응절차만 그대로) — 지도는 새 기준지역 경계로 맞춰진다(MapView baseCode)
   const baseSeenK = useRef(baseK);
   useEffect(() => {
     if (baseSeenK.current === baseK) return;
     baseSeenK.current = baseK;
     setTabs((p) => p.filter((t) => t.kind !== "detail"));
-    setActive((a) => (a.startsWith("d:") ? "map" : a));
+    setActive((a) => (a === "sop" ? a : "map"));
   }, [baseK]);
   /** 보낼 질의에 집어 둔 것을 얹는다 — 접수 본문 objectRefs(서버 lib/server/jobInput objectRefsOf 가 reference·키워드로) */
   const withRefs = useCallback(
