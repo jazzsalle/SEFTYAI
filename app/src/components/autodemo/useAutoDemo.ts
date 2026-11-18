@@ -361,7 +361,8 @@ export function useAutoDemo(actions: AutoDemoActions) {
           }
           // 누를 요소가 없었으면 그 결과(지도 말풍선 등)도 오지 않는다 — 4초를 헛되이 기다리지 않는다(사용자 지적 2026-11-04).
           if (st.waitFor && !missing) await until(st.waitFor, 4000, run)
-          if (st.focus) setFocus(st.focus)
+          // 못 찾아 대신 걸음(orElse)이 제 강조를 세웠으면 그대로 둔다 — 못 찾은 원래 대상으로 덮으면 박스가 사라진다(11/19 인제 점검 기록)
+          if (st.focus && !(missing && st.orElse?.some((o) => o.focus))) setFocus(st.focus)
           await say(st.say, voiceRef.current, run)
           if (st.wait) await wait(st.wait, run)
         } finally {

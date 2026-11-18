@@ -134,7 +134,7 @@ describe("대전 한눈 요약 질의(2026-11-19 대전시청 시연)", () => {
 describe("자동 시연 시나리오(2026-11-18 사용자 지시 — 부산+인제 · 부산+대전)", () => {
   it("두 시나리오만, 장면 이름이 모두 대본에 있다", async () => {
     const { DemoScenarios, scenarioScenes } = await import("@/components/autodemo/autoScript");
-    expect(DemoScenarios.map((s) => s.id)).toEqual(["busan-inje", "busan-daejeon"]);
+    expect(DemoScenarios.map((s) => s.id)).toEqual(["busan-inje", "busan-daejeon", "busan-inje-daejeon"]);
     for (const s of DemoScenarios) expect(() => scenarioScenes(s.id)).not.toThrow();
   });
 
@@ -173,6 +173,11 @@ describe("자동 시연 시나리오(2026-11-18 사용자 지시 — 부산+인�
 
   it("시나리오를 주면 scenesFrom 이 그 장면만 — 주지 않으면 대본 전체", () => {
     expect(scenesFrom([], "busan-daejeon")).toHaveLength(11);
+    // 부산 + 인제 + 대전(2026-11-19) — 부산 AI 모드 6 · 인제 2 · 대전 4 · 마무리
+    const three = scenesFrom([], "busan-inje-daejeon").map((x) => x.scene);
+    expect(three).toHaveLength(13);
+    expect(three.map((x) => x.region)).toEqual(["busan", "busan", "busan", "busan", "busan", "busan", "inje", "inje", "daejeon", "daejeon", "daejeon", "daejeon", "busan"]);
+    expect(three[12].intro.length).toBeLessThan(150);
     expect(scenesFrom([])).toHaveLength(AutoScript.length);
   });
 });

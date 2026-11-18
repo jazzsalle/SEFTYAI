@@ -198,12 +198,15 @@ const MdTable = `${BodyBox} .md-table`
 const MdP = `${BodyBox} p`
 const MdText = `${BodyBox} li, ${BodyBox} p`
 /** 대상 상세(T3Q-15)의 속성 묶음과 칸(개발서버 .evd-record · .di-pill) */
-const DetailRecord = `${UI.detailPane} .evd-record, ${UI.detailPane} .ev-sec .kv`
+// 「점검·정비 기록」 묶음 — 기본정보 칸(.kv)과 한 선택자로 묶으면 문서 순서상 기본정보가 먼저 잡혀 자막(점검 기록)과 다른 곳을 비췄다(2026-11-19 인제 점검).
+const DetailRecord = `${UI.detailPane} .evd-record`
+/** 점검 기록이 없는 대상의 기본정보 칸 — DetailRecord 를 못 찾을 때만 */
+const DetailKv = `${UI.detailPane} .ev-sec .kv`
 const DetailField = `${UI.detailPane} .di-pill, ${UI.detailPane} .kv > *`
 /** 유사사례 카드·첫 사례 열기·사건 상세 타임라인(개발서버 .sim-card · .sim-open · .evp-tl) */
 const SimCard = `${LastTurn} .sim-card`
 const SimOpen = `${LastTurn} .sim-open`
-const EventTimeline = ".ev-tl-list"
+const EventTimeline = ".evp-tl" // 개발서버 사건 상세 타임라인(EventDetail — 11/19 화면 맞춤 뒤 이름)
 /** AI 모드 창 브리핑 줄·[브리핑 시작](개발서버 .aim-brief · .aim-brief-go) */
 const AimBrief = UI.aimBrief
 const AimBriefGo = `${UI.aimBrief} .btn`
@@ -394,6 +397,7 @@ export const AutoScript: AutoScene[] = [
       {
         scroll: { sel: DetailRecord },
         focus: [{ sel: DetailRecord }],
+        orElse: [{ scroll: { sel: DetailKv }, focus: [{ sel: DetailKv }] }],
         say: "아래로 내려 보면 위험등급과 함께 최근 안전점검일과 점검 결과까지 이어집니다.",
       },
       {
@@ -558,8 +562,9 @@ export const AutoScript: AutoScene[] = [
       },
       { click: { sel: `${LastTurn} .sm-expand` }, focus: ["panel"], say: "패널에서 크게 보기로 정리된 내용을 확인하고," },
       {
-        scroll: { sel: MdText, text: "동구청" },
-        focus: [{ sel: MdText, text: "동구청" }],
+        // 받아 둔 답(CQ-BS-02)의 「지하차도 관련 주요 피해 및 복구 이력」 표 — 첫 줄이 2020-07-23 초량제1 차량 고립
+        scroll: { sel: `${MdTable} tr`, text: "차량 고립" },
+        focus: [{ sel: `${MdTable} tr`, text: "차량 고립" }],
         say: "응답으로 돌아와, 당시 발생한 주요 피해와 통제 내역을 자세히 확인합니다.",
         wait: 600,
       },
@@ -665,10 +670,9 @@ export const AutoScript: AutoScene[] = [
       },
       { open: "map", focus: ["panel"], say: "지도를 보면 계곡과 도로를 따라 급경사지가 이어지고, 그 가까이에 캠핑장이 있습니다." },
       {
-        // 캠핑장은 지역 단위로 가리킨 대상이라 객체 상세가 없다 — 답에서 눌러 지도를 그 자리로 옮기고, 답 속 내용을 짚는다.
-        click: { sel: Entity, text: "캠핑장" },
+        // 캠핑장은 행정구역(진동리)을 가리킨 이름이라 누를 수 없다(개발서버 규칙 — 11/19 점검) — 누르지 않고 답 속 내용을 짚는다.
         focus: ["panel", { sel: MdP, text: "캠핑장" }],
-        say: "답에서 캠핑장을 누르면 지도가 그 자리로 옮겨 갑니다. 캠핑장 반경 1킬로미터 안에 급경사지 4곳과 토석류 산사태취약지역 2곳이 붙어 있습니다.",
+        say: "캠핑장 반경 1킬로미터 안에 급경사지 4곳과 토석류 산사태취약지역 2곳이 붙어 있습니다.",
       },
       {
         scroll: { sel: `${MdTable} tr`, text: "진동6지구" },
@@ -685,6 +689,7 @@ export const AutoScript: AutoScene[] = [
       {
         scroll: { sel: DetailRecord },
         focus: [{ sel: DetailRecord }],
+        orElse: [{ scroll: { sel: DetailKv }, focus: [{ sel: DetailKv }] }],
         say: "아래로 내려 점검 기록을 봅니다. 사람이 머무는 곳 가까이에 위험 사면이 있다면, 특보 때 먼저 살펴야 할 곳입니다.",
       },
       { open: "map", focus: ["panel"], wait: 600 },
@@ -827,8 +832,9 @@ export interface DemoPin {
  *  · 부산 + 인제 = 부산 하루 전체 + 인제
  *  · 부산 + 대전 = 부산은 AI 모드 흐름(예비특보 → 주의보 → 브리핑) + 점검 우선순위 + 대응절차, 지역 정보 조회는 대전 4장면 전부
  *    (대전과 겹치는 부산 위험지역·대응수위·과거 사례·강우 조건 장면은 뺀다 — 7~8분)
+ *  · 부산 + 인제 + 대전(사용자 지시 2026-11-19) = 부산은 「부산 + 대전」과 같은 AI 모드 흐름, 이어서 인제 계곡 → 대전 4장면, 마무리는 짧게
  */
-export type DemoScenarioId = "busan-inje" | "busan-daejeon"
+export type DemoScenarioId = "busan-inje" | "busan-daejeon" | "busan-inje-daejeon"
 export interface DemoScenario {
   id: DemoScenarioId
   name: string
@@ -851,6 +857,15 @@ const BusanDay = [
   "15:20 · 강우 조건으로 묻고 대응절차까지",
   "15:50 · 온천천 대응수위",
   "15:55 · 과거 침수 사례와 당시 대응",
+]
+/** 부산 + 대전 · 부산 + 인제 + 대전의 부산 부분 — AI 모드 흐름(예비특보 → 주의보 → 브리핑) + 점검 우선순위 + 대응절차 */
+const BusanAim = [
+  "프롤로그 · AI 모드 소개",
+  "11:00 · 호우 예비특보, AI 모드 시작",
+  "15:00 · 호우주의보, AI 모드 자동 감지",
+  "15:05 · 현재 상황 브리핑",
+  "15:10 · 점검 우선순위",
+  "15:15 · 대응절차 확인",
 ]
 const Daejeon = [
   "전환 · 대전광역시",
@@ -881,16 +896,7 @@ export const DemoScenarios: DemoScenario[] = [
     name: "부산 + 대전",
     desc: "부산에서 AI 모드 특보 감지·브리핑 → 점검 우선순위 → 대응절차, 이어서 대전 과거 침수사례 → 위험·취약정보 → 하천계획·시설",
     minutes: "약 7~9분",
-    scenes: [
-      "프롤로그 · AI 모드 소개",
-      "11:00 · 호우 예비특보, AI 모드 시작",
-      "15:00 · 호우주의보, AI 모드 자동 감지",
-      "15:05 · 현재 상황 브리핑",
-      "15:10 · 점검 우선순위",
-      "15:15 · 대응절차 확인",
-      ...Daejeon,
-      "마무리",
-    ],
+    scenes: [...BusanAim, ...Daejeon, "마무리"],
     text: {
       마무리: {
         intro:
@@ -902,6 +908,36 @@ export const DemoScenarios: DemoScenario[] = [
     },
   },
 ]
+
+// 사용자 지시 2026-11-19 — 부산 + 인제 + 대전. 연결 안내는 앞 지역에서 본 것에 맞춰 바꾸고, 마무리는 짧게.
+DemoScenarios.push({
+  id: "busan-inje-daejeon",
+  name: "부산 + 인제 + 대전",
+  desc: "부산에서 AI 모드 특보 감지·브리핑 → 점검 우선순위 → 대응절차, 이어서 인제 계곡 숙박·야영장, 대전 과거 침수흔적 → 하천 주변 위험지역",
+  minutes: "약 10~12분",
+  scenes: [...BusanAim, "전환 · 인제군", "인제 · 진동리 계곡 숙박·야영장 주변", ...Daejeon, "마무리"],
+  text: {
+    "전환 · 인제군": {
+      intro:
+        "이번에는 산간 지역인 인제군을 살펴보겠습니다. " +
+        "부산에서 특보 변화와 점검 우선순위를 확인했다면, 인제에서는 계곡 주변 산사태와 급경사지 붕괴 위험에 주의를 기울여야 합니다.",
+    },
+    "인제 · 진동리 계곡 숙박·야영장 주변": {
+      outro: "사람이 머무는 곳 가까이의 위험 사면과 점검 이력을 미리 알면, 특보 때 먼저 살필 곳이 분명해집니다.",
+    },
+    "전환 · 대전광역시": {
+      intro:
+        "마지막으로 대전광역시를 살펴보겠습니다. " +
+        "갑천과 유등천, 대전천이 도심을 가로지르는 대전에서는 하천변 저지대 침수가 중요합니다. " +
+        "과거 침수흔적에서 출발해 그때의 대응과 하천 주변 위험지역까지 확인하겠습니다.",
+    },
+    마무리: {
+      intro:
+        "부산과 인제, 대전에서 특보 변화부터 위험지역, 과거 피해와 대응 기록까지 살펴봤습니다. " +
+        "지역이 달라도 같은 방식으로 위험정보를 확인하고 대응에 활용할 수 있습니다. 이상으로 시연을 마치겠습니다.",
+    },
+  },
+})
 
 export const scenarioById = (id: string | null | undefined): DemoScenario | undefined => DemoScenarios.find((s) => s.id === id)
 
