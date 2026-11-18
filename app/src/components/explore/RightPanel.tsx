@@ -1,6 +1,6 @@
 "use client";
 import dynamic from "next/dynamic";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type OlMap from "ol/Map";
 import { useSession } from "@/lib/session";
 import { api } from "@/lib/api";
@@ -53,9 +53,20 @@ export default function RightPanel(p: Props) {
   const tab = p.tabs.find((t) => t.key === p.active) ?? p.tabs[0];
   // 요약 이름을 누르면 상세 탭을 만들고 지도에서 그 자리로(개발 서버 openEntity)
   const onEntity = (r: RefLike) => p.summary && x.openEntity(p.summary.jobId, r);
+  // 고른 탭이 탭 목록 밖으로 밀려 있으면 보이게 민다 — 상세 탭이 많아진 뒤 [지도]·[한눈 요약]으로 돌아와도 그 탭이 보이게
+  const list = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const l = list.current;
+    const on = l?.querySelector<HTMLElement>(".rtab.on");
+    if (!l || !on) return;
+    const a = on.getBoundingClientRect().left - l.getBoundingClientRect().left + l.scrollLeft;
+    if (a < l.scrollLeft) l.scrollLeft = a;
+    else if (a + on.offsetWidth > l.scrollLeft + l.clientWidth) l.scrollLeft = a + on.offsetWidth - l.clientWidth;
+  }, [tab?.key, p.tabs.length]);
   return (
     <aside className="rpanel" aria-label="우측 패널">
-      <div className="rtabs" role="tablist">
+      <div className="rtabs">
+       <div className="rtabs-list" role="tablist" ref={list}>
         {p.tabs.map((t) => (
           <div key={t.key} className={`rtab ${t.key === tab?.key ? "on" : ""} ${t.pinned ? "pinned" : ""}`} role="tab" aria-selected={t.key === tab?.key}>
             <button className="rtab-b" onClick={() => p.setActive(t.key)}>
@@ -65,7 +76,7 @@ export default function RightPanel(p: Props) {
             {!t.pinned && t.kind !== "map" && t.kind !== "summary" && <button className="x" onClick={() => p.close(t.key)} aria-label={`${t.title} 닫기`}><IcX size={13} /></button>}
           </div>
         ))}
-        <span className="sp" />
+       </div>
         <button className="lnk s" style={{ alignSelf: "center", marginRight: 8 }} onClick={p.closeAll} title="패널 접기">패널 접기 <IcExpand size={14} /></button>
       </div>
       {/* 지도는 탭을 바꿔도 상태 유지 */}
@@ -73,7 +84,7 @@ export default function RightPanel(p: Props) {
         <MapPanel {...p} />
       </div>
       {tab && tab.kind !== "map" && (
-        <div className="rbody" key={tab.key}>
+        <div className={`rbody ${tab.kind === "summary" ? "summary" : ""}`} key={tab.key}>
           {tab.kind === "summary" && <PosterSummary source={p.summary ?? null} onEntity={onEntity} />}
           {tab.kind === "sop" && <SopPane focus={p.sopFocus} />}
           {tab.kind === "doc" && tab.citation && <DocPane c={tab.citation} />}
