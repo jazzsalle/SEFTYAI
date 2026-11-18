@@ -27,10 +27,10 @@ describe("자동 시연 대본", () => {
       "전환 · 인제군",
       "인제 · 진동리 계곡 숙박·야영장 주변",
       "전환 · 대전광역시",
-      "대전 · 정림동 과거 침수사례",
+      "대전 · 2024년 7월 집중호우 침수흔적",
       "대전 · 2024년 7월 10일 호우 대피·통제",
       "대전 · 3대 하천 산책로·하상도로 주변",
-      "대전 · 유등천 하천기본계획과 시설",
+      "대전 · 연도별 침수 이력",
       "마무리",
     ]);
   });
@@ -39,7 +39,7 @@ describe("자동 시연 대본", () => {
     const { answers, aiMode } = scriptPinIds();
     const day = new Set(DAY_ITEMS.map((d) => d.id));
     expect(answers.filter((id) => !day.has(id))).toEqual([]);
-    expect(answers.sort()).toEqual(["CQ-BS-01", "CQ-BS-02", "IG-BS-01", "IG-BS-02", "IG-BS-08", "IG-BS-11", "IG-DJ-01", "IG-DJ-03", "IG-DJ-04", "IG-DJ-06", "IG-IJ-01", "SIM-SH-1-3"]);
+    expect(answers.sort()).toEqual(["CQ-BS-01", "CQ-BS-02", "IG-BS-01", "IG-BS-02", "IG-BS-08", "IG-BS-11", "IG-DJ-01", "IG-DJ-03", "IG-DJ-07", "IG-DJ-08", "IG-IJ-01", "SIM-SH-1-3"]);
     expect(aiMode.sort()).toEqual(AIM_DEMO.map((a) => a.id).sort());
   });
 
@@ -128,7 +128,7 @@ describe("대전 한눈 요약 질의(2026-11-19 대전시청 시연)", () => {
     expect(baseDayRegion({ sido: { code: "30", name: "대전광역시" } })).toBe("daejeon");
     expect(baseDayRegion({ sido: { code: "30", name: "대전광역시" }, sigungu: { code: "30170", name: "서구" } })).toBe("daejeon");
     expect(baseDayRegion({ sido: { code: "26", name: "부산광역시" } })).toBe("busan");
-    expect(dayItemsFor("daejeon").map((d) => d.id)).toEqual(["IG-DJ-01", "IG-DJ-02", "IG-DJ-03", "IG-DJ-04", "IG-DJ-05", "IG-DJ-06"]);
+    expect(dayItemsFor("daejeon").map((d) => d.id)).toEqual(["IG-DJ-01", "IG-DJ-02", "IG-DJ-03", "IG-DJ-07", "IG-DJ-05", "IG-DJ-08"]);
   });
 });
 
@@ -153,7 +153,7 @@ describe("자동 시연 시나리오(2026-11-18 사용자 지시 — 부산+인�
     const { scenarioScenes } = await import("@/components/autodemo/autoScript");
     const sc = scenarioScenes("busan-daejeon");
     const pins = sc.map((s) => s.pinId).filter(Boolean);
-    expect(pins).toEqual(["IG-BS-11", "IG-DJ-04", "IG-DJ-03", "IG-DJ-01", "IG-DJ-06"]);
+    expect(pins).toEqual(["IG-BS-11", "IG-DJ-07", "IG-DJ-03", "IG-DJ-01", "IG-DJ-08"]);
     expect(sc.map((s) => s.label)).toEqual([
       "프롤로그 · AI 모드 소개",
       "11:00 · 호우 예비특보, AI 모드 시작",
@@ -162,10 +162,10 @@ describe("자동 시연 시나리오(2026-11-18 사용자 지시 — 부산+인�
       "15:10 · 점검 우선순위",
       "15:15 · 대응절차 확인",
       "전환 · 대전광역시",
-      "대전 · 정림동 과거 침수사례",
+      "대전 · 2024년 7월 집중호우 침수흔적",
       "대전 · 2024년 7월 10일 호우 대피·통제",
       "대전 · 3대 하천 산책로·하상도로 주변",
-      "대전 · 유등천 하천기본계획과 시설",
+      "대전 · 연도별 침수 이력",
       "마무리",
     ]);
     expect(sc.at(-1)?.intro).toContain("부산과 대전처럼");
