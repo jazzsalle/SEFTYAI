@@ -78,12 +78,26 @@ export function speakOne(text: string, voice: SpeechSynthesisVoice | null, rate 
     return new Promise((r) => window.setTimeout(r, Math.min(8000, 1200 + text.length * 120)))
   }
   return new Promise((resolve) => {
+    // Chrome 은 가끔 읽기를 마치고도 onend 를 내지 않는다(speaking 이 true 로 남음) — 그러면 시연이 그 자리에서 멈춘다(2026-11-19 리허설).
+    // 글 길이로 잡은 넉넉한 시간이 지나면 끊고 다음으로 간다.
+    let settled = false
+    const finish = () => {
+      if (settled) return
+      settled = true
+      window.clearTimeout(guard)
+      resolve()
+    }
+    const guard = window.setTimeout(() => {
+      if (settled) return
+      synth.cancel()
+      finish()
+    }, 3000 + (text.length * 220) / Math.max(0.5, rate))
     const u = new SpeechSynthesisUtterance(text)
     u.voice = voice
     u.lang = voice.lang
     u.rate = rate
-    u.onend = () => resolve()
-    u.onerror = () => resolve()
+    u.onend = finish
+    u.onerror = finish
     synth.speak(u)
   })
 }
