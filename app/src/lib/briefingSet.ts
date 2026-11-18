@@ -23,7 +23,8 @@ export const BRIEFING_CATALOG = [
   { itemSn: 1, id: "risk-area", label: "위험·취약지역", question: "우리 지역에서 먼저 점검해야 할 위험·취약지역은 어디인가요?", sortNo: 1, isDefault: true, isActive: true },
   { itemSn: 2, id: "past-damage", label: "과거 피해 이력", question: "위험·취약지역 중 과거 재난 때 실제로 피해가 났던 곳과 피해 내용은?", sortNo: 2, isDefault: true, isActive: true },
   { itemSn: 3, id: "evacuation", label: "통제·대피 대상", question: "통제하거나 주민 대피가 필요할 수 있는 도로·지하차도·인명피해 우려지역은?", sortNo: 3, isDefault: true, isActive: true },
-  { itemSn: 4, id: "manual", label: "행동매뉴얼", question: "현장조치 행동매뉴얼상 지금 단계에서 해야 할 일은?", sortNo: 4, isDefault: true, isActive: true },
+  // 4번 = 개발서버 기본 「홍수취약지구」(2026-11-19 사용자 지시 — 개발서버와 같게. 행동매뉴얼은 T3Q API 미완성이라 기본에서 뺌)
+  { itemSn: 4, id: "flood-zone", label: "홍수취약지구", question: "우리 지역 하천의 홍수취약지구와 특보지점, 대응수위를 알려줘", sortNo: 4, isDefault: true, isActive: true },
   { itemSn: 5, id: "flood-history", label: "침수 이력", question: "기준지역의 최근 침수 이력을 알려줘", sortNo: 5, isDefault: false, isActive: false },
   { itemSn: 6, id: "steep-slope", label: "급경사지 위험", question: "우리 지역의 급경사지 붕괴위험지역은?", sortNo: 6, isDefault: false, isActive: false },
   { itemSn: 7, id: "response-case", label: "대응조치 사례", question: "2020년 7월 23일 집중호우 때 어떤 대응조치를 했나요?", sortNo: 7, isDefault: false, isActive: false },

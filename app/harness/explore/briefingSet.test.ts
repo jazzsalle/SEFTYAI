@@ -7,8 +7,8 @@ import { LIBRARY, libraryFor } from "@/lib/library";
 describe("브리핑 세트 — 개발서버와 같게", () => {
   it("기본 항목 = 사용 중(is_active) 4개, sort_no 차례, 기본(is_default)만 체크", () => {
     const d = briefingDefaults();
-    expect(d.map((x) => x.id)).toEqual(["risk-area", "past-damage", "evacuation", "manual"]);
-    expect(d.map((x) => x.label)).toEqual(["위험·취약지역", "과거 피해 이력", "통제·대피 대상", "행동매뉴얼"]);
+    expect(d.map((x) => x.id)).toEqual(["risk-area", "past-damage", "evacuation", "flood-zone"]);
+    expect(d.map((x) => x.label)).toEqual(["위험·취약지역", "과거 피해 이력", "통제·대피 대상", "홍수취약지구"]);
     expect(d.every((x) => x.checked && x.isDefault)).toBe(true);
     expect(BRIEFING_RULES).toMatchObject({ minChecked: 4, maxItems: 8, maxLabelLength: 50, maxQuestionLength: 500 });
   });
@@ -25,8 +25,8 @@ describe("브리핑 세트 — 개발서버와 같게", () => {
   });
 
   it("저장해 둔 값 → 이름·질의문이 빈 자리는 버리고 (기본)을 매김, 남는 것이 없으면 null", () => {
-    expect(briefingFromStored([{ id: "manual", label: "행동매뉴얼", question: "q", checked: true }, { id: "x", label: "", question: "q" }])).toEqual([
-      { id: "manual", label: "행동매뉴얼", question: "q", checked: true, isDefault: true },
+    expect(briefingFromStored([{ id: "flood-zone", label: "홍수취약지구", question: "q", checked: true }, { id: "x", label: "", question: "q" }])).toEqual([
+      { id: "flood-zone", label: "홍수취약지구", question: "q", checked: true, isDefault: true },
     ]);
     expect(briefingFromStored([])).toBeNull();
     expect(briefingFromStored({ brief: 1 })).toBeNull();
