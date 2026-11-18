@@ -20,6 +20,7 @@ describe("자동 시연 대본", () => {
       "15:00 · 호우주의보, AI 모드 자동 감지",
       "15:05 · 현재 상황 브리핑",
       "15:10 · 점검 우선순위",
+      "15:15 · 대응절차 확인",
       "15:20 · 강우 조건으로 묻고 대응절차까지",
       "15:50 · 온천천 대응수위",
       "15:55 · 과거 침수 사례와 당시 대응",
@@ -148,16 +149,18 @@ describe("자동 시연 시나리오(2026-11-18 사용자 지시 — 부산+인�
     expect(sc.at(-1)?.intro).not.toContain("대전");
   });
 
-  it("부산+대전 = 대전 질의 전부, 대전과 겹치는 부산 장면·점검 우선순위·인제는 뺀다", async () => {
+  it("부산+대전 = 대전 질의 전부 + 부산 점검 우선순위·대응절차, 대전과 겹치는 부산 장면·인제는 뺀다", async () => {
     const { scenarioScenes } = await import("@/components/autodemo/autoScript");
     const sc = scenarioScenes("busan-daejeon");
     const pins = sc.map((s) => s.pinId).filter(Boolean);
-    expect(pins).toEqual(["IG-DJ-04", "IG-DJ-03", "IG-DJ-01", "IG-DJ-06"]);
+    expect(pins).toEqual(["IG-BS-11", "IG-DJ-04", "IG-DJ-03", "IG-DJ-01", "IG-DJ-06"]);
     expect(sc.map((s) => s.label)).toEqual([
       "프롤로그 · AI 모드 소개",
       "11:00 · 호우 예비특보, AI 모드 시작",
       "15:00 · 호우주의보, AI 모드 자동 감지",
       "15:05 · 현재 상황 브리핑",
+      "15:10 · 점검 우선순위",
+      "15:15 · 대응절차 확인",
       "전환 · 대전광역시",
       "대전 · 정림동 과거 침수사례",
       "대전 · 2024년 7월 10일 호우 대피·통제",
@@ -171,7 +174,7 @@ describe("자동 시연 시나리오(2026-11-18 사용자 지시 — 부산+인�
   });
 
   it("시나리오를 주면 scenesFrom 이 그 장면만 — 주지 않으면 대본 전체", () => {
-    expect(scenesFrom([], "busan-daejeon")).toHaveLength(10);
+    expect(scenesFrom([], "busan-daejeon")).toHaveLength(12);
     expect(scenesFrom([])).toHaveLength(AutoScript.length);
   });
 });

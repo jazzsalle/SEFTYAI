@@ -215,6 +215,51 @@ const CondOpen = ".composer .cmp-cond .lnk"
 const CondApply = ".cond-modal .modal-f .btn.primary"
 const CondReset = ".cond-modal .modal-f .btn"
 
+/**
+ * 대응절차 걸음(부산시 현장조치 행동매뉴얼) — 15:20 끝과 부산 + 대전의 「15:15 · 대응절차 확인」이 함께 쓴다.
+ * 대응절차 탭은 로그인 계정 지역의 매뉴얼이다(시연 계정 busan2 = 부산).
+ */
+function sopSteps(first: string): DemoStep[] {
+  return [
+    {
+      click: { sel: Tab, text: "대응절차" },
+      waitFor: ".sp-steps",
+      focus: ["panel"],
+      say: first,
+    },
+    { focus: [{ sel: ".sp-steps" }], say: "부산시 현장조치 행동매뉴얼이 대응단계별로 정리되어 있어, 업무 화면에서 바로 열어 볼 수 있습니다." },
+    { click: { sel: ".sp-steps button", text: "2단계" }, wait: 400 },
+    {
+      click: { sel: ".sp-act input[type=checkbox]" },
+      orElse: [
+        { click: { sel: ".sp-steps button", text: "1단계" }, wait: 400 },
+        { click: { sel: ".sp-act input[type=checkbox]" } },
+      ],
+      focus: [{ sel: ".sp-act.done" }, { sel: ".sp-tools" }],
+      say: "지금 단계에서 맡은 조치를 확인하고, 끝낸 조치는 바로 체크해 진행 상황을 남깁니다.",
+    },
+    {
+      click: { sel: ".sp-act.done .tg" },
+      focus: [{ sel: ".sp-act.done" }],
+      say: "조치마다 연결된 행동카드에서 누가 주관하고, 어떤 순서로 무엇을 해야 하는지 세부 행동까지 확인합니다.",
+      wait: 600,
+    },
+    // 체크는 기관 단위로 서버에 남는다 — 시연이 남긴 체크는 바로 거둔다.
+    { silentClick: { sel: ".sp-act.done input[type=checkbox]" } },
+    { click: { sel: ".sp-steps button", text: "3단계" }, wait: 300 },
+    { silentClick: { sel: ".modeSw button", text: "전체 부서" }, wait: 300 },
+    {
+      scroll: { sel: ".sp-act", text: "지하차도 통제" },
+      focus: [{ sel: ".sp-act", text: "지하차도 통제" }],
+      say: "단계가 오르면 지하차도 통제 등 시설물 안전조치로 이어진다는 것도 미리 확인해 둡니다.",
+    },
+    { silentClick: { sel: ".modeSw button", text: "내 부서" } },
+    { focus: ["panel"], say: "매뉴얼 책자를 따로 찾지 않아도 현장조치 절차를 업무 화면에서 늘 확인할 수 있습니다." },
+    // 대응절차는 다시 누르면 접힌다 — 뒷장면(급경사지 등)에 떠 있지 않게(사용자 지시 2026-11-04).
+    { click: { sel: Tab, text: "지도" }, wait: 400 },
+  ]
+}
+
 export const AutoScript: AutoScene[] = [
   {
     label: "프롤로그 · AI 모드 소개",
@@ -424,6 +469,15 @@ export const AutoScript: AutoScene[] = [
     ],
   },
 
+  // 부산 + 대전에서만 — 15:20(강우 조건 질의)을 빼는 대신 대응절차만 따로 본다(사용자 지시 2026-11-18)
+  {
+    label: "15:15 · 대응절차 확인",
+    region: "busan",
+    intro: "점검할 대상을 추렸다면, 이제 단계별로 어떤 조치를 준비해야 하는지도 확인해야 합니다.",
+    steps: sopSteps("비가 이어질 때 실제로 어떤 조치를 준비해야 하는지 대응절차를 확인합니다."),
+    outro: "점검 우선순위와 해야 할 조치까지 같은 화면에서 확인했습니다. 실제 조치 여부는 현장 상황과 공식 기준에 따라 담당자가 판단합니다.",
+  },
+
   // 조건 입력·질문 입력까지는 실제로 보이고, 답은 같은 조건으로 받아 둔 시연 답(CQ-BS-01·02)을 놓는다
   // (사용자 지시 2026-11-04 — 실시간 답은 1~2분이라 보고 자리에서 기다릴 수 없다).
   {
@@ -513,42 +567,7 @@ export const AutoScript: AutoScene[] = [
       { silentClick: { sel: CondReset, text: "기본 조건으로" }, wait: 200 },
       { silentClick: { sel: CondApply, text: "적용" }, wait: 200 },
       // 이어서 대응절차(전 15:30 장면의 걸음 그대로).
-      {
-        click: { sel: Tab, text: "대응절차" },
-        waitFor: ".sp-steps",
-        focus: ["panel"],
-        say: "과거 피해가 있었던 만큼, 비가 이어질 때 실제로 어떤 조치를 준비해야 하는지 대응절차를 확인합니다.",
-      },
-      { focus: [{ sel: ".sp-steps" }], say: "부산시 현장조치 행동매뉴얼이 대응단계별로 정리되어 있어, 업무 화면에서 바로 열어 볼 수 있습니다." },
-      { click: { sel: ".sp-steps button", text: "2단계" }, wait: 400 },
-      {
-        click: { sel: ".sp-act input[type=checkbox]" },
-        orElse: [
-          { click: { sel: ".sp-steps button", text: "1단계" }, wait: 400 },
-          { click: { sel: ".sp-act input[type=checkbox]" } },
-        ],
-        focus: [{ sel: ".sp-act.done" }, { sel: ".sp-tools" }],
-        say: "지금 단계에서 맡은 조치를 확인하고, 끝낸 조치는 바로 체크해 진행 상황을 남깁니다.",
-      },
-      {
-        click: { sel: ".sp-act.done .tg" },
-        focus: [{ sel: ".sp-act.done" }],
-        say: "조치마다 연결된 행동카드에서 누가 주관하고, 어떤 순서로 무엇을 해야 하는지 세부 행동까지 확인합니다.",
-        wait: 600,
-      },
-      // 체크는 기관 단위로 서버에 남는다 — 시연이 남긴 체크는 바로 거둔다.
-      { silentClick: { sel: ".sp-act.done input[type=checkbox]" } },
-      { click: { sel: ".sp-steps button", text: "3단계" }, wait: 300 },
-      { silentClick: { sel: ".modeSw button", text: "전체 부서" }, wait: 300 },
-      {
-        scroll: { sel: ".sp-act", text: "지하차도 통제" },
-        focus: [{ sel: ".sp-act", text: "지하차도 통제" }],
-        say: "단계가 오르면 지하차도 통제 등 시설물 안전조치로 이어진다는 것도 미리 확인해 둡니다.",
-      },
-      { silentClick: { sel: ".modeSw button", text: "내 부서" } },
-      { focus: ["panel"], say: "매뉴얼 책자를 따로 찾지 않아도 현장조치 절차를 업무 화면에서 늘 확인할 수 있습니다." },
-      // 대응절차는 다시 누르면 접힌다 — 뒷장면(급경사지 등)에 떠 있지 않게(사용자 지시 2026-11-04).
-      { click: { sel: Tab, text: "지도" }, wait: 400 },
+      ...sopSteps("과거 피해가 있었던 만큼, 비가 이어질 때 실제로 어떤 조치를 준비해야 하는지 대응절차를 확인합니다."),
     ],
     outro: "조건을 바꿔 묻고 고른 대상을 이어 물은 뒤, 해야 할 조치까지 같은 화면에서 확인했습니다. 실제 조치 여부는 현장 상황과 공식 기준에 따라 담당자가 판단합니다.",
   },
@@ -811,8 +830,8 @@ export interface DemoPin {
  * 시연 시나리오(사용자 지시 2026-11-18) — [자동 시연]을 누르면 고른다. 장면은 AutoScript 를 이름(label)으로 골라 쓰고,
  * 시나리오에 맞지 않는 안내만 바꿔 읽는다.
  *  · 부산 + 인제 = 부산 하루 전체 + 인제
- *  · 부산 + 대전 = 부산은 AI 모드 흐름(예비특보 → 주의보 → 브리핑)만, 지역 정보 조회는 대전 4장면 전부(대전과 겹치는
- *    부산 위험지역·대응수위·과거 사례·강우 조건 장면과 점검 우선순위는 뺀다 — 7~8분)
+ *  · 부산 + 대전 = 부산은 AI 모드 흐름(예비특보 → 주의보 → 브리핑) + 점검 우선순위 + 대응절차, 지역 정보 조회는 대전 4장면 전부
+ *    (대전과 겹치는 부산 위험지역·대응수위·과거 사례·강우 조건 장면은 뺀다 — 7~8분)
  */
 export type DemoScenarioId = "busan-inje" | "busan-daejeon"
 export interface DemoScenario {
@@ -866,23 +885,22 @@ export const DemoScenarios: DemoScenario[] = [
   {
     id: "busan-daejeon",
     name: "부산 + 대전",
-    desc: "부산에서 AI 모드가 특보 변화를 잡아 브리핑하는 흐름 뒤 대전 과거 침수사례 → 위험·취약정보 → 하천계획·시설",
-    minutes: "약 5~7분",
+    desc: "부산에서 AI 모드 특보 감지·브리핑 → 점검 우선순위 → 대응절차, 이어서 대전 과거 침수사례 → 위험·취약정보 → 하천계획·시설",
+    minutes: "약 7~9분",
     scenes: [
       "프롤로그 · AI 모드 소개",
       "11:00 · 호우 예비특보, AI 모드 시작",
       "15:00 · 호우주의보, AI 모드 자동 감지",
       "15:05 · 현재 상황 브리핑",
+      "15:10 · 점검 우선순위",
+      "15:15 · 대응절차 확인",
       ...Daejeon,
       "마무리",
     ],
     text: {
-      "15:00 · 호우주의보, AI 모드 자동 감지": {
-        outro: "이제는 사전에 위험요소를 파악하는 것에서 더 나아가, 지금 상황을 한눈에 정리하고 무엇부터 확인할지 판단할 때입니다.",
-      },
       마무리: {
         intro:
-          "지금까지 부산에서는 호우 예비특보가 주의보로 바뀌는 동안 AI 모드가 특보 변화를 알리고 상황을 정리하는 흐름을, " +
+          "지금까지 부산에서는 호우 예비특보가 주의보로 바뀌는 동안 AI 모드가 특보 변화를 알리고, 점검 우선순위와 대응절차까지 확인하는 흐름을, " +
           "대전에서는 과거 침수 사례에서 출발해 지역의 위험·취약정보, 하천계획과 시설정보까지 이어서 살펴봤습니다. " +
           "부산과 대전처럼 지역이 달라도 같은 방식으로 지역의 위험정보를 확인하고 대응에 활용할 수 있습니다. " +
           "이상으로 시연을 마치겠습니다.",
