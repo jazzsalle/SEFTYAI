@@ -373,17 +373,13 @@ export const AutoScript: AutoScene[] = [
         focus: ["panel"],
         say: "가장 많은 구를 누르면 그 구의 대상만 지도에 남습니다.",
       },
-      {
-        click: { sel: MapCluster, largest: true, visible: true },
-        wait: 1000,
-        say: "모여 있는 곳을 눌러 확대하고,",
-      },
+      // 「모여 있는 곳을 눌러 확대」는 뺐다 — 동래구만 남기면 묶음 원이 없는 배율이라 누를 것이 없었다(11/19 녹화 검수)
       {
         // 상세가 있는 급경사지로 정해 고른다 — 「동래구 중심」 같은 근사 위치 점은 상세가 없다(사용자 지적 2026-11-04).
         click: { sel: Pin, text: "동래문화회관", visible: true },
         orElse: [{ click: { sel: Pin, text: "동래한솔", visible: true }, waitFor: UI.mapPopup }],
         waitFor: UI.mapPopup,
-        say: "한곳을 골라",
+        say: "그중 한곳을 골라",
       },
       {
         click: { sel: PopDetail },
@@ -431,7 +427,8 @@ export const AutoScript: AutoScene[] = [
     intro: "주의보가 내려지면 담당자는 지금 상황을 한 번에 정리해 봅니다.",
     steps: [
       // 채팅창의 [브리핑 세트]보다 AI 모드 창의 [브리핑 시작]으로 건다(사용자 지시 2026-11-04).
-      { click: { sel: UI.aiButton, text: "AI" }, waitFor: AimBriefGo, focus: ["aimode"], say: "AI 모드 창을 열어" },
+      // 앞 장면(11:40)에서 연 상세 탭이 브리핑 동안 패널에 남지 않게 지도 탭으로(11/19 녹화 검수)
+      { open: "map", click: { sel: UI.aiButton, text: "AI" }, waitFor: AimBriefGo, focus: ["aimode"], say: "AI 모드 창을 열어" },
       { scroll: { sel: AimBrief }, focus: [{ sel: AimBrief }], say: "현재 상황 브리핑을 시작합니다." },
       {
         click: { sel: AimBriefGo },
