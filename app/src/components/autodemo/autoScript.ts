@@ -867,7 +867,7 @@ export const DemoScenarios: DemoScenario[] = [
     id: "busan-daejeon",
     name: "부산 + 대전",
     desc: "부산에서 AI 모드가 특보 변화를 잡아 브리핑하는 흐름 뒤 대전 과거 침수사례 → 위험·취약정보 → 하천계획·시설",
-    minutes: "약 7~8분",
+    minutes: "약 5~7분",
     scenes: [
       "프롤로그 · AI 모드 소개",
       "11:00 · 호우 예비특보, AI 모드 시작",
