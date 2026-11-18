@@ -1138,10 +1138,10 @@ label.chk input { width: 18px; height: 18px; accent-color: var(--c-primary); }
 .wxbar .wxmore { flex: none; display: inline-flex; align-items: center; gap: 2px; height: 30px; padding: 0 12px; border: 0; border-radius: 4px;
   background: #ecf2fe; color: #0b50d0; font: inherit; font-size: var(--fs-xs); white-space: nowrap; cursor: pointer; }
 .wxbar .wxmore:hover { background: #d8e5fd; }
-/* [대응절차] — 개발서버 .alert-banner-manual(흰 바탕 · 남색 1px 테두리 알약, 켜면 남색 바탕) */
-.wxbar .wxsop { flex: none; display: inline-flex; align-items: center; gap: 4px; height: 28px; padding: 0 12px; border: 1px solid var(--c-navy); border-radius: 999px;
-  background: #fff; color: var(--c-navy); font: inherit; font-size: var(--fs-xs); font-weight: 700; white-space: nowrap; cursor: pointer; }
-.wxbar .wxsop:hover { background: #ecf2fe; }
+/* [대응절차] — 개발서버 최종값(ds-search.css .alert-banner .alert-banner-manual): 테두리 없이 #eef2f7, hover #dde5ef, 켜짐 남색 채움 */
+.wxbar .wxsop { flex: none; display: inline-flex; align-items: center; gap: 4px; height: 28px; padding: 0 12px; border: 0; border-radius: 999px;
+  background: #eef2f7; color: var(--c-navy); font: inherit; font-size: var(--fs-xs); font-weight: 700; white-space: nowrap; cursor: pointer; }
+.wxbar .wxsop:hover { background: #dde5ef; }
 .wxbar .wxsop.on, .wxbar .wxsop.on:hover { background: var(--c-navy); color: #fff; }
 .wxbar .wxsop:focus-visible { outline: 2px solid #256ef4; outline-offset: 2px; }
 
