@@ -347,12 +347,13 @@ export const AutoScript: AutoScene[] = [
         focus: [{ sel: BodyBox }],
         say: "구별 지정 현황표 아래로, 지구마다 이름과 위치가 목록으로 이어집니다.",
       },
-      { click: { sel: Entity, text: "안락2" }, wait: 600 },
+      // 「안락2」는 이름이 가리키는 대상 종류가 달라 누를 수 없는 이름이다(개발서버 규칙 — 11/19 점검) — 누를 수 있는 안락지하차도로
+      { click: { sel: Entity, text: "안락지하차도" }, wait: 600 },
       {
-        click: { sel: Tab, text: "안락2" },
+        click: { sel: Tab, text: "안락지하차도" },
         orElse: [{ click: { sel: RefDetail } }],
         focus: ["panel"],
-        say: "목록에서 지구 이름을 누르면, 그 지구의 지정 사유와 상세정보를 바로 확인할 수 있습니다.",
+        say: "목록에서 안락지하차도처럼 이름을 누르면, 그 시설의 위치와 상세정보를 바로 확인할 수 있습니다.",
       },
       { open: "map", focus: ["panel"], say: "대상이 많을 때는 지도에서 전체 분포를 먼저 봅니다." },
       {
@@ -495,10 +496,20 @@ export const AutoScript: AutoScene[] = [
       {
         click: { sel: CondOpen, text: "조건 변경" },
         waitFor: ".cond-field",
+        // 조건 창 걸음에도 박스를 둔다 — 자막만 바뀌고 박스가 없으면 무엇을 하는지 놓친다(11/19 녹화 검수)
+        focus: [{ sel: ".cond-modal" }],
         say: "재난상황 조건 입력 창을 엽니다.",
       },
-      { fill: { at: { sel: `input[aria-label="3시간 누적 값 (mm)"]` }, value: "70" }, say: "3시간 누적 강우 70밀리미터를 넣고," },
-      { fill: { at: { sel: ".cond-pick", text: "피해·통제" }, value: "지하차도" }, say: "피해·통제 키워드에는 지하차도를 적습니다." },
+      {
+        fill: { at: { sel: `input[aria-label="3시간 누적 값 (mm)"]` }, value: "70" },
+        focus: [{ sel: ".cond-measure", text: "3시간 누적" }],
+        say: "3시간 누적 강우 70밀리미터를 넣고,",
+      },
+      {
+        fill: { at: { sel: ".cond-pick", text: "피해·통제" }, value: "지하차도" },
+        focus: [{ sel: ".cond-pick", text: "피해·통제" }],
+        say: "피해·통제 키워드에는 지하차도를 적습니다.",
+      },
       { click: { sel: CondApply, text: "적용" }, wait: 400 },
       { fill: { at: { sel: UI.questionBox }, value: "재난상황 조건에서 가장 먼저 확인해야 할 우선 위험지역은?" } },
       { look: { sel: UI.askButton, text: "질의" }, play: "CQ-BS-01" },
@@ -531,8 +542,10 @@ export const AutoScript: AutoScene[] = [
       },
       {
         // 15:30 지하차도 질문(IG-BS-07)을 이 답 안으로 합쳤다(사용자 지시 2026-11-04 — 질의 하나에서 액션을 소화).
+        // 표에서 초량제1은 아래쪽(18번째 줄)이고 속성 칸이 비어 있다(받아 둔 답 11/19) — 그 줄까지 굴려 짚고, 자막은 표에 보이는 것만 말한다.
+        scroll: { sel: `${Panel} .sm-table tr`, text: "초량제1" },
         focus: [{ sel: `${Panel} .sm-table tr`, text: "초량제1" }],
-        say: "맨 위의 초량제1지하차도는 U형 구조에 하천과 가깝고, 2020년 7월 인명피해 기록이 연결된 곳입니다.",
+        say: "목록 아래쪽에는 2020년 7월 집중호우 때 인명피해가 났던 초량제1지하차도도 들어 있습니다.",
       },
       { open: "map", silentClick: { sel: `${Panel} .sm-map-toggle`, text: "지도 보기" }, focus: ["panel"] },
       {
@@ -692,7 +705,8 @@ export const AutoScript: AutoScene[] = [
         orElse: [{ scroll: { sel: DetailKv }, focus: [{ sel: DetailKv }] }],
         say: "아래로 내려 점검 기록을 봅니다. 사람이 머무는 곳 가까이에 위험 사면이 있다면, 특보 때 먼저 살펴야 할 곳입니다.",
       },
-      { open: "map", focus: ["panel"], wait: 600 },
+      // 상세를 본 뒤 지도로 돌아가지 않는다 — 가려져 있던 지도가 다시 보이며 그 대상으로 확 당겨져 「튀어」 보였다(사용자 지적 11/19).
+      // 다음 장면이 기준지역을 옮기면 패널은 지도로 돌아가 새 지역 경계로 맞춰진다.
     ],
     outro: "지역마다 재난의 특성은 다르지만, 과거에 축적된 위험정보와 점검 이력을 업무에 활용한다는 점은 같습니다.",
   },
@@ -879,7 +893,7 @@ export const DemoScenarios: DemoScenario[] = [
     id: "busan-inje",
     name: "부산 + 인제",
     desc: "부산 담당자의 하루(예비특보부터 과거 사례까지) 뒤 인제 계곡 숙박·야영장",
-    minutes: "약 13~15분",
+    minutes: "약 12분",
     scenes: [...BusanDay, "전환 · 인제군", "인제 · 진동리 계곡 숙박·야영장 주변", "마무리"],
     text: {
       마무리: {
