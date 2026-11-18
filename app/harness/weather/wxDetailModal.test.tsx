@@ -60,7 +60,7 @@ const open = async (opts: { advs?: Advisory[]; base?: BaseRegion | null; cut?: b
   const setCond = vi.fn(), toast = vi.fn();
   session.s = { weather: weather(opts.advs ?? [HAN, SEA, BUSAN], opts.cut), account: { id: "inje" }, cond: { base: opts.base === undefined ? INJE : opts.base }, wxRef: null, setWxRef: () => {}, aimOn: !!opts.aimOn, setCond, toast, reloadWeather: () => {} };
   render(<WxBar />);
-  await act(async () => fireEvent.click(screen.getByRole("button", { name: "특보 상세" })));
+  await act(async () => fireEvent.click(document.querySelector(".wxbar .wxmore")!));
   const dlg = screen.getByRole("dialog", { name: "기상특보 상세" });
   const sec = (title: RegExp) => [...dlg.querySelectorAll(".wxd-sec")].find((x) => title.test(x.querySelector("h3")!.textContent!)) as HTMLElement;
   return { dlg, sec, setCond, toast };

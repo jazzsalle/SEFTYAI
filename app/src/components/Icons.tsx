@@ -8,6 +8,7 @@ const S = ({ size = 16, className, children }: P & { children: React.ReactNode }
 export const IcSiren = (p: P) => (
   <S {...p}><path d="M7 18v-6a5 5 0 0 1 10 0v6" /><path d="M5 21h14" /><path d="M12 3v2M4.2 7.2l1.4 1.4M19.8 7.2l-1.4 1.4" /></S>
 );
+export const IcBell = (p: P) => (<S {...p}><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z" /><path d="M10 20a2 2 0 0 0 4 0" /></S>);
 export const IcChevR = (p: P) => (<S {...p}><path d="m9 6 6 6-6 6" /></S>);
 export const IcChevL = (p: P) => (<S {...p}><path d="m15 6-6 6 6 6" /></S>);
 export const IcChevD = (p: P) => (<S {...p}><path d="m6 9 6 6 6-6" /></S>);

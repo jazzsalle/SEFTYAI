@@ -97,18 +97,11 @@ describe("특보 줄 — 5초 자동 넘김(개발 서버 AlertBanner, 2026-11-0
     expect(bar.querySelector(".more")).toBeNull();
   });
 
-  it("[모두 보기] — 발효 특보 전체를 받은 구역·이름 그대로(받은 순서)", () => {
+  it("오른쪽 단추 하나 — 여러 건이면 「특보 N건 목록 보기」(개발서버 alert-banner-more — 모두 보기·특보로 질문은 없다)", () => {
     show(null);
-    fireEvent.click(screen.getByRole("button", { name: "모두 보기" }));
-    const list = screen.getByRole("list", { name: "발효 중인 특보" });
-    const rows = list.querySelectorAll("[role=listitem]");
-    expect(rows).toHaveLength(mine(null).length);
-    // 받은 순서 그대로(유엔이가 다시 늘어세우지 않음)
-    expect([...rows].map((r) => r.querySelector(".ar")!.textContent)).toEqual(mine(null).map((a) => a.area));
-    // 해상 구역은 이름에 「(해상)」(개발 서버 WarningCodes.LabelOf)
-    expect([...rows].map((r) => r.querySelector(".lvb")!.textContent)).toEqual(mine(null).map(wxLabel));
-    expect(mine(null).some((a) => wxLabel(a).endsWith("(해상)"))).toBe(true);
-    expect(list.querySelector(".hd")!.textContent).toBe("발효 중인 특보");
+    expect(screen.getByRole("button", { name: `특보 ${mine(null).length}건 목록 보기` })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "모두 보기" })).toBeNull();
+    expect(screen.queryByRole("button", { name: /특보로 질문/ })).toBeNull();
   });
 
   it("기준지역(제주특별자치도)이면 그 지역을 덮는 특보만", () => {
@@ -118,60 +111,10 @@ describe("특보 줄 — 5초 자동 넘김(개발 서버 AlertBanner, 2026-11-0
     const c = show(base);
     expect(c.querySelector(".wxbar")!.textContent).not.toContain("외 ");
     if (m.length > 1) {
-      fireEvent.click(screen.getByRole("button", { name: "모두 보기" }));
-      expect(screen.getByRole("list", { name: "발효 중인 특보" }).querySelectorAll("[role=listitem]")).toHaveLength(m.length);
+      expect(screen.getByRole("button", { name: `특보 ${m.length}건 목록 보기` })).toBeTruthy();
     } else expect(c.querySelector(".wxstop")).toBeNull();
   });
 
-  describe("[모두 보기] 닫기", () => {
-    const list = () => screen.queryByRole("list", { name: "발효 중인 특보" });
-    const at = (w: WeatherResponse, base: BaseRegion | null = null) => {
-      session.s = { weather: w, account: { id: "unes" }, cond: { base }, wxRef: null, setWxRef: () => {}, aimOn: false };
-    };
-    const openAll = () => {
-      at(weather);
-      const r = render(<WxBar />);
-      fireEvent.click(screen.getByRole("button", { name: "모두 보기" }));
-      expect(list()).not.toBeNull();
-      return r;
-    };
-
-    it("Esc · 바깥 누르기로 닫힌다(목록 안을 누르면 그대로)", () => {
-      openAll();
-      fireEvent.mouseDown(list()!);
-      expect(list()).not.toBeNull();
-      fireEvent.keyDown(document, { key: "Escape" });
-      expect(list()).toBeNull();
-      fireEvent.click(screen.getByRole("button", { name: "모두 보기" }));
-      fireEvent.mouseDown(document.body);
-      expect(list()).toBeNull();
-    });
-
-    it("기준지역이 바뀌면 닫힌다", () => {
-      const r = openAll();
-      at(weather, { sido: { code: "50", name: "제주특별자치도" } });
-      r.rerender(<WxBar />);
-      expect(list()).toBeNull();
-    });
-
-    it("특보가 1건·0건·조회 실패가 되었다가 다시 여럿이 되어도 저절로 펼쳐지지 않는다", () => {
-      for (const w of [
-        { ...weather, advisories: gale.slice(0, 1) },
-        { ...weather, advisories: [] },
-        { ...weather, status: { ok: false, fetchedAt: now, message: "기상청 응답 없음" }, advisories: [] },
-      ] as WeatherResponse[]) {
-        const r = openAll();
-        at(w);
-        r.rerender(<WxBar />);
-        expect(list()).toBeNull();
-        at(weather);
-        r.rerender(<WxBar />);
-        expect(screen.getByRole("button", { name: "모두 보기" })).toBeTruthy();
-        expect(list()).toBeNull();
-        cleanup();
-      }
-    });
-  });
 });
 
 describe("특보 줄 — 자동 넘김 동작(개발 서버 AlertBanner AlertRotator)", () => {
@@ -241,10 +184,10 @@ describe("특보 줄 — 자동 넘김 동작(개발 서버 AlertBanner AlertRot
     fireEvent.mouseLeave(bar);
     tick();
     expect(pos()).toBe("2 / 5");
-    fireEvent.focus(screen.getByRole("button", { name: "특보 상세" }));
+    fireEvent.focus(document.querySelector(".wxbar .wxmore")!);
     tick(2);
     expect(pos()).toBe("2 / 5");
-    fireEvent.blur(screen.getByRole("button", { name: "특보 상세" }));
+    fireEvent.blur(document.querySelector(".wxbar .wxmore")!);
     tick();
     expect(pos()).toBe("3 / 5");
   });

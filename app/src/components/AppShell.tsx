@@ -3,13 +3,15 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useSession } from "@/lib/session";
-import { IcChevR, IcPause, IcPlay, IcSiren } from "./Icons";
+import { IcBell, IcChevR, IcDoc, IcPause, IcPlay } from "./Icons";
+import { useSopOptional } from "@/lib/sopState";
+import { manualPanel, useManualPanel } from "@/lib/manualPanel";
 import { Toast } from "./krds/Toast";
 import type { Advisory } from "@/lib/contract/agent";
-import { advName, advTime, advTone, aimTone, wxLabel } from "@/lib/wxref";
+import { aimTone, wxLabel } from "@/lib/wxref";
 import { SCN_CUT_LABEL, SCN_LABEL } from "@/lib/scenario";
 import { wxCovers } from "@/lib/wxMatch";
-import { baseKey, baseName, baseTarget, baseWire } from "@/lib/baseRegion";
+import { baseName, baseTarget, baseWire } from "@/lib/baseRegion";
 import { aimSupported } from "@/lib/aiMode";
 import BasePicker from "./BasePicker";
 import WxDetailModal from "./wx/WxDetailModal";
@@ -72,12 +74,13 @@ function useReducedMotion() {
  * 특보가 줄어 보던 자리가 목록 밖이면 첫 건으로. 5초마다 바뀌는 자리라 aria-live 를 걸지 않는다(낭독기가 읽던 것을 끊음) — 낱낱은 [모두 보기]에서
  */
 export function WxBar() {
-  const { weather, account, cond, wxRef, setWxRef, aimOn } = useSession();
+  const { weather, account, cond } = useSession();
+  // 대응절차 단추(개발서버 ManualButton) — 이 계정 지역에 매뉴얼이 있을 때만
+  const sopOn = !!useSopOptional()?.enabled;
+  const manualOn = useManualPanel();
   // 자동 시연의 가상 특보(R54 — 개발서버 AlertBanner override)가 있으면 특보 줄은 그것만
   const demoWx = useAutoDemoBus().warnings;
   const router = useRouter();
-  // 펼친 목록 — "ask" = [특보로 질문] 고르기, "all" = [모두 보기] 발효 특보 전체
-  const [pop, setPop] = useState<"ask" | "all" | null>(null);
   // 기상특보 상세 창(components/wx/WxDetailModal — 발효 특보·상태 이력·전국·통보문, [조건에 반영]·[이 특보로 질의])
   const [detail, setDetail] = useState(false);
   const barRef = useRef<HTMLDivElement>(null);
@@ -86,17 +89,10 @@ export function WxBar() {
   const [stopped, setStopped] = useState(false);
   const [hover, setHover] = useState(false);
   const reduced = useReducedMotion();
-  const bk = baseKey(cond.base);
   const national = !cond.base;
   const target = baseTarget(cond.base);
   const mine = (demoWx ?? weather?.advisories ?? []).filter((a) => a.status !== "해제" && a.status !== "변경" && wxCovers(a.area, target));
-  // 기준지역이 바뀌면 열려 있던 특보 목록을 닫는다(이전 지역 목록이 남지 않게).
-  // 특보가 1건 이하·조회 실패가 되어 목록이 없어져도 닫는다(다시 늘어날 때 저절로 펼쳐지지 않게)
-  useEffect(() => setPop(null), [bk]);
   const many = mine.length > 1;
-  useEffect(() => {
-    if (!many) setPop(null);
-  }, [many]);
   const items = wxRotation(mine);
   const n = items.length;
   const rolling = n > 1 && !stopped && !hover && !reduced;
@@ -109,22 +105,6 @@ export function WxBar() {
     const id = window.setInterval(() => setAt((i) => (i + 1) % n), WX_ROTATE_MS);
     return () => window.clearInterval(id);
   }, [rolling, n]);
-  // 펼친 목록은 바깥을 누르거나 Esc 로 닫는다
-  useEffect(() => {
-    if (!pop) return;
-    const down = (e: MouseEvent) => {
-      if (!barRef.current?.contains(e.target as Node)) setPop(null);
-    };
-    const key = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setPop(null);
-    };
-    document.addEventListener("mousedown", down);
-    document.addEventListener("keydown", key);
-    return () => {
-      document.removeEventListener("mousedown", down);
-      document.removeEventListener("keydown", key);
-    };
-  }, [pop]);
   if (!account) return null;
   // 지금 보이는 특보 — 1건이면 그것, 여럿이면 넘김 차례의 i 번째. [모두 보기] = 발효 특보 전체(받은 순서)
   const top = n ? items[Math.min(at, n - 1)] : undefined;
@@ -133,14 +113,14 @@ export function WxBar() {
   const cut = !!weather?.realtimeCut;
   let tag: React.ReactNode, title: React.ReactNode, meta = "";
   if (!weather) {
-    tag = <span className="tag fail">조회 중</span>;
+    tag = <span className="tag fail"><IcBell size={16} /> 특보</span>;
     title = "기상특보를 확인하고 있습니다";
   } else if (!weather.status.ok && !top) {
-    tag = <span className="tag fail">조회 실패</span>;
-    title = "기상특보를 불러오지 못했습니다";
-    meta = `${weather.status.message} · 최종 시도 ${fmtT(weather.status.fetchedAt)}`;
+    tag = <span className="tag fail"><IcBell size={16} /> 특보</span>;
+    title = "기상특보를 불러오지 못했습니다.";
+    meta = weather.status.fetchedAt ? `최종 갱신 ${fmtT(weather.status.fetchedAt)} · 자동으로 다시 확인합니다.` : "자동으로 다시 확인합니다.";
   } else if (top) {
-    tag = <span className={`tag ${top.level === "경보" ? "" : "warn"}`}><IcSiren size={16} /> {top.level === "경보" ? "긴급" : "주의"}</span>;
+    tag = <span className={`tag ${top.level === "경보" ? "" : "warn"}`} aria-hidden="true"><IcBell size={16} /> {top.level === "경보" ? "경계" : "주의"}</span>;
     title = many ? (
       <><b>특보 {mine.length}건 발효 중</b> · {top.area} {wxLabel(top)}{top.scenario && <> <ScnTag a={top} /></>}</>
     ) : (
@@ -157,27 +137,21 @@ export function WxBar() {
     meta = SCN_CUT_LABEL;
   } else {
     tag = <span className="tag none">특보 없음</span>;
-    title = national ? "발효 중인 기상특보가 없습니다" : `${baseName(cond.base)}에 발효 중인 기상특보가 없습니다`;
-    meta = `${weather.status.message} · 조회 ${fmtT(weather.status.fetchedAt)}`;
+    title = "발효 중인 기상특보가 없습니다";
+    meta = `기상청 ${fmtT(weather.status.fetchedAt)} 갱신`;
   }
-  // [특보로 질문] = 특보를 채팅 입력창에 참조로 건다 (1건이면 바로, 여러 건이면 고르기 · 한 번에 하나)
-  const cands = [...mine].sort((a, b) => (b.level === "경보" ? 1 : 0) - (a.level === "경보" ? 1 : 0) || b.issuedAt.localeCompare(a.issuedAt));
-  const attach = (a: Advisory) => {
-    setWxRef(a);
-    setPop(null);
-    if (!location.pathname.startsWith("/explore")) router.push("/explore");
-    setTimeout(() => (document.querySelector(".composer textarea") as HTMLTextAreaElement | null)?.focus(), 80);
-  };
-  const onAsk = () => {
-    if (aimOn) return;
-    if (!cands.length) return;
-    if (cands.length === 1) return attach(cands[0]);
-    setPop((v) => (v === "ask" ? null : "ask"));
-  };
+  // 오른쪽 단추 하나(개발서버 alert-banner-more) — 없음 「특보 현황 보기」 · 1건 「특보 상세 보기」 · 여러 건 「특보 N건 목록 보기」. 줄 어디를 눌러도 상세가 열린다
+  const moreLabel = !top ? "특보 현황 보기" : many ? `특보 ${mine.length}건 목록 보기` : "특보 상세 보기";
   return (
     <div
       ref={barRef}
-      className={`wxbar ${anyAlarm ? "danger" : ""}`}
+      className={`wxbar ${anyAlarm ? "danger" : ""} ${!weather || (!weather.status.ok && !top) ? "fail" : ""}`}
+      role="region"
+      aria-label="기상특보 현황"
+      onClick={(e) => {
+        if ((e.target as HTMLElement).closest("button, a, [role=dialog]")) return;
+        setDetail(true);
+      }}
       // 설계 ② 「마우스를 올리거나 초점이 들어가면 넘김 멈춤」
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
@@ -195,57 +169,18 @@ export function WxBar() {
         </>
       )}
       <span className="tit">{title}</span>
-      {many && (
-        <>
-          <span className="wxall">
-            <button type="button" className="lnk xs" onClick={() => setPop((v) => (v === "all" ? null : "all"))} aria-expanded={pop === "all"}>모두 보기</button>
-            {pop === "all" && (
-              <div className="wxpick" role="list" aria-label="발효 중인 특보">
-                <div className="hd">발효 중인 특보</div>
-                {/* 받은 순서 그대로(경보 먼저 정렬은 [특보로 질문] 고르기에만) */}
-                {mine.map((a) => (
-                  <div key={a.id} role="listitem" className="row">
-                    {/* 읽기만 하는 목록 — 단계 색(빨강) 없이 받은 이름 그대로 */}
-                    <span className="lvb">{wxLabel(a)}</span>
-                    <span className="ar">{a.area}{a.scenario && <> <ScnTag a={a} /></>}</span>
-                    <span className="t">{advTime(a.issuedAt)} {a.scenario ? "켬" : "발표"}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </span>
-        </>
-      )}
       <span className="meta">{meta}</span>
-      <span className="sp" />
-      <button type="button" className="btn ghost sm wxdetail" onClick={() => { setPop(null); setDetail(true); }} aria-haspopup="dialog">특보 상세</button>
+      <button type="button" className="wxmore" onClick={() => setDetail(true)} aria-haspopup="dialog">
+        {moreLabel} <IcChevR size={16} />
+      </button>
       {detail && <WxDetailModal mine={mine} onClose={() => setDetail(false)} />}
-      <div className="wxask">
-        <button
-          className={`btn ghost sm ${wxRef ? "on" : ""}`}
-          onClick={onAsk}
-          disabled={aimOn}
-          // R46 — AI 모드에서 특보가 함께 가는 것은 브리핑 질문(과 AI 모드 점검)뿐이다. 직접 쓴 질문·질문 목록·시연 묶음에는 붙지 않는다(explore askText·askLib·askDemo)
-          title={aimOn ? "AI 모드에서는 브리핑 질문에 현재 특보가 함께 전달됩니다. 직접 쓴 질문에 특보를 걸려면 AI 모드를 끄고 [특보로 질문]을 쓰세요." : undefined}
-          aria-haspopup={cands.length > 1}
-          aria-expanded={pop === "ask"}
-        >
-          {aimOn ? "AI 모드 · 브리핑에 특보 반영" : wxRef ? `참조 중 · ${advName(wxRef)}` : "특보로 질문"} {!aimOn && !wxRef && <IcChevR size={14} />}
+      <span className="sp" />
+      {/* 대응절차 켜고 끄기(개발서버 ManualButton — 특보 줄 오른쪽 끝) */}
+      {sopOn && (
+        <button type="button" className={`wxsop ${manualOn ? "on" : ""}`} aria-pressed={manualOn} onClick={() => { if (!location.pathname.startsWith("/explore")) { manualPanel.set(true); router.push("/explore"); } else manualPanel.toggle(); }}>
+          <IcDoc size={16} /> 대응절차
         </button>
-        {wxRef && !aimOn && <button className="lnk xs" onClick={() => setWxRef(null)} aria-label="특보 참조 해제" title="특보 참조 해제">해제 ×</button>}
-        {pop === "ask" && (
-          <div className="wxpick" role="menu">
-            <div className="hd">질문에 참조할 특보를 고르세요</div>
-            {cands.map((a) => (
-              <button key={a.id} role="menuitem" className={wxRef?.id === a.id ? "on" : ""} onClick={() => attach(a)}>
-                <span className={`lvb ${advTone(a)}`}>{wxLabel(a)}</span>
-                <span className="ar">{a.area}{a.scenario && <> <ScnTag a={a} /></>}</span>
-                <span className="t">{advTime(a.issuedAt)} {a.scenario ? "켬" : "발표"}</span>
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
+      )}
     </div>
   );
 }

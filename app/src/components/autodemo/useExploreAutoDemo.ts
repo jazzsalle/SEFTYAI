@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { api } from "@/lib/api";
 import { useSession } from "@/lib/session";
+import { manualPanel } from "@/lib/manualPanel";
 import { baseKey } from "@/lib/baseRegion";
 import { DAY_ITEMS, demoAsk, type DemoItem } from "@/lib/library";
 import { aimDemoAdvisory, aimDemoById } from "@/lib/autoDemoAim";
@@ -69,6 +70,7 @@ export function useExploreAutoDemo(p: {
     closeAiMode: () => autoDemoBus.set({ aimOpen: false }),
     cleanup: () => {
       autoDemoBus.clear()
+      manualPanel.set(false)
       clearSop()
     },
     layout: () => pRef.current.layout(),
@@ -87,6 +89,8 @@ export function useExploreAutoDemo(p: {
     setPicking(false);
     // 앞 시연이 중간에 창을 닫아 남은 체크도 비우고 시작한다
     sRef.current.resetChecks("sop:", { archive: false }).catch(() => {});
+    // 대응절차 탭은 꺼진 채로 시작한다 — 장면이 [대응절차] 단추를 눌러 켠다
+    manualPanel.set(false);
     void startRef.current(id);
   }, []);
   const cancelPick = useCallback(() => setPicking(false), []);

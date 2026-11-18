@@ -222,7 +222,8 @@ const CondReset = ".cond-modal .modal-f .btn"
 function sopSteps(first: string): DemoStep[] {
   return [
     {
-      click: { sel: Tab, text: "대응절차" },
+      // 대응절차는 특보 줄 오른쪽 끝 [대응절차] 단추로 켠다(개발서버 ManualButton — 2026-11-19)
+      click: { sel: ".wxbar .wxsop" },
       waitFor: ".sp-steps",
       focus: ["panel"],
       say: first,
@@ -255,7 +256,8 @@ function sopSteps(first: string): DemoStep[] {
     },
     { silentClick: { sel: ".modeSw button", text: "내 부서" } },
     { focus: ["panel"], say: "매뉴얼 책자를 따로 찾지 않아도 현장조치 절차를 업무 화면에서 늘 확인할 수 있습니다." },
-    // 대응절차는 다시 누르면 접힌다 — 뒷장면(급경사지 등)에 떠 있지 않게(사용자 지시 2026-11-04).
+    // 대응절차는 다시 누르면 접힌다 — 뒷장면(급경사지 등)에 떠 있지 않게(사용자 지시 2026-11-04). 단추를 다시 눌러 탭을 거두고 지도로
+    { silentClick: { sel: ".wxbar .wxsop.on" }, wait: 300 },
     { click: { sel: Tab, text: "지도" }, wait: 400 },
   ]
 }

@@ -251,7 +251,7 @@ div.mapwrap .map-note { top: auto; bottom: 40px; }
 .mp-btn:disabled, .mp-btn.pri:disabled { border-color: #cdd1d5; background: #f4f5f6; color: #8a949e; cursor: not-allowed; transform: none; }
 
 /* 알림 — 지도 영역 맨 위(설계 슬라이드 58·59). 주의는 노랑 */
-.sa-map-notices { position: absolute; left: 12px; right: 120px; top: 12px; z-index: 7; display: flex; flex-direction: column; gap: 6px; pointer-events: none; }
+.sa-map-notices { position: absolute; left: 12px; right: 56px; top: 54px; z-index: 7; display: flex; flex-direction: column; gap: 6px; pointer-events: none; }
 .sa-map-notice {
   display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; pointer-events: auto;
   font-size: var(--fs-xs); line-height: calc(20px * var(--fs-scale)); color: #8a4b00; background: #fff7e6; border: 1px solid #ffd08a; border-radius: 6px;

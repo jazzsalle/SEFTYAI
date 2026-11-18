@@ -118,8 +118,8 @@ h1, h2, h3, h4 { margin: 0; letter-spacing: -0.02em; }
 .btn.sm { height: 32px; padding: 0 12px; font-size: var(--fs-xs); }
 .btn.xs { height: 28px; padding: 0 10px; font-size: var(--fs-2xs); border-radius: var(--r-s); }
 .btn.lg { height: 48px; padding: 0 22px; font-size: var(--fs-m); font-weight: 700; }
-.btn.pri { background: var(--c-primary); border-color: var(--c-primary); color: #fff; font-weight: 700; }
-.btn.pri:hover { background: var(--c-primary-dk); border-color: var(--c-primary-dk); }
+.btn.pri, .btn.primary { background: var(--c-primary); border-color: var(--c-primary); color: #fff; font-weight: 700; }
+.btn.pri:hover, .btn.primary:hover { background: var(--c-primary-dk); border-color: var(--c-primary-dk); }
 .btn.navy { background: var(--c-navy); border-color: var(--c-navy); color: #fff; font-weight: 700; }
 .btn.line { border-color: var(--c-primary); color: var(--c-primary-dk); font-weight: 600; }
 .btn.line:hover { background: var(--c-primary-sub); }
@@ -1121,3 +1121,20 @@ label.chk input { width: 18px; height: 18px; accent-color: var(--c-primary); }
 .ct-st.warn { color: var(--c-warn-dk); }
 .help-mode { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0 22px 8px; padding: 8px 12px; border-radius: var(--r-m); background: var(--c-sec-sub); }
 .help-contact { margin-top: 18px; }
+
+/* ── 특보 줄 — 개발서버 AlertBanner(styles/renewal/header.css · ds-search.css) 값 그대로(2026-11-19 「개발서버와 동일하게」) ── */
+.wxbar { cursor: pointer; }
+.wxbar:hover { background: #fafbfc; }
+.wxbar .tag { background: #f07800; color: #fff; }
+.wxbar .tag.warn { background: #ffe14d; color: #3a2f00; }
+.wxbar .tag.fail { background: #e6e8ea; color: #464c53; }
+.wxbar.danger, .wxbar.danger:hover { background: linear-gradient(90deg, #fff4e8, #fff 50%); }
+.wxbar.fail { background: #eef2f7; }
+.wxbar .meta { font-size: var(--fs-xs); color: #464c53; }
+.wxbar .wxmore { flex: none; display: inline-flex; align-items: center; gap: 2px; height: 30px; padding: 0 12px; border: 0; border-radius: 4px;
+  background: #ecf2fe; color: #0b50d0; font: inherit; font-size: var(--fs-xs); white-space: nowrap; cursor: pointer; }
+.wxbar .wxmore:hover { background: #d8e5fd; }
+.wxbar .wxsop { flex: none; display: inline-flex; align-items: center; gap: 4px; height: 28px; padding: 0 12px; border: 0; border-radius: 999px;
+  background: #eef2f7; color: var(--c-navy); font: inherit; font-size: var(--fs-xs); font-weight: 700; white-space: nowrap; cursor: pointer; }
+.wxbar .wxsop:hover { background: #dde5ef; }
+.wxbar .wxsop.on { background: var(--c-navy); color: #fff; }

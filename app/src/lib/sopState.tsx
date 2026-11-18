@@ -211,3 +211,8 @@ export function useSop() {
   if (!v) throw new Error("SopProvider 누락");
   return v;
 }
+
+/** SopProvider 밖에서도 부를 수 있는 판 — 없으면 null(특보 줄 [대응절차] 단추 — 시험 화면 등) */
+export function useSopOptional() {
+  return useContext(Ctx);
+}

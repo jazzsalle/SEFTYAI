@@ -1,6 +1,7 @@
 "use client";
 import { Fragment, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { manualPanel, useManualPanel } from "@/lib/manualPanel";
 import { useSession, uid, type Conversation, type SubmitArgs, type Turn } from "@/lib/session";
 import { useSop } from "@/lib/sopState";
 import { useBriefingSet } from "@/lib/briefing";
@@ -268,9 +269,25 @@ function Explore() {
     setFollow((f) => (f && !(conv?.turns ?? []).some((t) => t.jobId === f.jobId) ? null : f));
   }, [conv?.id, conv?.turns]);
 
+  // 대응절차 탭 켜고 끄기(특보 줄 [대응절차] — 개발서버 usePanel.showManual). 켜면 그 탭으로, 끄면 한눈 요약(없으면 지도)으로
+  const manualOn = useManualPanel();
+  const manualFirst = useRef(true);
+  useEffect(() => {
+    if (manualFirst.current) {
+      manualFirst.current = false;
+      if (!manualOn) return;
+    }
+    if (manualOn) {
+      setPanelOpen(true);
+      setActive("sop");
+    } else setActive((a) => (a === "sop" ? (summary?.refs.length ? "summary" : "map") : a));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [manualOn]);
+
   // 대응절차 탭 열기 요청(대응 단계 바)
   useEffect(() => {
     if (!sop.openReq || !sop.enabled) return;
+    manualPanel.set(true);
     setPanelOpen(true);
     setActive("sop");
     const f = sop.openReq.focus;
@@ -445,8 +462,9 @@ function Explore() {
    * 질문 모음 「한눈 요약 질의」 한 건 — 질문 글만 조건 없이(개발서버 askDay · UFR-006-001-11 I열). 전에는 항목의 가정 조건(프리셋)을 얹고 받아 둔 답이 있으면 그것을 세웠다.
    * 자동 조회(질문 모음 경로)는 그대로. 받아 두기·받아 둔 답(sa_demo_pins)은 자동 시연·브리핑 시연이 쓴다
    */
-  // 시연 모드에서는 받아 둔 답을 바로 놓는다(2026-11-19 사용자 지시 — 개발서버는 늘 실시간). 시연 모드가 아니거나 받아 둔 답이 없으면 실시간
-  const askDemo = (d: DemoItem) => ask({ question: d.text, source: "QUICK", libraryId: d.id, quickQueryId: d.quickQueryId ?? null, pinId: d.id, pinDemo: true, revealMs: 3000 }, undefined, false, true).catch(toastErr);
+  // 한눈 요약 질의는 시연용 — 받아 둔 답(sa_demo_pins)이 있으면 시연 모드와 상관없이 늘 그 답을 놓는다(2026-11-19 사용자 지시 · 개발서버는 늘 실시간).
+  // 받아 둔 답이 없으면 새로 받아 그 답을 받아 둔다(질문 모음 「받아 두기」와 같은 길)
+  const askDemo = (d: DemoItem) => ask({ question: d.text, source: "QUICK", libraryId: d.id, quickQueryId: d.quickQueryId ?? null, pinId: d.id, revealMs: 3000 }, undefined, false, true).catch(toastErr);
   /** 「이어서 물어보기」 추천 후속질문 — 질문 글 그대로 이 대화에 이어 묻는다(개발서버 onFollowUp: FOLLOW_UP · 지금 조건 · FUN-UFR-301003) */
   const askSuggested = (text: string) => ask({ question: text, source: "FOLLOW_UP" }).catch(toastErr);
   /** 자동 시연(개발서버 features/demoMode — R54) — 받아 둔 답을 대본대로 놓고 음성으로 안내. 시연 배치 = 질의 목록 접고 대화 55% */
@@ -677,7 +695,7 @@ function Explore() {
     </div>
   );
 
-  const fixedTabs = sop.enabled ? [MAP_TAB, SUMMARY_TAB, SOP_TAB] : [MAP_TAB, SUMMARY_TAB];
+  const fixedTabs = manualOn ? [MAP_TAB, SUMMARY_TAB, SOP_TAB] : [MAP_TAB, SUMMARY_TAB];
   const panelTabs = [...fixedTabs, ...tabs.filter((t) => t.kind !== "map" && t.kind !== "sop" && t.kind !== "summary")];
 
   // 턴을 브리핑 묶음 단위로

@@ -50,15 +50,6 @@ describe("특보 줄 — 「시연 시나리오」 표지 · 기상청 실시간
     expect(b.textContent).not.toMatch(/기상청 \d\d:\d\d (갱신|발표)|조회 \d\d:\d\d/);
   });
 
-  it("[특보로 질문] — 시나리오 특보 하나를 바로 참조로 건다", async () => {
-    const set = vi.fn();
-    bar(cutOf("busan"), BUSAN, set);
-    fireEvent.click(screen.getByRole("button", { name: /특보로 질문/ }));
-    expect(set).toHaveBeenCalledTimes(1);
-    expect((set.mock.calls[0][0] as Advisory).id).toBe("SCN-BS-PRE-1");
-    await new Promise((r) => setTimeout(r, 120)); // 누른 뒤 입력칸 포커스 타이머(AppShell 80ms)가 jsdom 정리 뒤에 돌지 않게 기다림
-  });
-
   it("기준지역을 시나리오 구역 밖으로 바꾸면 — 「실시간 끊음」(회색) · 「…에는 시연 시나리오 특보가 없습니다」 · 「특보 없음」·「발효 중인 기상특보가 없습니다」 없음", () => {
     const b = bar(cutOf("busan"), SEOUL);
     const tag = b.querySelector(".tag")!;
@@ -80,10 +71,11 @@ describe("특보 줄 — 「시연 시나리오」 표지 · 기상청 실시간
     cleanup();
     const n = bar(live(), SEOUL);
     expect(n.querySelector(".tag")!.textContent).toBe("특보 없음");
-    expect(n.querySelector(".tit")!.textContent).toBe("서울특별시에 발효 중인 기상특보가 없습니다");
+    expect(n.querySelector(".tit")!.textContent).toBe("발효 중인 기상특보가 없습니다"); // 개발서버 AlertBanner — 지역 이름 없이
     cleanup();
     const f = bar(live([], false));
-    expect(f.querySelector(".tag")!.textContent).toBe("조회 실패");
+    expect(f.querySelector(".tag")!.textContent).toBe(" 특보"); // 개발서버 — 회색 「특보」 표지
+    expect(f.querySelector(".tit")!.textContent).toBe("기상특보를 불러오지 못했습니다.");
   });
 
   it("인제·영천 — 시연 계정 기준지역에서 그 지역 시나리오가 보인다", () => {
@@ -145,16 +137,7 @@ describe("AI 모드 창 — 「시연 시나리오」 표지 · 끊김 표시(R4
   });
 });
 
-describe("특보 줄 — AI 모드를 켠 동안 [특보로 질문] 자리(R46 — 표기를 동작에 맞춤)", () => {
-  it("「AI 모드 · 브리핑에 특보 반영」 · 누를 수 없음 · 말풍선 = 브리핑 질문에만 특보(「자동 반영」이라 하지 않음)", () => {
-    session.s = { weather: cutOf("busan"), account: { id: "busan" }, cond: { base: BUSAN }, wxRef: null, setWxRef: () => {}, aimOn: true };
-    const { container } = render(<WxBar />);
-    const b = screen.getByRole("button", { name: /AI 모드 · 브리핑에 특보 반영/ }) as HTMLButtonElement;
-    expect(b.disabled).toBe(true);
-    expect(b.title).toBe("AI 모드에서는 브리핑 질문에 현재 특보가 함께 전달됩니다. 직접 쓴 질문에 특보를 걸려면 AI 모드를 끄고 [특보로 질문]을 쓰세요.");
-    expect(container.textContent).not.toContain("자동 반영");
-  });
-
+describe("도움말 — AI 모드(R46)", () => {
   it("도움말 — AI 모드 항목이 「모든 질문에 자동 반영」이라 하지 않는다(글은 개발서버 helpContent — R60)", () => {
     const text = HELP_SECTIONS.filter((t) => t.id === "aimode").flatMap((t) => t.lines).join(" ");
     expect(text).not.toContain("자동으로 반영");
