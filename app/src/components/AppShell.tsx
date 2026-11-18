@@ -89,7 +89,8 @@ export function WxBar() {
   const [hover, setHover] = useState(false);
   const reduced = useReducedMotion();
   const target = baseTarget(cond.base);
-  const mine = (demoWx ?? weather?.advisories ?? []).filter((a) => a.status !== "해제" && a.status !== "변경" && wxCovers(a.area, target));
+  // 자동 시연 가상 특보는 그 장면의 특보 그대로(개발서버 AlertBanner override — 지역으로 거르지 않음. 구역 글이 「부산광역시」 같은 행정구역 이름이라 wxCovers 로는 안 맞는다)
+  const mine = demoWx ? demoWx.filter((a) => a.status !== "해제") : (weather?.advisories ?? []).filter((a) => a.status !== "해제" && a.status !== "변경" && wxCovers(a.area, target));
   const items = wxRotation(mine);
   const n = items.length;
   const rolling = n > 1 && !stopped && !hover && !reduced;
