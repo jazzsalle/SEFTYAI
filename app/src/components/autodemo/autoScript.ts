@@ -341,7 +341,8 @@ export const AutoScript: AutoScene[] = [
     region: "busan",
     intro: "이번에는 온천천이 지나는 동래구·연제구·금정구 전체로 넓혀, 지정된 위험지구가 얼마나 되는지 살펴봅니다.",
     steps: [
-      { focus: ["answer"], say: "자연재해위험개선지구와 산사태취약지역, 급경사지가 구별·종류별로 정리되어 나옵니다." },
+      // 앞 장면(11:30)의 N3지구 상세 탭이 이 답 동안 패널에 남지 않게 지도 탭으로(11/19 녹화 검수)
+      { open: "map", focus: ["answer"], say: "자연재해위험개선지구와 산사태취약지역, 급경사지가 구별·종류별로 정리되어 나옵니다." },
       {
         scroll: { sel: Body },
         focus: [{ sel: BodyBox }],
@@ -914,7 +915,7 @@ export const DemoScenarios: DemoScenario[] = [
     id: "busan-daejeon",
     name: "부산 + 대전",
     desc: "부산에서 AI 모드 특보 감지·브리핑 → 점검 우선순위 → 대응절차, 이어서 대전 과거 침수사례 → 위험·취약정보 → 하천계획·시설",
-    minutes: "약 9분",
+    minutes: "약 8분",
     scenes: [...BusanAim, ...Daejeon, "마무리"],
     text: {
       마무리: {
@@ -933,7 +934,7 @@ DemoScenarios.push({
   id: "busan-inje-daejeon",
   name: "부산 + 인제 + 대전",
   desc: "부산에서 AI 모드 특보 감지·브리핑 → 점검 우선순위 → 대응절차, 이어서 인제 계곡 숙박·야영장, 대전 과거 침수흔적 → 하천 주변 위험지역",
-  minutes: "약 11분",
+  minutes: "약 9분",
   scenes: [...BusanAim, "전환 · 인제군", "인제 · 진동리 계곡 숙박·야영장 주변", ...Daejeon, "마무리"],
   text: {
     "전환 · 인제군": {
