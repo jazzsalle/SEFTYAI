@@ -590,7 +590,11 @@ function Explore() {
       }
       const refs = (f.raw?.result?.refs ?? []) as T3qRef[];
       const feats = f.geo?.result?.features ?? [];
-      if (refs.some((r) => r.map?.value) && (!f.geo || (f.geo.status !== "SUCCESS" && f.geo.status !== "PARTIAL_SUCCESS"))) failed = true;
+      // 도형을 아직 받는 중(geo 없음 — 서버가 답 직후 받아 저장한다)이면 실패가 아니라 불러오는 중
+      if (refs.some((r) => r.map?.value)) {
+        if (!f.geo) loading = true;
+        else if (f.geo.status !== "SUCCESS" && f.geo.status !== "PARTIAL_SUCCESS") failed = true;
+      }
       // EXT-01 은 같은 key·value 를 한 번만 돌려준다(마지막 ref 로) — 같은 대상을 가리키는 ref 모두에 그 도형을 쓴다
       const byKV = new Map(feats.map((ft) => [`${ft.properties.key}|${ft.properties.value}`, ft]));
       for (const r of refs) {

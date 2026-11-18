@@ -621,17 +621,28 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
 
   const fullRef = useRef(full);
   fullRef.current = full;
-  const loadFull = useCallback(async (jobId: string) => {
+  // 답이 끝난 직후 서버가 지도 도형(EXT-01)을 받아 저장하기 전에 가져가면 geo 가 비어 지도가 「위치를 불러오지 못했습니다」로 굳는다(2026-11-19 운영) —
+  // 도형을 받을 대상이 있는데 geo 가 없으면 기억하지 않고 잠시 뒤 다시 받는다(최대 6번)
+  const geoTries = useRef<Record<string, number>>({});
+  const geoPending = (j: JobFull) =>
+    j.state === "DONE" && j.geo == null && ((j.raw?.result as { refs?: { map?: { value?: unknown } }[] } | undefined)?.refs ?? []).some((x) => x.map?.value);
+  const loadFull = useCallback(async (jobId: string): Promise<JobFull | null> => {
     const have = fullRef.current[jobId];
-    if (have && !isActive(have.state) && (have.raw || have.state !== "DONE")) return have;
+    if (have && !isActive(have.state) && (have.raw || have.state !== "DONE") && !geoPending(have)) return have;
     try {
       const r = await api<{ job: JobFull }>(`/api/agent/jobs/${jobId}?full=1`);
       setFull((p) => ({ ...p, [jobId]: r.job }));
       putJob(r.job);
+      if (geoPending(r.job)) {
+        const n = (geoTries.current[jobId] ?? 0) + 1;
+        geoTries.current[jobId] = n;
+        if (n <= 6) setTimeout(() => void loadFull(jobId), n * 1500);
+      }
       return r.job;
     } catch {
       return null;
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [putJob]);
 
   /** 대화에 있는 작업을 큐에 올려 상태를 따라가게 함(이력에서 연 대화 등) */
