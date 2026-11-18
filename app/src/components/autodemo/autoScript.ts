@@ -773,7 +773,7 @@ export const AutoScript: AutoScene[] = [
         open: "map",
         click: { sel: MapCluster, largest: true, visible: true },
         focus: ["panel"],
-        say: "지도를 보면 하천을 따라 위험지구와 지하차도가 길게 이어져 있습니다.",
+        say: "지도에서 위험지구와 지하차도 위치를 함께 봅니다. 정확한 위치가 없는 지하차도는 행정구역 중심에 표시됩니다.",
         wait: 800,
       },
     ],
