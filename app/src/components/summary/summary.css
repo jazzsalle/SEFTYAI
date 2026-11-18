@@ -739,3 +739,12 @@
 }
 .sm-bar.is-direct .sm-bar-label { font-weight: 700; color: var(--c-primary-dk); }
 .sm-bar.is-direct .sm-bar-fill { background: #0b50d0; }
+
+/* 한눈 요약 「표로 보기」 표 — 개발서버 infographic.css .ig-table 그대로(개발서버 rem = 10px → px).
+   빠져 있어 칸 여백 1px·선 없는 맨 표로 보이던 것(2026-11-18 자동 시연 점검). */
+.ig-table { border-collapse: separate; border-spacing: 0; min-width: 100%; font-size: var(--fs-xs); line-height: 20px; border-top: 2px solid var(--c-navy); }
+.ig-table th, .ig-table td { padding: 8px 12px; color: var(--c-text); text-align: left; vertical-align: top; border: 0; border-bottom: 1px solid var(--c-line); }
+.ig-table thead th { font-weight: 700; color: var(--c-navy-2); white-space: nowrap; background: var(--c-primary-sub); border-bottom: 1px solid var(--c-primary-bd); }
+.ig-table tbody th { font-weight: 600; }
+.ig-table tbody tr:nth-child(even) { background: var(--c-surface); }
+.ig-table tbody tr:hover { background: var(--c-sec-sub); }

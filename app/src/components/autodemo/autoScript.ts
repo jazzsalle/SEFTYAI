@@ -207,6 +207,8 @@ const AimBrief = UI.aimBrief
 const AimBriefGo = `${UI.aimBrief} .btn`
 /** 답이 온 브리핑 항목의 [크게 보기](개발서버 .briefing-item.is-done .briefing-item-open) · 브리핑 묶음 */
 const BriefDone = ".brief-item .brief-item-tools .btn.line"
+/** 「통제·대피 대상」 항목의 [크게 보기](aria-label 「3번 통제·대피 대상 크게 보기」) */
+const BriefControl = '.brief-item .brief-item-tools .btn.line[aria-label*="통제·대피"]'
 const BriefBlock = ".ex-main .thread > section.brief-block:last-of-type"
 /** 재난상황 조건 창(개발서버 ConditionModal) — [조건 변경]·[적용]·[기본 조건으로 되돌리기] */
 const CondOpen = ".composer .cmp-cond .lnk"
@@ -384,10 +386,15 @@ export const AutoScript: AutoScene[] = [
         wait: 1200,
         say: "담당자가 정해 둔 네 가지 항목이 한 번에 정리됩니다.",
       },
+      // 브리핑 답은 실제로 받아 오므로 순서대로 오지 않는다 — 「완료된 셋째」가 아니라 이름(통제·대피 대상)으로 집고,
+      // 그 항목이 늦으면 조금 더 기다린다(2026-11-18 점검: 순번으로 집어 엉뚱한 항목·빈 강조).
+      { waitFor: BriefControl },
       {
-        click: { sel: BriefDone, nth: 2 },
+        click: { sel: BriefControl },
         orElse: [{ click: { sel: BriefDone } }],
-        focus: ["answer"],
+        // 크게 본 항목은 브리핑 묶음 안의 .brief-item — 답 카드(.acard.ans)가 아니라 「answer」로는 비었다(2026-11-18 점검).
+        // 답이 늦어 크게 열지 못했어도 묶음 속 그 항목을 짚는다.
+        focus: [{ sel: ".brief-item:not([hidden])", text: "통제하거나" }],
         say: "그중 통제·대피 대상을 크게 열어, 통제가 필요한 도로와 지하차도를 확인합니다.",
         wait: 800,
       },
@@ -466,7 +473,7 @@ export const AutoScript: AutoScene[] = [
         focus: [{ sel: `${Panel} .sm-table tr`, text: "초량제1" }],
         say: "맨 위의 초량제1지하차도는 U형 구조에 하천과 가깝고, 2020년 7월 인명피해 기록이 연결된 곳입니다.",
       },
-      { open: "map", silentClick: { sel: `${Panel} .sm-map-toggle`, text: "지도 보기" } },
+      { open: "map", silentClick: { sel: `${Panel} .sm-map-toggle`, text: "지도 보기" }, focus: ["panel"] },
       {
         // 이어 묻기 답(CQ-BS-02)이 초량제1지하차도를 참조해 받아 둔 것이라 같은 곳을 집는다.
         click: { sel: Entity, text: "초량제1" },
@@ -663,6 +670,123 @@ export const AutoScript: AutoScene[] = [
     outro: "지역마다 재난의 특성은 다르지만, 과거에 축적된 위험정보와 점검 이력을 업무에 활용한다는 점은 같습니다.",
   },
 
+  // 5막 — 대전(2026-11-19 대전시청 시연 · 사용자 지시 2026-11-18: 과거 침수사례 → 지역 위험·취약정보 → 하천계획·시설정보).
+  // 답은 질문 모음 「한눈 요약 질의」 대전 6문 가운데 넷(IG-DJ-04·03·01·06) — 받은 답을 읽고 짚을 곳을 골랐다.
+  // 답 끝의 「이어서 물어보기」에는 상류가 다른 지역 질문을 섞어 줄 때가 있어 그 줄까지 굴리지 않는다.
+  {
+    label: "전환 · 대전광역시",
+    region: "daejeon",
+    intro:
+      "이번에는 대전광역시를 살펴보겠습니다. " +
+      "갑천과 유등천, 대전천이 도심을 가로지르는 대전에서는 하천변 저지대 침수와 하천 시설 관리가 중요합니다. " +
+      "과거 침수 사례에서 출발해 지역의 위험·취약정보, 하천계획과 시설정보까지 차례로 확인하겠습니다.",
+    dwellMs: 1200,
+  },
+  {
+    label: "대전 · 정림동 과거 침수사례",
+    pinId: "IG-DJ-04",
+    region: "daejeon",
+    intro: "먼저 서구 정림동입니다. 집중호우 때마다 침수가 되풀이된 곳이라, 과거에 어떤 피해가 있었는지부터 확인합니다.",
+    steps: [
+      { focus: ["answer-summary", { sel: BodyBox }], say: "정림동에서 일어난 침수 사례를 시기별로 모아, 침수 면적과 피해 규모를 함께 정리해 보여 줍니다." },
+      {
+        scroll: { sel: `${BodyBox} li`, text: "침수 원인" },
+        focus: [
+          { sel: `${BodyBox} li`, text: "침수 원인" },
+          { sel: `${BodyBox} li`, text: "침수 원인", nth: 1 },
+        ],
+        say: "사례마다 침수 원인도 정리되어 있어, 하천이 넘친 것인지 배수가 막힌 것인지 견줘 볼 수 있습니다.",
+      },
+      {
+        scroll: { sel: MdTable },
+        focus: [{ sel: MdTable }],
+        say: "큰 피해 뒤 이 일대는 자연재해위험개선지구로 지정되어 정비가 이어지고 있고, 주변의 붕괴위험지역과 갑천 홍수취약지구도 함께 확인됩니다.",
+      },
+      { open: "map", focus: ["panel"], say: "지도에서는 침수흔적과 주변 위험지구가 실제로 어디에 겹치는지 보입니다.", wait: 600 },
+    ],
+    outro: "피해가 어디서, 왜 났는지를 알면 같은 곳에서 피해가 되풀이되지 않도록 먼저 대비할 수 있습니다.",
+  },
+  {
+    label: "대전 · 2024년 7월 10일 호우 대피·통제",
+    pinId: "IG-DJ-03",
+    region: "daejeon",
+    intro: "가장 최근의 큰 피해는 2024년 7월 10일 새벽 호우였습니다. 그날 시민들에게 어떤 안내가 나갔는지 되짚어 봅니다.",
+    steps: [
+      {
+        focus: [{ sel: BodyBox }],
+        say: "호우경보 대피 권고부터 산사태 경보, 교량 통제와 해제까지, 대피·통제 문자를 시간순으로 정리해 보여 줍니다.",
+      },
+      {
+        scroll: { sel: `${MdTable} tr`, text: "유등교 침하" },
+        focus: [{ sel: `${MdTable} tr`, text: "유등교 침하" }],
+        say: "아침에는 유등교 교각이 내려앉아 전면 통제와 우회 안내가 이어졌습니다.",
+      },
+      {
+        scroll: { sel: `${BodyBox} ul`, text: "수록 도서" },
+        focus: [{ sel: `${BodyBox} ul`, text: "수록 도서" }],
+        say: "이 호우가 재해연보 어디에 실렸는지도 함께 알려 주어, 공식 피해 기록을 바로 찾아볼 수 있습니다.",
+      },
+    ],
+    outro: "지난 대응 기록은 다음 호우 때 무엇을 어떤 순서로 안내할지 준비하는 기준이 됩니다.",
+  },
+  {
+    label: "대전 · 3대 하천 산책로·하상도로 주변",
+    pinId: "IG-DJ-01",
+    region: "daejeon",
+    intro: "이제 지역의 위험·취약정보를 봅니다. 비가 많이 오면 가장 먼저 물에 잠기는 곳은 하천 산책로와 하상도로입니다.",
+    steps: [
+      { focus: ["answer-summary", { sel: BodyBox }], say: "갑천·유등천·대전천을 따라 홍수취약지구와 침수 우려 지하차도를 하천별로 묶어 보여 줍니다." },
+      {
+        scroll: { sel: MdText, text: "문창교" },
+        focus: [{ sel: MdText, text: "문창교" }],
+        say: "대전천 하상도로처럼 통제가 잦은 구간과 교량 아래 언더패스도 구간 단위로 짚어 줍니다.",
+      },
+      {
+        scroll: { sel: MdTable },
+        focus: [{ sel: MdTable }],
+        say: "하천마다 기준이 되는 수위 관측지점도 정리되어, 어느 지점의 수위를 지켜봐야 하는지 알 수 있습니다.",
+      },
+      {
+        open: "map",
+        click: { sel: MapCluster, largest: true, visible: true },
+        focus: ["panel"],
+        say: "지도를 보면 하천을 따라 위험지구와 지하차도가 길게 이어져 있습니다.",
+        wait: 800,
+      },
+    ],
+    outro: "호우특보가 내려지면 어느 구간부터 진입을 막고 안내 방송을 할지, 이 목록이 현장 점검의 출발점이 됩니다.",
+  },
+  {
+    label: "대전 · 유등천 하천기본계획과 시설",
+    pinId: "IG-DJ-06",
+    region: "daejeon",
+    intro: "마지막으로 하천계획과 시설정보입니다. 유등교 침하가 있었던 유등천의 하천기본계획을 확인합니다.",
+    steps: [
+      {
+        // 이 답은 본문 앞에 유사사례 카드가 길게 붙는다 — 본문 첫머리로 굴려 계획 이름을 짚는다.
+        scroll: { sel: Body },
+        focus: [{ sel: MdText, text: "하천기본계획 및 하천시설관리대장" }],
+        say: "유등천이 어떤 하천기본계획에 따라 관리되고 있는지부터 보여 줍니다.",
+      },
+      {
+        scroll: { sel: MdText, text: "취약 연장" },
+        focus: [{ sel: MdText, text: "도마제, 복수1제" }],
+        say: "제방이 없거나 취약한 구간을 구간별 길이와 기준 관측소, 대응수위와 함께 정리해 보여 줍니다.",
+      },
+      {
+        scroll: { sel: MdText, text: "도마지하차도" },
+        focus: [{ sel: MdP, text: "인명피해 우려지역" }],
+        say: "유등천 가까이 있는 지하차도도 통제 기준과 함께 확인할 수 있습니다.",
+      },
+      {
+        scroll: { sel: MdText, text: "선제적 진입 통제" },
+        focus: [{ sel: MdText, text: "선제적 진입 통제" }],
+        say: "관측 수위가 대응수위에 다가오면 어느 제방을 먼저 순찰하고 어느 지하차도를 먼저 통제할지 검토하는 데 쓰입니다.",
+      },
+    ],
+    outro: "계획과 시설, 과거 피해를 한자리에서 이어 보면 정비가 필요한 곳과 호우 때 먼저 살필 곳을 함께 판단할 수 있습니다.",
+  },
+
   {
     label: "마무리",
     // 기준지역을 부산으로 되돌리면 대화가 새로 시작되어 첫 화면으로 돌아간다(사용자 지시 2026-11-04).
@@ -670,6 +794,7 @@ export const AutoScript: AutoScene[] = [
     intro:
       "지금까지 호우 예비특보에서 주의보로 상황이 바뀌는 동안, 재난안전 담당자가 어떤 정보를 확인하고 업무에 활용하는지 살펴봤습니다. " +
       "특보의 변화를 확인하고, 위험지역과 시설을 찾아보고, 상세정보와 과거 피해·대응 기록까지 연결해서 검토했습니다. " +
+      "부산과 인제, 대전처럼 지역이 달라도 같은 방식으로 지역의 위험정보를 확인하고 대응에 활용할 수 있습니다. " +
       "이상으로 시연을 마치겠습니다.",
     dwellMs: 1000,
   },

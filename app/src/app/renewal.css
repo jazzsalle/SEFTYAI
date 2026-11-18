@@ -69,7 +69,8 @@
 
 /* 대화 */
 /* --thread-pt: 위 여백 — 안에서 붙는(sticky) 것은 이 여백만큼 아래에 붙으므로 끝에 딱 붙일 때 뺀다(브리핑 접힌 줄) */
-.ex-main .thread { --thread-pt: 16px; flex: 1; min-height: 0; overflow-y: auto; padding: var(--thread-pt) 28px 24px; max-width: 1040px; width: 100%; margin: 0 auto; }
+/* position: relative — 안의 절대 위치 요소(한눈 요약 표 머리 .sr-only 등)가 대화 칸 기준으로 잡혀 함께 구르게. 없으면 문서 높이가 늘어 자동 시연 굴리기가 화면 전체를 밀어 올린다(2026-11-18) */
+.ex-main .thread { position: relative; --thread-pt: 16px; flex: 1; min-height: 0; overflow-y: auto; padding: var(--thread-pt) 28px 24px; max-width: 1040px; width: 100%; margin: 0 auto; }
 /* 패널이 닫혀 있으면 오른쪽 위 [패널 펼치기] 단추(약 150px) 밑으로 대화(브리핑 접힌 줄 포함)가 들어가지 않게 — 좁은 화면에서만 효과 */
 .explore:not(.with-panel) .ex-main .thread,
 .explore:not(.with-panel) .ex-main .composer { max-width: min(1040px, calc(100% - 340px)); }

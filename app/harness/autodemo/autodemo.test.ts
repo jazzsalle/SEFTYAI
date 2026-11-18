@@ -11,7 +11,7 @@ import { baseKey } from "@/lib/baseRegion";
 
 /** R54 — 자동 시연(개발서버 kjw 998facb features/demoMode) */
 describe("자동 시연 대본", () => {
-  it("장면은 개발서버와 같은 13개, 차례·이름 그대로", () => {
+  it("장면은 개발서버와 같은 13개 차례·이름 그대로 + 마무리 앞 대전 5장면(2026-11-19 대전시청 시연)", () => {
     expect(AutoScript.map((s) => s.label)).toEqual([
       "프롤로그 · AI 모드 소개",
       "11:00 · 호우 예비특보, AI 모드 시작",
@@ -25,6 +25,11 @@ describe("자동 시연 대본", () => {
       "15:55 · 과거 침수 사례와 당시 대응",
       "전환 · 인제군",
       "인제 · 진동리 계곡 숙박·야영장 주변",
+      "전환 · 대전광역시",
+      "대전 · 정림동 과거 침수사례",
+      "대전 · 2024년 7월 10일 호우 대피·통제",
+      "대전 · 3대 하천 산책로·하상도로 주변",
+      "대전 · 유등천 하천기본계획과 시설",
       "마무리",
     ]);
   });
@@ -33,13 +38,14 @@ describe("자동 시연 대본", () => {
     const { answers, aiMode } = scriptPinIds();
     const day = new Set(DAY_ITEMS.map((d) => d.id));
     expect(answers.filter((id) => !day.has(id))).toEqual([]);
-    expect(answers.sort()).toEqual(["CQ-BS-01", "CQ-BS-02", "IG-BS-01", "IG-BS-02", "IG-BS-08", "IG-BS-11", "IG-IJ-01", "SIM-SH-1-3"]);
+    expect(answers.sort()).toEqual(["CQ-BS-01", "CQ-BS-02", "IG-BS-01", "IG-BS-02", "IG-BS-08", "IG-BS-11", "IG-DJ-01", "IG-DJ-03", "IG-DJ-04", "IG-DJ-06", "IG-IJ-01", "SIM-SH-1-3"]);
     expect(aiMode.sort()).toEqual(AIM_DEMO.map((a) => a.id).sort());
   });
 
   it("장면 지역은 부산·인제 기준지역(인제 = 강원 인제군)", () => {
     expect(baseKey(DemoRegions.busan)).toBe(baseKey({ sido: { code: "26", name: "부산광역시" } }));
     expect(DemoRegions.inje.sigungu?.code).toBe("51810");
+    expect(baseKey(DemoRegions.daejeon)).toBe("30");
     for (const s of AutoScript) expect(s.region === undefined || s.region in DemoRegions).toBe(true);
   });
 
@@ -111,5 +117,16 @@ describe("재난상황 조건 측정값(개발서버 ConditionModal MeasureField
       ["WIND_SPEED", "풍속", "m/s", "WEATHER"],
       ["HUMIDITY", "습도", "%", "WEATHER"],
     ]);
+  });
+});
+
+describe("대전 한눈 요약 질의(2026-11-19 대전시청 시연)", () => {
+  it("대전 6문이 대전광역시 기준지역에서만 보인다", async () => {
+    const { dayItemsFor } = await import("@/lib/library");
+    const { baseDayRegion } = await import("@/lib/baseRegion");
+    expect(baseDayRegion({ sido: { code: "30", name: "대전광역시" } })).toBe("daejeon");
+    expect(baseDayRegion({ sido: { code: "30", name: "대전광역시" }, sigungu: { code: "30170", name: "서구" } })).toBe("daejeon");
+    expect(baseDayRegion({ sido: { code: "26", name: "부산광역시" } })).toBe("busan");
+    expect(dayItemsFor("daejeon").map((d) => d.id)).toEqual(["IG-DJ-01", "IG-DJ-02", "IG-DJ-03", "IG-DJ-04", "IG-DJ-05", "IG-DJ-06"]);
   });
 });

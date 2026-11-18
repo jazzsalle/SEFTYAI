@@ -119,7 +119,24 @@ export function useAutoDemo(actions: AutoDemoActions) {
   const [title, setTitle] = useState("")
   const [caption, setCaption] = useState("")
   const [focus, setFocusState] = useState<string[] | null>(null)
-  const setFocus = useCallback((f: FocusTarget[] | null) => setFocusState(f === null ? null : focusOf(f)), [])
+  /** 지금 강조의 대본 원문 — 짚은 요소가 다시 그려져 표(data-demo-t)를 잃으면 다시 집는다. */
+  const focusTargets = useRef<FocusTarget[] | null>(null)
+  const setFocus = useCallback((f: FocusTarget[] | null) => {
+    focusTargets.current = f
+    setFocusState(f === null ? null : focusOf(f))
+  }, [])
+  // 패널 표 등이 다시 그려지면 짚은 요소가 바뀌어 강조가 사라진다(2026-11-18 자동 시연 점검 — 지하차도 표 「초량제1」 행).
+  useEffect(() => {
+    if (focus === null) return
+    const lost = () => focus.some((sel) => sel.startsWith("[data-demo-t=") && !document.querySelector(sel))
+    const t = window.setInterval(() => {
+      if (focusTargets.current && lost()) {
+        const next = focusOf(focusTargets.current)
+        if (next.join() !== focus.join()) setFocusState(next)
+      }
+    }, 400)
+    return () => window.clearInterval(t)
+  }, [focus])
   const [voiceName, setVoiceName] = useState<string | null>(null)
   /** 이 브라우저의 한국어 음성들 — 조작 막대에서 고른다(사용자 요청 2026-11-04). */
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([])
@@ -234,96 +251,110 @@ export function useAutoDemo(actions: AutoDemoActions) {
           // 지도는 처음 열릴 때 답의 대상 전체로 한 번 맞춘다 — 그 전에 누르면 확대가 덮인다.
           await wait(st.open === "map" ? 2600 : 900, run)
         }
+        let keep: number | undefined
         if (st.scroll) {
           const s = resolve(st.scroll)
-          if (s) document.querySelector(s)?.scrollIntoView({ behavior: "smooth", block: "center" })
-          else missing = true
+          if (s) {
+            document.querySelector(s)?.scrollIntoView({ behavior: "smooth", block: "center" })
+            // 위의 한눈 요약 카드가 늦게 다 만들어져 커지면 짚은 곳이 화면 밖으로 밀린다 —
+            // 이 걸음 동안 밀려 나가면 다시 굴린다(2026-11-18 자동 시연 점검).
+            keep = window.setInterval(() => {
+              const el = document.querySelector(s)
+              const box = el?.closest(UI.scroll)?.getBoundingClientRect()
+              const r = el?.getBoundingClientRect()
+              if (el && box && r && (r.top > box.bottom - 60 || r.bottom < box.top + 60)) el.scrollIntoView({ behavior: "smooth", block: "center" })
+            }, 400)
+          } else missing = true
           await wait(500, run)
         }
-        if (st.look) {
-          const s = resolve(st.look)
-          if (s) await point(s, false, run)
-          else missing = true
-        }
-        if (st.fill) {
-          const s = resolve(st.fill.at)
-          const box = s ? document.querySelector<HTMLElement>(s) : null
-          const input =
-            box instanceof HTMLInputElement || box instanceof HTMLTextAreaElement
-              ? box
-              : box?.querySelector<HTMLInputElement | HTMLTextAreaElement>("input, textarea")
-          if (s && input) {
-            input.scrollIntoView({ behavior: "smooth", block: "nearest" })
-            await point(s, true, run)
-            input.focus()
-            // React 가 값을 알아채도록 원래 setter 로 넣고 input 사건을 낸다.
-            const proto = input instanceof HTMLTextAreaElement ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype
-            const set = Object.getOwnPropertyDescriptor(proto, "value")?.set
-            for (let i = 1; i <= st.fill.value.length && !run.skip; i++) {
-              set?.call(input, st.fill.value.slice(0, i))
-              input.dispatchEvent(new Event("input", { bubbles: true }))
-              await wait(45, run)
-            }
-            await wait(300, run)
-          } else missing = true
-        }
-        const turnsBefore = document.querySelectorAll(UI.turns).length
-        if (st.click) {
-          const s = resolve(st.click)
-          if (s && st.remember) pickedName = (document.querySelector(s)?.textContent ?? "").trim()
-          if (s) {
-            document.querySelector(s)?.scrollIntoView({ behavior: "smooth", block: "nearest" })
-            await point(s, true, run)
-            // 커서가 가는 사이 지도가 다시 그려져 요소가 바뀌었으면 같은 조건으로 다시 집는다.
-            press(document.querySelector(s) ? s : (resolve(st.click) ?? s))
-            await wait(400, run)
-          } else missing = true
-        }
-        if (st.silentClick) {
-          const s = resolve(st.silentClick)
-          if (s) press(s)
-          await wait(200, run)
-        }
-        // 녹화·점검용 — 대본이 집으려던 요소가 화면에 없었다.
-        if (missing) console.info("[autodemo] 요소 없음", JSON.stringify(st.click ?? st.look ?? st.scroll ?? st.fill?.at))
-        if (missing && st.orElse) await runSteps(st.orElse, run)
-        if (st.play) {
-          const pin = pinsRef.current.get(st.play)
-          const ok = pin != null && pin.received_at !== null && (await act.current.play(pin, undefined))
-          alive(run)
-          if (!ok) console.info("[autodemo] 받아 둔 답 없음", st.play)
-          // 질문 칸에 넣어 둔 글을 비운다 — 답이 놓였으니 보낸 것처럼 보여야 한다.
-          const box = document.querySelector<HTMLTextAreaElement>(UI.questionBox)
-          if (box) {
-            Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value")?.set?.call(box, "")
-            box.dispatchEvent(new Event("input", { bubbles: true }))
+        try {
+          if (st.look) {
+            const s = resolve(st.look)
+            if (s) await point(s, false, run)
+            else missing = true
           }
-          await wait(700, run)
-          document.querySelector(UI.lastTurn)?.scrollIntoView({ behavior: "smooth", block: "start" })
-          await wait(1200, run)
-        }
-        if (st.waitAnswer) {
-          // 실제 질문이다 — 새 답 칸이 생기고, 본문이 그려지고, 진행 표시가 걷힐 때까지.
-          setCaption("답을 받고 있습니다…")
-          const done = () => {
-            const list = document.querySelectorAll(UI.turns)
-            const last = list[list.length - 1]
-            return list.length > turnsBefore && !!last?.querySelector(UI.answerBody) && !last.querySelector(UI.answerRunning)
+          if (st.fill) {
+            const s = resolve(st.fill.at)
+            const box = s ? document.querySelector<HTMLElement>(s) : null
+            const input =
+              box instanceof HTMLInputElement || box instanceof HTMLTextAreaElement
+                ? box
+                : box?.querySelector<HTMLInputElement | HTMLTextAreaElement>("input, textarea")
+            if (s && input) {
+              input.scrollIntoView({ behavior: "smooth", block: "nearest" })
+              await point(s, true, run)
+              input.focus()
+              // React 가 값을 알아채도록 원래 setter 로 넣고 input 사건을 낸다.
+              const proto = input instanceof HTMLTextAreaElement ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype
+              const set = Object.getOwnPropertyDescriptor(proto, "value")?.set
+              for (let i = 1; i <= st.fill.value.length && !run.skip; i++) {
+                set?.call(input, st.fill.value.slice(0, i))
+                input.dispatchEvent(new Event("input", { bubbles: true }))
+                await wait(45, run)
+              }
+              await wait(300, run)
+            } else missing = true
           }
-          for (let left = st.waitAnswer; left > 0 && !done(); left -= 500) {
-            await new Promise((r) => window.setTimeout(r, 500))
+          const turnsBefore = document.querySelectorAll(UI.turns).length
+          if (st.click) {
+            const s = resolve(st.click)
+            if (s && st.remember) pickedName = (document.querySelector(s)?.textContent ?? "").trim()
+            if (s) {
+              document.querySelector(s)?.scrollIntoView({ behavior: "smooth", block: "nearest" })
+              await point(s, true, run)
+              // 커서가 가는 사이 지도가 다시 그려져 요소가 바뀌었으면 같은 조건으로 다시 집는다.
+              press(document.querySelector(s) ? s : (resolve(st.click) ?? s))
+              await wait(400, run)
+            } else missing = true
+          }
+          if (st.silentClick) {
+            const s = resolve(st.silentClick)
+            if (s) press(s)
+            await wait(200, run)
+          }
+          // 녹화·점검용 — 대본이 집으려던 요소가 화면에 없었다.
+          if (missing) console.info("[autodemo] 요소 없음", JSON.stringify(st.click ?? st.look ?? st.scroll ?? st.fill?.at))
+          if (missing && st.orElse) await runSteps(st.orElse, run)
+          if (st.play) {
+            const pin = pinsRef.current.get(st.play)
+            const ok = pin != null && pin.received_at !== null && (await act.current.play(pin, undefined))
             alive(run)
-            if (run.skip) break
+            if (!ok) console.info("[autodemo] 받아 둔 답 없음", st.play)
+            // 질문 칸에 넣어 둔 글을 비운다 — 답이 놓였으니 보낸 것처럼 보여야 한다.
+            const box = document.querySelector<HTMLTextAreaElement>(UI.questionBox)
+            if (box) {
+              Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value")?.set?.call(box, "")
+              box.dispatchEvent(new Event("input", { bubbles: true }))
+            }
+            await wait(700, run)
+            document.querySelector(UI.lastTurn)?.scrollIntoView({ behavior: "smooth", block: "start" })
+            await wait(1200, run)
           }
-          if (!done()) console.info("[autodemo] 답 시간 초과", st.waitAnswer)
-          // 한눈 요약·지도가 그려질 틈.
-          await wait(1500, run)
+          if (st.waitAnswer) {
+            // 실제 질문이다 — 새 답 칸이 생기고, 본문이 그려지고, 진행 표시가 걷힐 때까지.
+            setCaption("답을 받고 있습니다…")
+            const done = () => {
+              const list = document.querySelectorAll(UI.turns)
+              const last = list[list.length - 1]
+              return list.length > turnsBefore && !!last?.querySelector(UI.answerBody) && !last.querySelector(UI.answerRunning)
+            }
+            for (let left = st.waitAnswer; left > 0 && !done(); left -= 500) {
+              await new Promise((r) => window.setTimeout(r, 500))
+              alive(run)
+              if (run.skip) break
+            }
+            if (!done()) console.info("[autodemo] 답 시간 초과", st.waitAnswer)
+            // 한눈 요약·지도가 그려질 틈.
+            await wait(1500, run)
+          }
+          // 누를 요소가 없었으면 그 결과(지도 말풍선 등)도 오지 않는다 — 4초를 헛되이 기다리지 않는다(사용자 지적 2026-11-04).
+          if (st.waitFor && !missing) await until(st.waitFor, 4000, run)
+          if (st.focus) setFocus(st.focus)
+          await say(st.say, voiceRef.current, run)
+          if (st.wait) await wait(st.wait, run)
+        } finally {
+          window.clearInterval(keep)
         }
-        // 누를 요소가 없었으면 그 결과(지도 말풍선 등)도 오지 않는다 — 4초를 헛되이 기다리지 않는다(사용자 지적 2026-11-04).
-        if (st.waitFor && !missing) await until(st.waitFor, 4000, run)
-        if (st.focus) setFocus(st.focus)
-        await say(st.say, voiceRef.current, run)
-        if (st.wait) await wait(st.wait, run)
       }
     }
 
@@ -412,6 +443,7 @@ export function useAutoDemo(actions: AutoDemoActions) {
           // 질문 칸을 눌러 묻는 것처럼 보인다.
           await point(UI.questionBox, true, run)
           // 저장된 답이 없으면 대체 질문으로, 그것도 없으면 건너뛴다(에이전트는 부르지 않는다).
+          const lastBefore = document.querySelector(UI.lastTurn)
           let ok = pin !== null && pin.received_at !== null && (await act.current.play(pin, scene.region))
           alive(run)
           if (!ok && fallback !== null && fallback.received_at !== null) {
@@ -425,11 +457,35 @@ export function useAutoDemo(actions: AutoDemoActions) {
             continue
           }
 
-          // 답 카드가 그려질 틈을 주고 그리로 굴린다.
+          // 답 카드가 그려질 틈을 주고 그리로 굴린다 — 새 답 칸이 생기고 본문이 그려질 때까지(최대 8초).
+          // 받아 둔 답도 「진행 중」 칸을 거쳐 1~2초 뒤에 놓인다. 먼저 굴리면 앞 답 칸에 머물러
+          // 첫 강조(답 본문)가 화면 밖에 남는다(2026-11-18 대전 장면 점검).
+          const placed = () => {
+            const last = document.querySelector(UI.lastTurn)
+            return !!last && last !== lastBefore && !!last.querySelector(`${UI.answerCard} ${UI.answerBody}`) && !last.querySelector(UI.answerRunning)
+          }
+          for (let left = 8000; left > 0 && !placed(); left -= 200) {
+            await new Promise((r) => window.setTimeout(r, 200))
+            alive(run)
+            if (run.skip) break
+          }
+          // 한눈 요약 카드는 답이 놓인 뒤 따로 만들어진다 — 만드는 중에 굴리면 다 만든 카드가 위에서 늘어나
+          // 짚은 곳이 화면 아래로 밀려난다(2026-11-18 대전 장면 점검). 최대 6초 기다린다.
+          for (let left = 6000; left > 0 && document.querySelector(`${UI.lastTurn} .sm-card--loading`); left -= 200) {
+            await new Promise((r) => window.setTimeout(r, 200))
+            alive(run)
+            if (run.skip) break
+          }
           await wait(500, run)
-          document
-            .querySelector(UI.lastTurn)
-            ?.scrollIntoView({ behavior: "smooth", block: "start" })
+          // 답 앞에 「자동 조회 데이터」 카드(유사재난 사례 그림 등)가 붙은 답은 그 카드가 한 화면을 차지해
+          // 한눈 요약·본문이 화면 아래로 밀린다 — 그때는 답 카드 머리로 굴린다(2026-11-18 대전 장면 점검).
+          // 그래도 한눈 요약이 화면 아래에 남으면(「시연 자료」 등이 길게 붙은 답) 요약 카드로 굴린다.
+          const lastTurn = document.querySelector(UI.lastTurn)
+          let target = lastTurn?.querySelector(".datacard") ? lastTurn.querySelector(UI.answerCard) : lastTurn
+          const sm = lastTurn?.querySelector(UI.summaryCard)
+          const view = document.querySelector(UI.scroll)
+          if (target && sm && view && sm.getBoundingClientRect().top - target.getBoundingClientRect().top > view.clientHeight - 240) target = sm
+          target?.scrollIntoView({ behavior: "smooth", block: "start" })
           await point(`${UI.lastTurn} ${UI.answerCard}`, false, run)
           if (!scene.steps) {
             if (scene.open) {

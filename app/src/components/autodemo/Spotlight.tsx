@@ -25,6 +25,19 @@ const Pad = 6
 /** 다시 재는 주기 — 부드럽게 구르는 중에도 따라가도록 짧게. */
 const TickMs = 200
 
+/**
+ * 우측 패널 안 요소를 감싼 가장 가까운 «굴림 영역»(overflow auto·scroll·hidden) — 패널 본문·표 굴림·대상 상세.
+ * 그 밖으로 굴러 나간 부분까지 테를 두르면 상자가 패널 위 머리말까지 올라간다(2026-11-18 대전 시연 점검).
+ */
+function scrollerOf(el: Element): Element | null {
+  // 우측 패널 안만 — AI 모드 창 등은 창 크기대로 둔다(창 본문으로 자르면 강조가 사라졌다).
+  if (!el.closest(".rpanel")) return null
+  for (let a = el.parentElement; a && a !== document.body; a = a.parentElement) {
+    if (/(auto|scroll|hidden|clip)/.test(getComputedStyle(a).overflowY)) return a
+  }
+  return null
+}
+
 function measure(names: string[]): Box[] {
   const vw = window.innerWidth
   const vh = window.innerHeight
@@ -36,8 +49,9 @@ function measure(names: string[]): Box[] {
     if (r.width === 0 || r.height === 0) return []
     // 보이는 만큼만 테를 두른다 — 화면 밖, 그리고 대화 영역 밖(질문 칸)은 잘라 낸다.
     // 대본이 직접 짚은 요소도 대화 영역 안이면 그 영역으로 자른다(아래 질문 칸을 덮지 않게).
+    // 그 밖의 요소(우측 패널·대상 상세 등)는 감싼 굴림 영역으로 자른다.
     const sel = Clip[n as FocusName] ?? (el.closest(UI.scroll) ? UI.scroll : undefined)
-    const c = sel ? document.querySelector(sel)?.getBoundingClientRect() : undefined
+    const c = sel ? document.querySelector(sel)?.getBoundingClientRect() : scrollerOf(el)?.getBoundingClientRect()
     const top = Math.max(4, c ? c.top + 2 : 0, r.top - Pad)
     const left = Math.max(4, c ? c.left + 2 : 0, r.left - Pad)
     const bottom = Math.min(vh - 4, c ? c.bottom - 2 : vh, r.bottom + Pad)
