@@ -197,7 +197,6 @@ const RefDetail = `${LastTurn} .ans-refbox .ans-lnk--xs`
 const MdTable = `${BodyBox} .md-table`
 const MdP = `${BodyBox} p`
 const MdText = `${BodyBox} li, ${BodyBox} p`
-const MdQuote = `${BodyBox} blockquote, ${BodyBox} p`
 /** 대상 상세(T3Q-15)의 속성 묶음과 칸(개발서버 .evd-record · .di-pill) */
 const DetailRecord = `${UI.detailPane} .evd-record, ${UI.detailPane} .ev-sec .kv`
 const DetailField = `${UI.detailPane} .di-pill, ${UI.detailPane} .kv > *`
@@ -590,8 +589,8 @@ export const AutoScript: AutoScene[] = [
         say: "본문 아래에는 기준 특보지점과 70퍼센트, 90퍼센트 대응수위가 정리되어 있습니다.",
       },
       {
-        scroll: { sel: MdQuote, text: "대응수위 참고" },
-        focus: [{ sel: MdQuote, text: "대응수위 참고" }],
+        scroll: { sel: MdText, text: "대응 기준" },
+        focus: [{ sel: MdText, text: "대응 기준" }],
         say: "수위가 어디까지 오르면 경계 조치를, 어디부터 통제와 주민 대피를 검토해야 하는지 대응 기준도 함께 확인합니다.",
       },
     ],
@@ -719,9 +718,11 @@ export const AutoScript: AutoScene[] = [
         say: "자치구별로 나눠 보면 서구와 유성구에 피해가 몰렸다는 것을 알 수 있습니다.",
       },
       {
-        scroll: { sel: MdTable, nth: 1 },
-        focus: [{ sel: MdTable, nth: 1 }],
-        say: "침수면적이 넓은 지구부터 위치와 평균 침수심, 침수 원인을 함께 정리해 줍니다.",
+        // 둘째 표(침수면적 상위 25곳)는 화면보다 길다 — 표 전체를 가운데로 굴리면 머리·첫 줄이 화면 밖에 남아(11/19 리허설)
+        // 머리줄과 첫 줄(가장 넓은 지구)을 짚는다. 머리줄 「평균 침수심」은 첫째 표에도 있어 둘째(nth 1)를 쓴다.
+        scroll: { sel: `${MdTable} tr`, text: "침산새들지구" },
+        focus: [{ sel: `${MdTable} tr`, text: "평균 침수심", nth: 1 }, { sel: `${MdTable} tr`, text: "침산새들지구" }],
+        say: "침수면적이 넓은 지구부터 침수면적과 평균 침수심, 발생일을 함께 정리해 줍니다. 가장 넓게 잠긴 곳은 침산새들지구입니다.",
       },
       {
         open: "map",
@@ -744,14 +745,15 @@ export const AutoScript: AutoScene[] = [
         say: "호우경보 대피 권고부터 산사태 경보, 교량 통제와 해제까지, 대피·통제 문자를 시간순으로 정리해 보여 줍니다.",
       },
       {
-        scroll: { sel: `${MdTable} tr`, text: "유등교 침하" },
-        focus: [{ sel: `${MdTable} tr`, text: "유등교 침하" }],
-        say: "아침에는 유등교 교각이 내려앉아 전면 통제와 우회 안내가 이어졌습니다.",
+        scroll: { sel: `${MdTable} tr`, text: "교각 침하" },
+        focus: [{ sel: `${MdTable} tr`, text: "교각 침하" }],
+        say: "아침부터 통제된 유등교는 오후에 교각 침하가 확인되어 전면 통제가 이어졌고, 도마교·태평교 우회가 안내되었습니다.",
       },
       {
-        scroll: { sel: `${BodyBox} ul`, text: "수록 도서" },
-        focus: [{ sel: `${BodyBox} ul`, text: "수록 도서" }],
-        say: "이 호우가 재해연보 어디에 실렸는지도 함께 알려 주어, 공식 피해 기록을 바로 찾아볼 수 있습니다.",
+        // 받아 둔 답(2026-11-19)의 「재해연보 수록 쪽수」 목록 — 「2024 재해연보 p.154」 등
+        scroll: { sel: `${BodyBox} ul`, text: "재해연보 p." },
+        focus: [{ sel: `${BodyBox} ul`, text: "재해연보 p." }],
+        say: "이 호우가 2024 재해연보 몇 쪽에 실렸는지도 함께 알려 주어, 공식 피해 기록을 바로 찾아볼 수 있습니다.",
       },
     ],
     outro: "지난 대응 기록은 다음 호우 때 무엇을 어떤 순서로 안내할지 준비하는 기준이 됩니다.",
@@ -764,13 +766,14 @@ export const AutoScript: AutoScene[] = [
     steps: [
       { focus: ["answer-summary", { sel: BodyBox }], say: "갑천·유등천·대전천을 따라 홍수취약지구와 침수 우려 지하차도를 하천별로 묶어 보여 줍니다." },
       {
-        scroll: { sel: MdText, text: "문창교" },
-        focus: [{ sel: MdText, text: "문창교" }],
-        say: "대전천 하상도로처럼 통제가 잦은 구간과 교량 아래 언더패스도 구간 단위로 짚어 줍니다.",
+        scroll: { sel: MdText, text: "대전천 하상도로(" },
+        focus: [{ sel: MdText, text: "대전천 하상도로(" }],
+        say: "대전천 하상도로처럼 수위가 조금만 올라도 잠겨 가장 먼저 통제해야 하는 구간도 짚어 줍니다.",
       },
       {
-        scroll: { sel: MdTable },
-        focus: [{ sel: MdTable }],
+        // 받아 둔 답에는 표가 없다 — 「주요 하천 수위 연계 통제 기준」 목록을 비춘다
+        scroll: { sel: `${BodyBox} ul`, text: "(복수교) (유등천)" },
+        focus: [{ sel: `${BodyBox} ul`, text: "(복수교) (유등천)" }],
         say: "하천마다 기준이 되는 수위 관측지점도 정리되어, 어느 지점의 수위를 지켜봐야 하는지 알 수 있습니다.",
       },
       {
