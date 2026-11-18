@@ -1144,3 +1144,15 @@ label.chk input { width: 18px; height: 18px; accent-color: var(--c-primary); }
 .wxbar .wxsop:hover { background: #ecf2fe; }
 .wxbar .wxsop.on, .wxbar .wxsop.on:hover { background: var(--c-navy); color: #fff; }
 .wxbar .wxsop:focus-visible { outline: 2px solid #256ef4; outline-offset: 2px; }
+
+/* 사용자 메뉴 — 개발서버 index.css .user-menu-* 그대로(2026-11-19) */
+.gh .user .user-menu-panel { position: absolute; top: calc(100% + 8px); right: 0; z-index: 60; width: 188px; padding: 8px; background: #fff; border: 1px solid #cdd1d5; border-radius: 8px; }
+.gh .user .user-menu-arrow { position: absolute; top: -7px; right: 24px; width: 12px; height: 12px; background: #fff; border-top: 1px solid #cdd1d5; border-left: 1px solid #cdd1d5; transform: rotate(45deg); }
+.gh .user .user-menu-top { padding: 8px 16px; border-bottom: 1px solid #cdd1d5; }
+.gh .user .user-menu-name { margin: 0; font-size: calc(19px * var(--fs-scale)); font-weight: 700; line-height: 1.47; color: #1e2124; word-break: break-all; }
+.gh .user .user-menu-list { padding: 8px 0; }
+.gh .user .user-menu-item { display: flex; align-items: center; width: 100%; height: 48px; padding: 0 16px; font: inherit; font-size: calc(17px * var(--fs-scale)); line-height: 1.53; color: #1e2124; text-align: left; background: none; border: 0; border-radius: 6px; cursor: pointer; }
+.gh .user .user-menu-item:hover { background: #f4f5f6; }
+.gh .user .user-menu-bottom { border-top: 1px solid #cdd1d5; }
+.gh .user .user-menu-logout { display: flex; align-items: center; justify-content: center; gap: 4px; width: 100%; height: 48px; font: inherit; font-size: calc(17px * var(--fs-scale)); line-height: 1.53; color: #1e2124; background: none; border: 0; cursor: pointer; }
+.gh .user .user-menu-logout:hover { background: #f4f5f6; }

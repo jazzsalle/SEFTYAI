@@ -273,19 +273,25 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             <span className="user-sep" aria-hidden="true">·</span>
             <span className="user-id">{account.id}</span>
           </button>
+          {/* 개발서버 UserMenu 그대로 — 이름·남은 시간 / 내 권한정보·비밀번호 변경·브리핑 설정 / 로그아웃(2026-11-19 「개발서버와 동일하게」, 연락망 메뉴 뺌) */}
           {menu && (
-            <div className="menu" onMouseLeave={() => setMenu(false)}>
-              <div className="mh">
-                <b className="s">{account.name}님</b>
-                <div className="xs muted">{account.org} {account.dept}</div>
-                {/* 로그아웃까지 남은 시간·[시간 연장](개발서버 UserMenu — R57) */}
+            <div className="user-menu-panel" role="menu" aria-label="내 정보" onMouseLeave={() => setMenu(false)}>
+              <span className="user-menu-arrow" aria-hidden="true" />
+              <div className="user-menu-top">
+                <p className="user-menu-name">{account.name || account.id}님</p>
                 <SessionCountdown expiresAt={expiresAt} onExtend={renew} />
               </div>
-              <Link href="/contacts" onClick={() => setMenu(false)}>연락망·상황전파</Link>
-              <button onClick={() => { setMenu(false); openBriefingSettings(); }}>브리핑 설정</button>
-              <button onClick={() => { setMenu(false); setModal("me"); }}>내 권한 정보</button>
-              <button onClick={() => { setMenu(false); setModal("pw"); }}>비밀번호 변경</button>
-              <button onClick={async () => { await logout(); router.push("/login"); }}>로그아웃</button>
+              <div className="user-menu-list">
+                <button type="button" role="menuitem" className="user-menu-item" onClick={() => { setMenu(false); setModal("me"); }}>내 권한정보</button>
+                <button type="button" role="menuitem" className="user-menu-item" onClick={() => { setMenu(false); setModal("pw"); }}>비밀번호 변경</button>
+                <button type="button" role="menuitem" className="user-menu-item" onClick={() => { setMenu(false); openBriefingSettings(); }}>브리핑 설정</button>
+              </div>
+              <div className="user-menu-bottom">
+                <button type="button" role="menuitem" className="user-menu-logout" onClick={async () => { await logout(); router.push("/login"); }}>
+                  <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="M8 3.5H4.5v13H8" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" /><path d="M11.5 6.8 14.7 10l-3.2 3.2M14.2 10H8" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                  로그아웃
+                </button>
+              </div>
             </div>
           )}
         </div>
