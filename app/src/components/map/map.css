@@ -277,3 +277,40 @@ div.mapwrap .map-note { top: auto; bottom: 40px; }
 /* 「지도 표시」 갈래 체크 */
 .map-layerpanel .map-layers-item { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
 .map-layerpanel .map-layers-item input { accent-color: #256ef4; }
+
+/* ── 범례 — 지도 위 가로 띠(개발서버 styles/renewal/mapPoc.css 「우리 쪽 덮어쓰기」 그대로 · 2026-11-19 사용자 지시) ── */
+.map-pane { flex: none; container: map-pane / inline-size; }
+.map-pane .mlp {
+  position: relative; left: auto; top: auto; z-index: 2;
+  width: auto; max-width: none; max-height: none;
+  flex-direction: row; align-items: stretch; flex-wrap: wrap;
+  margin: 0; border-radius: 0;
+  box-shadow: 0 2px 10px rgba(11, 30, 58, 0.08);
+}
+.map-pane .mlp-hd {
+  flex-direction: column; align-items: flex-start; justify-content: center; gap: 4px;
+  padding: 10px 12px; min-width: 112px; border-radius: 0;
+}
+.map-pane .mlp-total { margin-left: 0; }
+.map-pane .mlp-filter { flex-basis: 100%; order: 3; border-bottom: 0; border-top: 1px solid #f3e2b3; }
+.map-pane .mlp-list {
+  flex: 1 1 0; min-width: 0; display: flex; flex-wrap: wrap; align-content: center; gap: 4px 6px;
+  padding: 6px; overflow: visible;
+}
+.map-pane .mlp-item { flex: 1 1 220px; max-width: 360px; min-width: 0; }
+.map-pane .mlp-item + .mlp-item { margin-top: 0; }
+.map-pane .mlp-subs { padding-left: 49px; }
+.map-pane .mlp-keys {
+  flex-direction: column; justify-content: center; gap: 4px;
+  border-top: 0; border-left: 1px solid #edf0f4; padding: 8px 12px;
+}
+.map-pane .mlp-strip { flex: 1; align-items: center; padding: 8px; }
+@container map-pane (max-width: 560px) {
+  .map-pane .mlp-keys { flex-direction: row; flex-wrap: wrap; flex-basis: 100%; border-left: 0; border-top: 1px solid #edf0f4; }
+}
+.map-pane .mlp-toggle {
+  border: 0; padding: 0; background: none; color: inherit; font: inherit; font-size: calc(13.5px * var(--fs-scale)); font-weight: 800; cursor: pointer;
+}
+.map-pane .mlp-toggle:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.map-pane .mlp-chev { flex: none; transition: transform 0.15s; }
+.map-pane .mlp.folded .mlp-chev { transform: rotate(-90deg); }

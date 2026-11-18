@@ -9,7 +9,7 @@ import { baseKey, basePilot, baseWire, defaultBase, type BaseRegion } from "./ba
 import { presetCondition, wireCondition, type CondPreset } from "./library";
 
 /** 지난 상황으로 보관할 때 함께 보내는 화면 정보 (조치 이름·단계 — 누가·언제는 서버 값) */
-export interface CheckArchiveMeta { title?: string; note?: string; labels?: Record<string, { label: string; step: string }> }
+export interface CheckArchiveMeta { title?: string; note?: string; labels?: Record<string, { label: string; step: string }>; /** false = 보관 없이 비움(자동 시연) */ archive?: boolean }
 export interface CheckHistory { id: string; title: string; note: string; startedAt: string | null; endedAt: string; by: string; items: { key: string; label: string; step: string; by: string; at: string }[] }
 
 /** 대화의 한 턴 — 답은 작업(jobId)의 T3Q 원응답에서 읽는다(중복 저장 없음, DB 설계 §3) */

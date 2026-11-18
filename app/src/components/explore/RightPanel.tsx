@@ -168,6 +168,13 @@ function MapPanel(p: Props) {
   };
   const nPicked = p.pickedIds?.size ?? 0;
   return (
+    <>
+    {/* 지도 범례 — 개발서버처럼 지도 위 가로 띠(지도를 덮지 않음 · 2026-11-19 사용자 지시). 표시한 대상이 있을 때, 요약 보기 중에는 숨김 — 곳 수는 지도에 그린 대상을 종류별로 센 범례 표시(R25) */}
+    {shown.length > 0 && layers.features && !summaryOn && (
+      <div className="map-pane">
+        <MapLegendPanel features={shown} filter={filter} onFilter={setFilter} boundary={layers.boundary} dimOthers={false} />
+      </div>
+    )}
     <div className="mapwrap">
       <MapView
         region={cond.region}
@@ -257,10 +264,7 @@ function MapPanel(p: Props) {
           {nPicked > 0 && <span className="map-pickmode-count">{nPicked}</span>}
         </label>
       )}
-      {/* 지도 위 범례 카드(표시한 대상이 있을 때, 요약 보기 중에는 숨김) — 곳 수는 지도에 그린 대상을 종류별로 센 범례 표시(R25) */}
-      {shown.length > 0 && layers.features && !summaryOn && (
-        <MapLegendPanel features={shown} filter={filter} onFilter={setFilter} boundary={layers.boundary} dimOthers={false} />
-      )}
     </div>
+    </>
   );
 }

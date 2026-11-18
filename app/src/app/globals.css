@@ -435,7 +435,8 @@ label.chk input { width: 18px; height: 18px; accent-color: var(--c-primary); }
 .rtab .x { border: 0; background: none; color: var(--c-dis); font-size: calc(14px * var(--fs-scale)); padding: 0 2px; line-height: 1; }
 .rtab .x:hover { color: var(--c-text); }
 .rbody { flex: 1; min-height: 0; overflow-y: auto; position: relative; }
-.rbody.map { overflow: hidden; }
+.rbody.map { overflow: hidden; display: flex; flex-direction: column; }
+.rbody.map > .mapwrap { position: relative; inset: auto; flex: 1; min-height: 0; }
 /* 한눈 요약 — 둘레 여백은 개발서버 panel-body(1.6rem)가 준다. 요약 CSS 는 그 여백을 전제로 옮겨 왔다 */
 .rbody.summary { padding: 16px; }
 .dpane { padding: 22px 24px 32px; }

@@ -30,6 +30,10 @@ export function useExploreAutoDemo(p: {
   const pRef = useRef(p);
   pRef.current = p;
 
+  // 대응절차 체크는 기관 공용으로 남는다 — 시연이 끝나면(끝까지·중지) 비워 다음 시연을 같은 상태로 시작한다(사용자 지시 2026-11-19)
+  const clearSop = () => {
+    sRef.current.resetChecks("sop:", { archive: false }).catch(() => {})
+  }
   const demo = useAutoDemo({
     list: async () => {
       const [pins, aims] = await Promise.all([
@@ -63,7 +67,10 @@ export function useExploreAutoDemo(p: {
       return true;
     },
     closeAiMode: () => autoDemoBus.set({ aimOpen: false }),
-    cleanup: () => autoDemoBus.clear(),
+    cleanup: () => {
+      autoDemoBus.clear()
+      clearSop()
+    },
     layout: () => pRef.current.layout(),
     open: (what) => pRef.current.open(what),
   });
@@ -78,6 +85,8 @@ export function useExploreAutoDemo(p: {
   const [picking, setPicking] = useState(false);
   const choose = useCallback((id: DemoScenarioId) => {
     setPicking(false);
+    // 앞 시연이 중간에 창을 닫아 남은 체크도 비우고 시작한다
+    sRef.current.resetChecks("sop:", { archive: false }).catch(() => {});
     void startRef.current(id);
   }, []);
   const cancelPick = useCallback(() => setPicking(false), []);

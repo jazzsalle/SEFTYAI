@@ -77,11 +77,17 @@ export async function checkSet(scope: string, key: string, done: boolean, who: A
   else await sql.query("delete from sa_checks where scope = $1 and key = $2", [scope, key]);
 }
 /** 비울 때 함께 받는 화면 정보 — 조치 이름·단계는 그때의 매뉴얼 기준으로 남김 (누가·언제는 서버 값) */
-export interface CheckArchiveMeta { title?: string; note?: string; labels?: Record<string, { label?: string; step?: string }> }
+export interface CheckArchiveMeta { title?: string; note?: string; labels?: Record<string, { label?: string; step?: string }>; /** false = 보관 없이 비움(자동 시연 초기화) */ archive?: boolean }
 
 /** 새 상황으로 시작 — 기관 체크를 지난 상황으로 보관한 뒤 모두 비움 (관리로그에 남김) */
 export async function checksReset(scope: string, who: Account, prefix?: string, meta: CheckArchiveMeta = {}) {
   await ensureSchema();
+  if (meta.archive === false) {
+    // 자동 시연이 끝날 때·시작할 때 — 시연 체크를 지난 상황에 쌓지 않고 비운다(사용자 지시 2026-11-19)
+    const d = (await db().query("delete from sa_checks where scope = $1 and ($2::text is null or key like $2 || '%') returning key", [scope, prefix ?? null])) as Row[];
+    await audit(scope.startsWith("org:") ? scope.slice(4) : null, who.id, "대응절차 체크 비움(자동 시연)", { scope, prefix: prefix ?? null, cleared: d.length });
+    return d.length;
+  }
   const labels: Record<string, { label: string; step: string }> = {};
   for (const [k, v] of Object.entries(meta.labels ?? {}).slice(0, 2000)) labels[k.slice(0, 300)] = { label: String(v?.label ?? "").slice(0, 300), step: String(v?.step ?? "").slice(0, 40) };
   // 지우기와 보관을 한 문장으로 — 중간에 끊겨도 체크만 사라지는 일이 없게

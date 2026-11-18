@@ -7,7 +7,7 @@
  * - 좁은 지도(휴대폰)에서는 접힌 채로 시작 — 접으면 기호와 곳 수만 한 줄로.
  */
 import "./map.css";
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { useMemo, useRef, useState, type CSSProperties } from "react";
 import type { MapFeature } from "./MapView";
 import {
   LEGEND, filterKey, glyphDataUri, isApproxPrecision, isRangePrecision, lookOf, pinDataUri, shade,
@@ -50,11 +50,7 @@ export interface MapLegendPanelProps {
 export default function MapLegendPanel({ features, filter, onFilter, boundary, dimOthers }: MapLegendPanelProps) {
   const box = useRef<HTMLElement>(null);
   const [open, setOpen] = useState(true);
-  // 좁은 지도에서는 접어서 시작 (처음 한 번)
-  useEffect(() => {
-    const w = box.current?.parentElement?.clientWidth ?? 0;
-    if (w && w < 560) setOpen(false);
-  }, []);
+  // 지도 위 가로 띠라 좁아도 펼친 채로 시작한다(개발서버와 같음). 접기는 사람이 고른다.
 
   const { groups, total, approx, range } = useMemo(() => {
     const byId = new Map<string, Group>();
@@ -99,14 +95,12 @@ export default function MapLegendPanel({ features, filter, onFilter, boundary, d
   return (
     <section ref={box} className={`mlp${open ? "" : " folded"}`} aria-label="지도 범례">
       <header className="mlp-hd">
-        <span className="mlp-ttl">
-          <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 4l4-1.8 5 1.8 4-1.8v9.8l-4 1.8-5-1.8-4 1.8z" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" /><path d="M5.5 2.2v9.8M10.5 4v9.8" stroke="currentColor" strokeWidth="1.5" /></svg>
+        {/* 개발서버처럼 제목 앞 꺾쇠로 접기·펼치기(따로 떠 있던 단추가 글자를 가렸다) */}
+        <button type="button" className="mlp-ttl mlp-toggle" onClick={() => setOpen((v) => !v)} aria-expanded={open} aria-label={open ? "범례 접기" : "범례 펼치기"}>
+          <svg className="mlp-chev" width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M3 5.5l4 4 4-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
           지도 범례
-        </span>
-        <span className="mlp-total">지도 표시 <b>{total}</b>곳</span>
-        <button type="button" className="mlp-fold" onClick={() => setOpen((v) => !v)} aria-expanded={open} aria-label={open ? "범례 접기" : "범례 펼치기"}>
-          <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M3 5.5l4 4 4-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
         </button>
+        <span className="mlp-total">지도 표시 <b>{total}</b>곳</span>
       </header>
 
       {/* 접었을 때 — 기호와 곳 수만 한 줄 (눌러도 거르기) */}

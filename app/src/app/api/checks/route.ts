@@ -33,6 +33,7 @@ export async function DELETE(req: Request) {
     title: typeof body.title === "string" ? body.title : undefined,
     note: typeof body.note === "string" ? body.note : undefined,
     labels: body.labels && typeof body.labels === "object" ? body.labels : undefined,
+    archive: body.archive === false ? false : undefined,
   };
   const n = await checksReset(checkScope(who), who, typeof body.prefix === "string" ? body.prefix.slice(0, 200) : undefined, meta);
   return json({ cleared: n });
