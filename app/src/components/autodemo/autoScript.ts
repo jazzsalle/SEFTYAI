@@ -120,11 +120,14 @@ export const DefaultDwellMs = 3000
 export const UI = {
   /** 우측 패널(개발서버 .side-panel) */
   panel: ".rpanel",
-  /** 대화 칸 — 강조를 이 안으로 자른다(개발서버 .search-scroll) */
-  scroll: ".ex-main .thread",
-  /** 대화의 턴들(개발서버 .answer-turns > li) — 질문 한 턴·브리핑 묶음 하나가 section 하나 */
-  turns: ".ex-main .thread > section",
-  lastTurn: ".ex-main .thread > section:last-of-type",
+  /**
+   * 대화 칸의 구르는 곳 — 강조를 이 안으로 자른다(개발서버 .search-scroll · .answer-turns).
+   * 가운데 칸은 하나만 보인다(개발서버 SearchPage): 대화면 턴 목록(.thread-turns)만 구르고, 브리핑이면 칸(.thread--brief) 전체가 구른다
+   */
+  scroll: ".ex-main .thread-turns, .ex-main .thread--brief",
+  /** 대화의 턴들(개발서버 .answer-turns > li) — 질문 한 턴이 section 하나, 브리핑 화면은 브리핑 묶음이 section 하나 */
+  turns: ".ex-main :is(.thread-turns, .thread--brief) > section",
+  lastTurn: ".ex-main :is(.thread-turns, .thread--brief) > section:last-of-type",
   /** 답 카드·본문·받는 중(개발서버 .answer-card · .answer-md · .answer-running) */
   answerCard: ".acard.ans",
   answerBody: ".md",
@@ -188,8 +191,8 @@ const MapArea = "@map:area"
 const PopDetail = ".sa-map-pop .mp-btn.pri:not(:disabled)"
 /** 답 글 속 이름(상세 탭을 만들고 지도로 옮겨 감 — 개발서버 .answer-md-entity) */
 const Entity = `${LastTurn} .ref-link`
-/** 답변 대상 목록의 [상세 보기](개발서버 .ans-lnk--xs) */
-const RefDetail = `${LastTurn} .refbox .ref-detail`
+/** 답변 대상 목록의 [상세 보기](개발서버 .ans-refbox .ans-lnk--xs) */
+const RefDetail = `${LastTurn} .ans-refbox .ans-lnk--xs`
 /** 답 글의 표·문단·인용 */
 const MdTable = `${BodyBox} .md-table`
 const MdP = `${BodyBox} p`
@@ -206,10 +209,10 @@ const EventTimeline = ".ev-tl-list"
 const AimBrief = UI.aimBrief
 const AimBriefGo = `${UI.aimBrief} .btn`
 /** 답이 온 브리핑 항목의 [크게 보기](개발서버 .briefing-item.is-done .briefing-item-open) · 브리핑 묶음 */
-const BriefDone = ".brief-item .brief-item-tools .btn.line"
+const BriefDone = ".briefing-item.is-done .briefing-item-open"
 /** 「통제·대피 대상」 항목의 [크게 보기](aria-label 「3번 통제·대피 대상 크게 보기」) */
-const BriefControl = '.brief-item .brief-item-tools .btn.line[aria-label*="통제·대피"]'
-const BriefBlock = ".ex-main .thread > section.brief-block:last-of-type"
+const BriefControl = '.briefing-item-open[aria-label*="통제·대피"]'
+const BriefBlock = ".ex-main .thread--brief > section.brief-block:last-of-type"
 /** 재난상황 조건 창(개발서버 ConditionModal) — [조건 변경]·[적용]·[기본 조건으로 되돌리기] */
 const CondOpen = ".composer .cmp-cond .lnk"
 const CondApply = ".cond-modal .modal-f .btn.primary"
@@ -439,9 +442,8 @@ export const AutoScript: AutoScene[] = [
       {
         click: { sel: BriefControl },
         orElse: [{ click: { sel: BriefDone } }],
-        // 크게 본 항목은 브리핑 묶음 안의 .brief-item — 답 카드(.acard.ans)가 아니라 「answer」로는 비었다(2026-11-18 점검).
-        // 답이 늦어 크게 열지 못했어도 묶음 속 그 항목을 짚는다.
-        focus: [{ sel: ".brief-item:not([hidden])", text: "통제하거나" }],
+        // 크게 본 항목은 브리핑 묶음 안의 .brief-big(개발서버 BriefingAnswer) — 답 카드(.acard.ans)가 아니라 「answer」로는 비었다(2026-11-18 점검).
+        focus: [{ sel: ".brief-big" }],
         say: "그중 통제·대피 대상을 크게 열어, 통제가 필요한 도로와 지하차도를 확인합니다.",
         wait: 800,
       },

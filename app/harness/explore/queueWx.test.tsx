@@ -92,7 +92,8 @@ describe("특보 줄 — 5초 자동 넘김(개발 서버 AlertBanner, 2026-11-0
     const bar = c.querySelector(".wxbar")!;
     const order = wxRotation(mine(null));
     expect(order).toHaveLength(WX_ROTATE_MAX);
-    expect(bar.querySelector(".tit")!.textContent).toBe(`특보 ${mine(null).length}건 발효 중 · ${order[0].area} ${wxLabel(order[0])}`);
+    // 구분점은 따로 그린 「·」(개발서버 alert-banner-sep — 좌우 여백은 CSS)
+    expect(bar.querySelector(".tit")!.textContent).toBe(`특보 ${mine(null).length}건 발효 중·${order[0].area} ${wxLabel(order[0])}`);
     expect(bar.querySelector(".wxat")!.textContent).toBe("1 / 5");
     expect(bar.querySelector(".more")).toBeNull();
   });
@@ -131,7 +132,7 @@ describe("특보 줄 — 자동 넘김 동작(개발 서버 AlertBanner AlertRot
   const reduce = (on: boolean) => {
     vi.stubGlobal("matchMedia", (q: string) => ({ matches: on && q.includes("reduce"), media: q, addEventListener: () => {}, removeEventListener: () => {} }));
   };
-  const area = () => document.querySelector(".wxbar .tit")!.textContent!.split(" · ")[1];
+  const area = () => document.querySelector(".wxbar .tit")!.textContent!.split("·")[1];
   const pos = () => document.querySelector(".wxbar .wxat")!.textContent;
   const tick = (n = 1) => act(() => vi.advanceTimersByTime(WX_ROTATE_MS * n));
   afterEach(() => {

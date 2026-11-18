@@ -1,13 +1,19 @@
 /* 지도 (MapView · MapPopup · MapLegendPanel · MapLegend) 전용 — globals.css 와 독립. 색은 KRDS 토큰 값(primary #256EF4 · text #1E2124 · 회색 계열). */
 
-.sa-map { position: absolute; inset: 0; overflow: hidden; background: #e9eef3; }
+.sa-map { position: absolute; inset: 0; overflow: hidden; background: #e9ecef; } /* 배경지도를 못 받아도 회색 바탕 위에 표식이 남는다(개발서버 .map-canvas) */
 .sa-map-canvas { position: absolute; inset: 0; }
 
-/* 화면 낭독기 전용 지도 대체정보 (908001) */
+/* 지도 대체정보 (908001 · 개발서버 .map-alt) — 숨기되 초점이 들어오면 드러낸다(읽어만 주고 누를 수 없으면 막힌 화면이다) */
 .sa-map-sr {
-  position: absolute !important; width: 1px; height: 1px; margin: -1px; padding: 0; border: 0;
+  position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; border: 0;
   overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
 }
+.sa-map-sr:focus-within {
+  position: static; width: auto; height: auto; margin: 0; padding: 12px;
+  overflow: visible; clip: auto; clip-path: none; white-space: normal; background: #f8f9fa; border-radius: 6px;
+}
+.sa-map-sr h3 { margin: 0 0 4px; font-size: calc(14px * var(--fs-scale)); line-height: calc(22px * var(--fs-scale)); }
+.sa-map-sr p { margin: 0 0 6px; font-size: var(--fs-xs); line-height: calc(20px * var(--fs-scale)); color: #464c53; }
 
 /* 호버 툴팁 — 이름 · 유형 · 위치 정밀도 (--c = 종류 색) */
 .sa-map-tip {
@@ -190,9 +196,6 @@
 .k-bnd { width: 16px; height: 0; border-top: 2px dashed #5d6c8c; }
 .k-dim { width: 10px; height: 10px; border-radius: 50%; background: #063a74; opacity: 0.4; }
 
-/* 범례 카드가 왼쪽 위를 쓰므로 배경지도 안내는 아래로 */
-div.mapwrap .map-note { top: auto; bottom: 40px; }
-
 @media (max-width: 760px) {
   .mlp { left: 8px; top: 8px; max-width: calc(100% - 72px); }
   .mlp-row { padding: 9px 8px 10px; }
@@ -201,11 +204,6 @@ div.mapwrap .map-note { top: auto; bottom: 40px; }
 @media (prefers-reduced-motion: reduce) {
   .mp-card, .mlp, .sa-map-tip { animation: none; }
 }
-
-/* OpenLayers 기본 컨트롤 자리 (ol/ol.css 위에 덮어씀) */
-.sa-map .ol-scale-line { left: 12px; right: auto; bottom: 12px; padding: 2px 4px; background: rgba(255, 255, 255, 0.9); border: 1px solid #cdd1d5; border-radius: 4px; }
-.sa-map .ol-scale-line-inner { border-color: #464c53; color: #464c53; font-size: calc(11px * var(--fs-scale)); }
-.sa-map .ol-attribution { font-size: calc(11px * var(--fs-scale)); }
 
 /* 범례 (지도 아래 · 읽기 전용 · 표시된 종류만 · 넘치면 줄바꿈)
    바탕·테두리·여백은 감싸는 쪽(지도 아래 띠)이 정한다 — 여기서는 줄 배치만. */
@@ -224,36 +222,15 @@ div.mapwrap .map-note { top: auto; bottom: 40px; }
 .sa-lg-dim { opacity: 0.45; }
 .sa-lg-note { color: #464c53; font-size: var(--fs-xs); }
 
-/* 일반 ↔ 위성 단추 (개발 서버 MapPane .map-sat) — 오른쪽 아래 확대·축소 묶음(.map-zoom, 아래 56px · 32px 단추 둘) 바로 위 */
-.sa-map-sat {
-  position: absolute; right: 12px; bottom: 132px; z-index: 6;
-  display: inline-flex; align-items: center; gap: 4px; height: 32px; padding: 0 9px 0 7px;
-  border: 1px solid #cdd1d5; border-radius: 6px; background: #fff; color: #464c53;
-  font: inherit; font-size: var(--fs-xs); font-weight: 700; cursor: pointer; box-shadow: 0 2px 6px rgba(11, 30, 58, 0.1);
-}
-.sa-map-sat:hover { background: #f4f5f6; }
-.sa-map-sat:focus-visible { outline: 2px solid #256ef4; outline-offset: 2px; }
-.sa-map-sat.is-on { border-color: #256ef4; background: #256ef4; color: #fff; }
-.sa-map-sat.is-on:hover { background: #0b50d0; }
-.sa-map-sat:disabled { opacity: 0.5; cursor: not-allowed; }
-
-/* 위성지도를 못 불러와 일반지도로 돌아왔다는 안내 한 줄 — 아래 가운데, 주의는 노랑 */
-.sa-map-msg {
-  position: absolute; left: 50%; bottom: 52px; z-index: 6; transform: translateX(-50%);
-  max-width: calc(100% - 120px); margin: 0; padding: 6px 12px; border: 1px solid #f5dea0; border-radius: 6px;
-  background: #fff3db; color: #8a5c00; font-size: calc(12.5px * var(--fs-scale)); font-weight: 600; line-height: 1.45; word-break: keep-all;
-  box-shadow: 0 2px 6px rgba(11, 30, 58, 0.1); animation: sa-map-in 0.14s ease-out both;
-}
 
 /* ── 개발 서버 MapPane 이식(2026-11-06) — 치수는 개발 서버 rem × 10 = px ── */
 
 /* 상세가 없으면 「상세 보기」 회색 */
 .mp-btn:disabled, .mp-btn.pri:disabled { border-color: #cdd1d5; background: #f4f5f6; color: #8a949e; cursor: not-allowed; transform: none; }
 
-/* 알림 — 지도 영역 맨 위(설계 슬라이드 58·59). 주의는 노랑 */
-.sa-map-notices { position: absolute; left: 12px; right: 56px; top: 54px; z-index: 7; display: flex; flex-direction: column; gap: 6px; pointer-events: none; }
+/* 알림 — 지도 영역 맨 위, 범례 띠 위에 흐름대로(개발서버 .map-notice · 설계 슬라이드 58·59). 주의는 노랑 */
 .sa-map-notice {
-  display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; pointer-events: auto;
+  flex: none; display: flex; flex-direction: column; gap: 2px; margin: 12px 16px; padding: 10px 12px;
   font-size: var(--fs-xs); line-height: calc(20px * var(--fs-scale)); color: #8a4b00; background: #fff7e6; border: 1px solid #ffd08a; border-radius: 6px;
 }
 .sa-map-loading {
@@ -274,17 +251,52 @@ div.mapwrap .map-note { top: auto; bottom: 40px; }
   min-width: 18px; padding: 0 5px; font-size: var(--fs-2xs); font-weight: 700; line-height: calc(18px * var(--fs-scale)); text-align: center;
   color: #fff; background: #0b50d0; border-radius: 9px;
 }
-/* 「지도 표시」 갈래 체크 */
-.map-layerpanel .map-layers-item { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
-.map-layerpanel .map-layers-item input { accent-color: #256ef4; }
+
+/* 확대·축소 (설계 6·7 · 개발서버 index.css .map-zoom + renewal/map.css) — 오른쪽 아래, 맨 위는 위성 단추(한 칸 떼어 둠) */
+.map-zoom { position: absolute; right: 10px; bottom: 10px; z-index: 6; display: flex; flex-direction: column; gap: 2px; }
+.map-zoom button {
+  width: 30px; height: 30px; padding: 0; font-family: inherit; font-size: calc(16px * var(--fs-scale)); line-height: 1;
+  color: #131416; background: #fff; border: 1px solid var(--c-bd); border-radius: 6px; cursor: pointer;
+}
+.map-zoom button:hover { background: #f4f5f6; }
+.map-zoom button:focus-visible { outline: 2px solid #256ef4; outline-offset: 2px; }
+.map-zoom .map-sat { display: grid; place-items: center; margin-bottom: 8px; color: #464c53; }
+.map-zoom .map-sat.is-on { border-color: #256ef4; background: #256ef4; color: #fff; }
+.map-zoom .map-sat.is-on:hover { background: #0b50d0; }
+
+/* 지도 표시 (SCR-UNE-207002 · 개발서버 index.css .map-layers + renewal/map.css) — 오른쪽 위 단추와 그 아래 팝오버 */
+.map-layers { position: absolute; top: 12px; right: 12px; z-index: 800; }
+.map-layers-btn {
+  display: inline-flex; align-items: center; gap: 4px; height: 30px; padding: 0 10px; font-family: inherit;
+  font-size: var(--fs-xs); font-weight: 600; color: var(--c-text); background: #fff;
+  border: 1px solid var(--c-bd); border-radius: 6px; box-shadow: 0 2px 6px rgba(30, 33, 36, 0.12); cursor: pointer;
+}
+.map-layers-btn svg { width: 14px; height: 14px; }
+.map-layers-panel {
+  position: absolute; top: calc(100% + 8px); right: 0; display: flex; flex-direction: column; gap: 12px;
+  min-width: 260px; margin: 0; padding: 16px; background: #fff; border: 1px solid var(--c-bd); border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(30, 33, 36, 0.16);
+}
+.map-layers-item {
+  display: flex; align-items: center; gap: 8px; font-size: var(--fs-s); line-height: calc(22px * var(--fs-scale));
+  color: #1e2124; white-space: nowrap; cursor: pointer;
+}
+.map-layers-item input[type="checkbox"] {
+  position: static; flex: none; width: 16px; height: 16px; margin: 0; opacity: 1; clip: auto; clip-path: none;
+  appearance: auto; accent-color: #256ef4; cursor: pointer;
+}
+
+/* ── 지도 영역 (SCR-UNE-207001 · 개발서버 MapPane) — .map-pane 하나 안에 알림 → 범례 띠 → 지도 칸 → 지도 대체정보 ── */
+.map-pane { display: flex; flex: 1; flex-direction: column; min-height: 0; container: map-pane / inline-size; }
+/* 남는 높이를 모두 지도가 가져간다. 쌓임 순서는 지도 칸 안에 가둔다(개발서버 .map-canvas-wrap) */
+.map-pane > .mapwrap, .map-pane > .olmap { position: relative; inset: auto; flex: 1; min-height: 0; isolation: isolate; }
 
 /* ── 범례 — 지도 위 가로 띠(개발서버 styles/renewal/mapPoc.css 「우리 쪽 덮어쓰기」 그대로 · 2026-11-19 사용자 지시) ── */
-.map-pane { flex: none; container: map-pane / inline-size; }
 .map-pane .mlp {
   position: relative; left: auto; top: auto; z-index: 2;
   width: auto; max-width: none; max-height: none;
   flex-direction: row; align-items: stretch; flex-wrap: wrap;
-  margin: 0; border-radius: 0;
+  margin: 0 0 8px; border-radius: 0;
   box-shadow: 0 2px 10px rgba(11, 30, 58, 0.08);
 }
 .map-pane .mlp-hd {

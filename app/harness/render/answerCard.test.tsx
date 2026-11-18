@@ -1,7 +1,6 @@
 // @vitest-environment jsdom
-// 하네스 — 답변 카드(R25 적용 범위): 센 값·설명 문구 없음 · 처리 시간(제공처 meta.elapsed_ms) · 받은 시각 문자열 그대로 ·
-// 경고·정보 부족 바로가기(개수 없음, 알림은 제자리) · C9 받은 뒤 특보(주의일 때만 — 답을 받은 때 발효 중이던 특보 목록에 없던 것) ·
-// D5 재사용(받은 시각·지난 시간·받은 뒤 특보 바뀜·새로 받기, 받은 시각을 모르면 시각 없이) · C3 종류 거르기(개수 없음) · C10 복사 · 진행 중 경과 시계
+// 하네스 — 답변 카드: 개발서버 AnswerPanel(DoneAnswer · TurnAnswer · AnswerTools · AnswerTargets)과 같은 모양·순서(2026-11-19) ·
+// 받지 못한 답(answer-error) · 답변 대상 N곳 · 대상지역 N건 · 경고 목록 · 복사(툴바 안 글) · 진행 중 경과 시계 · 도우미(받은 뒤 특보 판정 등)
 // npx vitest run harness/render
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import type { ReactNode } from "react";
@@ -17,9 +16,15 @@ const session = vi.hoisted(() => ({
   medianMs: 95_000,
 }));
 vi.mock("@/lib/session", () => ({ useSession: () => session }));
+// 한눈 요약(답변 대상 상자의 갈래) — 서버 조회 없이 정해 둔 요약으로. 압축 카드는 따로 시험한다
+const summaryState = vi.hoisted(() => ({ value: { kind: "none" } as unknown }));
+vi.mock("@/components/summary/useSummary", () => ({ useSummary: () => summaryState.value }));
+vi.mock("@/components/summary/CompactSummary", () => ({ default: () => null }));
 
 import AnswerCard, { advisoriesAfter, fmtYmdHm, regionOfRequest, seenAdvisories } from "@/components/answer/AnswerCard";
 import { kmaAdvId, legacyAdvIds } from "@/lib/wxMatch";
+import { basisTime } from "@/lib/summary";
+import { hideDbNames } from "@/lib/answerText";
 
 /** 이 컴퓨터 시간대의 2026-10-28 h:m → ISO(시간대와 무관하게 화면 글자를 맞추려고) */
 const local = (h: number, m: number, day = 28) => new Date(2026, 9, day, h, m).toISOString();
@@ -30,6 +35,11 @@ const refs: T3qRef[] = [
   { ref: "r2", entity_type: "REGION", display_name: "범일2", map: { key: "k", value: "2", draw: "polygon" } },
   { ref: "r3", entity_type: "RISK_FACTOR", display_name: "문현지하차도", map: { key: "k", value: "3", draw: "point" } },
 ];
+/** 한눈 요약 — 지하차도 둘 + 기타 하나 */
+const SUMMARY = {
+  kind: "ok",
+  summary: { total: 3, groups: [{ short: "지하차도", rows: [{ id: "s1", name: "초량제1지하차도", ref: refs[0] }, { id: "s3", name: "문현지하차도", ref: refs[2] }] }], others: [{ id: "s2", name: "범일2", ref: refs[1] }] },
+};
 const ANSWER = "### 결론\n\n부산 **도심 저지대)**입니다. [초량제1지하차도](#ref:r1) · [범일2](#ref:r2) · [문현지하차도](#ref:r3)\n\n| 구분 | 길이 |\n|---|---|\n| 가<br>나 | 125m |";
 
 function makeRaw(over: Partial<AgentEnvelope> = {}): AgentEnvelope {
@@ -63,8 +73,9 @@ const wrap = (ui: ReactNode) => render(<ExploreContext.Provider value={x}>{ui}</
 const writeText = vi.fn((t: string) => Promise.resolve(t));
 
 beforeEach(() => {
-  x = { openCitation: vi.fn(), openDetail: vi.fn(), showOnMap: vi.fn(), openEntity: vi.fn(), selectOnMap: vi.fn(), showSummary: vi.fn(), selectedKey: null, followUp: vi.fn(), retry: vi.fn() };
+  x = { openCitation: vi.fn(), openDetail: vi.fn(), showOnMap: vi.fn(), openEntity: vi.fn(), selectOnMap: vi.fn(), showSummary: vi.fn(), selectedKey: null, retry: vi.fn() };
   session.weather = null;
+  summaryState.value = { kind: "none" };
   session.toast.mockClear();
   writeText.mockClear();
   Object.defineProperty(navigator, "clipboard", { value: { writeText }, configurable: true });
@@ -75,15 +86,24 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
-describe("답변 카드 — 받은 값만, 센 값·설명 없음", () => {
-  it("머리: 기준 시각은 받은 문자열 그대로, 처리 시간은 제공처 meta.elapsed_ms(「1분 46초」)", () => {
-    const job = makeJob();
-    const { container } = wrap(<AnswerCard job={job} full={makeFull(job)} />);
+describe("답변 카드 — 개발서버 AnswerPanel DoneAnswer 와 같은 모양(2026-11-19)", () => {
+  it("머리: 아이콘 · 재난안전 AI · 「YYYY.MM.DD HH:mm 기준」(받은 시각) — 처리 시간·시연 시나리오 표지 없음", () => {
+    const job = makeJob({ source: "BRIEFING" });
+    const scn = { ...BUSAN, weather_warnings: { source: "시연 시나리오(가상 특보)", items: [{ warning_key: "SCN-BS-1", kind: "호우", level: "경보", area: "부산" }] } };
+    const { container } = wrap(<AnswerCard job={job} full={makeFull(job, makeRaw(), scn)} />);
     const head = container.querySelector(".acard-h")!;
-    expect(head.textContent).toContain("2026-10-28T02:48:13+09:00 기준");
-    expect(head.textContent).not.toContain("처리"); // 처리 시간 끔(사용자 지시 2026-11-02 — 시연)
-    expect(head.textContent).not.toContain("110초");
+    expect(head.querySelector(".acard-icon svg")!.getAttribute("width")).toBe("18");
+    expect(head.querySelector(".acard-at")!.textContent).toBe(`${basisTime(local(2, 48))} 기준`);
+    expect(head.querySelector(".acard-at")!.textContent).toMatch(/^\d{4}\.\d{2}\.\d{2} \d{2}:\d{2} 기준$/);
+    expect(head.textContent).not.toContain("처리");
     expect(head.textContent).not.toContain("시연 시나리오");
+  });
+
+  it("받아 둔 답(재사용)이면 기준시각은 처음 받은 시각", () => {
+    const job = makeJob({ id: "job-2", cached_from: "job-0", finished_at: local(20, 50), source_finished_at: local(2, 48) });
+    const { container } = wrap(<AnswerCard job={job} full={makeFull(job)} />);
+    expect(container.querySelector(".acard-at")!.textContent).toBe(`${basisTime(local(2, 48))} 기준`);
+    expect(container.textContent).not.toContain("재사용");
   });
 
   it("시연 자료 패널: 시연 탭 항목(library_id SH-1-3)의 답에만 답 글 위에 — 보통 답에는 없음, 답 글은 그대로", () => {
@@ -91,64 +111,57 @@ describe("답변 카드 — 받은 값만, 센 값·설명 없음", () => {
     const { container } = wrap(<AnswerCard job={job} full={makeFull(job)} />);
     const panel = container.querySelector("details.demo-info")!;
     expect(panel).not.toBeNull();
-    expect(panel.textContent).toContain("시연 자료");
-    expect(panel.compareDocumentPosition(container.querySelector(".acard-body")!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-    expect(container.querySelector(".acard-body .md")!.textContent).toContain("도심 저지대");
+    expect(panel.compareDocumentPosition(container.querySelector(".answer-body")!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(container.querySelector(".answer-body .md")!.textContent).toContain("도심 저지대");
     cleanup();
     const plain = makeJob();
     expect(wrap(<AnswerCard job={plain} full={makeFull(plain)} />).container.querySelector(".demo-info")).toBeNull();
   });
 
-  it("머리: 시연 시나리오 특보(SCN-)와 함께 보낸 질문이면 회색 한 줄 — 기상청 특보만이면 없음(R43)", () => {
-    const job = makeJob({ source: "BRIEFING" });
-    const scn = { ...BUSAN, weather_warnings: { source: "시연 시나리오(가상 특보)", items: [{ warning_key: "SCN-BS-1", kind: "호우", level: "경보", area: "부산" }] } };
-    const kma = { ...BUSAN, weather_warnings: { source: "기상청 기상특보 조회서비스", items: [{ warning_key: "KMA-호우경보-부산", kind: "호우", level: "경보", area: "부산" }] } };
-    const a = wrap(<AnswerCard job={job} full={makeFull(job, makeRaw(), scn)} />).container.querySelector(".acard-h .acard-at")!;
-    expect(a.textContent).toContain("시연 시나리오 특보와 함께 보낸 질문");
-    cleanup();
-    const b = wrap(<AnswerCard job={job} full={makeFull(job, makeRaw(), kma)} />).container.querySelector(".acard-h")!;
-    expect(b.textContent).not.toContain("시연 시나리오");
-  });
-
-  it("답변 대상: 개수·설명 없이 「답변 대상」 — 받은 순서 그대로", () => {
+  it("하단 단추·원문 상자·자동 조회 카드·주의 줄이 없다 — 원문 보기·답변 복사·마크다운 원문 복사·이어서 묻기·경고 보기", () => {
+    session.weather = weather([adv({})]);
     const job = makeJob();
-    const { container } = wrap(<AnswerCard job={job} full={makeFull(job)} />);
-    const box = container.querySelector(".refbox")!;
-    expect(box.querySelector("b")!.textContent).toBe("답변 대상");
-    expect(box.textContent).not.toMatch(/답변 대상\s*\d/);
-    expect(box.textContent).not.toContain("에이전트가 답변에 연결한 대상");
-    expect([...box.querySelectorAll(".reflist li button.lnk:not(.xs)")].map((b) => b.textContent)).toEqual(["초량제1지하차도", "범일2", "문현지하차도"]);
-    expect(container.textContent).not.toContain("유엔이가 센 값");
-    expect(container.querySelector("[title*='24시간']")).toBeNull();
+    const full = { ...makeFull(job, makeRaw({ warnings: [{ code: "W1", message: "일부 자료는 지난달 기준입니다" }] })), preview: [{ kind: "x" }] } as unknown as JobFull;
+    const { container } = wrap(<AnswerCard job={job} full={full} />);
+    expect(container.querySelector(".acard-actions, .rawbox, .ans-caution, .ans-jump, .datacard, .refbox")).toBeNull();
+    for (const name of ["원문 보기", "마크다운 원문 복사", "경고 보기 ↓"]) expect(screen.queryByRole("button", { name })).toBeNull();
+    expect(screen.queryByRole("button", { name: /이어서 묻기/ })).toBeNull();
+    expect(container.querySelectorAll("input[type=checkbox]").length).toBe(0);
   });
 
-  it("경고가 있으면 답 위에 바로가기(개수 없음) — 경고는 제자리(답변 대상 아래), 정보 부족·한계는 내지 않음(개발서버와 같이)", () => {
+  it("순서: 답 글 → 근거 → 답변 대상 → 「대상지역 N건」 → 경고(목록, 상자 없음) — 정보 부족·한계는 내지 않음", () => {
+    summaryState.value = SUMMARY;
     const job = makeJob();
     const full = makeFull(job, makeRaw({ warnings: [{ code: "W1", message: "일부 자료는 지난달 기준입니다" }] }));
     const { container } = wrap(<AnswerCard job={job} full={full} />);
-    const jump = screen.getByRole("button", { name: "경고 보기 ↓" });
-    const gaps = container.querySelector(".gaps")!;
-    expect(gaps.textContent).toBe("· 일부 자료는 지난달 기준입니다");
+    const body = container.querySelector(".answer-body")!;
+    const box = container.querySelector(".ans-refbox")!;
+    const note = container.querySelector(".answer-note")!;
+    const warns = container.querySelector("ul.answer-warnings")!;
+    expect(note.innerHTML).toBe("<strong>대상지역</strong> 3건");
+    expect([...warns.querySelectorAll("li")].map((l) => l.textContent)).toEqual(["일부 자료는 지난달 기준입니다"]);
+    for (const [a, b] of [[body, box], [box, note], [note, warns]]) expect(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(container.textContent).not.toContain("정보 부족");
     expect(container.textContent).not.toContain("유사사례는 예측·위험판단이 아닌 참고 정보");
-    expect(container.querySelector(".refbox")!.compareDocumentPosition(gaps) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-    expect(jump.compareDocumentPosition(container.querySelector(".md")!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-    fireEvent.click(jump);
-    expect(Element.prototype.scrollIntoView).toHaveBeenCalled();
-    expect(document.activeElement).toBe(gaps);
   });
 
-  it("정보 부족·한계만 있으면(경고 없음) 바로가기도 알림 줄도 두지 않는다 — 원문 보기에는 남는다", () => {
+  it("「대상지역 N건」은 지도에 보일 수 있는 것만 — 하나도 없으면 줄이 없다", () => {
     const job = makeJob();
-    const lim = makeRaw();
-    lim.result!.limitations = ["이 답은 2025년 자료까지만 봅니다"];
-    const { container } = wrap(<AnswerCard job={job} full={makeFull(job, lim)} />);
-    expect(screen.queryByRole("button", { name: /경고 보기/ })).toBeNull();
-    expect(container.querySelector(".gaps")).toBeNull();
-    expect(container.textContent).not.toContain("2025년 자료까지만");
+    const noGeo = refs.map((r) => ({ ...r, map: { ...r.map!, has_geometry: false } })) as unknown as T3qRef[];
+    const { container } = wrap(<AnswerCard job={job} full={makeFull(job, makeRaw({ result: { answer: ANSWER, refs: noGeo } }))} />);
+    expect(container.querySelector(".answer-note")).toBeNull();
   });
 
-  it("받지 못한 답은 정해 둔 문구만 — 시간 초과·취소·그 밖(유실 등) · 화면을 연 뒤 끝난 작업", () => {
+  it("답변 평가는 response_id 가 있을 때만", () => {
+    const job = makeJob();
+    const a = wrap(<AnswerCard job={job} full={makeFull(job)} />);
+    expect(a.container.querySelector(".answer-rate")).toBeNull();
+    cleanup();
+    const b = wrap(<AnswerCard job={job} full={makeFull(job, makeRaw({ result: { answer: ANSWER, refs, response_id: "resp-1" } }))} />);
+    expect(b.container.querySelector(".answer-rate")).not.toBeNull();
+  });
+
+  it("받지 못한 답은 정해 둔 문구 한 덩이(머리 없음) + [다시 시도] — 시간 초과·취소·그 밖(유실 등) · 화면을 연 뒤 끝난 작업", () => {
     const later = new Date(Date.now() + 60_000).toISOString();
     for (const [state, msg] of [
       ["TIMEOUT", "질의가 제한 시간을 넘겼습니다. 조건을 좁혀 다시 시도하세요."],
@@ -159,18 +172,23 @@ describe("답변 카드 — 받은 값만, 센 값·설명 없음", () => {
       const job = makeJob({ state: state as JobSummary["state"], finished_at: later });
       const raw = makeRaw({ status: "UPSTREAM_ERROR", warnings: [{ code: "E", message: "upstream HTTP 502" }] });
       const { container } = wrap(<AnswerCard job={job} full={makeFull(job, raw)} />);
-      expect(container.querySelector(".acard.err")!.textContent).toContain(msg);
+      const err = container.querySelector(".answer-error[role=alert]")!;
+      expect(err.querySelector(".answer-error-text")!.textContent).toBe(msg);
+      expect(container.querySelector(".acard-h")).toBeNull();
       expect(container.textContent).not.toContain("502");
+      fireEvent.click(within(err as HTMLElement).getByRole("button", { name: "다시 시도" }));
+      expect(x.retry).toHaveBeenLastCalledWith("job-1");
       cleanup();
     }
   });
 
-  // 개발서버 useConversation — 다시 연 대화(화면을 열기 전에 끝난 작업)의 받지 못한 질문은 까닭을 가르지 않고 한 문구
-  it("다시 연 대화의 실패 턴 — 「답변을 받지 못한 질문입니다.」", () => {
+  // 개발서버 useConversation — 다시 연 대화(화면을 열기 전에 끝난 작업)의 받지 못한 질문은 까닭을 가르지 않고 한 문구, 되살린 턴은 [다시 시도] 없음
+  it("다시 연 대화의 실패 턴 — 「답변을 받지 못한 질문입니다.」 · 다시 시도 없음", () => {
     for (const state of ["TIMEOUT", "CANCELLED", "FAILED"] as const) {
       const job = makeJob({ state });
       const { container } = wrap(<AnswerCard job={job} full={makeFull(job, makeRaw({ status: "UPSTREAM_ERROR" }))} />);
-      expect(container.querySelector(".acard.err")!.textContent).toContain("답변을 받지 못한 질문입니다.");
+      expect(container.querySelector(".answer-error")!.textContent).toBe("답변을 받지 못한 질문입니다.");
+      expect(screen.queryByRole("button", { name: "다시 시도" })).toBeNull();
       cleanup();
     }
   });
@@ -179,32 +197,28 @@ describe("답변 카드 — 받은 값만, 센 값·설명 없음", () => {
     const job = makeJob();
     const raw = makeRaw({ status: "NO_RESULT", result: { refs: [] } });
     const { container } = wrap(<AnswerCard job={job} full={makeFull(job, raw)} />);
-    expect(container.textContent).toContain("답변을 불러오지 못했습니다.");
+    expect(container.querySelector(".answer-error")!.textContent).toBe("답변을 불러오지 못했습니다.");
   });
 
   // 개발서버 useConversation — error: isSuccess(envelope) ? null : AnswerFailed (상태가 없거나 SUCCESS 일 때만 답으로 그린다)
-  it.each(["PARTIAL_SUCCESS", "NO_RESULT", "DATA_NOT_AVAILABLE"])("응답 상태 %s — 답 글이 와도 그리지 않고 「답변을 불러오지 못했습니다.」 · 다시 질의 · 원문 보기·복사는 받은 그대로", (st) => {
-    const job = makeJob({ t3q_status: st });
+  it.each(["PARTIAL_SUCCESS", "NO_RESULT", "DATA_NOT_AVAILABLE"])("응답 상태 %s — 답 글이 와도 그리지 않고 「답변을 불러오지 못했습니다.」 · [다시 시도]만(원문 보기·복사 없음)", (st) => {
+    // 화면을 연 뒤 끝난 작업(다시 연 대화의 턴이 아님 — 그때만 [다시 시도])
+    const job = makeJob({ t3q_status: st, finished_at: new Date(Date.now() + 60_000).toISOString() });
     const raw = makeRaw({ status: st });
     const { container } = wrap(<AnswerCard job={job} full={makeFull(job, raw)} />);
-    const card = container.querySelector(".acard.err")!;
-    expect(card.querySelector("[role=alert]")!.textContent).toBe("답변을 불러오지 못했습니다.");
+    expect(container.querySelector(".answer-error-text")!.textContent).toBe("답변을 불러오지 못했습니다.");
     expect(container.querySelector(".md")).toBeNull();
-    expect(container.querySelector(".refbox")).toBeNull();
-    expect(container.textContent).not.toContain("일부 제공");
-    fireEvent.click(screen.getByRole("button", { name: "다시 질의" }));
+    expect(screen.queryByRole("button", { name: "원문 보기" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "마크다운 원문 복사" })).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "다시 시도" }));
     expect(x.retry).toHaveBeenCalledWith("job-1");
-    fireEvent.click(screen.getByRole("button", { name: "원문 보기" }));
-    expect(container.querySelector(".rawbox")!.textContent).toBe(ANSWER);
-    fireEvent.click(screen.getByRole("button", { name: "마크다운 원문 복사" }));
-    expect(writeText).toHaveBeenLastCalledWith(ANSWER);
   });
 
-  it("브리핑 항목(brief)이면 「결과를 불러오지 못했습니다.」 — 카드 안 다시 질의 없음(머리의 다시 시도)", () => {
+  it("브리핑 항목(brief)이면 「결과를 불러오지 못했습니다.」 — 카드 안 다시 시도 없음(머리의 다시 시도)", () => {
     const job = makeJob({ t3q_status: "PARTIAL_SUCCESS" });
     const { container } = wrap(<AnswerCard job={job} full={makeFull(job, makeRaw({ status: "PARTIAL_SUCCESS" }))} noActions brief />);
     expect(container.querySelector("[role=alert]")!.textContent).toBe("결과를 불러오지 못했습니다.");
-    expect(screen.queryByRole("button", { name: "다시 질의" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "다시 시도" })).toBeNull();
   });
 
   it("상태 칸이 없는 응답은 답으로 그린다(개발서버 isSuccess — !status)", () => {
@@ -213,7 +227,7 @@ describe("답변 카드 — 받은 값만, 센 값·설명 없음", () => {
     expect(container.querySelector(".md")!.textContent).toContain("도심 저지대");
   });
 
-  it("답 글은 화면 처리(DB 표 이름·정비 내용 칸), 원문 보기·마크다운 원문 복사는 받은 글 그대로", async () => {
+  it("답 글은 화면 처리(DB 표 이름·정비 내용 칸), 마크다운 원문 복사는 DB 이름만 걷은 글(개발서버 hideDbNames)", async () => {
     const job = makeJob();
     const text = "침수흔적(`flood.trace`) 기준입니다.\n\n| 지구 | 주요 정비 내용 | 등급 |\n|---|---|---|\n| [범일2](#ref:r2) | 우수관로 정비 | 가 |";
     const raw = makeRaw({ result: { answer: text, refs } });
@@ -222,10 +236,10 @@ describe("답변 카드 — 받은 값만, 센 값·설명 없음", () => {
     expect(md.textContent).toContain("침수흔적 기준입니다.");
     expect(md.textContent).not.toContain("flood.trace");
     expect([...md.querySelectorAll("th")].map((t) => t.textContent)).toEqual(["지구", "등급"]);
-    fireEvent.click(screen.getByRole("button", { name: "원문 보기" }));
-    expect(container.querySelector(".rawbox")!.textContent).toBe(text);
-    fireEvent.click(screen.getByRole("button", { name: "마크다운 원문 복사" }));
-    expect(writeText).toHaveBeenLastCalledWith(text);
+    const tools = within(container.querySelector(".ans-tools") as HTMLElement);
+    fireEvent.click(tools.getByRole("button", { name: "답변 복사" }));
+    fireEvent.click(within(screen.getByRole("menu", { name: "답변 복사" })).getByRole("menuitem", { name: "마크다운 원문" }));
+    expect(writeText).toHaveBeenLastCalledWith(hideDbNames(text));
   });
 
   it("답 글 속 대상 이름을 누르면 상세 탭을 만들고 지도가 그 대상으로(개발서버 openEntity, R59) — 번호가 다른 이름에 붙은 링크는 글자", () => {
@@ -241,155 +255,84 @@ describe("답변 카드 — 받은 값만, 센 값·설명 없음", () => {
     expect(x.openEntity).toHaveBeenLastCalledWith("job-1", expect.objectContaining({ ref: "r2" }));
     expect(x.showOnMap).not.toHaveBeenCalled();
   });
-});
 
-describe("C9 — 답을 받은 뒤 그 지역 특보 발표(주의일 때만)", () => {
-  it("받은 뒤 발표된 그 지역 특보가 있으면 주의 한 줄", () => {
-    session.weather = weather([adv({})]);
+  it("긴 답(2,500자 넘음)만 머리에 [접기] — 접으면 [전체 보기 ▼]", () => {
     const job = makeJob();
-    const { container } = wrap(<AnswerCard job={job} full={makeFull(job)} />);
-    expect(container.querySelector(".ans-caution")!.textContent).toBe("⚠ 답변을 받은 뒤 특보 발표: 부산 호우경보 10.28. 03:10");
-    expect(container.querySelector(".ans-reuse")).toBeNull();
-  });
-  it("두 건이면 두 건 모두(합치지 않음)", () => {
-    session.weather = weather([adv({}), adv({ id: "a2", type: "강풍", level: "주의보", issuedAt: local(3, 20) })]);
-    const job = makeJob();
-    const { container } = wrap(<AnswerCard job={job} full={makeFull(job)} />);
-    expect(container.querySelector(".ans-caution")!.textContent).toBe("⚠ 답변을 받은 뒤 특보 발표: 부산 호우경보 10.28. 03:10 · 부산 강풍주의보 10.28. 03:20");
-  });
-  it("받기 전에 발표됐거나 다른 지역이거나 특보 조회 실패면 아무것도 두지 않는다", () => {
-    for (const w of [weather([adv({ issuedAt: local(2, 40) })]), weather([adv({ regionId: "inje", area: "강원도(인제평지)" })]), weather([adv({})], false)]) {
-      session.weather = w;
-      const job = makeJob();
-      const { container, unmount } = wrap(<AnswerCard job={job} full={makeFull(job)} />);
-      expect(container.querySelector(".ans-caution")).toBeNull();
-      expect(container.textContent).not.toContain("특보");
-      unmount();
-    }
-  });
-  it("답을 받을 때 이미 발효 중이던 특보는 — 다른 지역 특보 발표로 기상청 발표 시각이 뒤로 바뀌어도 — 주의하지 않는다", () => {
-    // 부산 호우경보가 답을 받기 전부터 발효 중. 기상청이 새 특보 현황(다른 지역 강풍주의보 추가)을 내면 모든 특보의 발표 시각이 03:10 이 된다
-    session.weather = weather([adv({}), adv({ id: "a9", type: "강풍", level: "주의보", area: "제주도", regionId: undefined })]);
-    const job = makeJob({ wx_seen: [seenOf(adv({}))] });
-    const { container } = wrap(<AnswerCard job={job} full={makeFull(job)} />);
-    expect(container.querySelector(".ans-caution")).toBeNull();
-    expect(container.textContent).not.toContain("특보");
-  });
-  it("답을 받을 때의 특보 목록을 모르면(예전 작업·특보 조회 실패) 주의하지 않는다 — 지어내지 않음", () => {
-    session.weather = weather([adv({})]);
-    const job = makeJob({ wx_seen: null });
-    const { container } = wrap(<AnswerCard job={job} full={makeFull(job)} />);
-    expect(container.querySelector(".ans-caution")).toBeNull();
-  });
-  it("같은 지역·같은 특보인데 구역 글자만 바뀌면 그 지역에는 새 특보가 아니다 — 단계가 오르면 새 특보", () => {
-    const before = adv({ id: "KMA-호우경보-경상북도(영천,경산)", area: "경상북도(영천, 경산)", regionId: "yeongcheon" });
-    const req = { query_context: { region: { admin_code: "4723000000", level: "SIGUNGU", name: "경상북도 영천시" } } };
-    session.weather = weather([adv({ id: "KMA-호우경보-경상북도(영천,경산,청도)", area: "경상북도(영천, 경산, 청도)", regionId: "yeongcheon" })]);
-    const job = makeJob({ wx_seen: [seenOf(before)] });
-    const first = wrap(<AnswerCard job={job} full={makeFull(job, makeRaw(), req)} />);
-    expect(first.container.querySelector(".ans-caution")).toBeNull();
-    first.unmount();
-    const was = adv({ id: "KMA-호우주의보-부산", level: "주의보" });
-    session.weather = weather([adv({ id: "KMA-호우경보-부산" })]);
-    const up = makeJob({ wx_seen: [seenOf(was)] });
-    const { container } = wrap(<AnswerCard job={up} full={makeFull(up)} />);
-    expect(container.querySelector(".ans-caution")!.textContent).toBe("⚠ 답변을 받은 뒤 특보 발표: 부산 호우경보 10.28. 03:10");
+    const long = `${ANSWER}\n\n${"가".repeat(2600)}`;
+    const { container } = wrap(<AnswerCard job={job} full={makeFull(job, makeRaw({ result: { answer: long, refs } }))} />);
+    fireEvent.click(screen.getByRole("button", { name: "접기" }));
+    expect(container.querySelector(".answer-body.is-folded")).not.toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "전체 보기 ▼" }));
+    expect(container.querySelector(".answer-body.is-folded")).toBeNull();
+    cleanup();
+    wrap(<AnswerCard job={job} full={makeFull(job)} />);
+    expect(screen.queryByRole("button", { name: "접기" })).toBeNull();
   });
 });
 
-describe("D5 — 재사용 답", () => {
-  const reusedJob = (over: Partial<JobSummary> = {}) =>
-    makeJob({ id: "job-2", cached_from: "job-0", finished_at: local(20, 50), source_finished_at: local(2, 48), wx_seen: null, source_wx_seen: [], ...over });
-
-  // 「이전 답변 재사용」 띠는 보이지 않는다(사용자 지시 2026-11-02 — 시연에서 보일 필요 없음). 받은 뒤 특보 주의 줄(C9)은 그대로
-  it("재사용 답에도 「이전 답변 재사용」 띠·새로 받기가 없다", () => {
-    vi.useFakeTimers({ toFake: ["Date"] });
-    vi.setSystemTime(new Date(2026, 9, 28, 20, 50));
-    const job = reusedJob();
-    const { container } = wrap(<AnswerCard job={job} full={makeFull(job)} />);
-    expect(container.querySelector(".ans-reuse")).toBeNull();
-    expect(container.textContent).not.toContain("이전 답변 재사용");
-    expect(within(container).queryByRole("button", { name: "새로 받기" })).toBeNull();
-  });
-
-  it("원래 답을 받은 뒤 그 지역 특보가 발표됐으면 C9 주의 줄은 보인다", () => {
-    vi.useFakeTimers({ toFake: ["Date"] });
-    vi.setSystemTime(new Date(2026, 9, 28, 3, 30));
-    session.weather = weather([adv({})]);
-    const job = reusedJob();
-    const { container } = wrap(<AnswerCard job={job} full={makeFull(job)} />);
-    expect(container.querySelector(".ans-caution")!.textContent).toBe("⚠ 답변을 받은 뒤 특보 발표: 부산 호우경보 10.28. 03:10");
-  });
-
-  it("원래 답을 받은 때 이미 발효 중이던 특보면 「받은 뒤 특보 바뀜」·주의 줄 없음(원래 답의 특보 목록으로 본다)", () => {
-    vi.useFakeTimers({ toFake: ["Date"] });
-    vi.setSystemTime(new Date(2026, 9, 28, 3, 30));
-    session.weather = weather([adv({})]);
-    const job = reusedJob({ source_wx_seen: [seenOf(adv({}))] });
-    const { container } = wrap(<AnswerCard job={job} full={makeFull(job)} />);
-    expect(container.querySelector(".ans-reuse .ans-flag")).toBeNull();
-    expect(container.querySelector(".ans-caution")).toBeNull();
-  });
-
-  it("원래 답을 받은 시각을 모르면 받은 뒤 특보를 가리지 않는다(주의 줄 없음)", () => {
-    session.weather = weather([adv({})]);
-    const job = reusedJob({ source_finished_at: null });
-    const { container } = wrap(<AnswerCard job={job} full={makeFull(job)} />);
-    expect(container.querySelector(".ans-reuse")).toBeNull();
-    expect(container.querySelector(".ans-caution")).toBeNull();
-  });
-
-  it("재사용이 아니면 재사용 표시가 없다", () => {
+describe("답변 대상 N곳 — 한눈 요약 분류로 묶음(개발서버 AnswerTargets)", () => {
+  it("요약이 없으면 상자·도구 메뉴가 없다", () => {
     const job = makeJob();
     const { container } = wrap(<AnswerCard job={job} full={makeFull(job)} />);
-    expect(container.querySelector(".ans-reuse")).toBeNull();
-    expect(container.textContent).not.toContain("재사용");
+    expect(container.querySelector(".ans-refbox")).toBeNull();
+    expect(within(container.querySelector(".ans-tools") as HTMLElement).queryByRole("button", { name: /답변 대상/ })).toBeNull();
   });
-});
-
-describe("C3 — 답변 대상 종류 거르기(개수 없음)", () => {
-  it("목록 위 거르개: 전체 + 받은 종류(받은 순서), 개수 없이 — 누르면 그 종류만", () => {
+  it("머리 「답변 대상」 · 「N곳」 · 갈래 칩 — 체크박스·[지도에서 모두 보기] 없음, 누르면 그 갈래만", () => {
+    summaryState.value = SUMMARY;
     const job = makeJob();
     const { container } = wrap(<AnswerCard job={job} full={makeFull(job)} />);
-    const chips = [...container.querySelectorAll(".ans-filter button")];
-    expect(chips.map((c) => c.textContent)).toEqual(["전체", "잠재 위험요소", "행정구역"]);
+    const box = container.querySelector(".ans-refbox")!;
+    expect(box.querySelector(".ans-refbox-h b")!.textContent).toBe("답변 대상");
+    expect(box.querySelector(".ans-refbox-n")!.textContent).toBe("3곳");
+    expect(screen.queryByRole("button", { name: "지도에서 모두 보기" })).toBeNull();
+    expect(box.querySelector("input")).toBeNull();
+    const chips = [...box.querySelectorAll(".ans-filter button")];
+    expect(chips.map((c) => c.textContent)).toEqual(["전체", "지하차도", "기타"]);
     fireEvent.click(chips[2]);
-    expect([...container.querySelectorAll(".reflist li button.lnk:not(.xs)")].map((b) => b.textContent)).toEqual(["범일2"]);
-    expect(chips[2].getAttribute("aria-pressed")).toBe("true");
+    expect([...box.querySelectorAll(".ans-reflist li > .ans-lnk:not(.ans-lnk--xs)")].map((b) => b.textContent)).toEqual(["범일2"]);
+    expect(box.querySelector(".ans-refbox-n")!.textContent).toBe("1곳");
+    fireEvent.click(box.querySelector(".ans-reflist .ans-lnk--xs")!);
+    expect(x.openEntity).toHaveBeenLastCalledWith("job-1", expect.objectContaining({ ref: "r2" }));
   });
-  it("머리 도구 「답변 대상」: 종류를 고르면 목록을 거르고 목록으로 간다", () => {
+  it("머리 도구 「답변 대상」: 갈래를 고르면 목록을 거르고 상자로 간다", () => {
+    summaryState.value = SUMMARY;
     const job = makeJob();
     const { container } = wrap(<AnswerCard job={job} full={makeFull(job)} />);
     fireEvent.click(within(container.querySelector(".ans-tools") as HTMLElement).getByRole("button", { name: /답변 대상/ }));
     const menu = screen.getByRole("menu", { name: "답변 대상" });
-    expect(within(menu).getAllByRole("menuitemradio").map((b) => b.textContent)).toEqual(["전체", "잠재 위험요소", "행정구역"]);
-    fireEvent.click(within(menu).getByRole("menuitemradio", { name: "잠재 위험요소" }));
-    expect([...container.querySelectorAll(".reflist li button.lnk:not(.xs)")].map((b) => b.textContent)).toEqual(["초량제1지하차도", "문현지하차도"]);
-    expect(document.activeElement).toBe(container.querySelector(".refbox"));
+    expect(within(menu).getAllByRole("menuitemradio").map((b) => b.textContent)).toEqual(["전체", "지하차도", "기타"]);
+    fireEvent.click(within(menu).getByRole("menuitemradio", { name: "지하차도" }));
+    expect([...container.querySelectorAll(".ans-reflist li > .ans-lnk:not(.ans-lnk--xs)")].map((b) => b.textContent)).toEqual(["초량제1지하차도", "문현지하차도"]);
+    expect(document.activeElement).toBe(container.querySelector(".ans-refbox"));
     expect(screen.queryByRole("menu")).toBeNull();
   });
 });
 
-describe("C10 — 답변 복사", () => {
+describe("답을 받은 뒤 특보 주의(C9)는 답 카드에 두지 않는다(개발서버) — 판정 함수는 도우미에서", () => {
+  it("받은 뒤 그 지역 특보가 발표돼도 주의 줄이 없다", () => {
+    session.weather = weather([adv({})]);
+    const job = makeJob();
+    const { container } = wrap(<AnswerCard job={job} full={makeFull(job)} />);
+    expect(container.querySelector(".ans-caution")).toBeNull();
+    expect(container.textContent).not.toContain("특보 발표");
+  });
+});
+
+describe("C10 — 답변 복사(머리 도구만, 결과는 툴바 안 글 — 토스트 아님)", () => {
   it("서식 없는 글(마크다운 기호 빼고 글자 그대로, 표는 탭 구분) · 마크다운 원문", async () => {
     const job = makeJob();
     const { container } = wrap(<AnswerCard job={job} full={makeFull(job)} />);
-    const foot = within(container.querySelector(".acard-actions") as HTMLElement);
     const plain = "결론\n\n부산 도심 저지대)입니다. 초량제1지하차도 · 범일2 · 문현지하차도\n\n구분\t길이\n가 나\t125m";
-    fireEvent.click(foot.getByRole("button", { name: "답변 복사" }));
-    expect(writeText).toHaveBeenLastCalledWith(plain);
-    fireEvent.click(foot.getByRole("button", { name: "마크다운 원문 복사" }));
-    expect(writeText).toHaveBeenLastCalledWith(ANSWER);
-    // 머리 도구의 「답변 복사」 펼침 — 서식 없는 글 · 마크다운 원문
     const tools = within(container.querySelector(".ans-tools") as HTMLElement);
     fireEvent.click(tools.getByRole("button", { name: "답변 복사" }));
     fireEvent.click(within(screen.getByRole("menu", { name: "답변 복사" })).getByRole("menuitem", { name: "서식 없는 글" }));
     expect(writeText).toHaveBeenLastCalledWith(plain);
+    expect(await tools.findByRole("status")).toHaveProperty("textContent", "서식 없는 글로 복사했습니다");
     fireEvent.click(tools.getByRole("button", { name: "답변 복사" }));
     fireEvent.click(within(screen.getByRole("menu", { name: "답변 복사" })).getByRole("menuitem", { name: "마크다운 원문" }));
     expect(writeText).toHaveBeenLastCalledWith(ANSWER);
-    await Promise.resolve();
-    expect(session.toast).toHaveBeenCalled();
+    expect(await tools.findByText("마크다운 원문을 복사했습니다")).toBeTruthy();
+    expect(session.toast).not.toHaveBeenCalled();
   });
 });
 

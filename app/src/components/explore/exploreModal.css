@@ -1,0 +1,22 @@
+/* 통합 탐색 창 틀 — 개발서버 index.css .modal-layer · .modal · .modal-close-row · .modal-content · .modal-title · .modal-footer(rem ×10 px).
+   전역 .modal(globals.css)·.modal-bg .modal(renewal.css)을 이기도록 덮개 > 상자로 세게 적는다 */
+.xm-layer { position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center; padding: 24px; overflow-y: auto; background: rgba(0, 0, 0, 0.75); }
+.xm-layer > .modal.xm-box {
+  position: relative; display: block; width: 100%; max-width: calc(100vw - 40px); max-height: none; padding: 24px; overflow: visible;
+  background: #fff; border: 1px solid #b1b8be; border-radius: 12px; box-shadow: none;
+}
+.xm-close-row { display: flex; justify-content: flex-end; height: 24px; }
+.xm-close { display: inline-flex; padding: 0; color: #33363d; background: none; border: 0; border-radius: 4px; cursor: pointer; }
+.xm-close:focus-visible { outline: 2px solid #256ef4; outline-offset: 1px; }
+.xm-content { display: flex; flex-direction: column; gap: 16px; padding: 8px 16px; }
+.xm-title { margin: 0; font-size: calc(24px * var(--fs-scale)); font-weight: 700; line-height: calc(36px * var(--fs-scale)); color: #1e2124; }
+
+/* 하단 단추 — 오른쪽 정렬, KRDS medium 48 · 17 · 모서리 6 */
+.xm-box .modal-f.xm-footer { display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin: 0; padding: 16px; }
+.xm-footer .btn { height: 48px; padding: 0 16px; font-family: inherit; font-size: calc(17px * var(--fs-scale)); font-weight: 400; line-height: calc(26px * var(--fs-scale)); border-radius: 6px; cursor: pointer; }
+.xm-footer .btn.secondary { font-weight: 400; color: #1e2124; background: transparent; border: 1px solid #58616a; }
+.xm-footer .btn.secondary:hover { background: #f4f5f6; }
+.xm-footer .btn.primary { font-weight: 400; color: #fff; background: #256ef4; border: 0; }
+.xm-footer .btn.primary:hover { background: #0b50d0; }
+.xm-footer .btn:disabled { cursor: not-allowed; }
+.xm-footer .btn.primary:disabled { color: #6d7882; background: #cdd1d5; }

@@ -1,6 +1,6 @@
 /* 유사사례 한눈 요약 — 개발서버 styles/renewal/similar.css(kjw 998facb) 「유사도 순위 · 1위 사건」 부분(R59).
    개발서버 .sim-rank·.sim-top 은 우리 자동 조회 카드(answer/cards/similar.css)와 이름이 겹쳐 .sims-rank·.sims-top 으로 쓴다.
-   치수는 개발서버 rem(1rem = 10px) → px, 글자 크기는 토큰만(R58). 사건 상세(evp-*)는 우리 EventDetail 이 따로 있어 옮기지 않는다. */
+   치수는 개발서버 rem(1rem = 10px) → px, 글자 크기는 토큰(R58 — 토큰에 없는 11px 은 calc). 사건 상세(evp-*)도 개발서버 그대로 아래에 옮겼다(EventDetail). */
 
 /* ── 유사도 순위 ───────────────────────────────────────────────────── */
 .sims-rank {
@@ -37,7 +37,7 @@
   height: 20px;
   border-radius: var(--r-s);
   background: var(--c-line);
-  font-size: var(--fs-2xs);
+  font-size: calc(11px * var(--fs-scale));
   font-weight: 700;
   color: var(--c-sub);
 }
@@ -51,7 +51,7 @@
   text-overflow: ellipsis;
   color: #131416;
 }
-.sim-rank-name small { font-size: var(--fs-2xs); color: var(--c-mute); }
+.sim-rank-name small { font-size: calc(11px * var(--fs-scale)); color: var(--c-mute); }
 .sim-rank-v { text-align: right; font-weight: 700; color: var(--c-primary-dk); }
 
 .sim-more,
@@ -92,3 +92,67 @@
   font-weight: 700;
   color: #131416;
 }
+.sim-sub-h span { font-size: calc(11px * var(--fs-scale)); font-weight: 400; color: var(--c-mute); }
+
+/* ── 재난사건 상세 패널(EventDetail = 개발서버 EventPane · similar.css .evp-*) ───────────────── */
+.evp { display: grid; gap: 16px; padding-bottom: 24px; }
+/* 패널 둘레 여백 — 개발서버 .panel-body(1.6rem) */
+.rbody > .evp { padding: 16px 16px 40px; }
+.evp-head { padding-bottom: 14px; border-bottom: 1px solid var(--c-line); }
+.evp-id { margin: 0; font-size: calc(11px * var(--fs-scale)); color: var(--c-mute); }
+.evp-title { margin: 4px 0 8px; font-size: var(--fs-hs); font-weight: 700; color: #131416; line-height: 1.35; }
+.evp-chips { display: flex; flex-wrap: wrap; gap: 4px; margin: 0; }
+.evp-chip {
+  padding: 2px 8px;
+  border: 1px solid var(--c-line);
+  border-radius: var(--r-pill);
+  font-size: calc(11px * var(--fs-scale));
+  color: var(--c-sub);
+  background: var(--c-surface);
+}
+.evp-chip--date { border-color: transparent; background: #ecf2fe; color: var(--c-primary-dk); font-weight: 700; }
+.evp-sub { margin: 8px 0 0; font-size: calc(11px * var(--fs-scale)); color: var(--c-mute); }
+
+.evp-sec { display: grid; gap: 8px; }
+.evp-h { margin: 0; font-size: var(--fs-xs); font-weight: 700; color: #131416; }
+.evp-lead { margin: 0; font-size: var(--fs-2xs); line-height: 1.7; color: var(--c-text); }
+.evp-note { margin: 0; font-size: var(--fs-2xs); color: var(--c-mute); }
+
+.evp-fold summary { display: flex; align-items: center; gap: 6px; cursor: pointer; list-style: none; }
+.evp-fold summary::-webkit-details-marker { display: none; }
+.evp-fold summary::after { content: '펼치기 ▾'; font-size: calc(11px * var(--fs-scale)); color: var(--c-primary-dk); }
+.evp-fold[open] summary::after { content: '접기 ▴'; }
+.evp-fold[open] summary { margin-bottom: 8px; }
+
+.evp-evd { margin: 0; padding-left: 16px; font-size: var(--fs-2xs); color: var(--c-sub); display: grid; gap: 4px; list-style: disc; }
+.evp-evd b { color: #131416; }
+
+.evp-counts { margin: 0; }
+
+.evp-tl { margin: 0; padding: 0; list-style: none; display: grid; font-size: var(--fs-2xs); }
+.evp-tl li {
+  display: grid;
+  grid-template-columns: 116px minmax(0, 1fr);
+  column-gap: 10px;
+  row-gap: 2px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--c-line);
+}
+.evp-tl-at { grid-row: span 3; font-variant-numeric: tabular-nums; color: var(--c-mute); }
+.evp-tl-cat { font-weight: 700; color: var(--c-primary-dk); }
+.evp-tl-desc { margin: 0; line-height: 1.6; color: var(--c-text); }
+.evp-tl-agency { font-size: calc(11px * var(--fs-scale)); color: var(--c-mute); }
+
+.evp-table { width: 100%; border-collapse: collapse; font-size: var(--fs-2xs); }
+.evp-table th,
+.evp-table td { padding: 6px 8px; border-bottom: 1px solid var(--c-line); text-align: left; }
+.evp-table th { background: var(--c-line); font-weight: 700; color: var(--c-sub); }
+.evp-table td:not(:first-child),
+.evp-table th:not(:first-child) { text-align: right; white-space: nowrap; }
+
+.evp-reasons { margin: 0; padding-left: 16px; font-size: var(--fs-2xs); line-height: 1.6; color: var(--c-sub); list-style: disc; }
+
+.evp-kv { display: grid; grid-template-columns: 80px minmax(0, 1fr); gap: 6px 10px; margin: 0; font-size: var(--fs-2xs); }
+.evp-kv dt { color: var(--c-mute); }
+.evp-kv dd { margin: 0; color: var(--c-text); }
+

@@ -76,6 +76,27 @@ describe("대화 이력 목록", () => {
     expect(screen.getByText("대화 이력이 없습니다.")).toBeTruthy();
   });
 
+  it("불러오는 중이면 「대화 이력을 불러오는 중입니다.」(role=status) — 개발서버 list.loading", () => {
+    session.s = { convs: [], convsLoading: true, deleteConvs: vi.fn() };
+    render(<HistoryPage />);
+    expect(screen.getByRole("status").textContent).toBe("대화 이력을 불러오는 중입니다.");
+    expect(screen.queryByText("대화 이력이 없습니다.")).toBeNull();
+  });
+
+  it("체크 상자는 KRDS span.krds-form-check > input + label(낭독용 글은 sr-only)", () => {
+    session.s = { convs, deleteConvs: vi.fn() };
+    const { container } = render(<HistoryPage />);
+    const boxes = container.querySelectorAll(".conv-table .krds-form-check");
+    expect(boxes.length).toBe(2); // 전체 선택 + 한 줄
+    for (const b of boxes) {
+      const input = b.querySelector("input[type=checkbox]")!;
+      expect(b.querySelector(`label[for="${input.id}"] .sr-only`)).toBeTruthy();
+    }
+    expect(screen.getByLabelText("전체 선택")).toBeTruthy();
+    expect(screen.getByLabelText("부산 호우 대응 선택")).toBeTruthy();
+    expect(container.querySelector(".conv-page")!.classList.contains("page")).toBe(false);
+  });
+
   it("제목을 누르면 그 대화를 연다", () => {
     session.s = { convs, deleteConvs: vi.fn() };
     render(<HistoryPage />);

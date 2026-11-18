@@ -5,7 +5,7 @@
 // 머리줄 AI 모드 단추 색(lib/wxref aimTone) — 끊긴 계정에 덮는 특보가 없으면 회색
 // 보일지 말지는 서버(/api/weather)가 정한다(harness/region/scenarioRoute) — 화면은 받은 응답의 scenario·realtimeCut 표시만 따른다. 기상청 특보에는 표지가 없다
 // npx vitest run harness/explore/scenarioWx
-import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { act, cleanup, render } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { Advisory, WeatherResponse } from "@/lib/contract/agent";
 import type { BaseRegion } from "@/lib/baseRegion";
@@ -41,26 +41,20 @@ const bar = (weather: WeatherResponse, base: BaseRegion | null = BUSAN, setWxRef
   return render(<WxBar />).container.querySelector(".wxbar")!;
 };
 
-describe("특보 줄 — 「시연 시나리오」 표지 · 기상청 실시간 특보 끊음(R45)", () => {
-  it("시나리오 특보 — 이름 옆에 「시연 시나리오」, 갱신 칸 = 「HH:MM 켬 · 기상청 실시간 특보 끊음」(기상청 시각 없음)", () => {
+describe("특보 줄 — 시연 시나리오 특보도 표지 없이 진짜 특보처럼(개발서버 AlertBanner 가상 특보 override, 2026-11-19 「개발서버와 동일하게」)", () => {
+  it("시나리오 특보 — 표지·「끊음」 없이 「{구역} {특보} 발표」(예비특보), 갱신 칸 = 「HH:MM 발표 · 기상청 HH:MM 갱신」", () => {
     const b = bar(cutOf("busan"));
-    expect(b.querySelector(".tit")!.textContent).toBe("부산 호우예비특보 발효 중 시연 시나리오");
-    expect(b.querySelector(".tit .scn-tag")!.textContent).toBe("시연 시나리오");
-    expect(b.querySelector(".meta")!.textContent).toBe(`${hm(ON.startedAt!)} 켬 · 기상청 실시간 특보 끊음`);
-    expect(b.textContent).not.toMatch(/기상청 \d\d:\d\d (갱신|발표)|조회 \d\d:\d\d/);
+    expect(b.querySelector(".tit")!.textContent).toBe("부산 호우예비특보 발표");
+    expect(b.querySelector(".scn-tag")).toBeNull();
+    expect(b.querySelector(".meta")!.textContent).toBe(`${hm(ON.startedAt!)} 발표 · 기상청 ${hm(now)} 갱신`);
+    expect(b.textContent).not.toMatch(/시연 시나리오|끊음/);
   });
 
-  it("기준지역을 시나리오 구역 밖으로 바꾸면 — 「실시간 끊음」(회색) · 「…에는 시연 시나리오 특보가 없습니다」 · 「특보 없음」·「발효 중인 기상특보가 없습니다」 없음", () => {
+  it("기준지역을 시나리오 구역 밖으로 바꾸면 — 「특보 없음」 · 「발효 중인 기상특보가 없습니다」(표지 없음)", () => {
     const b = bar(cutOf("busan"), SEOUL);
-    const tag = b.querySelector(".tag")!;
-    expect(tag.textContent).toBe("실시간 끊음");
-    expect(tag.className).toBe("tag fail"); // 회색(빨강·녹색 아님)
-    expect(b.querySelector(".tit")!.textContent).toBe("서울특별시에는 시연 시나리오 특보가 없습니다");
-    // 이 줄에는 특보가 없어 「HH:MM 켬」을 붙이지 않는다(무엇을 켰는지 읽히지 않음)
-    expect(b.querySelector(".meta")!.textContent).toBe("기상청 실시간 특보 끊음");
-    expect(b.textContent).not.toContain("특보 없음");
-    expect(b.textContent).not.toContain("발효 중인 기상특보가 없습니다");
-    expect(b.querySelector(".scn-tag")).toBeNull();
+    expect(b.querySelector(".tag")!.textContent).toBe("특보 없음");
+    expect(b.querySelector(".tit")!.textContent).toBe("발효 중인 기상특보가 없습니다");
+    expect(b.textContent).not.toMatch(/시연 시나리오|끊음/);
   });
 
   it("끊지 않은 계정(다른 계정·꺼짐 — 서버가 기상청 실시간 그대로)은 지금처럼 — 표지·끊음 없이 「기상청 HH:MM 갱신」 · 「특보 없음」", () => {
@@ -80,11 +74,11 @@ describe("특보 줄 — 「시연 시나리오」 표지 · 기상청 실시간
 
   it("인제·영천 — 시연 계정 기준지역에서 그 지역 시나리오가 보인다", () => {
     const b1 = bar(cutOf("inje"), { sido: { code: "51", name: "강원특별자치도" }, sigungu: { code: "51810", name: "인제군" } });
-    expect(b1.querySelector(".tit")!.textContent).toBe("강원도(인제평지, 인제산지) 호우주의보 발효 중 시연 시나리오");
-    expect(b1.querySelector(".meta")!.textContent).toContain("기상청 실시간 특보 끊음");
+    expect(b1.querySelector(".tit")!.textContent).toBe("강원도(인제평지, 인제산지) 호우주의보 발효 중");
+    expect(b1.querySelector(".meta")!.textContent).not.toContain("끊음");
     cleanup();
     const b2 = bar(cutOf("01000"), { sido: { code: "47", name: "경상북도" }, sigungu: { code: "47230", name: "영천시" } });
-    expect(b2.querySelector(".tit")!.textContent).toBe("경상북도(영천) 호우경보 발효 중 시연 시나리오");
+    expect(b2.querySelector(".tit")!.textContent).toBe("경상북도(영천) 호우경보 발효 중");
   });
 });
 
@@ -104,13 +98,14 @@ describe("AI 모드 창 — 「시연 시나리오」 표지 · 끊김 표시(R4
       guides: [{ sortNo: 0, warningKey: "SCN-BS-PRE-1", kind: "호우", level: "예비특보", areaName: "부산", message: "하천변 산책로 통제를 확인하십시오." }],
       warnings, collectStatus: "SUCCESS", checkedDe: now, lastCheckDe: now, nextCheckDe: now },
   });
-  it("시나리오 특보 카드 — 이름 옆 「시연 시나리오」, 점검 줄에 「기상청 실시간 특보 끊음」, AI 안내 = 그 특보 답", async () => {
+  it("시나리오 특보 카드 — 개발서버처럼 「시연 시나리오」 표지·「기상청 실시간 특보 끊음」 없이, AI 안내 = 그 특보 답", async () => {
     session.s = { weather: cutOf("busan"), account: { id: "busan" }, cond: { base: BUSAN }, setAimOn: () => {} };
     aimApi.resp = view([{ warningKey: "SCN-BS-PRE-1", kind: "호우", level: "예비특보", areaName: "부산", effectiveDe: ON.startedAt, changeType: null, scenario: true }]);
     const { container } = render(<AiModeModal open onClose={() => {}} />);
     await act(async () => {});
-    expect(container.querySelector(".aimx-card .scn-tag")!.textContent).toBe("시연 시나리오");
-    expect(container.querySelector(".aimx-when")!.textContent).toContain("기상청 실시간 특보 끊음");
+    expect(container.querySelector(".scn-tag")).toBeNull();
+    expect(container.textContent).not.toContain("시연 시나리오");
+    expect(container.querySelector(".aimx-when")!.textContent).not.toContain("끊음");
     expect(container.querySelector(".aimx-guide")!.textContent).toBe("하천변 산책로 통제를 확인하십시오.");
   });
 

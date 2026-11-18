@@ -170,9 +170,9 @@ export default function BasePicker() {
         </select>
       )}
       {failed && (
-        <span className="scope-err xs" role="status">
+        <span className="scope-err" role="status">
           지역 목록을 불러오지 못했습니다
-          <button type="button" className="lnk xs" onClick={retry}>다시 불러오기</button>
+          <button type="button" className="scope-retry" onClick={retry}>다시 불러오기</button>
         </span>
       )}
       {pending && dlg && (

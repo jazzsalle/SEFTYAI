@@ -10,6 +10,7 @@
  * - /login?expired=1 → 「일정 시간 동안 사용하지 않아 로그아웃되었습니다. 다시 로그인하세요.」
  * - 다른 곳에서 같은 계정으로 접속 중이면(서버 409 AUTH_SESSION_EXISTS) 「기존 접속을 끊고 로그인하시겠습니까?」(SCR-UNE-101003, R53)
  *   취소하면 로그인하지 않고 비밀번호를 비운다, [기존 접속 종료 후 로그인]이면 force 로 다시 보낸다
+ * - 들어간 뒤: 첫 로그인·재설정(mustChangePw)이면 /password(초기 비밀번호 변경), 아니면 /explore(개발서버 LoginPage navigate)
  */
 import "./login.css";
 import { useEffect, useRef, useState } from "react";
@@ -46,11 +47,11 @@ export default function LoginPage() {
     if (expiredUrl()) setExpired(true);
   }, []);
 
-  // 이미 로그인한 상태면 통합 탐색으로 (세션 만료로 온 경우는 다시 로그인하게 둔다)
+  // 이미 로그인한 상태면 통합 탐색으로 — 초기 비밀번호를 아직 쓰면 비밀번호 변경으로 (세션 만료로 온 경우는 다시 로그인하게 둔다)
   useEffect(() => {
     if (!ready || !account || leaving.current || expiredUrl()) return;
     leaving.current = true;
-    router.replace("/explore");
+    router.replace(account.mustChangePw ? "/password" : "/explore");
   }, [ready, account, router]);
 
   const submit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -64,10 +65,10 @@ export default function LoginPage() {
   const signIn = async (force: boolean) => {
     setBusy(true);
     try {
-      await login(id.trim(), pw, force);
+      const who = await login(id.trim(), pw, force);
       setConfirming(false);
       leaving.current = true;
-      router.replace("/explore");
+      router.replace(who?.mustChangePw ? "/password" : "/explore");
     } catch (err) {
       // 다른 곳에서 접속 중이다 — 틀린 것이 아니므로 폼 위 알림이 아니라 확인 창으로 묻는다
       if (err instanceof ApiError && (err.body as { code?: string } | null)?.code === SESSION_EXISTS) {

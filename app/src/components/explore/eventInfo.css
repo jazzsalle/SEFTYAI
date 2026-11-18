@@ -1,4 +1,5 @@
-/* 사건 상세 패널 — 행안부·연합뉴스 재난 그래픽 문법(띠 위 알약 제목 · 큰 숫자 타일 · 날짜 칩 · 세로 선 연대기).
+/* 대상 상세 패널(EntityDetail·DetailPane) — 사건 상세(EventDetail)는 개발서버 EventPane 모양(.evp-*, summary/similar.css)으로 옮겼다.
+   행안부·연합뉴스 재난 그래픽 문법(띠 위 알약 제목 · 큰 숫자 타일 · 날짜 칩 · 세로 선 연대기).
    색은 이 패널 전용(짙은 남색 · 파랑 · 청록 · 보라 · 황색) — 빨강 계열 없음. 공통 조각은 ../answer/demoInfo.css */
 .evd {
   --g-navy: #0b2a55;
@@ -44,13 +45,6 @@
 .ev-sec h3.di-pill { position: relative; display: inline-block; font-size: var(--fs-xs); margin: 0 0 10px; line-height: 1.4; }
 .evd .ev-sec h3.di-pill { background: var(--g-navy); padding: 4px 16px; font-size: var(--fs-xs); letter-spacing: -0.01em; box-shadow: 0 0 0 4px #fff; }
 .evd .ev-sec h3.di-pill.t-c { background: var(--g-violet); }
-.ev-fold > summary h3.di-pill { display: inline-block; margin: 0; }
-.evd .ev-fold > summary { cursor: pointer; list-style: none; position: relative; }
-.evd .ev-fold > summary::-webkit-details-marker { display: none; }
-.evd .ev-fold > summary::after { content: "▾"; position: relative; margin-left: 8px; padding: 0 4px; background: #fff; color: var(--g-mute); font-size: var(--fs-2xs); }
-.evd .ev-fold[open] > summary::after { content: "▴"; }
-.evd .ev-fold[open] > summary { margin-bottom: 10px; }
-.evd .ev-text { line-height: 1.65; color: var(--g-ink); }
 
 /* 근거 목록 — 문서 아이콘 대신 왼쪽 굵은 선 */
 .evd .ev-evd { list-style: none; margin: 0 0 6px; padding: 0; display: flex; flex-direction: column; gap: 6px; }
@@ -110,10 +104,6 @@
 .evd .ev-tl-body { flex-basis: 100%; gap: 3px 6px; font-size: var(--fs-2xs); }
 .evd .ev-tl-body .di-tag { color: var(--g-teal); background: var(--g-teal-sub); border-color: #b6e0dd; }
 
-/* ── 요약 — 큰 첫 문단(왼쪽 굵은 선) ─────────────────────── */
-.evd .ev-lead { margin: 0; padding: 10px 14px; border-left: 4px solid var(--g-navy); background: var(--g-paper); border-radius: 0 8px 8px 0; font-size: var(--fs-s); font-weight: 600; line-height: 1.6; letter-spacing: -0.01em; }
-/* 제공처가 주지 않은 섹션 — 빈 값 「—」 회색 칸 */
-.evd .ev-sec > p.ev-text:only-of-type:not(.ev-lead), .evd .ev-fold > p.ev-text { display: inline-block; min-width: 64px; margin: 0; padding: 6px 14px; border: 1px dashed #cfd6de; border-radius: 6px; color: var(--g-mute); text-align: center; }
 
 /* ── 이름-값 목록(피해·복구 · 사건 개요) — 점선 줄, 이름은 작은 회색 ── */
 .evd .ev-kv { grid-template-columns: 112px minmax(0, 1fr); border-top: 2px solid var(--g-navy); }
@@ -129,31 +119,6 @@
 /* 주의(⚠) — 황색 띠 */
 .evd .ev-caution { display: inline-block; margin: 0 0 8px; padding: 4px 10px; border-radius: 6px; background: var(--g-amber-sub); color: #7a5600; font-size: var(--fs-2xs); font-weight: 600; }
 
-/* ── 유사도 근거 — 요인 카드 ──────────────────────────────── */
-.ev-factors { list-style: none; margin: 10px 0 6px; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; }
-.ev-factors li { --fc: var(--g-blue); min-width: 0; padding: 10px 12px; border: 1px solid var(--g-line); border-top: 3px solid var(--fc); border-radius: 4px 4px 8px 8px; background: #fff; display: flex; flex-direction: column; gap: 6px; }
-.ev-f-h { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
-.ev-f-group { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: calc(10.5px * var(--fs-scale)); font-weight: 700; color: #fff; background: var(--fc); }
-.ev-f-name { font-size: calc(14px * var(--fs-scale)); font-weight: 800; color: var(--g-ink); letter-spacing: -0.01em; }
-.ev-f-name small { font-size: calc(11px * var(--fs-scale)); font-weight: 600; color: var(--g-mute); }
-.ev-f-vs { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-.ev-f-vs > div { min-width: 0; padding: 6px 8px; border-radius: 6px; background: var(--g-paper); display: flex; flex-direction: column; gap: 1px; }
-.ev-f-vs > div:first-child { background: var(--g-blue-sub); }
-.ev-f-vs span { font-size: calc(10.5px * var(--fs-scale)); color: var(--g-mute); font-weight: 600; }
-.ev-f-vs b { font-size: calc(12.5px * var(--fs-scale)); color: var(--g-ink); font-weight: 700; line-height: 1.4; overflow-wrap: anywhere; max-height: 5.6em; overflow: auto; }
-.ev-meter { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; gap: 8px; align-items: center; font-size: calc(11.5px * var(--fs-scale)); }
-.ev-meter-lb { color: var(--g-ink-2); font-weight: 600; }
-.ev-meter-track { position: relative; height: 8px; border-radius: 4px; background: #e9edf2; overflow: hidden; }
-.ev-meter-track i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 0 4px 4px 0; }
-.ev-meter-v { font-variant-numeric: tabular-nums; color: var(--g-ink); font-weight: 800; }
-.ev-f-w { font-size: calc(11px * var(--fs-scale)); color: var(--g-mute); }
-.ev-f-w b { color: var(--g-ink-2); font-variant-numeric: tabular-nums; }
-
-/* 유사 이유 — 체크 목록 · 유의 문구 — 회색 상자 */
-.evd .ev-reasons { list-style: none; margin: 8px 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
-.evd .ev-reasons li { position: relative; padding: 6px 10px 6px 28px; border-radius: 6px; background: var(--g-teal-sub); color: var(--g-ink); line-height: 1.5; }
-.evd .ev-reasons li::before { content: ""; position: absolute; left: 10px; top: 10px; width: 9px; height: 5px; border-left: 2px solid var(--g-teal); border-bottom: 2px solid var(--g-teal); transform: rotate(-45deg); }
-.evd .ev-note { margin: 6px 0; padding: 8px 10px; border-radius: 6px; background: var(--g-paper); line-height: 1.5; }
 
 /* 표 — 머리 줄 남색 띠 */
 .evd .md-table:not(.tree-table) thead th { background: var(--g-paper); color: var(--g-navy); font-weight: 700; }
@@ -169,5 +134,4 @@
   .evd .ev-head .di-head-item:first-child .di-head-v b { font-size: calc(22px * var(--fs-scale)); }
   .evd .ev-head .di-head-v b { font-size: calc(18px * var(--fs-scale)); }
   .evd .ev-kv { grid-template-columns: 88px minmax(0, 1fr); }
-  .ev-factors { grid-template-columns: 1fr; }
 }

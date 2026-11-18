@@ -4,8 +4,10 @@
  * 대응단계(4) → 임무 → 조치(체크) → 세부행동 · 행동카드. 필요시 임무는 단계 끝에 따로 (조건이 맞을 때만 실행).
  * 내 부서 조치가 기본, [전체 부서 보기]로 다른 부서·유관기관 조치까지.
  * [수정] — 매뉴얼이 개정되면 담당자가 조치·카드·단계 기준을 직접 고친다 (원문 추출본은 그대로, 수정본만 저장).
+ * 개발서버 features/manual/poc/SopPane 과 같게(2026-11-19) — [지난 상황](D40)·「우리 기관 매뉴얼 — 기준지역과 별개로…」 줄은 뺐다.
+ * [새 상황으로 시작] → 「체크를 비우고 새로 시작」 확인(상황 이름·보관 없음) → [비우기] → 「체크 N개를 비웠습니다.」
  */
-import { baseName } from "@/lib/baseRegion";
+import "./sop.css";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Citation } from "@/lib/contract/agent";
 import { useSession } from "@/lib/session";
@@ -18,19 +20,18 @@ import { useExplore } from "../explore/ExploreCtx";
 import { IcCheck, IcChevD, IcChevR, IcDoc, IcDown, IcEdit, IcPlus, IcTrash, IcUndo, IcUp } from "../Icons";
 import SopCardView, { Orgs } from "./SopCardView";
 import SopPropagate from "./SopPropagate";
-import { ActionEditor, GroupEditor, HistoryModal, ManualEditor, MissionEditor, PastSituationsModal, actLabel, fmtTime, useSopEditOps } from "./SopEdit";
+import { ActionEditor, GroupEditor, HistoryModal, ManualEditor, MissionEditor, fmtTime, useSopEditOps } from "./SopEdit";
 
 /** 2026-11-02 사용자 지시: 상황전파 버튼·추천 단계 안내·대응 지침은 일단 숨긴다(되살리려면 false) */
 const HIDE_EXTRA = true;
 const KIND_ORDER: Record<string, number> = { 초기대응부서: 0, 지휘부: 1, 협업부서: 2, 유관기관: 3 };
-type Dlg = { k: "act"; a: SopAction; isNew?: boolean } | { k: "mis"; mi: SopMission; isNew?: boolean } | { k: "grp"; g: SopGroup } | { k: "man" } | { k: "log" } | { k: "past" };
+type Dlg = { k: "act"; a: SopAction; isNew?: boolean } | { k: "mis"; mi: SopMission; isNew?: boolean } | { k: "grp"; g: SopGroup } | { k: "man" } | { k: "log" };
 type RowEdit = { onEdit: () => void; onUp: () => void; onDown: () => void; onDel: () => void; onRestore: () => void };
 
 export default function SopPane({ focus }: { focus?: { id: string; n: number } }) {
   const sop = useSop();
-  const { checks, checkInfo, toggleCheck, resetChecks, toast, account, cond } = useSession();
+  const { checks, checkInfo, toggleCheck, resetChecks, toast } = useSession();
   const [askReset, setAskReset] = useState(false);
-  const [sitName, setSitName] = useState("");
   const x = useExplore();
   const ops = useSopEditOps();
   const editing = sop.editing && !!sop.editView;
@@ -63,7 +64,8 @@ export default function SopPane({ focus }: { focus?: { id: string; n: number } }
   }, [vm, mine, sop.scope]);
   const cards = useMemo(() => new Map((vm?.cards ?? []).map((c) => [c.id, c])), [vm]);
 
-  if (!m || !vm) return <div className="dpane">{sop.failed ? <div className="notice danger">대응절차를 불러오지 못했습니다.</div> : <div className="typing"><i /><i /><i /></div>}</div>;
+  // 불러오기 실패 — 관할 지역 없음·매뉴얼 미구축·그 밖(서버 문구) 세 갈래(개발서버 sopState failMsg)
+  if (!m || !vm) return <div className="dpane soppane">{sop.failed ? <div className="notice danger">{sop.failMsg}</div> : <div className="typing"><i /><i /><i /></div>}</div>;
 
   const st = vm.steps.find((s) => s.step === sop.step)!;
   const view = stepView(vm, sop.step, shown, editing);
@@ -94,10 +96,6 @@ export default function SopPane({ focus }: { focus?: { id: string; n: number } }
         <div style={{ minWidth: 0 }}>
           <div className="xs b" style={{ color: "var(--c-navy)" }}>행동매뉴얼 대응절차</div>
           <h2>{m.title}</h2>
-          {/* 기준지역이 소속과 다를 때만 — 매뉴얼·이행체크·상황전파는 소속 지자체 기준(사용자 판단 2026-11-03), 답변·지도는 기준지역 */}
-          {account && cond.region !== account.region && (
-            <div className="sp-own">우리 기관({account.org}) 매뉴얼 — 기준지역({baseName(cond.base)})과 별개로 소속 지자체 기준으로 보여 줍니다</div>
-          )}
         </div>
         <div className="acts">
           {!editing && !HIDE_EXTRA && <SopPropagate />}
@@ -168,26 +166,24 @@ export default function SopPane({ focus }: { focus?: { id: string; n: number } }
         <span className="sp" />
         <span className="xs mute2">내 부서 완료 <b style={{ color: "var(--c-ok)" }}>{pg.done}</b> / {pg.total}</span>
         <button className="btn xs ghost" onClick={() => setOpen(allOpen ? {} : Object.fromEntries(visible.map((id) => [id, true])))}>{allOpen ? "모두 접기" : "모두 펼치기"}</button>
-        {!editing && <button className="btn xs ghost" onClick={() => setDlg({ k: "past" })} title="[새 상황으로 시작] 때 보관한 상황별 체크 기록">지난 상황</button>}
         {!editing && Object.keys(checks).some((k) => k.startsWith(`sop:${m.id}:`)) && (
-          <button className="btn xs ghost" onClick={() => { setSitName(""); setAskReset(true); }} title="상황이 끝나면 우리 기관 체크를 지난 상황으로 보관하고 새로 시작합니다">새 상황으로 시작</button>
+          <button className="btn xs ghost" onClick={() => setAskReset(true)} title="상황이 끝나면 우리 기관 체크를 비우고 새로 시작합니다">새 상황으로 시작</button>
         )}
       </div>
 
       {askReset && (
         <div className="notice warn" style={{ marginTop: 10 }} role="alertdialog" aria-label="새 상황으로 시작">
-          <div>이 매뉴얼의 우리 기관 체크를 비우고 새로 시작할까요? 같은 기관 담당자 화면에서도 함께 비워집니다. 비운 체크는 누가·언제 했는지와 함께 <b>[지난 상황]</b>에 보관되며, 30일이 지나면 자동으로 삭제됩니다.</div>
+          <div>이 매뉴얼의 우리 기관 체크를 비우고 새로 시작할까요? 같은 기관 담당자 화면에서도 함께 비워집니다. </div>
           <div className="row" style={{ marginTop: 8, gap: 8 }}>
-            <input className="input sp" style={{ height: 30 }} value={sitName} maxLength={100} onChange={(e) => setSitName(e.target.value)} placeholder="상황 이름 (선택) 예: 10.20 호우경보 대응" aria-label="상황 이름" />
+            <span className="sp" />
             <button className="btn xs" onClick={() => setAskReset(false)}>취소</button>
             <button className="btn xs pri" onClick={async () => {
               setAskReset(false);
-              const labels = Object.fromEntries(m.actions.filter((a) => checks[sopCheckKey(m, a)]).map((a) => [sopCheckKey(m, a), { label: actLabel(m, a), step: stepLabel(m, a.step) }]));
               try {
-                const n = await resetChecks(`sop:${m.id}:`, { title: sitName.trim(), note: "", labels });
-                toast(`체크 ${n}개를 지난 상황으로 보관하고 비웠습니다.`);
+                const n = await resetChecks(`sop:${m.id}:`);
+                toast(`체크 ${n}개를 비웠습니다.`);
               } catch { toast("체크를 비우지 못했습니다."); }
-            }}>보관하고 비우기</button>
+            }}>비우기</button>
           </div>
         </div>
       )}
@@ -261,7 +257,6 @@ export default function SopPane({ focus }: { focus?: { id: string; n: number } }
       {dlg?.k === "grp" && <GroupEditor g={dlg.g} onClose={() => setDlg(null)} />}
       {dlg?.k === "man" && <ManualEditor onClose={() => setDlg(null)} />}
       {dlg?.k === "log" && <HistoryModal onClose={() => setDlg(null)} />}
-      {dlg?.k === "past" && <PastSituationsModal onClose={() => setDlg(null)} />}
     </div>
   );
 }

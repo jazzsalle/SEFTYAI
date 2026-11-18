@@ -1,0 +1,16 @@
+/* 대응절차 탭을 우측 패널에 앉히기 — 개발서버 styles/renewal/sop.css 끝부분(「우리 패널에 앉히기」) 그대로.
+   개발서버 루트 .poc-sop.dpane → 우리 루트 .soppane.dpane. 나머지 대응절차 모양은 globals.css(.sp-*)에 있다.
+   분할 바로 폭을 바꾸면 패널 폭을 따라 다시 짠다 — 화면 폭이 아니라 이 칸의 폭을 본다(container). */
+.soppane.dpane { container-type: inline-size; min-height: 100%; background: #fff; }
+.soppane .dh h2 { word-break: keep-all; }
+@container (max-width: 560px) {
+  .soppane .dh { flex-wrap: wrap; }
+  .soppane .dh .acts { margin-left: 0; }
+  .soppane .sp-steps { grid-template-columns: repeat(2, 1fr); }
+  .soppane .sp-act .meta .lead { display: none; }
+}
+@container (max-width: 400px) {
+  .soppane .sp-tools .modeSw { width: 100%; }
+  .soppane .sp-tools .modeSw button { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+  .soppane .sp-act .body { margin-left: 8px; }
+}

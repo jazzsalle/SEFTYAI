@@ -7,32 +7,33 @@ import { useSession } from "@/lib/session";
 import { api } from "@/lib/api";
 import type { Advisory } from "@/lib/contract/agent";
 import { baseName, baseTarget } from "@/lib/baseRegion";
-import { advTime, advTone, wxLabel } from "@/lib/wxref";
-import { SCN_CUT_LABEL, SCN_LABEL } from "@/lib/scenario";
-import { BULLETIN_LIMIT, STEP_LIMIT, countAdvisories, stepState, stepsFor, type WxBulletin, type WxBulletinHead, type WxDetailResponse } from "@/lib/wxBulletin";
+import { wxLabel } from "@/lib/wxref";
+import { isSeaArea } from "@/lib/wxMatch";
+import { countAdvisories, stepState, stepsFor, type WxBulletin, type WxBulletinHead, type WxDetailResponse } from "@/lib/wxBulletin";
 import { requestWxAsk } from "@/lib/wxAsk";
-import { Portal } from "@/components/account/Dialog";
-import { IcChevD, IcX } from "@/components/Icons";
+import { Dialog } from "@/components/account/Dialog";
 import BulletinCard from "./BulletinCard";
 
-const ScnTag = ({ a }: { a: Pick<Advisory, "scenario"> }) => (a.scenario ? <span className="scn-tag">{SCN_LABEL}</span> : null);
-const hm = (iso?: string) => {
+/** 시안 표기 10.28 17:05(개발서버 AlertDetailModal dateTime). 날짜가 없으면 빈 글자 — 부르는 쪽이 「미제공」을 적는다 */
+export const wxDateTime = (iso?: string | null) => {
   if (!iso) return "";
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "";
-  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `${p(d.getMonth() + 1)}.${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+};
+
+/** 기상청 단계 제목(「한파주의보 발표」「호우경보 해제」) → 특보 이름 · 상태 낱말 */
+const splitStep = (title: string): [string, string] => {
+  const m = title.trim().match(/^(.*\S)\s+(\S+)$/);
+  return m ? [m[1], m[2]] : [title, ""];
 };
 
 /**
- * 기상특보 상세 (요구사항 UFR-001-001-03 · 개발 서버 nia_ai-frontend AlertDetailModal 을 옮김) — 특보 줄을 펼친 창.
- * 줄은 한 줄로 첫 특보만 말한다. 이 창은 요구사항의 네 가지를 모두 보인다 — 종류·단계 · 발령·변경·해제시각(상태 이력) · 대상지역·발령기관 · 출처·갱신.
- *  · 발효 중 특보 = 특보 줄과 같은 목록(mine — 지금 기준지역을 덮는 것, lib/wxMatch). 고른 특보만 [조건에 반영] · [이 특보로 질의](그 특보가 걸린 행정구역으로 바로 묻는다)
- *  · 상태 이력 = 최근 24시간 통보문의 해당구역·발효시각 줄 가운데 기준지역을 덮는 것(lib/wxBulletin stepsFor). 특보가 모두 풀린 직후가 가장 바쁜 시간이라 둔다
- *  · 전국 발효 현황 = 발효 중 구역을 (종류·단계·해상 여부)별로 센 칩, 머리에 모두 더한 건수(개발 서버 AlertDetailModal, 사용자 결정 2026-11-06 「개발서버대로」).
- *    셈은 특보코드조회(getPwnCd) 구역 코드마다(서버 detail.counts — lib/wxPwn). 받지 못하면 특보 현황 글의 구역 하나를 1건으로(lib/wxBulletin countAdvisories)
- *  · 해상 특보는 이름에 「(해상)」(lib/wxref wxLabel — 개발 서버 WarningCodes.LabelOf)
- *  · 최근 통보문 = 기준지역을 맡는 지방청·본청 통보문 제목. 누르면 그때 본문을 가져온다(한 번 가져온 글은 다시 묻지 않는다 — 발표된 통보문은 고쳐지지 않는다)
- * 시연 시나리오를 켠 시연 계정(R45)은 기상청을 부르지 않는다 — 통보문·상태 이력 자리에 「기상청 실시간 특보 끊음」(「없음」이라 하지 않는다).
+ * 기상특보 상세 — 개발서버 AlertDetailModal(오른쪽 서랍 modal--alert) 그대로(2026-11-19 「개발서버와 동일하게」)
+ * 출처·갱신 → (실패 안내) → 발효 중 특보(줄과 같은 목록 — 지금 기준지역을 덮는 것) → 최근 24시간 상태이력 → 전국 발효 현황 → 최근 통보문(펼칠 때 본문)
+ *  · 발효 중 특보마다 [조건에 반영] · [이 특보로 질의](그 특보가 걸린 행정구역으로 바로 묻는다 — AI 모드·질문이 꽉 찼을 때는 막음)
+ *  · 시연 시나리오 특보는 표지 없이 진짜 특보처럼 보인다(개발서버 가상 특보와 같이)
  * 열 때 한 번 묻고, 그다음은 [새로고침]을 누를 때만 — 상세는 1분마다 긁을 값이 아니다
  */
 export default function WxDetailModal({ mine, onClose }: { mine: Advisory[]; onClose: () => void }) {
@@ -70,20 +71,14 @@ export default function WxDetailModal({ mine, onClose }: { mine: Advisory[]; onC
     };
   }, [load]);
 
-  useEffect(() => {
-    const key = (e: KeyboardEvent) => e.key === "Escape" && onClose();
-    document.addEventListener("keydown", key);
-    return () => document.removeEventListener("keydown", key);
-  }, [onClose]);
-
-  const cut = !!weather?.realtimeCut || !!detail?.realtimeCut;
   const all = (weather?.advisories ?? []).filter((a) => a.status !== "해제");
   const steps = detail ? stepsFor(detail.steps, target) : [];
-  // 특보코드조회(getPwnCd)로 센 값(개발 서버와 같은 셈). 받지 못했거나 시연 시나리오 계정이면 받은 특보 현황 글로 센다(따로 표시하지 않음)
-  const counts: { type: string; level: string; sea: boolean; scenario?: boolean; count: number }[] = detail?.counts ?? countAdvisories(all);
+  // 특보코드조회(getPwnCd)로 센 값(개발 서버와 같은 셈). 받지 못했으면 받은 특보 현황 글로 센다
+  const counts: { type: string; level: string; sea: boolean; count: number }[] = detail?.counts ?? countAdvisories(all);
   const total = counts.reduce((n, c) => n + c.count, 0);
-  // 상세(특보코드 셈)를 기다린다 — 먼저 글로 센 값을 냈다가 바꾸면 숫자가 뛴다. 받지 못했으면(실패) 글로 센 값
-  const countsReady = !!weather && (cut || !!detail || failed || !loading);
+  // 상세(특보코드 셈)를 기다린다 — 먼저 글로 센 값을 냈다가 바꾸면 숫자가 뛴다
+  const countsReady = !!weather && (!!detail || failed || !loading);
+  const hours = detail?.hours ?? 24;
 
   const apply = (a: Advisory) => {
     // 조건 창의 특보 단계는 주의보·경보만 고른다 — 그 밖(예비특보)은 종류만 넣는다
@@ -96,151 +91,153 @@ export default function WxDetailModal({ mine, onClose }: { mine: Advisory[]; onC
     onClose();
     if (!path?.startsWith("/explore")) router.push("/explore");
   };
-  const askTitle = (a: Advisory) => {
-    if (aimOn) return "AI 모드에서는 브리핑 질문에 현재 특보가 함께 전달됩니다. 이 특보로 물으려면 AI 모드를 끄세요.";
-    if (askLocked) return "진행 중인 질문이 끝난 뒤 보낼 수 있습니다";
-    const r = detail?.askRegions[a.id];
-    return `${r ? baseName(r) : region} 기준으로 바로 묻습니다`;
-  };
 
-  // 출처 줄 — 개발서버 AlertDetailModal sourceLine 글(「출처를 아직 확인하지 못했습니다.」·「갱신 기록 없음」, R60)
+  // 출처 줄 — 「기상청 · 기상특보 조회서비스 · 10.28 17:05 갱신」(개발서버 sourceLine)
   const sourceLine = !weather
     ? "출처를 아직 확인하지 못했습니다."
-    : cut
-      ? SCN_CUT_LABEL
-      : weather.status.ok
-        ? `기상청 · 기상특보 조회서비스 · ${hm(weather.status.fetchedAt) ? `${hm(weather.status.fetchedAt)} 갱신` : "갱신 기록 없음"}`
-        : `${weather.status.message} · 최종 시도 ${hm(weather.status.fetchedAt)}`;
+    : ["기상청", "기상특보 조회서비스", weather.status.ok && wxDateTime(weather.status.fetchedAt) ? `${wxDateTime(weather.status.fetchedAt)} 갱신` : "갱신 기록 없음"].join(" · ");
+  const loadingText = loading ? "불러오는 중입니다." : "내용이 없습니다.";
 
   return (
-    <Portal>
-      <div className="ovl" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-        <div className="modal wxd" role="dialog" aria-modal="true" aria-labelledby="wxd-title">
-          <div className="modal-hd">
-            <h2 id="wxd-title">기상특보 상세</h2>
-            <span className="sp" />
-            <button type="button" className="iconbtn" onClick={onClose} aria-label="닫기"><IcX size={22} /></button>
-          </div>
-          <div className="modal-bd">
-            <div className="wxd-head">
-              <b className="wxd-region">{region}</b>
-              <span className={`wxd-src ${cut || (weather && !weather.status.ok) ? "warn" : ""}`}>{sourceLine}</span>
-              <span className="sp" />
-              <button type="button" className="btn ghost sm" disabled={loading} onClick={() => { s.reloadWeather(); load(); }}>
-                {loading ? "불러오는 중" : "새로고침"}
-              </button>
-            </div>
-
-            {/* ── 발효 중 특보 (특보 줄과 같은 목록) ── */}
-            <section className="wxd-sec">
-              <h3>발효 중 특보</h3>
-              {!weather ? (
-                <p className="wxd-empty">불러오는 중입니다.</p>
-              ) : !mine.length ? (
-                <p className="wxd-empty">
-                  {cut ? `${region}에는 ${SCN_LABEL} 특보가 없습니다 · ${SCN_CUT_LABEL}` : weather.status.ok ? `${region}에 발효 중인 기상특보가 없습니다.` : "발효 중인 특보를 확인할 수 없습니다."}
-                </p>
-              ) : (
-                <ul className="wxd-list">
-                  {mine.map((a) => (
-                    <li key={a.id} className="wxd-item">
-                      <span className={`lvb ${advTone(a)}`}>{wxLabel(a)}</span>
-                      <div className="wxd-body">
-                        <p className="wxd-area">
-                          {a.area}
-                          <ScnTag a={a} />
-                        </p>
-                        <p className="wxd-meta">{advTime(a.issuedAt)} {a.scenario ? "켬" : "발표"} · 발령기관 {a.scenario ? SCN_LABEL : "기상청"}</p>
-                      </div>
-                      <div className="wxd-acts">
-                        <button type="button" className="btn ghost xs" onClick={() => apply(a)}>조건에 반영</button>
-                        <button type="button" className="btn xs" disabled={aimOn || askLocked || (loading && !detail)} title={askTitle(a)} onClick={() => ask(a)}>이 특보로 질의</button>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </section>
-
-            {/* ── 상태 이력 ── */}
-            <section className="wxd-sec">
-              <h3>최근 {detail?.hours ?? 24}시간 상태 이력</h3>
-              {cut ? (
-                <p className="wxd-empty">{SCN_CUT_LABEL}</p>
-              ) : failed || (detail && !detail.ok) ? (
-                <p className="wxd-alarm" role="alert">기상청 통보문을 불러오지 못했습니다. 잠시 뒤 [새로고침]을 눌러 주세요.</p>
-              ) : !detail ? (
-                <p className="wxd-empty">불러오는 중입니다.</p>
-              ) : !steps.length ? (
-                <p className="wxd-empty">최근 {detail.hours}시간 동안 {region}에 걸리거나 풀린 특보가 없습니다.</p>
-              ) : (
-                <ol className="wxd-steps">
-                  {steps.map((st) => (
-                    <li key={`${st.key}-${st.no}`} className="wxd-step">
-                      <span className={`wxd-state ${stepState(st.title)}`}>{st.title}</span>
-                      <span className="wxd-step-area">{st.areas}</span>
-                      <span className="wxd-step-at">
-                        {st.at && <>{st.at} · </>}
-                        {st.stnName} 제{st.seq}호 {advTime(st.announcedAt)} 발표
-                      </span>
-                    </li>
-                  ))}
-                </ol>
-              )}
-              {detail && detail.steps.length >= STEP_LIMIT && <p className="wxd-note">최신 {STEP_LIMIT}단계까지만 보입니다.</p>}
-            </section>
-
-            {/* ── 전국 ── */}
-            <section className="wxd-sec">
-              <h3>
-                전국 발효 현황
-                <span className="wxd-count">{countsReady ? `${total}건` : "—"}</span>
-              </h3>
-              {!countsReady ? (
-                <p className="wxd-empty">불러오는 중입니다.</p>
-              ) : !counts.length ? (
-                <p className="wxd-empty">{cut ? SCN_CUT_LABEL : weather.status.ok ? "전국에 발효 중인 기상특보가 없습니다." : "발효 중인 특보를 확인할 수 없습니다."}</p>
-              ) : (
-                <ul className="wxd-chips">
-                  {counts.map((c) => (
-                    <li key={`${c.type}|${c.level}|${c.sea}|${c.scenario}`} className="wxd-chip">
-                      {wxLabel(c)}
-                      <ScnTag a={c} />
-                      <b>{c.count}</b>
-                    </li>
-                  ))}
-                </ul>
-              )}
-              {cut && all.length > 0 && <p className="wxd-note">{SCN_CUT_LABEL}</p>}
-            </section>
-
-            {/* ── 통보문 ── */}
-            <section className="wxd-sec">
-              <h3>최근 통보문</h3>
-              {cut ? (
-                <p className="wxd-empty">{SCN_CUT_LABEL}</p>
-              ) : failed || (detail && !detail.ok) ? (
-                <p className="wxd-alarm" role="alert">기상청 통보문을 불러오지 못했습니다. 잠시 뒤 [새로고침]을 눌러 주세요.</p>
-              ) : !detail ? (
-                <p className="wxd-empty">불러오는 중입니다.</p>
-              ) : !detail.bulletins.length ? (
-                <p className="wxd-empty">최근 {detail.hours}시간 동안 받은 통보문이 없습니다.</p>
-              ) : (
-                <ul className="wxd-msgs">
-                  {detail.bulletins.map((b) => <BulletinRow key={b.key} b={b} />)}
-                </ul>
-              )}
-              {detail && detail.failed.length > 0 && detail.ok && <p className="wxd-note">통보문을 받지 못한 지점: {detail.failed.join(", ")}</p>}
-              {detail?.bulletinsMore && <p className="wxd-note">최신 {BULLETIN_LIMIT}장까지만 보입니다.</p>}
-            </section>
-          </div>
-        </div>
+    <Dialog title="기상특보 상세" drawer className="wxd" onClose={onClose}>
+      {/* ── 출처 · 갱신 ── */}
+      <div className="wx-head">
+        <span className="wx-region">{region}</span>
+        <p className="wx-source">{sourceLine}</p>
+        <button type="button" className="wx-refresh" disabled={loading} onClick={() => { s.reloadWeather(); load(); }}>
+          {loading ? "불러오는 중" : "새로고침"}
+        </button>
       </div>
-    </Portal>
+
+      {/* 서버에 닿지 못한 것도 「조회 실패」와 같은 뜻이다 — 특보가 없다고 말하면 안 된다 */}
+      {failed || (detail && !detail.ok) ? (
+        <p className="wx-alarm" role="alert">특보를 불러오지 못했습니다. 잠시 뒤 [새로고침] 을 눌러 주세요.</p>
+      ) : weather && !weather.status.ok ? (
+        <p className="wx-alarm" role="alert">기상청 조회가 실패했습니다. 아래 내용은 이전 기준입니다.</p>
+      ) : null}
+
+      {/* ── 발효 중 특보 (특보 줄과 같은 목록) ── */}
+      <section className="wx-section">
+        <h3 className="wx-section-title">
+          발효 중 특보
+          <span className="wx-count">{weather ? `${mine.length}건` : "—"}</span>
+        </h3>
+        {!weather ? (
+          <p className="wx-empty">{loadingText}</p>
+        ) : !mine.length ? (
+          <p className="wx-empty">{weather.status.ok ? `${region}에 발효 중인 특보가 없습니다.` : "발효 중인 특보를 확인할 수 없습니다."}</p>
+        ) : (
+          <ul className="wx-list">
+            {mine.map((a) => {
+              const lockedAsk = aimOn || askLocked || (loading && !detail);
+              return (
+                <li key={a.id} className="wx-item">
+                  <span className={`wx-badge${a.level === "주의보" ? " wx-badge--watch" : ""}`}>{wxLabel(a)}</span>
+                  <div className="wx-item-body">
+                    <p className="wx-item-area">
+                      {a.area}
+                      {isSeaArea(a.area) && <span className="wx-tag">해상</span>}
+                    </p>
+                    <dl className="wx-fields">
+                      <dt>발효</dt>
+                      <dd>{wxDateTime(a.issuedAt) || "미제공"}</dd>
+                      <dt>발표</dt>
+                      <dd>{wxDateTime(a.issuedAt) || "미제공"}</dd>
+                      <dt>발령기관</dt>
+                      <dd>기상청</dd>
+                      <dt>구역코드</dt>
+                      <dd>미제공</dd>
+                    </dl>
+                  </div>
+                  <div className="wx-actions">
+                    <button type="button" className="wx-apply" onClick={() => apply(a)}>조건에 반영</button>
+                    <button
+                      type="button"
+                      className="wx-apply wx-apply--ask"
+                      disabled={lockedAsk}
+                      title={askLocked ? "진행 중인 질문이 끝난 뒤 보낼 수 있습니다" : aimOn ? undefined : `${wxLabel(a)} 기준으로 바로 묻습니다`}
+                      onClick={() => ask(a)}
+                    >
+                      이 특보로 질의
+                    </button>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </section>
+
+      {/* ── 상태이력 ── */}
+      <section className="wx-section">
+        <h3 className="wx-section-title">
+          최근 {hours}시간 상태이력
+          <span className="wx-count">{detail ? `${steps.length}건` : "—"}</span>
+        </h3>
+        {!detail ? (
+          <p className="wx-empty">{loadingText}</p>
+        ) : !steps.length ? (
+          <p className="wx-empty">최근 {hours}시간 동안 걸리거나 풀린 특보가 없습니다.</p>
+        ) : (
+          <ol className="wx-timeline">
+            {steps.map((st) => {
+              const [label, state] = splitStep(st.title);
+              return (
+                <li key={`${st.key}-${st.no}`} className="wx-step">
+                  <span className="wx-step-at">{wxDateTime(st.announcedAt)}</span>
+                  <span className={`wx-state wx-state--${stepState(st.title)}`}>{state}</span>
+                  <span className="wx-step-label">{label}</span>
+                  <span className="wx-step-area" title={st.areas}>{st.areas}</span>
+                </li>
+              );
+            })}
+          </ol>
+        )}
+      </section>
+
+      {/* ── 전국 ── */}
+      <section className="wx-section">
+        <h3 className="wx-section-title">
+          전국 발효 현황
+          <span className="wx-count">{countsReady ? `${total}건` : "—"}</span>
+        </h3>
+        {!countsReady ? (
+          <p className="wx-empty">{loadingText}</p>
+        ) : !counts.length ? (
+          <p className="wx-empty">전국에 발효 중인 특보가 없습니다.</p>
+        ) : (
+          <ul className="wx-chips">
+            {counts.map((c, i) => (
+              <li key={`${c.type}|${c.level}|${c.sea}|${i}`} className="wx-chip">
+                {wxLabel(c)}
+                <b>{c.count}</b>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      {/* ── 통보문 ── */}
+      <section className="wx-section">
+        <h3 className="wx-section-title">
+          최근 통보문
+          <span className="wx-count">{detail ? (detail.bulletinsMore ? `최신 ${detail.bulletins.length}장` : `${detail.bulletins.length}장`) : "—"}</span>
+        </h3>
+        {!detail ? (
+          <p className="wx-empty">{loadingText}</p>
+        ) : !detail.bulletins.length ? (
+          <p className="wx-empty">최근 {hours}시간 동안 받은 통보문이 없습니다.</p>
+        ) : (
+          <ul className="wx-msgs">
+            {detail.bulletins.map((b) => <BulletinRow key={b.key} b={b} />)}
+          </ul>
+        )}
+      </section>
+    </Dialog>
   );
 }
 
-/** 통보문 한 줄 — 누르면 본문을 그때 가져온다 */
+/** 통보문 한 줄 — 누르면 본문을 그때 가져온다(한 번 가져온 글은 다시 묻지 않는다) */
 export function BulletinRow({ b }: { b: WxBulletinHead }) {
   const [open, setOpen] = useState(false);
   const [full, setFull] = useState<WxBulletin | null>(null);
@@ -258,20 +255,24 @@ export function BulletinRow({ b }: { b: WxBulletinHead }) {
       .catch(() => setState("failed"));
   };
   return (
-    <li className="wxd-msg">
-      <button type="button" className="wxd-msg-hd" aria-expanded={open} onClick={toggle}>
-        <span className="wxd-msg-at">{advTime(b.announcedAt)}</span>
-        <span className="wxd-msg-stn">{b.stnName}<span className="wxd-tag">{b.areaLabel}</span></span>
-        <span className="wxd-msg-title">{b.title}</span>
-        <span className="wxd-msg-seq">제{b.seq}호</span>
-        <IcChevD size={16} className={open ? "open" : ""} />
+    <li className="wx-msg">
+      <button type="button" className="wx-msg-head" aria-expanded={open} onClick={toggle}>
+        <span className="wx-msg-at">{wxDateTime(b.announcedAt)}</span>
+        <span className="wx-msg-stn">{b.stnName}<span className="wx-tag">{b.areaLabel}</span></span>
+        <span className="wx-msg-title">{b.title}</span>
+        <span className="wx-msg-seq">제{b.seq}호</span>
+        <span className={`wx-msg-caret${open ? " is-open" : ""}`} aria-hidden="true">
+          <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+            <path d="m4 6 4 4 4-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </span>
       </button>
       {open && (
-        <div className="wxd-msg-bd">
+        <div className="wx-msg-body">
           {state === "loading" ? (
-            <p className="wxd-empty">본문을 불러오는 중입니다.</p>
+            <p className="wx-msg-note">본문을 불러오는 중입니다.</p>
           ) : state === "failed" ? (
-            <p className="wxd-alarm" role="alert">본문을 불러오지 못했습니다. 접었다 다시 펴 보세요.</p>
+            <p className="wx-msg-note wx-msg-note--fail" role="alert">본문을 불러오지 못했습니다. 접었다 다시 펴 보세요.</p>
           ) : full ? (
             <BulletinCard b={full} />
           ) : null}

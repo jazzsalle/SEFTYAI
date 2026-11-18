@@ -40,7 +40,7 @@ const running = (over: Partial<JobSummary> = {}): JobSummary => ({
   created_at: local(9, 0), submitted_at: local(9, 0), finished_at: null, elapsed_ms: null, t3q_conversation_id: null, wx_seen: null,
   ...over,
 } as JobSummary);
-const x: ExploreApi = { openCitation: vi.fn(), openDetail: vi.fn(), showOnMap: vi.fn(), openEntity: vi.fn(), selectOnMap: vi.fn(), showSummary: vi.fn(), selectedKey: null, followUp: vi.fn(), retry: vi.fn() };
+const x: ExploreApi = { openCitation: vi.fn(), openDetail: vi.fn(), showOnMap: vi.fn(), openEntity: vi.fn(), selectOnMap: vi.fn(), showSummary: vi.fn(), selectedKey: null, retry: vi.fn() };
 const wrap = (ui: ReactNode) => render(<ExploreContext.Provider value={x}>{ui}</ExploreContext.Provider>);
 
 describe("① 스트리밍 — 진행 단계와 자라는 글(개발서버 글자 그대로)", () => {

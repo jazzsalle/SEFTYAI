@@ -41,7 +41,7 @@ function useAreas(level: "sido" | "sigungu" | "emd", parent: string | null) {
 }
 
 export default function HistoryPage() {
-  const { convs, convsFailed, deleteConvs } = useSession();
+  const { convs, convsFailed, convsLoading, deleteConvs } = useSession();
   const router = useRouter();
   const [initial] = useState(() => initialForm());
   const [form, setForm] = useState<ConvForm>(initial);
@@ -97,7 +97,7 @@ export default function HistoryPage() {
   };
 
   return (
-    <div className="page conv-page">
+    <div className="conv-page">
       <main id="main-content" tabIndex={-1} className="conv-body">
         <div className="conv-head">
           <h1 className="conv-title">대화 이력</h1>
@@ -202,7 +202,12 @@ export default function HistoryPage() {
           <thead>
             <tr>
               <th scope="col" className="conv-col-check">
-                {view.length > 0 && <input type="checkbox" checked={allPicked} onChange={toggleAll} aria-label="전체 선택" />}
+                {view.length > 0 && (
+                  <span className="krds-form-check">
+                    <input type="checkbox" id="conv-all" checked={allPicked} onChange={toggleAll} />
+                    <label htmlFor="conv-all"><span className="sr-only">전체 선택</span></label>
+                  </span>
+                )}
               </th>
               <th scope="col">대화 제목</th>
               <th scope="col" className="conv-col-region">기준지역</th>
@@ -211,7 +216,11 @@ export default function HistoryPage() {
             </tr>
           </thead>
           <tbody>
-            {convsFailed ? (
+            {convsLoading ? (
+              <tr>
+                <td colSpan={5} className="conv-state" role="status">대화 이력을 불러오는 중입니다.</td>
+              </tr>
+            ) : convsFailed ? (
               <tr>
                 <td colSpan={5} className="conv-state" role="alert">
                   <p className="conv-state-head">대화 이력을 불러오지 못했습니다.</p>
@@ -242,7 +251,10 @@ export default function HistoryPage() {
               view.map((c) => (
                 <tr key={c.id}>
                   <td className="conv-col-check">
-                    <input type="checkbox" checked={picked.includes(c.id)} onChange={() => toggle(c.id)} aria-label={`${c.title} 선택`} />
+                    <span className="krds-form-check">
+                      <input type="checkbox" id={`conv-${c.id}`} checked={picked.includes(c.id)} onChange={() => toggle(c.id)} />
+                      <label htmlFor={`conv-${c.id}`}><span className="sr-only">{c.title} 선택</span></label>
+                    </span>
                   </td>
                   <td>
                     <button type="button" className="conv-link" onClick={() => router.push(`/explore?c=${encodeURIComponent(c.id)}`)}>{c.title}</button>
@@ -269,7 +281,7 @@ export default function HistoryPage() {
 
       {confirming && (
         <Dialog
-          size="sm"
+          className="modal--confirm"
           title={`선택한 대화 ${picked.length}건을 삭제하시겠습니까?`}
           desc="삭제하면 대화 이력에서 사라집니다."
           onClose={() => setConfirming(false)}

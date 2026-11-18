@@ -48,7 +48,7 @@ describe("질문 칸 잠금(개발서버 SearchPage askLocked)", () => {
     rerender(<Composer {...props} locked briefDisabled />);
     expect((screen.getByPlaceholderText("질문을 입력하세요.") as HTMLTextAreaElement).disabled).toBe(true);
     expect((screen.getByRole("button", { name: "질의 중…" }) as HTMLButtonElement).disabled).toBe(true);
-    expect((screen.getByRole("button", { name: "브리핑 세트 ▾" }) as HTMLButtonElement).disabled).toBe(true);
+    expect((screen.getByRole("button", { name: "브리핑 세트" }) as HTMLButtonElement).disabled).toBe(true);
   });
 });
 

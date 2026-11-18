@@ -1,7 +1,6 @@
 "use client";
 import { createContext, useContext } from "react";
 import type { Citation } from "@/lib/contract/agent";
-import type { T3qRef } from "@/lib/jobTypes";
 import type { RefLike } from "@/lib/mapRef";
 
 export type TabKind = "map" | "summary" | "sop" | "doc" | "detail";
@@ -32,8 +31,6 @@ export interface ExploreApi {
   /** 「한눈 요약」 탭에서 이 답을 크게(답 카드 [패널에서 크게 보기]) */
   showSummary: (jobId: string) => void;
   selectedKey: string | null;
-  /** 이어서 묻기 — 고른 참조 대상과 함께 */
-  followUp: (jobId: string, refs: T3qRef[]) => void;
   /** 실패·유실·시간 초과한 답 다시 질의 — 같은 요청(문맥 포함)으로 */
   retry: (jobId: string) => void;
   /** 「이어서 물어보기」 추천 후속질문을 누름 — 그 글 그대로 이 대화에 이어 묻는다(개발서버 AnswerPanel onFollowUp · FUN-UFR-301003). 없으면 추천 후속질문을 보이지 않는다 */

@@ -1,16 +1,15 @@
 "use client";
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from "react";
 import { useSession } from "@/lib/session";
-import { isActive, receivedAt, STATE_LABEL, type JobFull, type JobSummary, type T3qRef, type WxSeen } from "@/lib/jobTypes";
-import { ANSWER_FAILED, BRIEF_FAILED, failureText, isAnswerOk } from "@/lib/answerText";
-import { fmtAgo, fmtElapsed } from "@/lib/format";
-import { activeAdvisories, advLabel, advTime } from "@/lib/wxref";
+import { isActive, receivedAt, type JobFull, type JobSummary, type T3qRef, type WxSeen } from "@/lib/jobTypes";
+import { ANSWER_FAILED, BRIEF_FAILED, failureText, hideDbNames, isAnswerOk, mappable } from "@/lib/answerText";
+import { fmtElapsed } from "@/lib/format";
+import { activeAdvisories } from "@/lib/wxref";
 import { legacyAdvIds, seenArea, wxCovers, wxTargetOfT3q, type WxTarget } from "@/lib/wxMatch";
 import type { Advisory, WeatherResponse } from "@/lib/contract/agent";
-import { SCN_SENT_LABEL, sentWithScenario } from "@/lib/scenario";
+import type { RefLike } from "@/lib/mapRef";
 import { useExplore } from "../explore/ExploreCtx";
-import { IcChevD, IcSpark } from "../Icons";
-import { AnswerMarkdown, entityLabel, mdPlainText } from "./Markdown";
+import { AnswerMarkdown, mdPlainText } from "./Markdown";
 import DocRefs from "./DocRefs";
 import AnswerFeedback from "./AnswerFeedback";
 import FollowUps from "./FollowUps";
@@ -19,19 +18,18 @@ import AutoInfoPanel from "./AutoInfographic";
 import CompactSummary from "../summary/CompactSummary";
 import SimilarSummary from "../summary/SimilarSummary";
 import { wantsSimilarSummary, withDisasterType } from "@/lib/similarCases";
-import { useSummary } from "../summary/useSummary";
+import { useSummary, type SummaryState } from "../summary/useSummary";
 import { basisTime } from "@/lib/summary";
 import "./answer.css";
 
 export { entityLabel } from "./Markdown";
 
 /**
- * 에이전트 답 카드 (Figma 203001 · 시각 설계 08 C·D — 적용 범위 R25) — 답 글은 개발서버와 같은 화면 처리를 거쳐 그린다(lib/answerText, 사용자 결정 2026-11-06).
- * 진행 중: 개발서버 진행 중 모양(기다리는 한 줄 — 글·경과·단계·취소, 흐르는 글 칸) / 완료: 머리(처리 시간 = 제공처 meta.elapsed_ms · 도구: 답변 대상 거르기·답변 복사) ·
- * 주의(재사용 D5 · 받은 뒤 특보 C9 · 경고 바로가기 — 있을 때만) · 마크다운 · 답변 대상(refs 순서 그대로, 종류 거르기 C3) ·
- * 경고(제자리, 문구 그대로 — 정보 부족·한계는 개발서버처럼 내지 않음) · 원문 보기·복사(C10, 받은 글 그대로) · 평가 · 이어서 묻기.
- * 받지 못한 답은 정해 둔 안내 문구만(개발서버 agentRun describe — 기술 사유는 내지 않음).
- * 응답 상태가 SUCCESS 가 아니면(일부 제공·결과 없음 등) 답 글이 와도 받지 못한 답으로 — 안내 문구 · 다시 질의 · 원문 보기·마크다운 원문 복사(받은 그대로)만(개발서버 isSuccess, 2026-11-06).
+ * 에이전트 답 카드 — 개발서버 AnswerPanel DoneAnswer·TurnAnswer 와 같은 모양·순서(2026-11-19 「개발서버와 동일하게」). 답 글은 개발서버와 같은 화면 처리(lib/answerText).
+ * 진행 중: 기다리는 한 줄(글·경과·단계·취소) + 흐르는 글 칸 /
+ * 완료: 머리(아이콘 · 재난안전 AI · 「YYYY.MM.DD HH:mm 기준」 · 도구: 접기·답변 대상·답변 복사) → (시연 그림) → 한눈 요약 → 유사사례 요약 → 답 글 →
+ * [전체 보기 ▼] → 근거 문서 → 답변 대상 N곳 → 「대상지역 N건」 → 경고 → 평가(response_id 있을 때만) → 이어서 물어보기.
+ * 받지 못한 답(실패·성공 아닌 응답)은 정해 둔 문구 한 덩이와 [다시 시도](개발서버 answer-error) — 기술 사유는 내지 않는다.
  * 유엔이가 센 값·설명 문구는 두지 않는다.
  */
 
@@ -92,9 +90,6 @@ export function fmtYmdHm(iso: string): string {
   if (Number.isNaN(d.getTime())) return iso;
   return `${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())} ${p2(d.getHours())}:${p2(d.getMinutes())}`;
 }
-const advText = (a: Advisory) => `${a.area} ${advLabel(a)} ${advTime(a.issuedAt)}`;
-/** 「이전 답변 재사용」 띠·머리의 처리 시간 — 끔(사용자 지시 2026-11-02 — 시연) */
-const SHOW_REUSE = false;
 /** 진행 중 경과 — 개발서버 AnswerPanel formatElapsed 그대로(「45초」·「1분 5초」, 지난 초만 · 내림) */
 const fmtWaiting = (ms: number) => fmtElapsed(Number.isFinite(ms) ? Math.max(0, Math.floor(ms / 1000)) * 1000 : 0);
 
@@ -137,26 +132,49 @@ export default function AnswerCard(props: CardProps) {
   return <Card key={props.job.id} {...props} />;
 }
 
+/** 이 길이를 넘는 답은 접을 수 있다(개발서버 FoldAt — 2,500자) */
+const FOLD_AT = 2500;
+
+/** 「답변 대상」 한 줄 — 한눈 요약의 분류(급경사지·지하차도 …)로 묶은 대상(개발서버 AnswerTools TargetRow) */
+interface TargetRow { key: string; name: string; kind: string; ref?: RefLike }
+
+/** 한눈 요약의 분류로 대상을 묶는다 — 요약이 아직이면 빈 목록(개발서버 useAnswerTargets) */
+function targetsOf(sm: SummaryState): { rows: TargetRow[]; kinds: string[] } {
+  if (sm.kind !== "ok") return { rows: [], kinds: [] };
+  const rows: TargetRow[] = [];
+  for (const g of sm.summary.groups) for (const r of g.rows) rows.push({ key: r.id, name: r.name, kind: g.short, ref: r.ref });
+  for (const r of sm.summary.others) rows.push({ key: r.id, name: r.name, kind: "기타", ref: r.ref });
+  return { rows, kinds: [...new Set(rows.map((r) => r.kind))] };
+}
+
+/**
+ * 받지 못한 답 — 개발서버 answer-error(설계 슬라이드 42): 머리 없이 알럿 한 덩이와 [다시 시도].
+ * onRetry 가 없으면(브리핑 항목 · 다시 연 대화의 턴) 단추를 두지 않는다
+ */
+export function AnswerError({ text, onRetry }: { text: string; onRetry?: () => void }) {
+  return (
+    <div className="answer-error" role="alert">
+      <p className="answer-error-text">{text}</p>
+      {onRetry && <button type="button" className="answer-retry" onClick={onRetry}>다시 시도</button>}
+    </div>
+  );
+}
+
 function Card({ job, full, compact, noActions, brief }: CardProps) {
   const s = useSession();
   const x = useExplore();
   const raw = full?.raw ?? null;
   const res = raw?.result ?? null;
   const refs = useMemo(() => (res?.refs ?? []) as T3qRef[], [res]);
-  const types = useMemo(() => [...new Set(refs.map((r) => r.entity_type ?? ""))], [refs]);
   const active = isActive(job.state);
-  const reused = !!job.cached_from;
   const [now, setNow] = useState(() => Date.now());
-  const [showRaw, setShowRaw] = useState(false);
-  const [picked, setPicked] = useState<string[]>([]);
-  const [fold, setFold] = useState(false);
-  const [typeF, setTypeF] = useState<string | null>(null);
-  const [renewing, setRenewing] = useState(false);
+  const [folded, setFolded] = useState(false);
+  const [kind, setKind] = useState<string | null>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
-  const region = useMemo(() => regionOfRequest(full?.request), [full?.request]);
   const at = receivedAt(job, full);
-  // 한눈 요약(개발 서버 시안 1) — 같은 refs 는 한 번만 받는다(CompactSummary 와 같은 캐시)
+  // 한눈 요약(개발 서버 시안 1) — 같은 refs 는 한 번만 받는다(CompactSummary 와 같은 캐시). 답변 대상 상자의 갈래도 이것으로(개발서버 useAnswerTargets)
   const sm = useSummary(brief ? null : refs);
+  const targets = useMemo(() => targetsOf(sm), [sm]);
   const regionName = (full?.request as { query_context?: { region?: { name?: string } | null } } | undefined)?.query_context?.region?.name ?? null;
   // 유사사례 한눈 요약(개발서버 AnswerPanel caseCtx) — 사례를 물은 답이면 그 답을 보낸 조건(+ 질문에서 읽은 재난유형)으로 T3Q-04 를 부른다
   const similarCtx = useMemo(() => {
@@ -165,15 +183,13 @@ function Card({ job, full, compact, noActions, brief }: CardProps) {
     const qc = (full?.request as { query_context?: Record<string, unknown> | null } | undefined)?.query_context;
     return qc && typeof qc === "object" ? withDisasterType(qc, job.question_user) : null;
   }, [brief, res, job.question_user, full?.request]);
-  const seen = seenAdvisories(job, full);
-  const after = useMemo(() => advisoriesAfter(s.weather, region, at, seen), [s.weather, region, at, seen]);
 
-  // 진행 중은 1초마다(경과 시계), 재사용 답은 1분마다(「n시간 전」)
+  // 진행 중은 1초마다(경과 시계)
   useEffect(() => {
-    if (!active && !reused) return;
-    const t = setInterval(() => setNow(Date.now()), active ? 1000 : 60_000);
+    if (!active) return;
+    const t = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(t);
-  }, [active, reused]);
+  }, [active]);
 
   if (active) {
     const ms = now - new Date(job.created_at).getTime();
@@ -221,196 +237,182 @@ function Card({ job, full, compact, noActions, brief }: CardProps) {
     );
   }
 
+  // 다시 시도 — 브리핑 항목(머리에 따로 있음)·다시 연 대화의 턴(개발서버: 되살린 턴은 보낼 재료가 없어 단추를 두지 않는다)에는 없다
+  const retry = noActions || endedBefore(job.finished_at) ? undefined : () => x.retry(job.id);
   // 완료됐지만 원응답을 아직 못 받은 경우 — 실패가 아니라 불러오는 중
   if (job.state === "DONE" && !raw) return <AnswerWait text="답변을 불러오는 중…" brief={brief} />;
-  if (job.state !== "DONE" || !raw) {
-    // 정해 둔 문구만(개발서버와 같은 문장) — 서버가 준 사유·경고 글은 기술 용어가 섞여 내지 않는다
-    return (
-      <div className="acard err">
-        <div className="acard-h"><b>재난안전 AI</b> <span className="badge danger">{STATE_LABEL[job.state]}</span></div>
-        <div className="s" style={{ marginTop: 8 }}>{failureText(job.state, endedBefore(job.finished_at))}</div>
-        {!noActions && <div className="row" style={{ marginTop: 10 }}>
-          <button className="btn sm pri" onClick={() => x.retry(job.id)}>다시 질의</button>
-        </div>}
-      </div>
-    );
-  }
+  // 정해 둔 문구만(개발서버와 같은 문장) — 서버가 준 사유·경고 글은 기술 용어가 섞여 내지 않는다
+  if (job.state !== "DONE" || !raw) return <AnswerError text={failureText(job.state, endedBefore(job.finished_at))} onRetry={retry} />;
+  // 성공이 아닌 응답(일부 제공 등)·답 글이 없는 응답 — 답 글을 그리지 않고 안내 문구만(개발서버 useConversation·useBriefing isSuccess · TurnAnswer)
+  const answer = typeof res?.answer === "string" && res.answer ? res.answer : null;
+  if (!isAnswerOk(raw.status) || !answer) return <AnswerError text={brief ? BRIEF_FAILED : ANSWER_FAILED} onRetry={retry} />;
 
-  const answer = typeof res?.answer === "string" ? res.answer : null;
-  const elapsed = raw.meta?.elapsed_ms;
-  const hasNotice = !!raw.warnings?.length;
-  const noticeId = `notices-${job.id}`;
   const refsId = `refs-${job.id}`;
-  const shown = typeF === null ? refs : refs.filter((r) => (r.entity_type ?? "") === typeF);
   const activeRef = x.selectedKey?.startsWith(job.id + ":") ? x.selectedKey.slice(job.id.length + 1) : null;
-  const ago = at ? fmtAgo(now - Date.parse(at)) : null;
+  const basis = basisTime(at ?? job.created_at);
+  const onMap = refs.filter(mappable).length;
 
-  const togglePick = (r: string) => setPicked((p) => (p.includes(r) ? p.filter((v) => v !== r) : [...p, r]));
-  const goTo = (id: string, block: ScrollLogicalPosition) => {
-    const el = document.getElementById(id);
-    el?.scrollIntoView({ behavior: "smooth", block });
+  // 갈래를 고르면 「답변 대상」 상자로 내려가 그 갈래만 보인다(개발서버 pickKind)
+  const pickKind = (k: string | null) => {
+    setKind(k);
+    const el = document.getElementById(refsId);
+    el?.scrollIntoView({ behavior: "smooth", block: "start" });
     el?.focus({ preventScroll: true });
   };
-  const pickType = (t: string | null) => {
-    setTypeF(t);
-    goTo(refsId, "start");
-  };
-  const copy = (text: string, done: string) => {
-    if (!navigator.clipboard) return s.toast("복사하지 못했습니다.");
-    navigator.clipboard.writeText(text).then(() => s.toast(done), () => s.toast("복사하지 못했습니다."));
-  };
-  const copyPlain = () => {
-    const md = bodyRef.current?.querySelector(".md");
-    if (md) copy(mdPlainText(md), "답변을 서식 없는 글로 복사했습니다.");
-  };
-  const copyMd = () => answer && copy(answer, "답변 마크다운 원문을 복사했습니다.");
-  const renew = () => {
-    setRenewing(true);
-    x.retry(job.id);
-    setTimeout(() => setRenewing(false), 5000);
-  };
-
-  // 성공이 아닌 응답(일부 제공 등) — 답 글을 그리지 않고 안내 문구만(개발서버 useConversation·useBriefing). 원문 보기·복사는 받은 그대로 남긴다
-  if (!isAnswerOk(raw.status)) {
-    return (
-      <div className="acard err">
-        <div className="acard-h"><b>재난안전 AI</b></div>
-        <div className="s" style={{ marginTop: 8 }} role="alert">{brief ? BRIEF_FAILED : ANSWER_FAILED}</div>
-        <div className="row" style={{ marginTop: 10 }}>
-          {!noActions && <button className="btn sm pri" onClick={() => x.retry(job.id)}>다시 질의</button>}
-          <button className="btn xs" onClick={() => setShowRaw((v) => !v)}>{showRaw ? "원문 닫기" : "원문 보기"}</button>
-          {answer && <button className="btn xs" onClick={copyMd}>마크다운 원문 복사</button>}
-        </div>
-        {showRaw && <pre className="rawbox">{answer ?? JSON.stringify(raw, null, 2)}</pre>}
-      </div>
-    );
-  }
 
   return (
-    <div className="acard ans">
-      <div className="acard-h">
-        <span className="acard-icon" aria-hidden="true"><IcSpark size={16} /></span> <b>재난안전 AI</b>
-        <span className="acard-at">
-          {[
-            raw.meta?.base_time ? `${raw.meta.base_time} 기준` : null,
-            SHOW_REUSE && typeof elapsed === "number" ? `처리 ${fmtElapsed(elapsed)}` : null,
-            sentWithScenario(full?.request) ? SCN_SENT_LABEL : null,
-          ]
-            .filter(Boolean)
-            .join(" · ")}
-        </span>
-        <span className="sp" />
-        <div className="ans-tools" role="toolbar" aria-label="답변 도구">
-          {!compact && answer && answer.length > 2500 && <button className="lnk xs" onClick={() => setFold((v) => !v)}>{fold ? "전체 보기" : "접기"}</button>}
-          {refs.length > 0 && (
-            <Menu label="답변 대상">
-              {(close) => (
-                <>
-                  <button type="button" role="menuitemradio" aria-checked={typeF === null} onClick={() => { close(); pickType(null); }}>전체</button>
-                  {types.map((t) => (
-                    <button key={t} type="button" role="menuitemradio" aria-checked={typeF === t} onClick={() => { close(); pickType(t); }}>{entityLabel(t || null)}</button>
-                  ))}
-                </>
-              )}
-            </Menu>
-          )}
-          {answer && (
-            <Menu label="답변 복사">
-              {(close) => (
-                <>
-                  <button type="button" role="menuitem" onClick={() => { close(); copyPlain(); }}>서식 없는 글</button>
-                  <button type="button" role="menuitem" onClick={() => { close(); copyMd(); }}>마크다운 원문</button>
-                </>
-              )}
-            </Menu>
-          )}
-        </div>
-      </div>
-
-      {/* 「이전 답변 재사용」 띠는 보이지 않는다(사용자 지시 2026-11-02 — 시연에서 보일 필요 없음). 받은 뒤 특보 주의 줄은 그대로 */}
-      {SHOW_REUSE && reused && (
-        <div className="ans-reuse" role="note">
-          <span>
-            <b>이전 답변 재사용</b>
-            {at ? ` · ${fmtYmdHm(at)} 받은 답${ago ? `(${ago})` : ""}` : ""}
-          </span>
-          {after.length > 0 && <span className="ans-flag">받은 뒤 특보 바뀜</span>}
-          <span className="sp" />
-          <button type="button" className="btn sm pri" disabled={renewing} onClick={renew}>새로 받기</button>
-        </div>
-      )}
-      {after.length > 0 && <div className="ans-caution" role="note">⚠ 답변을 받은 뒤 특보 발표: {after.map(advText).join(" · ")}</div>}
-      {hasNotice && <button type="button" className="ans-jump" onClick={() => goTo(noticeId, "center")}>경고 보기 ↓</button>}
+    <article className="acard ans">
+      <header className="acard-h">
+        {/* AI 아이콘은 장식 — 낭독하지 않는다 */}
+        <span className="acard-icon" aria-hidden="true"><SparkIcon /></span>
+        <b>재난안전 AI</b>
+        {/* 답변 기준시각 — 받아 둔 답이면 그 답을 처음 받은 시각(개발서버 basisTime(cachedAt ?? askedAt)) */}
+        {basis && <span className="acard-at">{basis} 기준</span>}
+        <AnswerTools
+          long={!compact && answer.length > FOLD_AT}
+          folded={folded}
+          onFold={() => setFolded((v) => !v)}
+          kinds={targets.kinds}
+          kind={kind}
+          onKind={pickKind}
+          bodyRef={bodyRef}
+          markdown={hideDbNames(answer)}
+        />
+      </header>
 
       {/* 그림을 먼저(11/2 행안부 회의 코멘트, 사용자 승인 2026-11-02) — 시연 탭 항목은 미리 만든 시연 자료, 그 밖은 받은 대상·조회 값으로 그린 답변 그림. 답 글·대상은 그대로 */}
       {hasDemoInfographic(job) ? <DemoInfoPanel job={job} /> : <AutoInfoPanel job={job} full={full} noTargets={sm.kind !== "none"} />}
-      {/* 답 글 위 한눈 요약 카드(개발 서버 CompactSummary) — 대상 그림은 이 카드가 맡는다(답변 그림의 「답변 대상」은 접는다) */}
-      {!brief && <CompactSummary refs={refs} regionName={regionName} basisAt={basisTime(at ?? job.created_at)} onEntity={(r) => x.openEntity(job.id, r)} onExpand={() => x.showSummary(job.id)} />}
+      {/* 한눈 요약(시안 1 압축형) — 대상이 먼저, 답 글은 그 아래(개발서버 CompactSummary) */}
+      {!brief && <CompactSummary refs={refs} regionName={regionName} basisAt={basis} onEntity={(r) => x.openEntity(job.id, r)} onExpand={() => x.showSummary(job.id)} />}
       {/* 유사사례 답 — refs 가 없어 위 요약이 안 붙는다. 순위·1위 사건·답에 나온 수치(개발서버 SimilarSummary). 사건을 누르면 사건 상세 탭 */}
-      {similarCtx && answer && <SimilarSummary ctx={similarCtx} answer={answer} regionName={regionName} onEvent={(ev) => x.openDetail("T3Q-10", ev.id, ev.label, ev.ctx)} />}
+      {similarCtx && <SimilarSummary ctx={similarCtx} answer={answer} regionName={regionName} onEvent={(ev) => x.openDetail("T3Q-10", ev.id, ev.label, ev.ctx)} />}
 
-      {answer ? (
-        <div ref={bodyRef} className={fold ? "acard-body folded" : "acard-body"}>
-          <AnswerMarkdown text={answer} refs={refs} activeRef={activeRef} onRef={(r) => x.openEntity(job.id, r)} />
-        </div>
-      ) : (
-        <div className="s muted" style={{ marginTop: 8 }}>{ANSWER_FAILED}</div>
-      )}
-      {fold && <button className="lnk s" onClick={() => setFold(false)}>전체 보기 ▼</button>}
+      <div ref={bodyRef} className={folded ? "answer-body is-folded" : "answer-body"}>
+        <AnswerMarkdown text={answer} refs={refs} activeRef={activeRef} onRef={(r) => x.openEntity(job.id, r)} />
+      </div>
+      {folded && <button type="button" className="ans-lnk" onClick={() => setFolded(false)}>전체 보기 ▼</button>}
       {/* 근거 문서(T3Q v0.4.5 doc_refs — 개발서버 DocRefs) — 문서 이름 · 쪽, 누르면 원문 미리보기 새 창. 비면 답 글 안 문서 링크로 */}
       <DocRefs refs={res?.doc_refs} text={answer} />
 
-      {refs.length > 0 && (
-        <div className="refbox" id={refsId} tabIndex={-1}>
-          <div className="row">
-            <b className="s">답변 대상</b>
-            <span className="sp" />
-            <button className="btn xs" onClick={() => x.showOnMap(job.id)}>지도에서 모두 보기</button>
-          </div>
-          {types.length > 1 && (
-            <div className="ans-filter" role="group" aria-label="답변 대상 종류">
-              <button type="button" className="ans-fchip" aria-pressed={typeF === null} onClick={() => setTypeF(null)}>전체</button>
-              {types.map((t) => (
-                <button key={t} type="button" className="ans-fchip" aria-pressed={typeF === t} onClick={() => setTypeF(t)}>{entityLabel(t || null)}</button>
-              ))}
-            </div>
-          )}
-          <ul className="reflist">
-            {shown.map((r) => (
-              <li key={r.ref} className={activeRef === r.ref ? "on" : undefined}>
-                <label className="pick">
-                  <input type="checkbox" aria-label={`${r.display_name ?? r.ref} — 이어서 묻기에 참조`} checked={picked.includes(r.ref)} onChange={() => togglePick(r.ref)} />
-                </label>
-                <button className="lnk" onClick={() => x.openEntity(job.id, r)}>{r.display_name ?? r.ref}</button>
-                <span className="xs muted">{entityLabel(r.entity_type)}</span>
-                <span className="sp" />
-                {/* 개발서버 AnswerTargets 「상세 보기」(ans-lnk--xs) — 이름과 같이 상세 탭을 만들고 지도로 */}
-                <button className="lnk xs ref-detail" onClick={() => x.openEntity(job.id, r)}>상세 보기</button>
-              </li>
-            ))}
-          </ul>
-        </div>
+      <AnswerTargets id={refsId} rows={targets.rows} kinds={targets.kinds} kind={kind} onKind={setKind} onEntity={(r) => x.openEntity(job.id, r)} />
+
+      {/* 지도에 보일 수 있는 것만 센다(개발서버 mappableRefs) — 하나도 없으면 줄을 내지 않는다 */}
+      {onMap > 0 && (
+        <p className="answer-note"><strong>대상지역</strong> {onMap}건</p>
       )}
-
-      <RawFoot raw={raw} id={noticeId} />
-
-      <div className="acard-actions">
-        <button className="btn xs" onClick={() => setShowRaw((v) => !v)}>{showRaw ? "원문 닫기" : "원문 보기"}</button>
-        {answer && <button className="btn xs" onClick={copyPlain}>답변 복사</button>}
-        {answer && <button className="btn xs" onClick={copyMd}>마크다운 원문 복사</button>}
-        <button className="btn xs" onClick={() => x.followUp(job.id, refs.filter((r) => picked.includes(r.ref)))}>
-          이어서 묻기{picked.length ? ` (참조 ${picked.length})` : ""}
-        </button>
-      </div>
-      {showRaw && <pre className="rawbox">{answer ?? JSON.stringify(raw, null, 2)}</pre>}
-      <AnswerFeedback jobId={job.id} />
+      {/* 경고 — T3Q 문구 그대로. 정보 부족(data_gaps)·한계(limitations)는 내지 않는다(개발서버 AnswerPanel, 사용자 지시 2026-11-03) */}
+      {!!raw.warnings?.length && (
+        <ul className="answer-warnings">
+          {raw.warnings.map((w, i) => <li key={`w${i}`}>{w.message}</li>)}
+        </ul>
+      )}
+      {/* 답변 평가(T3Q-31) — response_id 가 없는 답은 상류가 가리킬 데가 없어 자리를 내지 않는다(개발서버) */}
+      {!!res?.response_id && <AnswerFeedback jobId={job.id} />}
       {/* 이어서 물어보기 — 추천 후속질문(개발서버 AnswerPanel · FUN-UFR-301003, R62). 브리핑 항목 카드에는 없다(개발서버 브리핑 결과에 onFollowUp 없음) */}
       {!brief && <FollowUps list={res?.follow_up_questions} onAsk={x.askSuggested} />}
+    </article>
+  );
+}
+
+/** 머리 줄 도구 — 접기 · 답변 대상 · 답변 복사(개발서버 AnswerTools). 복사 결과는 툴바 안에 2초(토스트 아님) */
+function AnswerTools({ long, folded, onFold, kinds, kind, onKind, bodyRef, markdown }: {
+  long: boolean;
+  folded: boolean;
+  onFold: () => void;
+  kinds: string[];
+  kind: string | null;
+  onKind: (kind: string | null) => void;
+  bodyRef: RefObject<HTMLDivElement | null>;
+  markdown: string;
+}) {
+  const [done, setDone] = useState<string | null>(null);
+  useEffect(() => {
+    if (done === null) return;
+    const t = setTimeout(() => setDone(null), 2000);
+    return () => clearTimeout(t);
+  }, [done]);
+  const copy = (text: string, msg: string) => {
+    if (!navigator.clipboard) return setDone("복사하지 못했습니다");
+    navigator.clipboard.writeText(text).then(
+      () => setDone(msg),
+      () => setDone("복사하지 못했습니다"),
+    );
+  };
+  const copyPlain = () => {
+    const md = bodyRef.current?.querySelector(".md");
+    if (md) copy(mdPlainText(md), "서식 없는 글로 복사했습니다");
+  };
+  return (
+    <div className="ans-tools" role="toolbar" aria-label="답변 도구">
+      {done && <span className="ans-done" role="status">{done}</span>}
+      {long && <button type="button" className="ans-lnk" onClick={onFold}>{folded ? "전체 보기" : "접기"}</button>}
+      {kinds.length > 0 && (
+        <Menu label="답변 대상">
+          {(close) => (
+            <>
+              <button type="button" role="menuitemradio" aria-checked={kind === null} onClick={() => { close(); onKind(null); }}>전체</button>
+              {kinds.map((k) => (
+                <button key={k} type="button" role="menuitemradio" aria-checked={kind === k} onClick={() => { close(); onKind(k); }}>{k}</button>
+              ))}
+            </>
+          )}
+        </Menu>
+      )}
+      <Menu label="답변 복사">
+        {(close) => (
+          <>
+            <button type="button" role="menuitem" onClick={() => { close(); copyPlain(); }}>서식 없는 글</button>
+            <button type="button" role="menuitem" onClick={() => { close(); copy(markdown, "마크다운 원문을 복사했습니다"); }}>마크다운 원문</button>
+          </>
+        )}
+      </Menu>
     </div>
   );
 }
 
-/** 머리 줄 펼침 메뉴 — 바깥을 누르거나 Esc 면 닫힌다 */
+/** 「답변 대상」 상자 — 갈래 칩으로 거르고, 이름을 누르면 상세(지도)로 간다(개발서버 AnswerTargets) */
+function AnswerTargets({ id, rows, kinds, kind, onKind, onEntity }: {
+  id: string;
+  rows: TargetRow[];
+  kinds: string[];
+  kind: string | null;
+  onKind: (kind: string | null) => void;
+  onEntity: (ref: RefLike) => void;
+}) {
+  if (rows.length === 0) return null;
+  const shown = kind === null ? rows : rows.filter((r) => r.kind === kind);
+  return (
+    <section className="ans-refbox" id={id} tabIndex={-1} aria-label="답변 대상">
+      <div className="ans-refbox-h">
+        <b>답변 대상</b>
+        <span className="ans-refbox-n">{shown.length}곳</span>
+      </div>
+      {kinds.length > 1 && (
+        <div className="ans-filter" role="group" aria-label="답변 대상 갈래">
+          <button type="button" className="ans-fchip" aria-pressed={kind === null} onClick={() => onKind(null)}>전체</button>
+          {kinds.map((k) => (
+            <button key={k} type="button" className="ans-fchip" aria-pressed={kind === k} onClick={() => onKind(k)}>{k}</button>
+          ))}
+        </div>
+      )}
+      <ul className="ans-reflist">
+        {shown.map((r) => (
+          <li key={r.key}>
+            {r.ref ? (
+              <button type="button" className="ans-lnk" onClick={() => onEntity(r.ref as RefLike)}>{r.name}</button>
+            ) : (
+              <span>{r.name}</span>
+            )}
+            <span className="ans-refkind">{r.kind}</span>
+            {r.ref && <button type="button" className="ans-lnk ans-lnk--xs" onClick={() => onEntity(r.ref as RefLike)}>상세 보기</button>}
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+/** 머리 줄 펼침 메뉴 — 바깥을 누르거나 Esc 면 닫힌다(개발서버 AnswerTools Menu) */
 function Menu({ label, children }: { label: string; children: (close: () => void) => ReactNode }) {
   const [open, setOpen] = useState(false);
   const box = useRef<HTMLSpanElement>(null);
@@ -443,8 +445,11 @@ function Menu({ label, children }: { label: string; children: (close: () => void
   }, [open]);
   return (
     <span className="ans-dd" ref={box}>
-      <button ref={trigger} type="button" className="btn xs" aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
-        {label} <IcChevD size={12} />
+      <button ref={trigger} type="button" className="ans-dd-btn" aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
+        {label}
+        <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true" focusable="false">
+          <path d="m3 4.5 3 3 3-3" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
       </button>
       {open && (
         <div className="ans-menu" role="menu" aria-label={label}>
@@ -455,6 +460,15 @@ function Menu({ label, children }: { label: string; children: (close: () => void
         </div>
       )}
     </span>
+  );
+}
+
+/** AI 표시 — 개발서버 SparkIcon(18, 채운 별) */
+function SparkIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+      <path d="M8 2 9.4 6.2 13.6 7.6 9.4 9 8 13.2 6.6 9 2.4 7.6 6.6 6.2z" fill="currentColor" />
+    </svg>
   );
 }
 

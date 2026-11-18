@@ -52,13 +52,13 @@ export default function EntityDetail({ id, label, ctx, hasGeometry: known }: { i
         </div>
         <div className="entity-head-actions">
           {hasGeometry === true && mapJob && mapRef && (
-            <button type="button" className="btn sm entity-btn entity-btn--map" onClick={() => x.showOnMap(mapJob, mapRef)}>
+            <button type="button" className="entity-btn entity-btn--map" onClick={() => x.showOnMap(mapJob, mapRef)}>
               <MapIcon />
               지도에서 보기
             </button>
           )}
           {has?.basis && (
-            <button type="button" className="btn sm entity-btn" onClick={() => basisRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}>참조</button>
+            <button type="button" className="entity-btn" onClick={() => basisRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}>참조</button>
           )}
         </div>
       </header>

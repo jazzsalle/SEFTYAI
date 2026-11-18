@@ -2,7 +2,13 @@
 .entity-tab.evd { container: evd / inline-size; }
 .evd .evd-hero { align-items: flex-start; }
 .evd .evd-hero .entity-head-actions { margin-left: auto; flex: none; display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
-.evd .entity-btn { display: inline-flex; align-items: center; gap: 4px; font-weight: 600; }
+/* 머리 단추 — 개발서버 .entity-btn(index.css + renewal/panel.css): 높이 36 · 0 14 · 13px 600 · 테두리 #58616a */
+.evd .entity-btn {
+  display: inline-flex; align-items: center; gap: 5px; flex: none; height: 36px; padding: 0 14px; font-family: inherit;
+  font-size: var(--fs-xs); font-weight: 600; line-height: calc(20px * var(--fs-scale)); color: var(--c-text); white-space: nowrap;
+  background: #fff; border: 1px solid var(--c-input-bd); border-radius: var(--r-m); cursor: pointer;
+}
+.evd .entity-btn:hover { background: #f4f5f6; }
 .evd .entity-btn--map { color: #0b50d0; background: #ecf2fe; border-color: #256ef4; }
 .evd .entity-btn--map:hover { background: #d8e5fd; }
 .evd .ev-chips .di-tag svg, .evd .ev-chips .di-chip svg { flex: none; }

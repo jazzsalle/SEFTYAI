@@ -32,7 +32,6 @@ export function SessionExpiredModal() {
   return (
     <Dialog
       role="alertdialog"
-      size="sm"
       title="접속이 종료되었습니다"
       desc="다른 곳에서 이 계정으로 로그인했습니다. 다시 로그인하세요."
       busy={leaving}

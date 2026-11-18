@@ -12,6 +12,7 @@ import "./queue.css";
  * 상태 칩(전체·진행 중·완료·실패·중단 — 칩마다 건수, 누르면 그 상태만·칩별 빈 문구), 맨 위 「(브리핑 이름) 전체 보기」 줄(브리핑을 걸었으면).
  * 답변 생성 중인 대화 질문은 눌러 그 질문 위치로 간다. 도는 브리핑 항목은 누를 수 없다(아직 보일 답이 없다 — 단추 대신 글).
  * 접힌 탭에는 진행(파랑) · 새로 끝남(초록) · 새로 실패·중단(빨강)을 따로 센다 — 펼쳐서 본 것·골라 본 것은 «본 것».
+ * 모양은 개발서버 AskList 그대로(머리 h2 + 「진행 n」 · [접기 ‹] · 상태 칩 · 묶음 제목 h3 · 줄) — 개발서버에 없는 연결 끊김 안내 줄은 두지 않는다(2026-11-19).
  */
 export default function QueuePanel({ open, setOpen, turns, selectedId, onPick, briefing }: {
   open: boolean;
@@ -49,13 +50,15 @@ export default function QueuePanel({ open, setOpen, turns, selectedId, onPick, b
   }, [running.length]);
 
   if (!open)
+    // 화면 왼쪽 가장자리에 세로 글씨 탭 하나만 남는다(개발서버 ask-reopen)
     return (
       <button
+        type="button"
         className="qp-tab"
         onClick={() => setOpen(true)}
         aria-label={["질문 현황 펼치기", running.length > 0 && `진행 중 ${running.length}건`, freshOk > 0 && `새로 끝난 답 ${freshOk}건`, freshBad > 0 && `실패·중단 ${freshBad}건`].filter(Boolean).join(" — ")}
       >
-        <span>질문 현황</span>
+        <span className="qp-tab-t">질문 현황</span>
         {running.length > 0 && <span className="qp-badge run" aria-hidden="true">{running.length}</span>}
         {freshOk > 0 && <span className="qp-badge ok" aria-hidden="true">{freshOk}</span>}
         {freshBad > 0 && <span className="qp-badge bad" aria-hidden="true">{freshBad}</span>}
@@ -68,17 +71,23 @@ export default function QueuePanel({ open, setOpen, turns, selectedId, onPick, b
   const runText = (e: AskEntry) => (
     <>
       <span className="answer-spinner" aria-hidden="true" />
-      <span className="qp-q">{e.question}</span>
-      <span className="qp-m xs">{e.origin} · {askElapsed(e.elapsedMs)}</span>
+      <span className="qp-txt">
+        <span className="qp-q">{e.question}</span>
+        <span className="qp-m">{e.origin} · {askElapsed(e.elapsedMs)}</span>
+      </span>
     </>
   );
   return (
-    <aside className="qpanel" aria-label="질문 현황">
+    <nav className="qpanel" aria-label="질문 현황">
       <div className="qp-h">
-        <b>질문 현황</b>
-        <span className="xs muted">진행 {running.length}</span>
-        <span className="sp" />
-        <button className="lnk xs" onClick={() => setOpen(false)} aria-label="질문 현황 접기">접기 ‹</button>
+        <h2>
+          질문 현황
+          <span className="qp-count">진행 {running.length}</span>
+        </h2>
+        <button type="button" className="qp-fold" onClick={() => setOpen(false)}>
+          접기
+          <ChevronLeft />
+        </button>
       </div>
       <div className="qp-filter" role="group" aria-label="질문 상태로 거르기">
         {QUEUE_FILTERS.map((f) => (
@@ -87,59 +96,85 @@ export default function QueuePanel({ open, setOpen, turns, selectedId, onPick, b
           </button>
         ))}
       </div>
-      {s.t3qOk === false && <div className="notice danger xs" style={{ margin: 8 }}>에이전트 서버에 연결할 수 없습니다. 보낸 질문은 연결되면 이어서 처리됩니다.</div>}
-      {briefing && (
-        <button type="button" className={`qp-brief-all${briefing.shown ? " cur" : ""}`} aria-current={briefing.shown ? "true" : undefined} onClick={briefing.onShow}>
-          {briefing.title} 전체 보기
-        </button>
-      )}
-      {(filter === "all" || filter === "running") && (
-        <>
-          <div className="qp-sec xs muted">답변 생성 중</div>
-          {running.length === 0 && <div className="qp-empty xs">{QUEUE_EMPTY.running}</div>}
-          {running.map((e) =>
-            // 대화의 질문은 답변 생성 중이어도 누르면 그 질문 위치로 간다(FUN-UFR-301010). 도는 브리핑 항목은 글로 둔다
-            e.kind === "turn" ? (
-              <button key={e.id} type="button" className="qp-item act" onClick={() => onPick(e)}>{runText(e)}</button>
+      <div className="qp-body">
+        {/* 브리핑을 걸었으면 그 묶음 전체로 가는 줄을 맨 위에(개발서버 ask-briefing-all) */}
+        {briefing && (
+          <button type="button" className={`qp-brief-all${briefing.shown ? " cur" : ""}`} aria-current={briefing.shown ? "true" : undefined} onClick={briefing.onShow}>
+            {briefing.title} 전체 보기
+          </button>
+        )}
+        {(filter === "all" || filter === "running") && (
+          <section className="qp-group">
+            <h3 className="qp-sec">답변 생성 중</h3>
+            {running.length === 0 ? (
+              <p className="qp-empty">{QUEUE_EMPTY.running}</p>
             ) : (
-              <div key={e.id} className="qp-item act">{runText(e)}</div>
-            ),
-          )}
-        </>
-      )}
-      {filter !== "running" && (
-        <>
-          <div className="qp-sec xs muted">{filter === "bad" ? "실패·중단" : "완료"}</div>
-          {shownDone.length === 0 && <div className="qp-empty xs">{filter === "bad" ? QUEUE_EMPTY.bad : QUEUE_EMPTY.done}</div>}
-          {shownDone.map((e) => (
-            <button
-              key={e.id}
-              type="button"
-              className={`qp-item ${askBad(e) ? "bad" : "ok"}${e.id === selectedId ? " cur" : ""}`}
-              aria-current={e.id === selectedId}
-              onClick={() => {
-                setSeen((p) => new Set(p).add(e.id));
-                onPick(e);
-              }}
-            >
-              {e.failed ? <WarnIcon /> : e.cancelled ? <StopIcon /> : <CheckIcon />}
-              <span className="qp-q">{e.question}</span>
-              <span className="qp-m xs">
-                {e.origin}
-                {e.failed ? " · 실패" : e.cancelled ? " · 중단" : ` · ${askElapsed(e.elapsedMs)}`}
-              </span>
-            </button>
-          ))}
-        </>
-      )}
-    </aside>
+              <ul>
+                {running.map((e) => (
+                  <li key={e.id}>
+                    {/* 대화의 질문은 답변 생성 중이어도 누르면 그 질문 위치로 간다(FUN-UFR-301010). 도는 브리핑 항목은 글로 둔다 */}
+                    {e.kind === "turn" ? (
+                      <button type="button" className="qp-item act" onClick={() => onPick(e)}>{runText(e)}</button>
+                    ) : (
+                      <div className="qp-item act">{runText(e)}</div>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        )}
+        {filter !== "running" && (
+          <section className="qp-group">
+            <h3 className="qp-sec">{filter === "bad" ? "실패·중단" : "완료"}</h3>
+            {shownDone.length === 0 ? (
+              <p className="qp-empty">{filter === "bad" ? QUEUE_EMPTY.bad : QUEUE_EMPTY.done}</p>
+            ) : (
+              <ul>
+                {shownDone.map((e) => (
+                  <li key={e.id}>
+                    <button
+                      type="button"
+                      className={`qp-item ${askBad(e) ? "bad" : "ok"}${e.id === selectedId ? " cur" : ""}`}
+                      aria-current={e.id === selectedId}
+                      onClick={() => {
+                        setSeen((p) => new Set(p).add(e.id));
+                        onPick(e);
+                      }}
+                    >
+                      {e.failed ? <WarnIcon /> : e.cancelled ? <StopIcon /> : <CheckIcon />}
+                      <span className="qp-txt">
+                        <span className="qp-q">{e.question}</span>
+                        <span className="qp-m">
+                          {e.origin}
+                          {e.failed ? " · 실패" : e.cancelled ? " · 중단" : ` · ${askElapsed(e.elapsedMs)}`}
+                        </span>
+                      </span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        )}
+      </div>
+    </nav>
+  );
+}
+
+/** [접기] 왼쪽 꺾쇠(개발서버 AskList ChevronIcon left) */
+function ChevronLeft() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+      <path d="m10 3.5-5 4.5 5 4.5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
   );
 }
 
 /** 그만둔 줄의 표 — 실패(경고)와도 완료(체크)와도 다른 얼굴(개발서버 AskList StopIcon) */
 function StopIcon() {
   return (
-    <svg className="qp-st bad" width="18" height="18" viewBox="0 0 18 18" aria-hidden="true" focusable="false">
+    <svg className="qp-st" width="18" height="18" viewBox="0 0 18 18" aria-hidden="true" focusable="false">
       <circle cx="9" cy="9" r="7.2" stroke="currentColor" strokeWidth="1.5" fill="none" />
       <path d="M6 9h6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
     </svg>

@@ -14,13 +14,12 @@ import "./answer.css";
  *   그 밖의 글자는 바꾸지 않고 마크다운 뜻대로만 그린다(GFM 표·목록·인용·코드). 받은 글 그대로는 카드의 원문 보기·마크다운 원문 복사에서.
  * - 굵게·기울임은 CJK 친화 구분자 규칙(remark-cjk-friendly, G5) — 「…저지대)**입니다」처럼 한글 옆 별표도 글쓴이 뜻대로 굵게. 글자는 그대로.
  * - raw HTML 가운데 <br>·<br/>·<br /> 만 줄바꿈으로 그린다. 그 밖의 HTML 은 태그로 실행하지 않고 글자 그대로 보인다(rehype-raw 없음).
- * - `[이름](#ref:rN)` 은 refs 에 rN 이 있을 때만 대상 링크(파랑 글자 + 1px 점선 밑줄, 기호 없음, 고르면 옅은 바탕). 없으면 링크 아닌 글자(설명서 7.3 — 서버도 미리 벗김).
+ * - `[이름](#ref:rN)` 은 refs 에 rN 이 있을 때만 대상 링크(개발서버 answer-md-entity — 파랑 글자 + 1px 실선 밑줄 #b1cefb, 누르면 옅은 바탕). 없으면 링크 아닌 글자(설명서 7.3 — 서버도 미리 벗김).
  *   개발서버처럼 본문 이름과 refs 이름이 같은 것일 때만 링크(번호를 엉뚱하게 단 링크는 글자로), 위치 없음으로 짚힌 대상도 글자. 본문이 번호 그 자체(#ref:r1)면 그 대상 이름으로 적는다.
  * - http(s) 링크만 새 창. 그 밖의 링크·이미지는 글자로.
  * - 물결 한 개(~)는 취소선으로 바꾸지 않는다(0~20점 같은 범위 표기 보존) — 취소선은 ~~ 두 개만.
  * - 번호 목록은 T3Q 가 쓴 번호를 그대로(공동 순위 "6. … 9." 가 브라우저 번호로 바뀌지 않게).
- * - 표(C11): 가로 스크롤 상자 + 오른쪽 그림자, 첫 열 고정, 정렬이 적히지 않은 열만 숫자처럼 보이면 오른쪽 정렬(글자 그대로),
- *   표마다 「표 복사」(탭 구분), 20행이 넘으면 「표 끝으로」. 표 도구는 data-ui — 답 글이 아니다(무가공 비교·답변 복사에서 뺀다).
+ * - 표: 개발서버 answer-md-table 처럼 가로 스크롤 상자에 표만(표 복사·표 끝으로 단추 없음 — 개발서버와 같이). 정렬이 적히지 않은 열만 숫자처럼 보이면 오른쪽 정렬(글자 그대로).
  */
 export const REMARK_PLUGINS = [[remarkGfm, { singleTilde: false }], remarkCjkFriendly] as const;
 
@@ -255,63 +254,22 @@ function MdLi({ node, children, ...rest }: ComponentProps<"li"> & ExtraProps) {
 
 function MdTable({ node, children }: ComponentProps<"table"> & ExtraProps) {
   const no = Number(node?.properties?.dataTableNo) || 0;
-  const bodyRows = Number(node?.properties?.dataBodyRows) || 0;
   const boxRef = useRef<HTMLDivElement>(null);
-  const tableRef = useRef<HTMLTableElement>(null);
-  const endRef = useRef<HTMLDivElement>(null);
-  const [edge, setEdge] = useState({ wide: false, more: false, moved: false });
-  const [note, setNote] = useState("");
-
+  const [wide, setWide] = useState(false);
+  // 옆으로 넘치는 표만 키보드로 밀 수 있게(초점·이름) — 모양은 개발서버 answer-md-table-wrap 그대로(가로 스크롤만)
   useEffect(() => {
     const el = boxRef.current;
     if (!el) return;
-    const update = () => {
-      const wide = el.scrollWidth > el.clientWidth + 1;
-      const more = wide && el.scrollLeft + el.clientWidth < el.scrollWidth - 1;
-      const moved = el.scrollLeft > 0;
-      setEdge((p) => (p.wide === wide && p.more === more && p.moved === moved ? p : { wide, more, moved }));
-    };
+    const update = () => setWide(el.scrollWidth > el.clientWidth + 1);
     update();
-    el.addEventListener("scroll", update, { passive: true });
     const ro = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(update);
     ro?.observe(el);
-    if (tableRef.current) ro?.observe(tableRef.current);
-    return () => {
-      el.removeEventListener("scroll", update);
-      ro?.disconnect();
-    };
+    return () => ro?.disconnect();
   }, []);
-  useEffect(() => {
-    if (!note) return;
-    const t = setTimeout(() => setNote(""), 2000);
-    return () => clearTimeout(t);
-  }, [note]);
-
-  const copy = () => {
-    const t = tableRef.current;
-    if (!t) return;
-    if (!navigator.clipboard) return setNote("복사하지 못했습니다");
-    navigator.clipboard.writeText(tableTsv(t)).then(
-      () => setNote("표를 복사했습니다"),
-      () => setNote("복사하지 못했습니다"),
-    );
-  };
-  const toEnd = () => endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
-  const region = edge.wide ? { role: "region", "aria-label": `표 ${no} — 옆으로 스크롤`, tabIndex: 0 } : {};
-
+  const region = wide ? { role: "region", "aria-label": `표 ${no} — 옆으로 스크롤`, tabIndex: 0 } : {};
   return (
-    <div className="md-tbl">
-      <div className="md-tbl-tools" data-ui="">
-        <span className="xs muted" role="status">{note}</span>
-        <button type="button" className="btn xs" onClick={copy}>표 복사</button>
-        {bodyRows > 20 && <button type="button" className="lnk xs" onClick={toEnd}>표 끝으로</button>}
-      </div>
-      <div className={`md-tblbox${edge.more ? " more" : ""}`}>
-        <div ref={boxRef} className={`md-table${edge.moved ? " moved" : ""}`} {...region}>
-          <table ref={tableRef}>{children}</table>
-        </div>
-      </div>
-      <div ref={endRef} data-ui="" />
+    <div ref={boxRef} className="md-table" {...region}>
+      <table>{children}</table>
     </div>
   );
 }

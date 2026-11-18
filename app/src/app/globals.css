@@ -428,19 +428,22 @@ label.chk input { width: 18px; height: 18px; accent-color: var(--c-primary); }
 /* ---------- 우측 패널 탭 ---------- */
 /* 탭 줄(.rtabs) = 넘치면 좌우로 미는 탭 목록 + [패널 접기](밖에 고정) — 개발서버 panel-head·panel-tabs·panel-collapse.
    [패널 접기]가 탭과 한 굴림 안에 있으면 탭이 많을 때 폭이 줄어 세로로 접히고 탭 줄이 높아진다(2026-11-18 시연 점검). */
-.rtabs { flex: none; display: flex; align-items: stretch; border-bottom: 1px solid var(--c-line); padding: 0 8px; }
-.rtabs-list { flex: 1; min-width: 0; display: flex; align-items: stretch; overflow-x: auto; scrollbar-width: none; }
-.rtabs-list::-webkit-scrollbar { display: none; }
-.rtabs > .lnk { flex: none; white-space: nowrap; margin-left: 8px; }
-.rtab { flex: none; display: inline-flex; align-items: center; gap: 6px; max-width: 200px; height: var(--tab-h); padding: 0 10px; border: 0; background: none;
-  font-size: var(--fs-xs); color: var(--c-sub); border-bottom: 2px solid transparent; }
-.rtab .tl2 { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.rtab.on { color: var(--c-primary-dk); font-weight: 700; border-bottom-color: var(--c-primary); }
-.rtab .x { border: 0; background: none; color: var(--c-dis); font-size: calc(14px * var(--fs-scale)); padding: 0 2px; line-height: 1; }
-.rtab .x:hover { color: var(--c-text); }
+.rtabs { flex: none; display: flex; align-items: stretch; gap: 8px; border-bottom: 1px solid var(--c-bd); padding: 0 8px 0 12px; }
+.rtabs-list { flex: 1; min-width: 0; display: flex; align-items: flex-end; gap: 2px; overflow-x: auto; scrollbar-width: thin; }
+.rtab { flex: none; display: inline-flex; align-items: center; max-width: 180px; border-bottom: 4px solid transparent; }
+.rtab.on { border-bottom-color: var(--c-navy); }
+.rtab .x { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; margin-right: 4px; padding: 0;
+  color: #6d7580; background: none; border: 0; border-radius: 4px; cursor: pointer; }
+.rtab .x:hover { color: #131416; background: #fff; }
+.rtab .x:focus { outline: none; box-shadow: none; }
+.rtab .x:focus-visible { background: var(--c-primary-sub); }
+/* [패널 접기] — 개발서버 .panel-collapse(index.css + renewal/panel.css) */
+.panel-collapse { flex: none; align-self: center; display: inline-flex; align-items: center; gap: 2px; padding: 5px 8px; font-family: inherit;
+  font-size: calc(13px * var(--fs-scale)); line-height: calc(19px * var(--fs-scale)); color: #464c53; background: #fff; border: 1px solid var(--c-bd); border-radius: 6px; cursor: pointer; white-space: nowrap; }
+.panel-collapse:hover { background: #f4f5f6; }
 .rbody { flex: 1; min-height: 0; overflow-y: auto; position: relative; }
 .rbody.map { overflow: hidden; display: flex; flex-direction: column; }
-.rbody.map > .mapwrap { position: relative; inset: auto; flex: 1; min-height: 0; }
+.rbody.map > .map-pane { flex: 1; min-height: 0; }
 /* 한눈 요약 — 둘레 여백은 개발서버 panel-body(1.6rem)가 준다. 요약 CSS 는 그 여백을 전제로 옮겨 왔다 */
 .rbody.summary { padding: 16px; }
 .dpane { padding: 22px 24px 32px; }
@@ -582,9 +585,12 @@ label.chk input { width: 18px; height: 18px; accent-color: var(--c-primary); }
 
 .map-pulse { width: 18px; height: 18px; border-radius: 50%; background: rgba(37,110,244,.35); box-shadow: 0 0 0 0 rgba(37,110,244,.55); animation: pulse 1.6s ease-out infinite; pointer-events: none; }
 @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(37,110,244,.55); } 100% { box-shadow: 0 0 0 28px rgba(37,110,244,0); } }
-.ol-scale-line { left: auto; right: 12px; bottom: 44px; background: rgba(255,255,255,.9); border: 1px solid var(--c-bd); border-radius: 4px; }
-.ol-scale-line-inner { border-color: var(--c-sub); color: var(--c-sub); font-size: calc(11px * var(--fs-scale)); }
-.rtab-b { border: 0; background: none; padding: 0; color: inherit; font: inherit; display: inline-flex; max-width: 170px; cursor: pointer; }
+/* 탭 이름 — 개발서버 .panel-tab-name(renewal/panel.css) */
+.rtab-b { min-width: 0; padding: 11px 6px 10px 10px; overflow: hidden; font-family: inherit; font-size: var(--fs-s); line-height: calc(22px * var(--fs-scale)); color: var(--c-sub);
+  text-overflow: ellipsis; white-space: nowrap; background: none; border: 0; cursor: pointer; }
+.rtab.on .rtab-b { font-weight: 700; color: var(--c-navy-2); }
+.rtab-b:focus, .rtab-b:focus-visible { outline: none; box-shadow: none; }
+.rtab-b:focus-visible { text-decoration: underline; text-underline-offset: 4px; }
 
 /* ---------- 모바일 (≤900px) ---------- */
 @media (max-width: 900px) {
@@ -865,9 +871,7 @@ label.chk input { width: 18px; height: 18px; accent-color: var(--c-primary); }
   .sopbar .sb-prog .bar { display: none; }
 }
 
-.rtab.pinned .rtab-b { gap: 4px; color: var(--c-navy); font-weight: 700; }
 .soppane .dh h2 { font-size: calc(18px * var(--fs-scale)); }
-.soppane .dh .sp-own { margin-top: 6px; padding: 5px 10px; border-radius: var(--r-s); background: var(--c-surface); color: var(--c-sub); font-size: var(--fs-2xs); line-height: 1.5; }
 .sp-steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-top: 14px; padding: 4px; border-radius: var(--r-l); background: var(--c-sec-sub); }
 .sp-steps button { display: flex; flex-direction: column; align-items: flex-start; gap: 1px; padding: 7px 10px; border: 0; border-radius: var(--r-m); background: none; text-align: left; min-width: 0; }
 .sp-steps button .n { font-size: calc(11px * var(--fs-scale)); font-weight: 700; color: var(--c-mute); display: flex; gap: 4px; align-items: center; }

@@ -7,9 +7,11 @@
  *   핀을 함께 그려 보이게 한다 — 받은 도형에서 구한 점이다.
  * - 이름은 T3Q display_name 그대로. 위치 정밀도(precision)가 행정구역 중심이면 점선 원으로 «근사 위치» 표시.
  * - 행정경계는 VWorld WMS. 실패하면 경계 없이 배경지도만 보인다.
- * - 배경지도 VWorld WMTS 가 연속 실패하면 OSM 으로 바꾸고 onTileStatus("osm").
- * - 일반 ↔ 위성 단추(개발 서버 MapPane 이식, onBasemap 을 줄 때) — 위성은 VWorld Satellite(jpeg) + 이름 겹 Hybrid(png).
- *   위성 타일이 연속 실패하면 일반지도로 돌아오고 안내 한 줄(OSM 으로 넘기지 않음). OSM 대체 중에는 단추를 막는다.
+ * - 배경지도 VWorld WMTS 가 연속 실패하면 개발서버 MapPane 처럼 대체 지도 없이 회색 바탕에 알림 「배경지도를 불러오지 못했습니다.」
+ *   (표식·확대·축소는 그대로). 타일이 다시 오면 알림을 거둔다.
+ * - 위성 단추(개발 서버 MapPane .map-sat, onBasemap 을 줄 때) — 확대·축소 묶음 맨 위, 아이콘만. 위성은 VWorld Satellite(jpeg) + 이름 겹 Hybrid(png).
+ *   위성 타일이 연속 실패하면 일반지도로 돌아오고 알림 「위성지도를 불러오지 못해 일반지도로 돌아왔습니다.」(다시 위성을 켤 때까지).
+ * - 짜임(개발서버 MapPane): 알림 → 범례(top) → 지도 칸(.mapwrap = .map-canvas-wrap) → 지도 대체정보. 감싸는 쪽(.map-pane)이 세로로 쌓는다.
  * - 설명서 7.5-2: activeJobId 의 대상은 진하게, 다른 답변의 대상은 흐리게.
  * - 범례 거르기(filter): 그 종류만 그리고 그 범위로 맞춤. 선택한 대상은 거르기와 상관없이 보인다.
  * - 선택한 대상은 말풍선 카드(MapPopup)로 — 받은 유형·이름·위치 정밀도만, 동작은 이미 있는 것(답변 목록으로 이동·확대·같은 종류만)만.
@@ -19,7 +21,7 @@
  *   누른 핀은 배율 그대로 가운데로 · 말풍선 「상세 보기」는 상세가 있을 때만 · 행정경계 실패 알림 · 지도 대체정보 목록(누르면 선택).
  */
 import "./map.css";
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import OlMap from "ol/Map";
 import View from "ol/View";
@@ -31,7 +33,6 @@ import TileLayer from "ol/layer/Tile";
 import VectorLayer from "ol/layer/Vector";
 import VectorSource from "ol/source/Vector";
 import XYZ from "ol/source/XYZ";
-import OSM from "ol/source/OSM";
 import TileWMS from "ol/source/TileWMS";
 import TileState from "ol/TileState";
 import type ImageTile from "ol/ImageTile";
@@ -47,7 +48,7 @@ import { fromLonLat, get as getProjection, toLonLat } from "ol/proj";
 import { createXYZ } from "ol/tilegrid";
 import { createEmpty, extend as extendExtent, getCenter, getHeight, getWidth, isEmpty as isEmptyExtent } from "ol/extent";
 import { Circle as CircleStyle, Fill, Icon, Stroke, Style, Text } from "ol/style";
-import { Attribution, ScaleLine, defaults as defaultControls } from "ol/control";
+import { defaults as defaultControls } from "ol/control";
 import { defaults as defaultInteractions } from "ol/interaction";
 import type { RegionId } from "@/lib/contract/agent";
 import { REGIONS } from "@/lib/config";
@@ -75,7 +76,7 @@ const VW_TILE_URL = "/api/map/tiles";
 const VW_WMS_URL = "/api/map/wms";
 const VW_WMS_LAYERS = "lt_c_adsido,lt_c_adsigg,lt_c_ademd";
 
-export type Basemap = "Base" | "Satellite" | "gray";
+export type Basemap = "Base" | "Satellite";
 /** 행정경계 상태 — 개발서버 useMapLayers BoundaryStatus(idle 은 우리 경계가 늘 전국 WMS 라 없음) */
 export type BoundaryStatus = "loading" | "ok" | "nokey" | "failed" | "denied";
 
@@ -117,14 +118,13 @@ interface Props {
   basemap: Basemap;
   layers: MapLayers;
   onSelect?: (key: string) => void;
-  onTileStatus?: (s: "vworld" | "osm") => void;
   /** 범례 거르기 열쇠(mapStyle filterKey) — 주면 그 종류만 그린다. null/없음 = 모두 */
   filter?: string | null;
   /** 말풍선의 「같은 종류만 보기」 — 거르기 열쇠(null = 모두 보기) */
   onFilter?: (key: string | null) => void;
   /** 말풍선의 「답변에서 보기」 — 그 대상이 든 답변으로 이동 */
   onLocate?: (f: MapFeature) => void;
-  /** 주면 지도 위에 일반 ↔ 위성 단추를 둔다(위성 실패 시 "Base" 로 되돌림) */
+  /** 주면 확대·축소 묶음 맨 위에 위성 단추를 둔다(위성 실패 시 "Base" 로 되돌림) */
   onBasemap?: (b: Basemap) => void;
   /** 「객체 참조」 켬 — 지도 누르기가 집기가 된다(말풍선·선택 없음, 개발 서버 MapPane picking) */
   picking?: boolean;
@@ -152,8 +152,10 @@ interface Props {
   resultStatus?: "loading" | "failed" | null;
   /** OpenLayers 지도 — 요약 보기(MapSummary)가 겹을 얹는다 */
   onMap?: (m: OlMap | null) => void;
-  /** 지도 위에 얹는 것(요약 보기 단추·카드) */
+  /** 지도 칸 위에 얹는 것(요약 보기 단추·카드 · 구 거르기 칩 · 「지도 표시」 · 「객체 참조」) */
   children?: ReactNode;
+  /** 알림 아래·지도 칸 위에 세우는 것(개발서버 MapPane 범례 띠 자리) */
+  top?: ReactNode;
 }
 
 /** 위성지도 단추 기호 (개발 서버 MapPane SatIcon) */
@@ -511,8 +513,8 @@ export default function MapView(p: Props) {
   const [closedKey, setClosedKey] = useState<string | null>(null);
   const closedRef = useRef<string | null>(null);
   closedRef.current = closedKey;
-  // OSM 대체 중(위성 단추 막음) · 위성지도를 못 불러와 일반지도로 돌아옴(안내 한 줄)
-  const [osmOn, setOsmOn] = useState(false);
+  // 배경지도 타일을 못 받음(개발서버 tilesBroken) · 위성지도를 못 불러와 일반지도로 돌아옴
+  const [tilesBroken, setTilesBroken] = useState(false);
   const [satFailed, setSatFailed] = useState(false);
   // 행정경계 상태(개발서버 useMapLayers BoundaryStatus) — 받는 중 · 받음 · 못 받음 · 서버에 키 없음 · 기준지역 밖이라 거절
   const [bnd, setBnd] = useState<BoundaryStatus>("loading");
@@ -524,19 +526,16 @@ export default function MapView(p: Props) {
     const P0 = propsRef.current;
     const r0 = REGIONS[P0.region] ?? REGIONS.national;
 
-    // ── 배경지도: VWorld WMTS (일반·회색·영상+하이브리드) · 실패 시 OSM
+    // ── 배경지도: VWorld WMTS (일반·영상+하이브리드) · 실패하면 대체 없이 회색 바탕 + 알림(개발서버)
     const vw = (layer: string, ext: string, maxZoom = 19) =>
       new XYZ({ url: `${VW_TILE_URL}/${layer}/{z}/{y}/{x}.${ext}`, crossOrigin: "anonymous", maxZoom });
     const base = new TileLayer({ source: vw("Base", "png"), zIndex: 0 });
-    const white = new TileLayer({ source: vw("white", "png", 18), zIndex: 0, visible: false }); // 회색지도는 18단계까지만 있음(19 는 오류 XML)
     const sat = new TileLayer({ source: vw("Satellite", "jpeg"), zIndex: 0, visible: false });
     const hyb = new TileLayer({ source: vw("Hybrid", "png"), zIndex: 1, visible: false });
-    const osm = new TileLayer({ source: new OSM(), zIndex: 0, visible: false });
-    let osmMode = false; // 서버에 키가 없으면 타일이 404 → 오류 수로 OSM
+    let broken = false; // 배경지도 고장 — 처음 6장 연속 실패 · 실패가 성공의 2배를 넘음. 타일이 다시 오면 푼다
     let tileOk = 0;
     let tileErr = 0;
-    let vwReported = false;
-    // 위성 타일 — 따로 센다. 위성만 안 오면 OSM 이 아니라 일반지도로 돌아간다
+    // 위성 타일 — 따로 센다. 위성만 안 오면 일반지도로 돌아간다
     let satOk = 0;
     let satErr = 0;
     let satGaveUp = false;
@@ -667,12 +666,10 @@ export default function MapView(p: Props) {
 
     const m = new OlMap({
       target,
-      layers: [base, white, sat, hyb, osm, bnd, area, line, pin, label, clLayer],
+      layers: [base, sat, hyb, bnd, area, line, pin, label, clLayer],
       view: new View({ center: fromLonLat(r0.center), zoom: r0.zoom, minZoom: 6, maxZoom: 19 }),
-      controls: defaultControls({ zoom: false, rotate: false, attribution: false }).extend([
-        new ScaleLine({ bar: false }),
-        new Attribution({ collapsible: false }), // OSM 대체 시에만 출처가 뜸
-      ]),
+      // 확대·축소는 우리 단추가, 출처 띠·축척 막대는 두지 않는다(개발서버 zoomControl·attributionControl false)
+      controls: defaultControls({ zoom: false, rotate: false, attribution: false }),
       interactions: defaultInteractions({ altShiftDragRotate: false, pinchRotate: false }),
     });
 
@@ -742,34 +739,28 @@ export default function MapView(p: Props) {
           satGaveUp = false;
         }
       }
-      base.setVisible(!osmMode && P.basemap === "Base");
-      white.setVisible(!osmMode && P.basemap === "gray");
-      sat.setVisible(!osmMode && P.basemap === "Satellite");
-      hyb.setVisible(!osmMode && P.basemap === "Satellite");
-      osm.setVisible(osmMode);
-      osm.setOpacity(P.basemap === "gray" ? 0.6 : 1);
+      base.setVisible(P.basemap !== "Satellite");
+      sat.setVisible(P.basemap === "Satellite");
+      hyb.setVisible(P.basemap === "Satellite");
       bnd.setVisible(P.layers.boundary && !wmsFailed);
       for (const l of [area, line, pin, label]) l.setVisible(P.layers.features);
       if (!P.layers.features) hideTip();
       placePop();
     };
 
-    // 배경지도 실패 → OSM (처음 6장 연속 실패, 또는 실패가 성공의 2배를 넘을 때)
+    // 배경지도 실패 → 알림(처음 6장 연속 실패, 또는 실패가 성공의 2배를 넘을 때). 대체 지도로 바꾸지 않는다(개발서버)
     const onTileErr = () => {
-      if (osmMode) return;
       tileErr += 1;
-      if ((tileOk === 0 && tileErr >= 6) || (tileErr >= 20 && tileErr > tileOk * 2)) {
-        osmMode = true;
-        applyLayers();
-        setOsmOn(true);
-        propsRef.current.onTileStatus?.("osm");
+      if (!broken && ((tileOk === 0 && tileErr >= 6) || (tileErr >= 20 && tileErr > tileOk * 2))) {
+        broken = true;
+        setTilesBroken(true);
       }
     };
-    // 위성 실패 → 일반지도로 (처음 6장 연속 실패, 또는 실패가 성공의 2배를 넘을 때). 되돌릴 길(onBasemap)이 없으면 예전처럼 OSM 판단에 넘긴다
+    // 위성 실패 → 일반지도로 (처음 6장 연속 실패, 또는 실패가 성공의 2배를 넘을 때). 되돌릴 길(onBasemap)이 없으면 배경지도 실패로 센다
     const onSatErr = () => {
       const P = propsRef.current;
       if (!P.onBasemap) return onTileErr();
-      if (osmMode || satGaveUp || P.basemap !== "Satellite") return;
+      if (satGaveUp || P.basemap !== "Satellite") return;
       satErr += 1;
       if ((satOk === 0 && satErr >= 6) || (satErr >= 20 && satErr > satOk * 2)) {
         satGaveUp = true;
@@ -779,16 +770,14 @@ export default function MapView(p: Props) {
     };
     const onTileOk = () => {
       tileOk += 1;
-      if (!vwReported && !osmMode) {
-        vwReported = true;
-        propsRef.current.onTileStatus?.("vworld");
+      if (broken) {
+        broken = false;
+        tileErr = 0;
+        setTilesBroken(false);
       }
     };
-    for (const l of [base, white]) {
-      const s = l.getSource();
-      s?.on("tileloaderror", onTileErr);
-      s?.on("tileloadend", onTileOk);
-    }
+    base.getSource()?.on("tileloaderror", onTileErr);
+    base.getSource()?.on("tileloadend", onTileOk);
     sat.getSource()?.on("tileloaderror", onSatErr);
     sat.getSource()?.on("tileloadend", () => {
       satOk += 1;
@@ -1192,10 +1181,6 @@ export default function MapView(p: Props) {
       if (bndState === "loading") setBndState("ok");
     });
     applyLayers();
-    if (osmMode) {
-      setOsmOn(true);
-      P0.onTileStatus?.("osm");
-    }
     setPopEl(popBox);
     setReady(true);
     // [글자 크기]를 바꾸면 캔버스 이름표·묶음 숫자를 새 크기로 다시 그린다(R58)
@@ -1289,27 +1274,6 @@ export default function MapView(p: Props) {
     a.toRegion();
   }, [p.areaToken, ready]);
 
-  // 화면 낭독기용 지도 대체정보 (908001)
-  const sr = useMemo(() => {
-    const all = p.features;
-    if (!all.length) return "지도에 표시된 대상이 없습니다.";
-    const act = p.activeJobId ? all.filter((f) => f.jobId === p.activeJobId) : all;
-    const list = act.length ? act : all;
-    const names = list.slice(0, 12).map((f) => f.displayName ?? "이름 미제공");
-    const sel = p.selectedKey ? all.find((f) => f.key === p.selectedKey) : undefined;
-    const selText = sel
-      ? ` 선택한 대상: ${sel.displayName ?? "이름 미제공"} (${entityTypeKo(sel.entityType)}${precisionKo(sel.precision) ? ` · ${precisionKo(sel.precision)}` : ""}).`
-      : "";
-    return `지도 표시 대상 ${list.length}건${list.length < all.length ? `(전체 ${all.length}건 중)` : ""}: ${names.join(", ")}${list.length > 12 ? " 외" : ""}.${selText}`;
-  }, [p.features, p.activeJobId, p.selectedKey]);
-
-  // 위성 안내 한 줄 — 8초 뒤 거둔다(다시 위성을 켜도 거둔다)
-  useEffect(() => {
-    if (!satFailed) return;
-    const t = window.setTimeout(() => setSatFailed(false), 8000);
-    return () => window.clearTimeout(t);
-  }, [satFailed]);
-
   const selFeature = p.selectedKey ? p.features.find((f) => f.key === p.selectedKey) : undefined;
   const satOn = p.basemap === "Satellite";
   // 집는 중·요약 보기 중에는 말풍선을 띄우지 않는다(개발 서버)
@@ -1332,59 +1296,64 @@ export default function MapView(p: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [popKey, detailOf]);
 
-  const basemapFailed = osmOn || bnd === "nokey";
+  const basemapFailed = tilesBroken || bnd === "nokey";
   return (
-    <div className="sa-map olmap" role="region" aria-label="지도">
-      <div ref={el} className="sa-map-canvas" />
-      <p className="sa-map-sr" aria-live="polite">{sr}</p>
-      <MapAlt features={p.features} activeJobId={p.activeJobId ?? null} selectedKey={p.selectedKey ?? null} missing={p.missing ?? 0} missingItems={p.missingItems ?? []} onSelect={p.onSelect} />
-      {/* 알림은 지도 영역 맨 위에(개발 서버 설계 슬라이드 57~59) */}
-      <div className="sa-map-notices">
-        {p.resultStatus === "failed" && <Notice title="조회결과 위치를 불러오지 못했습니다.">잠시 후 같은 질문을 다시 보내세요.</Notice>}
-        {/* 개발서버 MapPane — 서버에 키가 없으면 배경지도 고장으로(basemapFailed). 배경지도가 OSM 으로 물러섰으면 그 안내(패널)가 대신한다 */}
-        {bnd === "nokey" && !osmOn && <Notice title="배경지도를 불러오지 못했습니다.">잠시 후 다시 확인하세요.</Notice>}
-        {!basemapFailed && bnd === "failed" && <Notice title="행정경계를 불러오지 못했습니다.">배경지도와 표식은 그대로 볼 수 있습니다.</Notice>}
-        {!basemapFailed && bnd === "denied" && (
-          <Notice title="이 지역의 행정경계는 볼 수 없습니다.">로그인한 계정의 기준지역 밖이라 서버가 경계를 주지 않습니다. 배경지도와 표식은 그대로 볼 수 있습니다.</Notice>
-        )}
+    <>
+      {/* 개발서버 MapPane(설계 슬라이드 58·59) — 알림은 지도 영역 맨 위, 범례 띠 위에 흐름대로 */}
+      {p.resultStatus === "failed" && <Notice title="조회결과 위치를 불러오지 못했습니다.">잠시 후 같은 질문을 다시 보내세요.</Notice>}
+      {basemapFailed && <Notice title="배경지도를 불러오지 못했습니다.">잠시 후 다시 확인하세요.</Notice>}
+      {/* 배경지도(타일)는 멀쩡하고 행정경계만 못 받은 경우 */}
+      {!basemapFailed && bnd === "failed" && <Notice title="행정경계를 불러오지 못했습니다.">배경지도와 표식은 그대로 볼 수 있습니다.</Notice>}
+      {!basemapFailed && bnd === "denied" && (
+        <Notice title="이 지역의 행정경계는 볼 수 없습니다.">로그인한 계정의 기준지역 밖이라 서버가 경계를 주지 않습니다. 배경지도와 표식은 그대로 볼 수 있습니다.</Notice>
+      )}
+      {satFailed && <Notice title="위성지도를 불러오지 못해 일반지도로 돌아왔습니다.">잠시 후 다시 확인하세요.</Notice>}
+      {p.top}
+      <div className="mapwrap">
+        <div className="sa-map olmap" role="region" aria-label="지도">
+          <div ref={el} className="sa-map-canvas" />
+          {/* 설계 슬라이드 57 — 로딩 표출 */}
+          {((bnd === "loading" && p.layers.boundary) || p.resultStatus === "loading") && <p className="sa-map-loading" role="status">지도를 불러오는 중입니다…</p>}
+          {p.children}
+          {/* 설계 6·7 확대·축소 — 맨 위는 위성 단추(한 칸 떼어 둠, 개발서버 .map-zoom .map-sat) */}
+          <div className="map-zoom">
+            {p.onBasemap && (
+              <button
+                type="button"
+                className={`map-sat${satOn ? " is-on" : ""}`}
+                aria-pressed={satOn}
+                aria-label={satOn ? "일반지도로 보기" : "위성지도로 보기"}
+                title={satOn ? "일반지도로 보기" : "위성지도로 보기"}
+                onClick={() => {
+                  setSatFailed(false);
+                  p.onBasemap?.(satOn ? "Base" : "Satellite");
+                }}
+              >
+                <SatIcon />
+              </button>
+            )}
+            <button type="button" aria-label="확대" onClick={() => zoomBy(1)}>+</button>
+            <button type="button" aria-label="축소" onClick={() => zoomBy(-1)}>−</button>
+          </div>
+          {popEl && popOpen && selFeature && createPortal(
+            <MapPopup
+              key={selFeature.key}
+              f={selFeature}
+              other={!!p.activeJobId && selFeature.jobId !== p.activeJobId}
+              filter={p.filter ?? null}
+              onClose={() => setClosedKey(selFeature.key)}
+              onLocate={p.onLocate ? () => p.onLocate?.(selFeature) : undefined}
+              onFilter={p.onFilter}
+              onZoom={() => api.current?.zoomTo(selFeature.key)}
+              onDetail={p.onDetail && p.detailOf ? () => p.onDetail?.(selFeature) : undefined}
+              detail={detail?.key === selFeature.key ? detail.v : "checking"}
+            />,
+            popEl,
+          )}
+        </div>
       </div>
-      {((bnd === "loading" && p.layers.boundary) || p.resultStatus === "loading") && <p className="sa-map-loading" role="status">지도를 불러오는 중입니다…</p>}
-      {p.children}
-      {p.onBasemap && (
-        <button
-          type="button"
-          className={`sa-map-sat${satOn && !osmOn ? " is-on" : ""}`}
-          aria-pressed={satOn && !osmOn}
-          disabled={osmOn}
-          title={osmOn ? "배경지도를 대체 지도로 보이는 중이라 위성지도를 쓸 수 없습니다" : satOn ? "일반지도로 보기" : "위성지도로 보기"}
-          onClick={() => {
-            setSatFailed(false);
-            p.onBasemap?.(satOn ? "Base" : "Satellite");
-          }}
-        >
-          <SatIcon />
-          <span>위성</span>
-        </button>
-      )}
-      {satFailed && (
-        <p className="sa-map-msg" role="status">위성지도를 불러오지 못해 일반지도로 돌아왔습니다. 잠시 후 다시 확인하세요.</p>
-      )}
-      {popEl && popOpen && selFeature && createPortal(
-        <MapPopup
-          key={selFeature.key}
-          f={selFeature}
-          other={!!p.activeJobId && selFeature.jobId !== p.activeJobId}
-          filter={p.filter ?? null}
-          onClose={() => setClosedKey(selFeature.key)}
-          onLocate={p.onLocate ? () => p.onLocate?.(selFeature) : undefined}
-          onFilter={p.onFilter}
-          onZoom={() => api.current?.zoomTo(selFeature.key)}
-          onDetail={p.onDetail && p.detailOf ? () => p.onDetail?.(selFeature) : undefined}
-          detail={detail?.key === selFeature.key ? detail.v : "checking"}
-        />,
-        popEl,
-      )}
-    </div>
+      <MapAlt features={p.features} activeJobId={p.activeJobId ?? null} selectedKey={p.selectedKey ?? null} missing={p.missing ?? 0} missingItems={p.missingItems ?? []} onSelect={p.onSelect} />
+    </>
   );
 }
 

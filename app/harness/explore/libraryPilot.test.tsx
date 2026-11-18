@@ -29,8 +29,8 @@ const drawer = (base: BaseRegion, onAskDemo: (d: DemoItem) => void = () => {}) =
   session.s = { cond: { base, region: basePilot(base) } };
   return render(<LibraryDrawer regionName={baseName(base)} onClose={() => {}} onAsk={() => {}} onAskDemo={onAskDemo} />).container;
 };
-const dayTitles = (c: HTMLElement) => [...c.querySelectorAll(".day-btn b")].map((b) => b.textContent);
-const libTexts = (c: HTMLElement) => [...c.querySelectorAll(".lib-q > button.lnk")].map((b) => b.textContent);
+const dayTitles = (c: HTMLElement) => [...c.querySelectorAll(".qlib-day-btn b")].map((b) => b.textContent);
+const libTexts = (c: HTMLElement) => [...c.querySelectorAll(".qlib-q")].map((b) => b.textContent);
 
 describe("질문 모음 — 시·도까지만 고른 기준지역(R48)", () => {
   it("강원특별자치도 → 인제 「한눈 요약 질의」 전부(개발서버 dayScript 와 같은 차례), 지역 질문에 인제 문항", () => {
@@ -40,7 +40,7 @@ describe("질문 모음 — 시·도까지만 고른 기준지역(R48)", () => {
     expect(dayTitles(c)).toEqual(dayItemsFor("inje").map((d) => d.title));
     expect(dayItemsFor("inje").map((d) => d.id)).toEqual(["IG-IJ-01", "IG-IJ-02", "IG-IJ-03", "IG-IJ-04", "IG-IJ-05", "IG-IJ-06", "IG-IJ-07", "DD-IJ-04", "DD-IJ-05", "DD-IJ-07-R"]);
     expect(c.textContent).not.toContain("한눈 요약 질의가 없습니다");
-    fireEvent.click(c.querySelector(".day-btn")!);
+    fireEvent.click(c.querySelector(".qlib-day-btn")!);
     expect((ask.mock.calls[0][0] as DemoItem).id).toBe("IG-IJ-01"); // 질문 글만 묻는다
 
     fireEvent.click(screen.getByRole("tab", { name: "지역 질문" }));
@@ -87,7 +87,7 @@ describe("질문 모음 — 「시연」 갈피 없음 · 한눈 요약 질의�
     await screen.findByText(`응답 1/${dayItemsFor("inje").length}`);
     expect(c.textContent).toContain("지우기");
     expect(c.textContent).not.toContain("붙는 조건");
-    fireEvent.click(c.querySelectorAll(".day-btn")[1]);
+    fireEvent.click(c.querySelectorAll(".qlib-day-btn")[1]);
     expect((live.mock.calls[0][0] as DemoItem).id).toBe("IG-IJ-02");
     pins.v = {};
   });
@@ -102,7 +102,7 @@ describe("시작 화면 — 개발서버 StartGuide 그대로(R53)", () => {
     session.s = { cond: { base: GYEONGBUK, region: basePilot(GYEONGBUK) } };
     const pick = vi.fn();
     const c = render(<StartScreen regionName={baseName(GYEONGBUK)} onBriefing={() => {}} onPick={pick} />).container;
-    expect([...c.querySelectorAll(".tile-q")].map((x) => x.textContent)).toEqual(["경상북도에서 먼저 점검할 곳은?", "최근 침수 이력은?"]);
+    expect([...c.querySelectorAll(".tile-q")].map((x) => x.textContent)).toEqual(["{지역}에서 먼저 점검할 곳은?", "최근 침수 이력은?"]); // 개발서버 StartGuide — 등록한 글 그대로
     expect(c.textContent).not.toContain((libById("YC-03") as LibraryQuestion).text);
     fireEvent.click(c.querySelectorAll(".tile")[1]);
     expect(pick).toHaveBeenCalledWith("최근 침수 이력은?");

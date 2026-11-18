@@ -1,72 +1,122 @@
-/* 기상특보 상세 창 (components/wx/WxDetailModal) — 특보는 노랑(주의) 계열, 경보 빨강은 기존 특보 표지(.lvb.w)와 통보문 막대의 경보 종류 이름(.bc-kind.alarm)만 */
-.modal.wxd { width: min(860px, 100%); }
-.wxd .modal-hd { gap: 8px; }
-.wxd-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px 12px; border-radius: var(--r-m); background: var(--c-surface); border: 1px solid var(--c-line); }
-.wxd-region { font-size: var(--fs-s); }
-.wxd-src { font-size: var(--fs-xs); color: var(--c-sub); }
-.wxd-src.warn { color: var(--c-mute); }
-.wxd-sec { margin-top: 18px; }
-.wxd-sec > h3 { font-size: var(--fs-s); padding-bottom: 6px; border-bottom: 2px solid var(--c-line); margin-bottom: 6px; }
-.wxd-empty { padding: 8px 2px; font-size: var(--fs-xs); color: var(--c-sub); }
-.wxd-note { margin-top: 6px; font-size: var(--fs-2xs); color: var(--c-mute); }
-.wxd-alarm { margin-top: 4px; padding: 8px 10px; border-radius: var(--r-s); background: var(--c-warn-sub); color: var(--c-warn-dk); font-size: var(--fs-xs); }
-.wxd-tag { margin-left: 6px; font-size: calc(11px * var(--fs-scale)); font-weight: 700; color: var(--c-sub); border: 1px solid var(--c-bd); border-radius: 3px; padding: 0 4px; background: #fff; }
-.wxd-list, .wxd-steps, .wxd-msgs { list-style: none; margin: 0; padding: 0; }
-.wxd-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 4px; border-bottom: 1px solid var(--c-line); }
-.wxd-item .lvb { margin-top: 2px; }
-.wxd-body { flex: 1; min-width: 0; }
-.wxd-area { font-weight: 700; font-size: var(--fs-xs); line-height: 1.5; word-break: keep-all; overflow-wrap: anywhere; }
-.wxd-meta { margin-top: 2px; font-size: var(--fs-2xs); color: var(--c-mute); }
-.wxd-acts { flex: none; display: flex; gap: 6px; }
-.wxd-step { display: grid; grid-template-columns: minmax(120px, auto) 1fr; gap: 2px 10px; padding: 8px 4px; border-bottom: 1px dashed var(--c-line); font-size: var(--fs-xs); }
-.wxd-state { align-self: start; justify-self: start; font-weight: 800; font-size: var(--fs-2xs); padding: 1px 7px; border-radius: var(--r-s); background: var(--c-warn-sub); color: var(--c-warn-dk); }
-.wxd-state.ended { background: var(--c-sec-sub); color: var(--c-sub); }
-.wxd-step-area { line-height: 1.5; word-break: keep-all; overflow-wrap: anywhere; }
-.wxd-step-at { grid-column: 2; font-size: var(--fs-2xs); color: var(--c-mute); }
-/* 전국 발효 현황 — 종류·단계별 건수 칩(개발 서버 AlertDetailModal), 머리 오른쪽에 모두 더한 건수 */
-.wxd-sec > h3 .wxd-count { margin-left: 8px; font-weight: 500; font-size: var(--fs-xs); color: var(--c-mute); }
-.wxd-chips { list-style: none; margin: 0; padding: 4px 0 0; display: flex; flex-wrap: wrap; gap: 6px; }
-.wxd-chip { display: inline-flex; align-items: center; gap: 4px; height: 30px; padding: 0 10px; border: 1px solid var(--c-line); border-radius: 999px; background: #fff; font-size: var(--fs-xs); }
-.wxd-chip b { margin-left: 2px; font-variant-numeric: tabular-nums; }
-.wxd-msg { border-bottom: 1px solid var(--c-line); }
-.wxd-msg-hd { display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 4px; border: 0; background: none; text-align: left; font-size: var(--fs-xs); cursor: pointer; }
-.wxd-msg-hd:hover { background: var(--c-surface); }
-.wxd-msg-at { flex: none; color: var(--c-mute); font-size: var(--fs-2xs); }
-.wxd-msg-stn { flex: none; font-weight: 700; }
-.wxd-msg-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.wxd-msg-seq { flex: none; color: var(--c-mute); font-size: var(--fs-2xs); }
-.wxd-msg-hd svg { flex: none; transition: transform .15s; }
-.wxd-msg-hd svg.open { transform: rotate(180deg); }
-.wxd-msg-bd { padding: 4px 4px 12px; }
+/* =====================================================================
+   기상특보 상세 서랍(components/wx/WxDetailModal) · 통보문 카드(BulletinCard)
+   개발서버 최종값 그대로(2026-11-19 「개발서버와 동일하게」) — index.css .wx-*(기상특보 상세 DP-09) 위에 styles/renewal/ds-search.css(Figma 919-6739)가 덮은 값,
+   통보문 카드는 styles/renewal/header.css .bc-*. 서랍 틀은 components/account/account.css(.acm-drawer). 1rem = 10px → px
+   ===================================================================== */
+.wxd .acm-body { gap: 16px; }
 
-/* 통보문 한 장 (components/wx/BulletinCard) */
-.bc { padding: 12px 14px; border: 1px solid #f0d38a; border-radius: var(--r-m); background: #fffdf6; }
-.bc-cond { font-size: var(--fs-2xs); color: var(--c-mute); }
-.bc-title { margin-top: 4px; font-size: var(--fs-s); }
-.bc-fields { margin: 8px 0 0; display: grid; gap: 8px; }
-.bc-fields dt { font-size: calc(11px * var(--fs-scale)); font-weight: 700; color: var(--c-warn-dk); }
-.bc-fields dd { margin: 2px 0 0; font-size: var(--fs-xs); line-height: 1.6; white-space: pre-line; word-break: keep-all; overflow-wrap: anywhere; }
-.bc-fields dd.none { color: var(--c-mute); }
-/* 특보발효현황 막대(개발 서버 BulletinCard) — 종류 · 막대 · 구역 수 / 아래 줄에 구역들. 막대는 파랑, 경보 종류 이름만 빨강 */
-.bc-bars { list-style: none; margin: 4px 0 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
-.bc-bar { display: grid; grid-template-columns: minmax(80px, auto) 1fr auto; grid-template-areas: "kind track val" "areas areas areas"; align-items: center; column-gap: 10px; row-gap: 4px; }
-.bc-kind { grid-area: kind; justify-self: start; padding: 2px 8px; border-radius: 999px; background: var(--c-primary-sub); color: var(--c-primary-dk); font-size: var(--fs-2xs); font-weight: 700; white-space: nowrap; }
-.bc-kind.alarm { background: var(--c-dang-sub); color: var(--c-dang); }
-.bc-track { grid-area: track; height: 8px; overflow: hidden; border-radius: 999px; background: var(--c-line); }
-.bc-fill { display: block; height: 100%; border-radius: inherit; background: var(--c-primary); }
-.bc-val { grid-area: val; font-size: var(--fs-xs); font-weight: 700; color: var(--c-primary-dk); white-space: nowrap; }
-.bc-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--c-line); }
-.bc-toggle { padding: 4px 10px; font: inherit; font-size: var(--fs-2xs); font-weight: 700; color: var(--c-primary); background: none; border: 1px solid var(--c-primary-bd); border-radius: 999px; cursor: pointer; }
+.wx-head { display: flex; align-items: center; gap: 12px; }
+/* 기준지역 알약 */
+.wx-region { flex: none; padding: 4px 10px; font-size: calc(15px * var(--fs-scale)); font-weight: 700; line-height: calc(22px * var(--fs-scale)); color: #0b50d0; background: #ecf2fe; border-radius: 4px; }
+.wx-source { flex: 1; min-width: 0; margin: 0; font-size: calc(15px * var(--fs-scale)); line-height: calc(23px * var(--fs-scale)); color: #464c53; }
+.wx-refresh { flex: none; padding: 6px 12px; font: inherit; font-size: calc(15px * var(--fs-scale)); line-height: calc(22px * var(--fs-scale)); color: #1e2124; background: #fff; border: 1px solid #b1b8be; border-radius: 6px; cursor: pointer; }
+.wx-refresh:hover:not(:disabled) { background: #f4f5f6; }
+.wx-refresh:disabled { color: #8a949e; cursor: progress; }
+
+/* 조회가 끊긴 것은 「특보 없음」과 다르다. 눈에 먼저 걸리게 둔다 */
+.wx-alarm { margin: 0; padding: 12px 14px; font-size: calc(15px * var(--fs-scale)); line-height: calc(23px * var(--fs-scale)); color: #bd2c0f; background: #fdf3f2; border: 1px solid #f2b8b5; border-radius: 6px; }
+
+.wx-section { display: flex; flex-direction: column; gap: 8px; }
+.wx-section-title { display: flex; align-items: baseline; gap: 8px; margin: 0; font-size: calc(17px * var(--fs-scale)); font-weight: 700; line-height: calc(26px * var(--fs-scale)); color: #131416; }
+.wx-count { font-size: calc(15px * var(--fs-scale)); font-weight: 400; color: #6d7882; }
+.wx-empty { margin: 0; padding: 16px; font-size: calc(15px * var(--fs-scale)); line-height: calc(23px * var(--fs-scale)); color: #464c53; text-align: center; background: #f4f5f6; border-radius: 6px; }
+
+/* ── 발효 중 특보 카드 ── */
+.wx-list { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.wx-item { display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px; background: #fff; border: 1px solid #e4e7ea; border-radius: 8px; }
+/* 단계 배지 — KRDS 배지 solid-pastel(danger), 주의보는 노랑 */
+.wx-badge { flex: none; display: inline-flex; align-items: center; height: 24px; padding: 0 8px; font-size: calc(15px * var(--fs-scale)); font-weight: 400; line-height: calc(23px * var(--fs-scale)); color: #bd2c0f; white-space: nowrap; background: #fdefec; border-radius: 4px; }
+.wx-badge--watch { color: #33363d; background: #ffd100; }
+.wx-item-body { flex: 1; min-width: 0; }
+.wx-item-area { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 0 4px; font-size: calc(17px * var(--fs-scale)); font-weight: 700; line-height: calc(26px * var(--fs-scale)); color: #131416; }
+.wx-tag { padding: 1px 6px; font-size: calc(13px * var(--fs-scale)); font-weight: 400; line-height: calc(19px * var(--fs-scale)); color: #464c53; background: #f4f5f6; border: 1px solid #cdd1d5; border-radius: 4px; }
+.wx-tag--change { color: #0b50d0; background: #ecf2fe; border-color: #b1cefb; }
+/* 항목 이름과 값 두 칸씩 4칸 */
+.wx-fields { display: grid; grid-template-columns: auto minmax(0, 1fr) auto minmax(0, 1fr); gap: 2px 10px; margin: 0; font-size: calc(15px * var(--fs-scale)); line-height: calc(23px * var(--fs-scale)); }
+.wx-fields dt { color: #464c53; white-space: nowrap; }
+.wx-fields dd { margin: 0; color: #1e2124; }
+/* [조건에 반영] 위, [이 특보로 질의] 아래(ds-search.css .wx-actions) */
+.wx-actions { flex: none; display: flex; flex-direction: column; gap: 6px; align-self: center; }
+.wx-apply { flex: none; align-self: stretch; padding: 6px 12px; font: inherit; font-size: calc(15px * var(--fs-scale)); font-weight: 700; line-height: calc(22px * var(--fs-scale)); color: #0b50d0; white-space: nowrap; background: #fff; border: 1px solid #b1cefb; border-radius: 6px; cursor: pointer; }
+.wx-apply:hover { background: #ecf2fe; border-color: #256ef4; }
+.wx-apply--ask { color: #fff; background: #256ef4; border-color: #256ef4; }
+.wx-apply--ask:hover { background: #0b50d0; border-color: #0b50d0; }
+.wx-apply--ask:disabled { color: #8a949e; background: #eef1f4; border-color: #cdd1d5; cursor: not-allowed; }
+
+/* ── 상태이력 표 4칸(시각 · 상태 · 특보 · 구역) ── */
+.wx-timeline { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; border: 1px solid #e4e7ea; border-radius: 8px; }
+.wx-step { display: grid; grid-template-columns: 90px 60px auto minmax(0, 1fr); gap: 10px; align-items: center; padding: 8px 14px; font-size: calc(15px * var(--fs-scale)); line-height: calc(22px * var(--fs-scale)); }
+.wx-step + .wx-step { border-top: 1px solid #f0f2f4; }
+.wx-step-at { color: #464c53; font-variant-numeric: tabular-nums; }
+.wx-state { padding: 1px 0; font-size: calc(14px * var(--fs-scale)); font-weight: 700; line-height: calc(20px * var(--fs-scale)); text-align: center; border-radius: 4px; }
+.wx-state--raised { color: #bd2c0f; background: #fdf3f2; }
+.wx-state--changed { color: #0b50d0; background: #ecf2fe; }
+/* 풀린 것은 가라앉혀 둔다 */
+.wx-state--ended { color: #464c53; background: #f4f5f6; }
+.wx-step-label { font-weight: 700; color: #131416; }
+.wx-step-area { display: flex; align-items: center; gap: 6px; min-width: 0; overflow: hidden; color: #464c53; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ── 전국 발효 현황 칩 ── */
+.wx-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.wx-chip { display: inline-flex; gap: 6px; padding: 4px 10px; font-size: calc(15px * var(--fs-scale)); line-height: calc(22px * var(--fs-scale)); color: #1e2124; background: #f4f5f6; border: 1px solid #cdd1d5; border-radius: 16px; }
+.wx-chip b { color: #0b50d0; }
+
+/* ── 통보문 표 5칸(시각 · 지점 · 제목 · 번호 · 꺾쇠) — 줄 전체가 단추 ── */
+.wx-msgs { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; border: 1px solid #e4e7ea; border-radius: 8px; }
+.wx-msg + .wx-msg { border-top: 1px solid #f0f2f4; }
+.wx-msg-head { display: grid; grid-template-columns: 90px auto minmax(0, 1fr) auto 16px; gap: 10px; align-items: center; width: 100%; padding: 10px 14px; font: inherit; font-size: calc(15px * var(--fs-scale)); line-height: calc(22px * var(--fs-scale)); text-align: left; background: none; border: 0; cursor: pointer; }
+.wx-msg-head:hover { background: #f8f9fa; }
+.wx-msg-at { color: #464c53; font-variant-numeric: tabular-nums; }
+.wx-msg-stn { display: flex; align-items: center; gap: 6px; white-space: nowrap; color: #1e2124; }
+.wx-msg-title { min-width: 0; overflow: hidden; font-weight: 700; color: #131416; text-overflow: ellipsis; white-space: nowrap; }
+.wx-msg-seq { font-size: calc(13px * var(--fs-scale)); color: #8a949e; white-space: nowrap; }
+.wx-msg-caret { display: inline-flex; color: #6d7882; }
+.wx-msg-caret.is-open { transform: rotate(180deg); }
+.wx-msg-body { padding: 0 14px 14px; }
+.wx-msg-note { margin: 0; font-size: calc(15px * var(--fs-scale)); line-height: calc(23px * var(--fs-scale)); color: #464c53; }
+.wx-msg-note--fail { color: #bd2c0f; }
+.wx-msg-fields { display: grid; grid-template-columns: 140px minmax(0, 1fr); gap: 6px 12px; margin: 0; padding: 12px 14px; font-size: calc(15px * var(--fs-scale)); line-height: calc(23px * var(--fs-scale)); background: #f8f9fa; border-radius: 6px; }
+.wx-msg-fields dt { color: #464c53; }
+.wx-msg-fields dd { margin: 0; color: #1e2124; }
+/* 기상청 글은 줄바꿈이 뜻을 가진다 */
+.wx-msg-text { white-space: pre-wrap; word-break: break-word; }
+
+/* ── 통보문 한 장(개발서버 header.css .bc-*) ── */
+.bc { display: flex; flex-direction: column; gap: 16px; padding: 24px; background: var(--c-surface, #fff); border: 1px solid var(--c-bd-gray); border-radius: 12px; box-shadow: none; }
+.bc-cond { margin: 0; font-size: var(--fs-xs); line-height: calc(20px * var(--fs-scale)); color: var(--c-sub); }
+.bc-title { margin: 0; font-size: var(--fs-s); font-weight: 700; line-height: calc(22px * var(--fs-scale)); color: #131416; }
+.bc-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; margin: 0; }
+.bc-tile { display: flex; flex-direction: column; gap: 4px; min-width: 0; padding: 12px 14px; background: var(--c-line); border-radius: 8px; }
+.bc-tile--wide { grid-column: 1 / -1; }
+.bc-tile dt { font-size: var(--fs-2xs); color: var(--c-sub); }
+.bc-tile dd { margin: 0; font-size: var(--fs-xs); color: #131416; }
+.bc-tile dd b { margin-right: 2px; font-size: calc(24px * var(--fs-scale)); font-weight: 700; line-height: calc(30px * var(--fs-scale)); }
+.bc-tile-text { font-size: var(--fs-xs); line-height: calc(20px * var(--fs-scale)); white-space: pre-wrap; word-break: keep-all; overflow-wrap: anywhere; }
+.bc-block { display: flex; flex-direction: column; gap: 8px; }
+.bc-block-title { display: flex; align-items: baseline; gap: 8px; margin: 0; font-size: var(--fs-s); font-weight: 700; color: #131416; }
+.bc-block-sub { font-size: var(--fs-2xs); font-weight: 400; color: var(--c-mute); }
+.bc-block--pre { padding: 12px 14px; background: var(--c-primary-sub); border-radius: 8px; }
+.bc-bars { display: flex; flex-direction: column; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.bc-bar { display: grid; grid-template-columns: minmax(80px, auto) 1fr auto; grid-template-areas: "kind track value" "areas areas areas"; align-items: center; column-gap: 10px; row-gap: 4px; }
+.bc-kind { grid-area: kind; justify-self: start; padding: 2px 8px; font-size: var(--fs-2xs); font-weight: 700; color: var(--c-primary-dk); white-space: nowrap; background: var(--c-primary-sub); border-radius: 999px; }
+.bc-kind--alarm { color: var(--c-dang); background: #fdefec; }
+.bc-bar-track { grid-area: track; height: 8px; overflow: hidden; background: var(--c-line); border-radius: 999px; }
+.bc-bar-fill { display: block; height: 100%; background: var(--c-primary); border-radius: inherit; }
+.bc-bar-value { grid-area: value; font-size: var(--fs-xs); font-weight: 700; color: var(--c-primary-dk); white-space: nowrap; }
+.bc-bar-areas { grid-area: areas; font-size: var(--fs-2xs); line-height: calc(18px * var(--fs-scale)); color: var(--c-sub); }
+.bc-text { margin: 0; font-size: var(--fs-xs); line-height: calc(21px * var(--fs-scale)); color: var(--c-text); white-space: pre-wrap; overflow-wrap: anywhere; }
+.bc-text--none { color: var(--c-mute); }
+.bc-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; padding-top: 12px; border-top: 1px solid var(--c-line); }
+.bc-toggle { padding: 4px 10px; font: inherit; font-size: var(--fs-2xs); font-weight: 700; color: var(--c-primary); background: none; border: 1px solid var(--c-primary-bd, var(--c-bd)); border-radius: 999px; cursor: pointer; }
 .bc-toggle:hover { background: var(--c-primary-sub); }
 .bc-source { font-size: var(--fs-2xs); color: var(--c-mute); }
-.bc-raw { margin-top: 8px; }
-.bc-areas { grid-area: areas; font-size: var(--fs-2xs); line-height: 1.6; color: var(--c-sub); white-space: normal; }
+.bc-raw { margin: 0; }
 
 @media (max-width: 720px) {
-  .wxd-item { flex-wrap: wrap; }
-  .wxd-acts { width: 100%; justify-content: flex-end; }
-  .wxd-step { grid-template-columns: 1fr; }
-  .wxd-step-at { grid-column: 1; }
-  .wxd-msg-hd { flex-wrap: wrap; }
-  .wxd-msg-title { flex-basis: 100%; white-space: normal; }
+  .wx-item { flex-wrap: wrap; }
+  .wx-actions { width: 100%; flex-direction: row; justify-content: flex-end; }
+  .wx-step { grid-template-columns: 90px 60px minmax(0, 1fr); }
+  .wx-step-area { grid-column: 1 / -1; }
+  .wx-msg-head { grid-template-columns: 90px minmax(0, 1fr) 16px; }
+  .wx-msg-stn, .wx-msg-seq { display: none; }
 }

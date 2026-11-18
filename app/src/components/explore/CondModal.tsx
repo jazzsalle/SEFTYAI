@@ -1,6 +1,8 @@
 "use client";
 import "./condModal.css";
 import { useEffect, useId, useState } from "react";
+import ExploreModal from "./ExploreModal";
+import { HOUR_OPTIONS, defaultPeriod, formatDate, formatTime, parseDateTime, parsePeriod } from "./period";
 import { useSession, type Cond } from "@/lib/session";
 import { COND_DISASTER_TYPES, COND_GROUPS, COND_ITEMS, COND_WARNING_KINDS, COND_WARNING_LEVELS } from "@/lib/library";
 import type { DisasterType } from "@/lib/contract/agent";
@@ -32,24 +34,6 @@ export function fromMeasures(ms: Measure[]): NonNullable<Cond["conditions"]> {
   return ms.filter(isFilled).map((m) => ({ item: m.item, label: m.label, value: Number(m.value), unit: m.unit }));
 }
 
-/** 「YYYY.MM.DD」 ↔ 세션 조건의 「YYYY-MM-DD」 */
-const toDot = (v?: string) => (v ? v.replaceAll("-", ".") : "");
-function parseDot(v: string): string | null {
-  const m = /^(\d{4})\.(\d{2})\.(\d{2})$/.exec(v.trim());
-  if (!m) return null;
-  const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
-  if (d.getFullYear() !== Number(m[1]) || d.getMonth() !== Number(m[2]) - 1 || d.getDate() !== Number(m[3])) return null;
-  return `${m[1]}-${m[2]}-${m[3]}`;
-}
-/** 체크를 풀었을 때 띄울 기간 — 최근 한 달(개발서버 defaultConditions) */
-function lastMonth() {
-  const to = new Date();
-  const from = new Date(to);
-  from.setMonth(from.getMonth() - 1);
-  const f = (d: Date) => `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, "0")}.${String(d.getDate()).padStart(2, "0")}`;
-  return { from: f(from), to: f(to) };
-}
-
 /**
  * 기준지역이 전국이 되면 기상·수문 조건을 비운다(개발서버 withRegion — 설계 201002 「전국」 ③ · 201003 ⑥).
  * 「1시간 강우 50mm」는 어디서 50mm 인지가 붙어야 뜻이 생긴다 — 전국이면 가리킬 자리가 없는 숫자를 Agent 가 관측값으로 받아 쓴다
@@ -65,36 +49,50 @@ export function useClearMeasuresOnNation() {
 }
 
 /**
- * 재난상황 조건 (시안 「재난상황 조건」 · 질의 줄 [조건 변경]) — 개발서버 ConditionModal 복제(R54).
- * 재난유형 칩 · 발생기간(「발생기간을 묻지 않음」) · 상황 상세정보(특보 종류·단계 · 피해·통제 키워드 · 기상·수문 9줄 체크+값).
+ * 재난상황 조건 (시안 「재난상황 조건」 · 질의 줄 [조건 변경]) — 개발서버 ConditionModal 그대로.
+ * 재난유형 칩 · 발생기간(날짜 + 시각, 「발생기간을 묻지 않음」) · 상황 상세정보(특보 종류·단계 · 피해·통제 키워드 · 기상·수문 9줄 체크+값).
  * 적용하기 전까지는 바깥 조건을 건드리지 않는다. 상세정보는 모두 선택 입력 — 비워 두면 그 칸은 상류로 나가지 않는다.
- * 우리 것으로 남긴 것: 기준시각(query_context.reference_time) 칸, 발생기간은 날짜 단위(시각 칸 없음 — 세션 조건·질문 프리셋이 날짜라서)
+ * [기본 조건으로 되돌리기] = 개발서버 defaultConditions(최근 한 달 · 재난유형 전체 · 상세 비움). 기준지역은 바뀌지 않는다
  */
 export default function CondModal({ onClose }: { onClose: () => void }) {
   const s = useSession();
   const id = useId();
   const c = s.cond;
   const nationwide = !c.base;
-  const month = lastMonth();
+  // 기간을 지운 조건으로 열면 칸에는 기본값(최근 한 달)을 띄워 둔다 — 체크를 풀었을 때 쓸 만한 값이 나와야 한다
+  const [init] = useState(() => {
+    const from = parsePeriod(c.periodFrom);
+    const to = parsePeriod(c.periodTo);
+    return from && to ? { noPeriod: false, from, to } : { noPeriod: true, ...defaultPeriod() };
+  });
   const [disasterType, setType] = useState<string | null>(c.disasterType && c.disasterType !== "전체" ? c.disasterType : null);
-  const [referenceTime, setRef] = useState(c.referenceTime);
-  const [noPeriod, setNoPeriod] = useState(!c.periodFrom && !c.periodTo);
-  const [from, setFrom] = useState(toDot(c.periodFrom) || month.from);
-  const [to, setTo] = useState(toDot(c.periodTo) || month.to);
+  const [noPeriod, setNoPeriod] = useState(init.noPeriod);
+  const [fromDate, setFromDate] = useState(formatDate(init.from));
+  const [fromTime, setFromTime] = useState(formatTime(init.from));
+  const [toDate, setToDate] = useState(formatDate(init.to));
+  const [toTime, setToTime] = useState(formatTime(init.to));
   const [warningKind, setKind] = useState(c.warningKind ?? "");
   const [warningLevel, setLevel] = useState(c.warningLevel ?? "");
   const [keywords, setKw] = useState((c.keywords ?? []).join(", "));
   const [measures, setMeasures] = useState<Measure[]>(() => toMeasures(c));
   const [error, setError] = useState<string | null>(null);
 
+  // 칸을 고치면 앞서 띄운 오류를 거둔다(개발서버 patch)
+  function edit<T>(set: (v: T) => void) {
+    return (v: T) => {
+      set(v);
+      setError(null);
+    };
+  }
   const patchMeasure = (item: string, change: Partial<Measure>) => setMeasures((ms) => ms.map((m) => (m.item === item ? { ...m, ...change } : m)));
   const reset = () => {
-    // 기준지역은 바뀌지 않는다
+    const d = defaultPeriod();
     setType(null);
-    setRef(undefined);
-    setNoPeriod(true);
-    setFrom(month.from);
-    setTo(month.to);
+    setNoPeriod(false);
+    setFromDate(formatDate(d.from));
+    setFromTime(formatTime(d.from));
+    setToDate(formatDate(d.to));
+    setToTime(formatTime(d.to));
     setKind("");
     setLevel("");
     setKw("");
@@ -102,21 +100,21 @@ export default function CondModal({ onClose }: { onClose: () => void }) {
     setError(null);
   };
   const apply = () => {
-    let periodFrom: string | undefined;
-    let periodTo: string | undefined;
+    // 묻지 않기로 했으면 적은 글자를 살피지 않는다 — 어차피 나가지 않는다
+    const from = noPeriod ? null : parseDateTime(fromDate, fromTime);
+    const to = noPeriod ? null : parseDateTime(toDate, toTime);
     if (!noPeriod) {
-      const f = parseDot(from);
-      const t = parseDot(to);
-      if (!f || !t) return setError("발생기간을 YYYY.MM.DD 형식으로 입력하세요.");
-      if (f > t) return setError("발생기간의 시작이 끝보다 뒤입니다.");
-      periodFrom = f;
-      periodTo = t;
+      if (from === null || to === null) return setError("발생기간을 YYYY.MM.DD 형식으로 입력하세요.");
+      if (from > to) return setError("발생기간의 시작이 끝보다 뒤입니다.");
     }
     const kw = keywords.split(",").map((x) => x.trim()).filter(Boolean);
+    // 칸을 꺼 두었으니 비어 있겠지만, 나가는 자리에서 한 번 더 턴다
     const conditions = nationwide ? [] : fromMeasures(measures);
-    // 지역은 그대로 두고 조건 칸은 모두 이 값으로 바꾼다(비운 칸은 undefined 로 — 이전 값이 남지 않게)
+    // 지역은 그대로 두고 조건 칸은 모두 이 값으로 바꾼다(비운 칸은 undefined 로 — 이전 값이 남지 않게).
+    // 기준시각은 개발서버 조건에 없는 칸이라 함께 비운다(예전 판이 남긴 값이 몰래 실리지 않게)
     s.setCond({
-      disasterType: (disasterType ?? undefined) as DisasterType | undefined, referenceTime, periodFrom, periodTo,
+      disasterType: (disasterType ?? undefined) as DisasterType | undefined, referenceTime: undefined,
+      periodFrom: from?.toISOString(), periodTo: to?.toISOString(),
       warningKind: warningKind || undefined, warningLevel: warningLevel || undefined,
       keywords: kw.length ? kw : undefined, conditions: conditions.length ? conditions : undefined,
     });
@@ -149,86 +147,85 @@ export default function CondModal({ onClose }: { onClose: () => void }) {
   );
 
   return (
-    <div className="modal-bg" role="dialog" aria-modal="true" aria-label="재난상황 조건" onKeyDown={(e) => e.key === "Escape" && onClose()}>
-      <div className="modal cond-modal" style={{ width: 720 }}>
-        <div className="modal-h"><b>재난상황 조건</b><span className="sp" /><button className="lnk" onClick={onClose} aria-label="닫기">×</button></div>
-
-        <div className="cond-field" role="group" aria-label="재난유형">
-          <p className="cond-title">재난유형</p>
-          <div className="cond-chips">
-            {[null, ...COND_DISASTER_TYPES].map((t) => (
-              <button key={t ?? "all"} type="button" className={`cond-chip${disasterType === t ? " is-on" : ""}`} aria-pressed={disasterType === t} onClick={() => { setType(t); setError(null); }}>
-                {disasterType === t && <Check />}
-                {t ?? "전체"}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="cond-field" role="group" aria-label="발생기간">
-          <div className="cond-title-row">
-            <p className="cond-title">발생기간</p>
-            <label className="cond-noperiod">
-              <input type="checkbox" checked={noPeriod} onChange={(e) => { setNoPeriod(e.target.checked); setError(null); }} />
-              발생기간을 묻지 않음
-            </label>
-          </div>
-          <p className="cond-hint">{noPeriod ? "기간을 걸지 않고 묻습니다. 적어 둔 날짜는 그대로 두었다가 체크를 풀면 다시 씁니다." : "YYYY.MM.DD 형식으로 입력하세요. 예: 2026.07.25"}</p>
-          <div className={`cond-period${noPeriod ? " is-off" : ""}`}>
-            <input className="input cond-date" value={from} maxLength={10} aria-label="발생기간 시작 날짜" disabled={noPeriod} onChange={(e) => { setFrom(e.target.value); setError(null); }} />
-            <span className="cond-tilde" aria-hidden="true">~</span>
-            <input className="input cond-date" value={to} maxLength={10} aria-label="발생기간 끝 날짜" disabled={noPeriod} onChange={(e) => { setTo(e.target.value); setError(null); }} />
-          </div>
-          {error && <p className="cond-err" role="alert">{error}</p>}
-        </div>
-
-        <div className="cond-field" role="group" aria-label="기준시각">
-          <p className="cond-title">기준시각</p>
-          <input className="input" type="datetime-local" aria-label="기준시각" value={referenceTime?.slice(0, 16) ?? ""} onChange={(e) => setRef(e.target.value ? `${e.target.value}:00+09:00` : undefined)} />
-          <p className="cond-hint">비워 두면 지금 시각으로 묻습니다.</p>
-        </div>
-
-        <p className="cond-title cond-title--detail">상황 상세정보 (선택 입력)</p>
-        <div className="cond-detail">
-          <h3 className="cond-group">상황 성격</h3>
-          <div className="cond-two">
-            <label className="cond-pick">
-              <span className="cond-sub">특보 종류</span>
-              <select className="input" value={warningKind} onChange={(e) => setKind(e.target.value)}>
-                <option value="">선택하세요</option>
-                {COND_WARNING_KINDS.map((k) => <option key={k}>{k}</option>)}
-              </select>
-            </label>
-            <label className="cond-pick">
-              <span className="cond-sub">특보 단계</span>
-              <select className="input" value={warningLevel} onChange={(e) => setLevel(e.target.value)}>
-                <option value="">선택하세요</option>
-                {COND_WARNING_LEVELS.map((l) => <option key={l}>{l}</option>)}
-              </select>
-            </label>
-          </div>
-          <label className="cond-pick">
-            <span className="cond-sub">피해·통제 키워드</span>
-            <input className="input" value={keywords} placeholder="쉼표로 나눠 적습니다. 예: 침수, 지하차도" onChange={(e) => setKw(e.target.value)} />
-          </label>
-
-          <h3 className="cond-group">기상·수문 조건 (직접 입력)</h3>
-          {nationwide && <p className="cond-hint cond-hint--blocked">기준지역이 전국이면 기상·수문 조건을 넣을 수 없습니다. 위쪽 기준지역에서 시·도를 고르세요.</p>}
-          <div className="cond-two">
-            <div className="cond-measures">{group("RAIN")}</div>
-            <div className="cond-measures">{group("HYDRO")}{group("WEATHER")}</div>
-          </div>
-          <p className="cond-hint">입력한 값은 사용자 입력 조건으로 함께 보냅니다(실시간 관측·특보 아님). {s.weather?.realtimeCut ? "특보는 상단 특보 줄을 쓰세요." : "실시간 특보는 상단 기상특보(기상청)를 쓰세요."}</p>
-        </div>
-
-        <div className="modal-f">
-          <button type="button" className="btn" onClick={reset}>기본 조건으로 되돌리기</button>
-          <span className="sp" />
-          <button type="button" className="btn" onClick={onClose}>취소</button>
+    <ExploreModal
+      title="재난상황 조건"
+      className="cond-modal"
+      onClose={onClose}
+      footer={
+        <>
+          <button type="button" className="btn secondary" onClick={reset}>기본 조건으로 되돌리기</button>
           <button type="button" className="btn primary" onClick={apply}>적용</button>
+        </>
+      }
+    >
+      <div className="cond-field" role="group" aria-label="재난유형">
+        <p className="cond-title">재난유형</p>
+        <div className="cond-chips">
+          {[null, ...COND_DISASTER_TYPES].map((t) => (
+            <button key={t ?? "all"} type="button" className={`cond-chip${disasterType === t ? " is-on" : ""}`} aria-pressed={disasterType === t} onClick={() => edit(setType)(t)}>
+              {disasterType === t && <Check />}
+              {t ?? "전체"}
+            </button>
+          ))}
         </div>
       </div>
-    </div>
+
+      <div className="cond-field" role="group" aria-label="발생기간">
+        <div className="cond-title-row">
+          <p className="cond-title">발생기간</p>
+          {/* 때와 상관없는 물음이 많다(행동매뉴얼·위험지구·대피시설) — 한 달 창을 달아 보내면 그 밖의 것을 빼고 답한다. 끌 수 있어야 한다 */}
+          <label className="cond-noperiod">
+            <input type="checkbox" checked={noPeriod} onChange={(e) => edit(setNoPeriod)(e.target.checked)} />
+            발생기간을 묻지 않음
+          </label>
+        </div>
+        <p className="cond-hint">{noPeriod ? "기간을 걸지 않고 묻습니다. 적어 둔 날짜는 그대로 두었다가 체크를 풀면 다시 씁니다." : "YYYY.MM.DD 형식으로 입력하세요. 예: 2026.07.25"}</p>
+        <div className={`cond-period${noPeriod ? " is-off" : ""}`}>
+          <input className="input cond-date" value={fromDate} maxLength={10} aria-label="발생기간 시작 날짜" disabled={noPeriod} onChange={(e) => edit(setFromDate)(e.target.value)} />
+          <select className="input cond-time" value={fromTime} aria-label="발생기간 시작 시각" disabled={noPeriod} onChange={(e) => edit(setFromTime)(e.target.value)}>
+            {HOUR_OPTIONS.map((h) => <option key={h}>{h}</option>)}
+          </select>
+          <span className="cond-tilde" aria-hidden="true">~</span>
+          <input className="input cond-date" value={toDate} maxLength={10} aria-label="발생기간 끝 날짜" disabled={noPeriod} onChange={(e) => edit(setToDate)(e.target.value)} />
+          <select className="input cond-time" value={toTime} aria-label="발생기간 끝 시각" disabled={noPeriod} onChange={(e) => edit(setToTime)(e.target.value)}>
+            {HOUR_OPTIONS.map((h) => <option key={h}>{h}</option>)}
+          </select>
+        </div>
+        {error && <p className="cond-err" role="alert">{error}</p>}
+      </div>
+
+      <p className="cond-title cond-title--detail">상황 상세정보 (선택 입력)</p>
+      <div className="cond-detail">
+        <h3 className="cond-group">상황 성격</h3>
+        <div className="cond-two">
+          <label className="cond-pick">
+            <span className="cond-sub">특보 종류</span>
+            <select className="input" value={warningKind} onChange={(e) => edit(setKind)(e.target.value)}>
+              <option value="">선택하세요</option>
+              {COND_WARNING_KINDS.map((k) => <option key={k}>{k}</option>)}
+            </select>
+          </label>
+          <label className="cond-pick">
+            <span className="cond-sub">특보 단계</span>
+            <select className="input" value={warningLevel} onChange={(e) => edit(setLevel)(e.target.value)}>
+              <option value="">선택하세요</option>
+              {COND_WARNING_LEVELS.map((l) => <option key={l}>{l}</option>)}
+            </select>
+          </label>
+        </div>
+        <label className="cond-pick">
+          <span className="cond-sub">피해·통제 키워드</span>
+          <input className="input" value={keywords} placeholder="쉼표로 나눠 적습니다. 예: 침수, 지하차도" onChange={(e) => edit(setKw)(e.target.value)} />
+        </label>
+
+        <h3 className="cond-group">기상·수문 조건 (직접 입력)</h3>
+        {nationwide && <p className="cond-hint cond-hint--blocked">기준지역이 전국이면 기상·수문 조건을 넣을 수 없습니다. 위쪽 기준지역에서 시·도를 고르세요.</p>}
+        <div className="cond-two">
+          <div className="cond-measures">{group("RAIN")}</div>
+          <div className="cond-measures">{group("HYDRO")}{group("WEATHER")}</div>
+        </div>
+      </div>
+    </ExploreModal>
   );
 }
 

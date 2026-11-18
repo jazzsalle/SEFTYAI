@@ -2,7 +2,7 @@
 // 하네스 — 기상특보 상세 창(components/wx/WxDetailModal · 개발 서버 AlertDetailModal 을 옮김)
 //  · 특보 줄 [특보 상세] → 창 · 발효 중 특보(줄과 같은 목록, 해상 표지) · 상태 이력(기준지역으로 거름) · 전국 발효 현황(종류·단계별 건수 칩 — 개발 서버와 같이, 2026-11-06) · 통보문 특보발효현황 막대 · 통보문(펼칠 때 본문)
 //  · [조건에 반영] = 특보 종류·단계를 조건에 · [이 특보로 질의] = 그 특보가 걸린 행정구역으로(lib/wxAsk) · AI 모드에서는 막힘
-//  · 시연 시나리오를 켠 시연 계정(R45) — 통보문·상태 이력 자리에 「기상청 실시간 특보 끊음」
+//  · 오른쪽 서랍(개발서버 modal--alert) · 시연 시나리오 특보도 표지 없이 진짜 특보처럼(2026-11-19 「개발서버와 동일하게」)
 // 네트워크 없음 — fetch 를 바꿔 끼운다
 // npx vitest run harness/weather/wxDetailModal
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
@@ -62,7 +62,7 @@ const open = async (opts: { advs?: Advisory[]; base?: BaseRegion | null; cut?: b
   render(<WxBar />);
   await act(async () => fireEvent.click(document.querySelector(".wxbar .wxmore")!));
   const dlg = screen.getByRole("dialog", { name: "기상특보 상세" });
-  const sec = (title: RegExp) => [...dlg.querySelectorAll(".wxd-sec")].find((x) => title.test(x.querySelector("h3")!.textContent!)) as HTMLElement;
+  const sec = (title: RegExp) => [...dlg.querySelectorAll(".wx-section")].find((x) => title.test(x.querySelector(".wx-section-title")!.textContent!)) as HTMLElement;
   return { dlg, sec, setCond, toast };
 };
 
@@ -70,27 +70,32 @@ describe("기상특보 상세 창", () => {
   it("인제군 — 발효 중 특보는 줄과 같은 목록(기준지역을 덮는 것만), 상태 이력은 인제를 덮는 단계만, 전국은 종류·단계별 건수 칩", async () => {
     const { dlg, sec } = await open();
     expect(fetched[0]).toBe("/api/weather/detail?sido=51");
-    expect(dlg.querySelector(".wxd-region")!.textContent).toBe("강원특별자치도 인제군");
-    expect([...sec(/발효 중 특보/).querySelectorAll(".wxd-area")].map((x) => x.textContent)).toEqual(["강원도(인제평지, 인제산지)"]);
-    expect([...sec(/상태 이력/).querySelectorAll(".wxd-state")].map((x) => x.textContent)).toEqual(["한파주의보 발표"]);
-    expect(sec(/상태 이력/).querySelector(".wxd-step-at")!.textContent).toContain("2026년 11월 06일 21시 00분 · 서울 제34호");
+    expect(dlg.querySelector(".wx-region")!.textContent).toBe("강원특별자치도 인제군");
+    expect(sec(/발효 중 특보/).querySelector(".wx-count")!.textContent).toBe("1건");
+    expect([...sec(/발효 중 특보/).querySelectorAll(".wx-item-area")].map((x) => x.textContent)).toEqual(["강원도(인제평지, 인제산지)"]);
+    // 상태이력 표 4칸 — 시각 · 상태 · 특보 · 구역(개발서버 AlertDetailModal wx-step)
+    const step = sec(/상태이력/).querySelector(".wx-step")!;
+    expect([...step.children].map((x) => x.className.split(" ")[0])).toEqual(["wx-step-at", "wx-state", "wx-step-label", "wx-step-area"]);
+    expect([step.querySelector(".wx-state")!.textContent, step.querySelector(".wx-step-label")!.textContent]).toEqual(["발표", "한파주의보"]);
+    expect(step.querySelector(".wx-step-at")!.textContent).toBe("11.06 11:00");
+    expect(sec(/상태이력/).querySelector(".wx-count")!.textContent).toBe("1건");
     // 특보코드 셈(detail.counts)이 없으면 특보 현황 글로 — 건수가 같으면 종류 이름 순(개발 서버 Nationwide), 바다는 이름에 「(해상)」
-    expect([...sec(/전국 발효 현황/).querySelectorAll(".wxd-chip")].map((x) => x.textContent)).toEqual(["강풍주의보1", "풍랑경보(해상)1", "한파주의보1"]);
-    expect(sec(/전국 발효 현황/).querySelector(".wxd-count")!.textContent).toBe("3건");
+    expect([...sec(/전국 발효 현황/).querySelectorAll(".wx-chip")].map((x) => x.textContent)).toEqual(["강풍주의보1", "풍랑경보(해상)1", "한파주의보1"]);
+    expect(sec(/전국 발효 현황/).querySelector(".wx-count")!.textContent).toBe("3건");
   });
 
   it("전국 발효 현황 — 서버가 특보코드로 센 값(counts)이 오면 그것을 그대로(구역 코드마다, 해상 따로)", async () => {
     detailOverride = { ...DETAIL, counts: [{ type: "한파", level: "주의보", sea: false, count: 7 }, { type: "풍랑", level: "경보", sea: true, count: 3 }] };
     const { sec } = await open();
-    expect([...sec(/전국 발효 현황/).querySelectorAll(".wxd-chip")].map((x) => x.textContent)).toEqual(["한파주의보7", "풍랑경보(해상)3"]);
-    expect(sec(/전국 발효 현황/).querySelector(".wxd-count")!.textContent).toBe("10건");
+    expect([...sec(/전국 발효 현황/).querySelectorAll(".wx-chip")].map((x) => x.textContent)).toEqual(["한파주의보7", "풍랑경보(해상)3"]);
+    expect(sec(/전국 발효 현황/).querySelector(".wx-count")!.textContent).toBe("10건");
   });
 
   it("통보문 — 누르면 그때 본문을 가져와 칸 그대로(내용이 비면 그 사실을 적는다), 다시 접고 펴도 다시 묻지 않는다", async () => {
     const { sec } = await open();
     const msgs = sec(/최근 통보문/);
-    expect([...msgs.querySelectorAll(".wxd-msg-title")].map((x) => x.textContent)).toEqual(["풍랑주의보 발표", "강풍주의보 발표·풍랑경보 변경·한파주의보 발표", "호우경보 해제"]);
-    const head = msgs.querySelectorAll<HTMLButtonElement>(".wxd-msg-hd")[1];
+    expect([...msgs.querySelectorAll(".wx-msg-title")].map((x) => x.textContent)).toEqual(["풍랑주의보 발표", "강풍주의보 발표·풍랑경보 변경·한파주의보 발표", "호우경보 해제"]);
+    const head = msgs.querySelectorAll<HTMLButtonElement>(".wx-msg-head")[1];
     await act(async () => fireEvent.click(head));
     expect(fetched.filter((u) => u.startsWith("/api/weather/bulletin"))).toEqual([`/api/weather/bulletin?key=${encodeURIComponent("108|202611061100|34")}`]);
     const card = msgs.querySelector(".bc")!;
@@ -100,8 +105,8 @@ describe("기상특보 상세 창", () => {
     const bar = card.querySelector(".bc-bar")!;
     expect(bar.querySelector(".bc-kind")!.textContent).toBe("강풍주의보");
     expect(bar.querySelector(".bc-kind")!.className).not.toContain("alarm");
-    expect(bar.querySelector(".bc-val")!.textContent).toBe("1개 구역");
-    expect(bar.querySelector(".bc-areas")!.textContent).toBe("서해5도");
+    expect(bar.querySelector(".bc-bar-value")!.textContent).toBe("1개 구역");
+    expect(bar.querySelector(".bc-bar-areas")!.textContent).toBe("서해5도");
     await act(async () => fireEvent.click(head));
     await act(async () => fireEvent.click(head));
     expect(fetched.filter((u) => u.startsWith("/api/weather/bulletin"))).toHaveLength(1);
@@ -116,10 +121,10 @@ describe("기상특보 상세 창", () => {
 
   it("[이 특보로 질의] — 그 특보가 걸린 행정구역으로, 통합 탐색으로 옮겨 간다", async () => {
     const { sec } = await open({ base: null });
-    const items = [...sec(/발효 중 특보/).querySelectorAll(".wxd-item")];
+    const items = [...sec(/발효 중 특보/).querySelectorAll(".wx-item")];
     expect(items).toHaveLength(3); // 전국이면 모두
     const askOf = (i: number) => [...items[i].querySelectorAll("button")].find((b) => b.textContent === "이 특보로 질의")!;
-    expect(askOf(0).title).toBe("강원특별자치도 인제군 기준으로 바로 묻습니다");
+    expect(askOf(0).title).toBe("한파주의보 기준으로 바로 묻습니다");
     fireEvent.click(askOf(0));
     expect(wxAsk.req).toHaveBeenCalledWith({ adv: HAN, base: INJE });
     expect(nav.push).toHaveBeenCalledWith("/explore");
@@ -128,12 +133,13 @@ describe("기상특보 상세 창", () => {
 
   it("바다 구역 — 이름에 「(해상)」(개발 서버 WarningCodes.LabelOf), 기준지역을 정할 수 없어 지금 기준지역 그대로", async () => {
     const { sec } = await open({ base: null });
-    const item = [...sec(/발효 중 특보/).querySelectorAll(".wxd-item")][1];
-    expect(item.querySelector(".wxd-area")!.textContent).toBe("동해중부안쪽먼바다");
-    expect(item.querySelector(".lvb")!.textContent).toBe("풍랑경보(해상)");
-    expect(item.querySelector(".wxd-tag")).toBeNull();
+    const item = [...sec(/발효 중 특보/).querySelectorAll(".wx-item")][1];
+    // 개발서버처럼 구역 옆에 「해상」 꼬리표
+    expect(item.querySelector(".wx-item-area")!.textContent).toBe("동해중부안쪽먼바다해상");
+    expect(item.querySelector(".wx-badge")!.textContent).toBe("풍랑경보(해상)");
+    expect(item.querySelector(".wx-tag")!.textContent).toBe("해상");
     const ask = [...item.querySelectorAll("button")].find((b) => b.textContent === "이 특보로 질의")!;
-    expect(ask.title).toBe("전국 기준으로 바로 묻습니다");
+    expect(ask.title).toBe("풍랑경보(해상) 기준으로 바로 묻습니다");
     fireEvent.click(ask);
     expect(wxAsk.req).toHaveBeenCalledWith({ adv: SEA });
   });
@@ -144,18 +150,25 @@ describe("기상특보 상세 창", () => {
     expect(ask.disabled).toBe(true);
   });
 
-  it("시연 시나리오를 켠 시연 계정 — 통보문·상태 이력 자리에 「기상청 실시간 특보 끊음」(「없음」이라 하지 않는다)", async () => {
+  it("시연 시나리오를 켠 시연 계정 — 표지·「끊음」 없이 진짜 특보처럼(개발서버 가상 특보와 같이)", async () => {
     vi.stubGlobal("fetch", async (u: string) => {
       fetched.push(u);
       return Response.json({ ...DETAIL, realtimeCut: true, bulletins: [], steps: [] });
     });
     const scn: Advisory = { id: "SCN-IJ-1", type: "호우", level: "주의보", area: "강원도(인제평지, 인제산지)", issuedAt: now, status: "발효", scenario: true };
     const { dlg, sec } = await open({ advs: [scn], cut: true });
-    expect(sec(/발효 중 특보/).querySelector(".wxd-area")!.textContent).toBe("강원도(인제평지, 인제산지)시연 시나리오");
-    expect(sec(/상태 이력/).textContent).toContain("기상청 실시간 특보 끊음");
-    expect(sec(/최근 통보문/).textContent).toContain("기상청 실시간 특보 끊음");
-    expect(dlg.querySelector(".wxd-src")!.textContent).toBe("기상청 실시간 특보 끊음");
-    expect(dlg.textContent).not.toMatch(/받은 통보문이 없습니다|걸리거나 풀린 특보가 없습니다/);
+    expect(sec(/발효 중 특보/).querySelector(".wx-item-area")!.textContent).toBe("강원도(인제평지, 인제산지)");
+    expect(dlg.querySelector(".wx-source")!.textContent).toMatch(/^기상청 · 기상특보 조회서비스 · \d\d\.\d\d \d\d:\d\d 갱신$/);
+    expect(dlg.textContent).not.toMatch(/시연 시나리오|끊음/);
+  });
+
+  it("받지 못하면 — 서랍 위에 실패 안내(wx-alarm), 특보가 없다고 하지 않는다", async () => {
+    vi.stubGlobal("fetch", async (u: string) => {
+      fetched.push(u);
+      return Response.json({}, { status: 500 });
+    });
+    const { dlg } = await open();
+    expect(dlg.querySelector(".wx-alarm")!.textContent).toBe("특보를 불러오지 못했습니다. 잠시 뒤 [새로고침] 을 눌러 주세요.");
   });
 });
 
@@ -183,7 +196,7 @@ describe("특보 상세 창 집계(lib/wxBulletin — 개발 서버 AlertDetailM
     const b = { ...rows[0], statusText: "o 호우경보 : 부산, 울산\no 강풍주의보 : 부산" };
     const { container } = render(<BulletinCard b={b} />);
     const bars = [...container.querySelectorAll(".bc-bar")];
-    expect(bars.map((x) => x.querySelector(".bc-kind")!.className)).toEqual(["bc-kind alarm", "bc-kind"]);
-    expect(bars.map((x) => (x.querySelector(".bc-fill") as HTMLElement).style.width)).toEqual(["100%", "50%"]);
+    expect(bars.map((x) => x.querySelector(".bc-kind")!.className)).toEqual(["bc-kind bc-kind--alarm", "bc-kind"]);
+    expect(bars.map((x) => (x.querySelector(".bc-bar-fill") as HTMLElement).style.width)).toEqual(["100%", "50%"]);
   });
 });

@@ -10,7 +10,9 @@
 import "./briefingSettings.css";
 import { useEffect, useRef, useState } from "react";
 import { useSession } from "@/lib/session";
-import { BRIEFING_RULES, briefingDefaults, loadBriefing, saveBriefing, type BriefingItem } from "@/lib/briefing";
+import { api } from "@/lib/api";
+import { BRIEFING_RULES, briefingDefaults, saveBriefing, type BriefingItem } from "@/lib/briefing";
+import { BRIEFING_KV_KEY, briefingFromStored } from "@/lib/briefingSet";
 import { Dialog } from "@/components/account/Dialog";
 import { Toast } from "@/components/krds/Toast";
 
@@ -38,12 +40,20 @@ interface Draft {
   questionError: string | null;
 }
 
+/** 이 계정의 브리핑 항목 — 저장한 것이 없으면 기본 항목. 받아 오지 못하면 던진다(창이 「불러오지 못했습니다」를 보인다 — 개발서버 loadError) */
+async function readBriefing(accountId?: string): Promise<BriefingItem[]> {
+  if (!accountId) return briefingDefaults();
+  const kv = await api<Record<string, { value: unknown }>>(`/api/kv?scope=acct:${accountId}`);
+  return briefingFromStored(kv[BRIEFING_KV_KEY]?.value) ?? briefingDefaults();
+}
+
 const newId = () => (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function" ? crypto.randomUUID().slice(0, 12) : `new-${Date.now().toString(36)}`);
 
 export function BriefingSettingsModal({ onClose }: { onClose: () => void }) {
   const { account } = useSession();
   const R = BRIEFING_RULES;
   const [items, setItems] = useState<BriefingItem[] | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draft, setDraft] = useState<Draft | null>(null);
   const [dirty, setDirty] = useState(false);
@@ -55,7 +65,10 @@ export function BriefingSettingsModal({ onClose }: { onClose: () => void }) {
 
   useEffect(() => {
     let alive = true;
-    loadBriefing(account?.id).then((l) => alive && setItems(l));
+    readBriefing(account?.id).then(
+      (l) => alive && setItems(l),
+      () => alive && setLoadError("브리핑 항목을 불러오지 못했습니다."),
+    );
     return () => {
       alive = false;
     };
@@ -146,7 +159,9 @@ export function BriefingSettingsModal({ onClose }: { onClose: () => void }) {
           <span className="briefing-set-count">{checkedCount}개 선택</span>
           <button type="button" className="briefing-set-add" disabled={items === null} onClick={add}>+ 항목 추가</button>
         </div>
-        {items === null ? (
+        {loadError ? (
+          <p className="briefing-set-error" role="alert"><ErrorIcon />{loadError}</p>
+        ) : items === null ? (
           <p className="briefing-set-loading">브리핑 항목을 불러오는 중입니다…</p>
         ) : (
           <div className="briefing-set-list">
@@ -183,6 +198,7 @@ export function BriefingSettingsModal({ onClose }: { onClose: () => void }) {
       {confirm === "revert" && (
         <Dialog
           size="sm"
+          className="bset-confirm"
           title="기본 항목으로 되돌리시겠습니까?"
           desc={<span className="bset-pre">{"처음 제공된 기본 항목과 순서로 되돌립니다.\n직접 추가한 항목은 지워집니다."}</span>}
           onClose={() => setConfirm(null)}
@@ -203,6 +219,7 @@ export function BriefingSettingsModal({ onClose }: { onClose: () => void }) {
       {confirm === "leave" && (
         <Dialog
           size="sm"
+          className="bset-confirm"
           title="브리핑 설정을 그만두시겠습니까?"
           desc="변경한 내용은 저장되지 않습니다."
           onClose={() => setConfirm(null)}

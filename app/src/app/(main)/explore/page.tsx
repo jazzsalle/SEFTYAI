@@ -5,18 +5,18 @@ import { manualPanel, useManualPanel } from "@/lib/manualPanel";
 import { useSession, uid, type Conversation, type SubmitArgs, type Turn } from "@/lib/session";
 import { useSop } from "@/lib/sopState";
 import { useBriefingSet } from "@/lib/briefing";
-import { briefRequest, DAY_ITEMS, DEMO_SHOW, fillText, presetLines, presetManual, type DemoItem, type LibraryQuestion } from "@/lib/library";
+import { briefRequest, DAY_ITEMS, DEMO_SHOW, fillText, type DemoItem, type LibraryQuestion } from "@/lib/library";
 import { activityOf, BARE_COND, baseFromSaved, baseProvince, convProvince, defaultTitleOf, LEAVE_OK, LEAVE_TITLE, leaveMessage, openConvBus, REGION_BREAK_EVENT, regionBreakText, restoreCond, type RegionBreak } from "@/lib/dialogue";
 import { Dialog } from "@/components/account/Dialog";
 import "@/components/explore/dialogue.css";
 import { REGIONS } from "@/lib/config";
 import { api } from "@/lib/api";
 import type { Citation } from "@/lib/contract/agent";
-import { activeAdvisories, advName, warningsPayload } from "@/lib/wxref";
+import { activeAdvisories, warningsPayload } from "@/lib/wxref";
 import { baseKey, baseName, basePilot, baseTarget, type BaseRegion } from "@/lib/baseRegion";
 import { detailIdOf, entityKey, objectIdOf, type RefLike } from "@/lib/mapRef";
 import { WX_ASK_EVENT, takeWxAsk, wxAskQuestion, type WxAskRequest } from "@/lib/wxAsk";
-import { receivedAt, sourceLabel, type JobSummary, type T3qRef } from "@/lib/jobTypes";
+import { receivedAt, type JobSummary, type T3qRef } from "@/lib/jobTypes";
 import type { AskEntry } from "@/lib/queueList";
 import { basisTime } from "@/lib/summary";
 import { ExploreContext, type ExploreApi, type PanelTab } from "@/components/explore/ExploreCtx";
@@ -25,10 +25,10 @@ import Composer, { fillQuery } from "@/components/explore/Composer";
 import { isExpired } from "@/lib/convList";
 import StartScreen from "@/components/explore/StartScreen";
 import LibraryDrawer from "@/components/explore/LibraryDrawer";
-import BriefBoard, { type BriefGroup } from "@/components/explore/BriefBoard";
+import BriefBoard, { showBriefItem, type BriefGroup } from "@/components/explore/BriefBoard";
 import QueuePanel from "@/components/queue/QueuePanel";
-import AnswerCard, { AnswerWait } from "@/components/answer/AnswerCard";
-import DataCard from "@/components/answer/DataCard";
+import AnswerCard, { AnswerError, AnswerWait } from "@/components/answer/AnswerCard";
+import "@/components/answer/thread.css";
 import type { MapFeature } from "@/components/map/MapView";
 import { IcChevL, IcPlus } from "@/components/Icons";
 import { AutoDemoBar } from "@/components/autodemo/AutoDemoBar";
@@ -125,7 +125,6 @@ function Explore() {
   const [mapJob, setMapJob] = useState<string | null>(null);
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [focusToken, setFocusToken] = useState(0);
-  const [follow, setFollow] = useState<{ jobId: string; refs: T3qRef[]; label: string } | null>(null);
   /**
    * 「객체 참조」(개발 서버 useObjectRefs) — 켜 둔 동안 지도 누르기 = 집기. 집은 것은 질문 칸 위 이름표로 남고, 어느 길로 물어도
    * (질문·브리핑·질문 모음) 함께 간다(reference.object_ids + 이름 키워드). 새 대화·기준지역 변경·계정 변경이면 모두 놓고 끈다.
@@ -153,7 +152,6 @@ function Explore() {
         : a,
     [],
   );
-  const endRef = useRef<HTMLDivElement>(null);
   // 지금 보고 있는 대화 + 대화별 최신본(연달아 보낼 때 앞선 턴이 지워지지 않게 — 항상 최신본에 붙인다)
   const convRef = useRef<Conversation | null>(null);
   convRef.current = conv;
@@ -173,7 +171,6 @@ function Explore() {
   const newConv = useCallback(() => {
     openConvBus.reset();
     setConv(null);
-    setFollow(null);
     resetPicks();
     router.replace("/explore");
   }, [router, resetPicks]);
@@ -264,11 +261,6 @@ function Explore() {
     return () => window.removeEventListener(REGION_BREAK_EVENT, on);
   }, []);
 
-  // 대화를 바꾸면 이어서 묻기 해제
-  useEffect(() => {
-    setFollow((f) => (f && !(conv?.turns ?? []).some((t) => t.jobId === f.jobId) ? null : f));
-  }, [conv?.id, conv?.turns]);
-
   // 대응절차 탭 켜고 끄기(특보 줄 [대응절차] — 개발서버 usePanel.showManual). 켜면 그 탭으로, 끄면 한눈 요약(없으면 지도)으로
   const manualOn = useManualPanel();
   const manualFirst = useRef(true);
@@ -316,9 +308,42 @@ function Explore() {
   useEffect(() => askLockBus.set(lock), [lock]);
   useEffect(() => () => askLockBus.reset(), []);
 
+  /*
+    가운데 칸(개발서버 SearchPage 524-575) — 브리핑이 있는 대화는 브리핑 화면만, 질문 현황에서 대화 질문을 고르거나 새로 물을 때만 대화(턴 목록).
+    convSel = 가운데에 대화를 보일 때 고른 턴(개발서버 asks.selected — kind 'turn'). null 이면 브리핑(없으면 대화)
+  */
+  const blocks = useMemo(() => {
+    const out: { group?: Turn["group"]; turns: Turn[] }[] = [];
+    for (const t of conv?.turns ?? []) {
+      const last = out[out.length - 1];
+      if (t.group && last?.group?.id === t.group.id) last.turns.push(t);
+      else out.push({ group: t.group, turns: [t] });
+    }
+    return out;
+  }, [conv]);
+  const lastBrief = [...blocks].reverse().find((b) => b.group)?.group;
+  const convTurns = useMemo(() => (conv?.turns ?? []).filter((t) => !t.group), [conv]);
+  const [convSel, setConvSel] = useState<string | null>(null);
+  const showConv = !!conv && (!lastBrief || (convSel !== null && convTurns.some((t) => t.id === convSel)));
+  /*
+    새로 물으면 그 질문으로(개발서버 useAskList — 보낸 사람은 그 답을 기다린다) · 새 턴이 붙으면 그 턴으로 굴린다(개발서버 AnswerPanel — 여럿이면 그 가운데 첫 턴).
+    대화가 바뀌면(새 대화·브리핑·이력에서 열기) 고른 것을 놓는다
+  */
+  const seenTurns = useRef<{ id: string | null; n: number }>({ id: null, n: 0 });
   useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
-  }, [conv?.turns.length]);
+    const prev = seenTurns.current;
+    const id = conv?.id ?? null;
+    const n = convTurns.length;
+    seenTurns.current = { id, n };
+    if (prev.id !== id) {
+      setConvSel(null);
+      return;
+    }
+    if (n <= prev.n) return;
+    setConvSel(convTurns[n - 1].id);
+    const first = convTurns[prev.n].id;
+    window.setTimeout(() => document.querySelector(`[data-turn-id="${first}"]`)?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+  }, [conv?.id, convTurns]);
 
   /** 대화 저장 — 최신본 갱신, 보고 있는 대화면 화면에도 반영 */
   const commit = useCallback((c: Conversation, show: boolean) => {
@@ -413,12 +438,18 @@ function Explore() {
   /** 지금 기준지역에서 발효 중인 특보(AI 모드 질의·브리핑에 원문 그대로) — 시연 시나리오를 켠 시연 계정은 서버가 준 시나리오 특보만(R45 — 기상청 실시간 끊음) */
   const liveWarnings = () => warningsPayload(s.weather, activeAdvisories(s.weather, wxTarget));
 
+  /**
+   * 시작 화면 브리핑 항목 타일로 넣은 글 — 그 글 그대로 보내면 출처 BRIEFING(개발서버 StartGuide onPick → setSource('BRIEFING')).
+   * 사람이 글을 고치면 직접 질문(개발서버 QueryBox onChange → USER)
+   */
+  const tilePick = useRef<string | null>(null);
+  const pickTile = (q: string) => {
+    tilePick.current = q.trim();
+    fillQuery(q);
+  };
   const askText = async (q: string) => {
-    if (follow) {
-      await ask({ question: q, source: "FOLLOW_UP", followUp: { jobId: follow.jobId, refs: follow.refs.map((r) => ({ display_name: r.display_name, entity_type: r.entity_type })) } });
-      setFollow(null);
-      return;
-    }
+    const fromTile = tilePick.current !== null && tilePick.current === q.trim();
+    tilePick.current = null;
     const ref = s.wxRef;
     // 참조 특보가 그사이 해제됐으면 떼고 보낸다(해제된 특보를 현재 특보로 보내지 않게)
     const still = ref ? activeAdvisories(s.weather, wxTarget).find((a) => a.id === ref.id) : undefined;
@@ -427,7 +458,7 @@ function Explore() {
       s.toast("참조한 특보가 해제되어 특보 참조 없이 보냅니다.");
     }
     await ask(
-      { question: q, source: still ? "QUICK" : "USER", warnings: still ? warningsPayload(s.weather, [still]) : null },
+      { question: q, source: fromTile ? "BRIEFING" : still ? "QUICK" : "USER", warnings: still ? warningsPayload(s.weather, [still]) : null },
       still ? { refAdv: { type: still.type, level: still.level, area: still.area, issuedAt: still.issuedAt, ...(still.scenario ? { scenario: true } : {}) } } : undefined,
     );
   };
@@ -568,13 +599,14 @@ function Explore() {
     const turns = (conv?.turns ?? []).filter((t) => t.jobId);
     if (mapJob && turns.some((t) => t.jobId === mapJob)) return { key: mapJob, jobs: [mapJob], summaryJob: mapJob };
     const last = turns[turns.length - 1];
-    if (last?.group) {
-      const jobs = turns.filter((t) => t.group?.id === last.group!.id).map((t) => t.jobId);
-      return { key: `b:${last.group.id}`, jobs, summaryJob: null as string | null };
+    const bg = !showConv && lastBrief ? lastBrief : last?.group;
+    if (bg) {
+      const jobs = turns.filter((t) => t.group?.id === bg.id).map((t) => t.jobId);
+      return { key: `b:${bg.id}`, jobs, summaryJob: null as string | null };
     }
     for (let i = turns.length - 1; i >= 0; i--) if (answered(turns[i].jobId)) return { key: turns[i].jobId, jobs: [turns[i].jobId], summaryJob: turns[i].jobId };
     return { key: "", jobs: [] as string[], summaryJob: null as string | null };
-  }, [conv, mapJob, answered]);
+  }, [conv, mapJob, answered, showConv, lastBrief]);
   const mapData = useMemo(() => {
     const out: MapFeature[] = [];
     const seen = new Set<string>();
@@ -667,10 +699,6 @@ function Explore() {
       setPanelOpen(true);
     },
     selectedKey,
-    followUp: (jobId, refs) => {
-      const j = s.jobs[jobId];
-      setFollow({ jobId, refs, label: `"${(j?.question_user ?? "").slice(0, 40)}"${refs.length ? ` · 참조 대상 ${refs.map((r) => r.display_name ?? r.ref).join(", ")}` : ""}` });
-    },
     retry: (jobId) => {
       const c = convRef.current;
       const t = c?.turns.find((x) => x.jobId === jobId);
@@ -685,43 +713,60 @@ function Explore() {
    */
   const pickFromQueue = (e: AskEntry) => {
     if (e.jobId) setMapJob(e.jobId);
-    setTimeout(() => (document.getElementById(`job-${e.jobId}`) ?? (e.groupId ? document.getElementById(`brief-${e.groupId}`) : null))?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+    // 대화 질문이면 대화로, 브리핑 항목이면 브리핑으로(개발서버 SearchPage 가운데 칸 전환)
+    setConvSel(e.groupId ? null : e.id);
+    // 브리핑 항목이면 그 항목을 크게 보기로(개발서버 BriefingAnswer) — 브리핑 화면이 서고 나서
+    if (e.groupId) setTimeout(() => showBriefItem(e.id), 30);
+    setTimeout(
+      () =>
+        (document.querySelector(`[data-turn-id="${e.id}"]`) ?? document.getElementById(`job-${e.jobId}`) ?? (e.groupId ? document.getElementById(`brief-${e.groupId}`) : null))?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        }),
+      50,
+    );
   };
   // 질문 현황에서 고른 줄 — 지도가 따라가는 답(mapJob)의 턴
   const pickedTurnId = mapJob ? conv?.turns.find((t) => t.jobId === mapJob)?.id ?? null : null;
 
-  /** 구분선 — 이 블록 뒤에 설 것(턴 id 로 짚는다). afterTurnId 가 null 이면 첫 블록 앞 */
+  /** 구분선 — 이 턴 뒤에 설 것(턴 id 로 짚는다). afterTurnId 가 null 이면 첫 턴 앞 */
   const convBreaks = conv ? breaks[conv.id] ?? [] : [];
-  const breaksAfter = (ts: Turn[]) => convBreaks.filter((b) => b.afterTurnId !== null && ts.some((t) => t.id === b.afterTurnId));
+  const breaksAfter = (t: Turn) => convBreaks.filter((b) => b.afterTurnId === t.id);
   const breakLine = (b: RegionBreak, i: number) => (
     <div key={`rb-${b.at}-${i}`} className="answer-region-break" role="note" aria-label="기준지역 변경">
       <span>{regionBreakText(b.from, b.to, new Date(b.at))}</span>
     </div>
   );
 
+  /** 대화 머리줄 — 제목·[수정]·[새 대화](개발서버 AnswerPanel answer-head) */
+  const convHead = conv ? (
+    <header className="thread-h answer-head">
+      <TitleEdit
+        title={conv.title}
+        onSave={(title) => {
+          const c = current(conv.id) ?? conv;
+          // 사람이 고친 제목 — 상류가 준 제목으로 덮지 않는다(개발서버 RecordTurn). 대화 이력 목록에도 바로 반영
+          commit({ ...c, title: title.slice(0, 100), renamed: true, updatedAt: new Date().toISOString() }, true);
+        }}
+      />
+      {/* [새 대화] — 도는 질문이 있으면 중지 안내창을 먼저(개발서버 startNewConversation · FUN-UFR-306004) */}
+      <button type="button" className="answer-new" onClick={() => requestLeave("new", newConv)}><IcPlus size={16} /> 새 대화</button>
+    </header>
+  ) : null;
+
   const fixedTabs = manualOn ? [MAP_TAB, SUMMARY_TAB, SOP_TAB] : [MAP_TAB, SUMMARY_TAB];
   const panelTabs = [...fixedTabs, ...tabs.filter((t) => t.kind !== "map" && t.kind !== "sop" && t.kind !== "summary")];
 
-  // 턴을 브리핑 묶음 단위로
-  const blocks = useMemo(() => {
-    const out: { group?: Turn["group"]; turns: Turn[] }[] = [];
-    for (const t of conv?.turns ?? []) {
-      const last = out[out.length - 1];
-      if (t.group && last?.group?.id === t.group.id) last.turns.push(t);
-      else out.push({ group: t.group, turns: [t] });
-    }
-    return out;
-  }, [conv]);
-
   // 질문 목록 맨 위 「(브리핑 이름) 전체 보기」 — 이 대화의 마지막 브리핑 묶음으로(개발서버 AskList briefingTitle)
-  const lastBrief = [...blocks].reverse().find((b) => b.group)?.group;
   const briefRow = lastBrief
     ? {
         title: lastBrief.title || "현재 상황 브리핑",
         // 브리핑 전체로 — 고른 답을 놓는다(지도도 브리핑 묶음 전체로 · 개발서버 asks.clear)
         onShow: () => {
           setMapJob(null);
-          document.getElementById(`brief-${lastBrief.id}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+          setConvSel(null);
+          showBriefItem(null);
+          setTimeout(() => document.getElementById(`brief-${lastBrief.id}`)?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
         },
         shown: mapScope.key === `b:${lastBrief.id}`,
       }
@@ -738,74 +783,67 @@ function Explore() {
           {!panelOpen && (
             <button className="btn panel-open" onClick={() => setPanelOpen(true)}><IcChevL size={14} /> 패널 펼치기</button>
           )}
-          {conv ? (
-            <div className="thread">
-              <div className="thread-h">
-                <TitleEdit
-                  title={conv.title}
-                  onSave={(title) => {
-                    const c = current(conv.id) ?? conv;
-                    // 사람이 고친 제목 — 상류가 준 제목으로 덮지 않는다(개발서버 RecordTurn). 대화 이력 목록에도 바로 반영
-                    commit({ ...c, title: title.slice(0, 100), renamed: true, updatedAt: new Date().toISOString() }, true);
-                  }}
-                />
-                <span className="sp" />
-                {/* [새 대화] — 도는 질문이 있으면 중지 안내창을 먼저(개발서버 startNewConversation · FUN-UFR-306004) */}
-                <button type="button" className="answer-new" onClick={() => requestLeave("new", newConv)}><IcPlus size={16} /> 새 대화</button>
-              </div>
-              {convBreaks.filter((b) => b.afterTurnId === null).map(breakLine)}
-              {blocks.map((b, bi) => (
-                <Fragment key={b.group ? `g:${b.group.id}:${bi}` : `t:${b.turns[0].id}`}>
-                {b.group ? (
-                  <section key={`${b.group.id}:${bi}`} className="brief-block" id={`brief-${b.group.id}`}>
-                    <div className="qbubble">
-                      <ol>{b.turns.map((t) => <li key={t.id}>{t.q}</li>)}</ol>
-                    </div>
-                    {/* 기준지역 — 보낼 때 남긴 이름(group.region)이 없는 예전 브리핑은 이 대화의 기준지역(지금 고른 지역이 아니라) */}
-                    <BriefBoard
-                      turns={b.turns}
-                      regionName={conv.baseName ?? (conv.region === "national" ? "전국" : (REGIONS[conv.region]?.name ?? regionName))}
-                      renderBody={(t, large) => <TurnBody t={t} compact={!large} inBrief onRetry={() => retryTurn(conv.id, t)} />}
-                      onRetry={(t) => retryTurn(conv.id, t)}
-                    />
-                  </section>
-                ) : (
-                  b.turns.map((t) => (
-                    <section key={t.id} className="turn" id={t.jobId ? `job-${t.jobId}` : undefined}>
-                      <div className="qbubble">
-                        <div className="qb-meta xs">{sourceLabel(t.source, t.libraryId)}{t.refAdv ? ` · 참조 특보 ${t.refAdv.area} ${advName(t.refAdv)}` : ""}</div>
-                        {t.q}
-                        {t.args?.cond && (
-                          <div className="qb-cond xs">
-                            이 질문에 붙인 조건 · {presetLines(t.args.cond).join(" · ") || "없음"}
-                            {presetManual(t.args.cond) && <> <span className="badge neutral xs" title="사용자가 직접 입력한 조건입니다(실시간 관측·특보 아님)">사용자 입력 조건</span></>}
-                          </div>
-                        )}
-                        {t.jobId && <SentQuestion jobId={t.jobId} shown={t.q} />}
-                      </div>
-                      <TurnBody t={t} onRetry={() => retryTurn(conv.id, t)} />
-                    </section>
-                  ))
-                )}
-                {breaksAfter(b.turns).map(breakLine)}
-                </Fragment>
+          {conv && !showConv ? (
+            /* 브리핑 화면(개발서버 BriefingPanel) — 안쪽 모양은 BriefBoard 가 맡는다. 머리줄까지 함께 구른다 */
+            <div className="thread thread--brief">
+              {convHead}
+              {blocks.filter((b) => b.group).slice(-1).map((b) => (
+                <section key={b.group!.id} className="brief-block" id={`brief-${b.group!.id}`}>
+                  <div className="qbubble">
+                    <ol>{b.turns.map((t) => <li key={t.id}>{t.q}</li>)}</ol>
+                  </div>
+                  {/* 기준지역 — 보낼 때 남긴 이름(group.region)이 없는 예전 브리핑은 이 대화의 기준지역(지금 고른 지역이 아니라) */}
+                  <BriefBoard
+                    turns={b.turns}
+                    regionName={conv.baseName ?? (conv.region === "national" ? "전국" : (REGIONS[conv.region]?.name ?? regionName))}
+                    renderBody={(t, large) => <TurnBody t={t} compact={!large} inBrief onRetry={() => retryTurn(conv.id, t)} />}
+                    onRetry={(t) => retryTurn(conv.id, t)}
+                    onNew={() => requestLeave("new", newConv)}
+                    disasterType={conv.disasterType}
+                  />
+                </section>
               ))}
-              <div ref={endRef} />
+            </div>
+          ) : conv && convTurns.length > 0 ? (
+            /* 대화(개발서버 AnswerPanel) — 머리줄은 붙박이, 턴 목록만 구른다 */
+            <div className="thread thread--conv">
+              {convHead}
+              <div className="thread-turns">
+                {convBreaks.filter((b) => b.afterTurnId === null).map(breakLine)}
+                {conv.turns.map((t) => (
+                  <Fragment key={t.id}>
+                    {!t.group && (
+                      <section
+                        className={`turn${convTurns.length > 1 && t.jobId && t.jobId === mapScope.key ? " answer-turn--on-map" : ""}`}
+                        data-turn-id={t.id}
+                        id={t.jobId ? `job-${t.jobId}` : undefined}
+                        // 버블링으로 받는다 — 답 속 이름을 눌러도 이 턴이 지도의 기준이 된다(개발서버 onSelectTurn)
+                        onClick={() => t.jobId && setMapJob(t.jobId)}
+                      >
+                        {/* 보낸 질문 말풍선 — 굴러도 제 턴이 끝날 때까지 맨 위에 붙어 있는다(개발서버 answer-ask-row) */}
+                        <div className="answer-ask-row">
+                          <p className="qbubble">{t.q}</p>
+                        </div>
+                        <TurnBody t={t} onRetry={() => retryTurn(conv.id, t)} />
+                      </section>
+                    )}
+                    {breaksAfter(t).map(breakLine)}
+                  </Fragment>
+                ))}
+              </div>
             </div>
           ) : (
             <StartScreen
               regionName={regionName}
               onBriefing={() => startBriefing().catch(toastErr)}
-              onPick={fillQuery}
+              onPick={pickTile}
             />
           )}
           <Composer
             onAsk={askText}
             onBriefing={() => startBriefing().catch(toastErr)}
-            onLibrary={() => setLibOpen(true)}
+            onLibrary={() => setLibOpen((v) => !v)}
             libraryOpen={libOpen}
-            followUpLabel={follow?.label}
-            clearFollowUp={() => setFollow(null)}
             objectRefs={picked.map((x) => ({ id: x.eid, name: x.ref.display_name ?? x.ref.ref }))}
             onDropRef={(eid) => setPicked((list) => list.filter((x) => x.eid !== eid))}
             expired={isExpired(conv)}
@@ -879,65 +917,69 @@ function Explore() {
   );
 }
 
-/** 한 턴의 본문 — 보내는 중 · 접수 실패 · 자동 조회 데이터(있으면) + 에이전트 답 */
+/** 한 턴의 본문 — 보내는 중 · 접수 실패 · 에이전트 답 */
 function TurnBody({ t, compact, inBrief, onRetry }: { t: Turn; compact?: boolean; inBrief?: boolean; onRetry: () => void }) {
   const s = useSession();
-  if (t.error)
-    return (
-      <div className="acard err">
-        <div className="acard-h"><b>재난안전 AI</b> <span className="badge danger">접수 실패</span></div>
-        <div className="s" style={{ marginTop: 8 }}>{t.error}</div>
-        {!inBrief && <div className="row" style={{ marginTop: 10 }}><button className="btn sm primary" onClick={onRetry}>다시 보내기</button></div>}
-      </div>
-    );
+  // 접수 실패 — 답 실패와 같은 알럿 한 덩이(개발서버 answer-error). 브리핑 항목은 머리의 [다시 시도]로
+  if (t.error) return <AnswerError text={t.error} onRetry={inBrief ? undefined : onRetry} />;
   // 보내는 중 — 개발서버는 보내는 즉시 「답변을 만들고 있습니다…」(브리핑 항목은 「확인하고 있습니다…」)로 센다. 작업 번호를 받기 전이라 취소 단추는 없다
   if (t.pending || !t.jobId) return <AnswerWait text={inBrief ? "확인하고 있습니다…" : "답변을 만들고 있습니다…"} since={t.at} brief={inBrief} />;
   const job = s.jobs[t.jobId];
   const full = s.full[t.jobId];
   if (!job) return <AnswerWait text="불러오는 중…" brief={inBrief} />;
-  return (
-    <>
-      {full?.preview && full.preview.length > 0 && <DataCard items={full.preview} />}
-      <AnswerCard job={job} full={full} compact={compact} noActions={inBrief} brief={inBrief} />
-    </>
-  );
+  return <AnswerCard job={job} full={full} compact={compact} noActions={inBrief} brief={inBrief} />;
 }
 
-/** 대화 제목 보기·수정 (Figma 203001 대화 제목 수정) */
+/** 대화 제목 보기·수정 — 개발서버 AnswerPanel 제목 · [수정](연필) · TitleEditor(Enter 저장 · Esc 취소). 빈 제목은 「새 대화」, 비운 채 저장하면 그대로 둔다 */
 function TitleEdit({ title, onSave }: { title: string; onSave: (t: string) => void }) {
   const [edit, setEdit] = useState(false);
-  const [v, setV] = useState(title);
-  useEffect(() => setV(title), [title]);
   if (!edit)
     return (
       <>
-        <b>{title}</b>
-        <button className="lnk xs" onClick={() => setEdit(true)}>수정</button>
+        <h2 className="answer-title">{title || "새 대화"}</h2>
+        <button type="button" className="answer-title-edit" onClick={() => setEdit(true)} aria-label="대화 제목 수정">
+          <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+            <path d="M11.5 2.5 13.5 4.5 5.5 12.5 2.5 13.5 3.5 10.5z" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
+          </svg>
+          수정
+        </button>
       </>
     );
-  const save = () => {
-    if (v.trim()) onSave(v.trim());
-    setEdit(false);
-  };
   return (
-    <span className="row" style={{ gap: 6 }}>
-      <input className="input" value={v} maxLength={100} autoFocus onChange={(e) => setV(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") save(); if (e.key === "Escape") setEdit(false); }} aria-label="대화 제목" />
-      <button className="btn xs primary" onClick={save}>저장</button>
-      <button className="btn xs" onClick={() => setEdit(false)}>취소</button>
-    </span>
+    <TitleEditor
+      title={title}
+      onSave={(v) => {
+        if (v.trim()) onSave(v.trim());
+        setEdit(false);
+      }}
+      onCancel={() => setEdit(false)}
+    />
   );
 }
 
-/** 이어서 묻기 등으로 실제 전송 질문이 화면 질문과 다를 때 공개 (R4) */
-function SentQuestion({ jobId, shown }: { jobId: string; shown: string }) {
-  const s = useSession();
-  const sent = s.jobs[jobId]?.question_sent;
-  const [open, setOpen] = useState(false);
-  if (!sent || sent === shown) return null;
+function TitleEditor({ title, onSave, onCancel }: { title: string; onSave: (t: string) => void; onCancel: () => void }) {
+  const [draft, setDraft] = useState(title);
+  const ref = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    ref.current?.focus();
+    ref.current?.select();
+  }, []);
   return (
-    <div className="sentq">
-      <button className="lnk xs" onClick={() => setOpen((v) => !v)}>{open ? "실제 전송 질문 닫기" : "실제 전송 질문 보기"}</button>
-      {open && <pre className="xs">{sent}</pre>}
+    <div className="answer-title-edit-box">
+      <input
+        ref={ref}
+        className="answer-title-input"
+        value={draft}
+        maxLength={100}
+        aria-label="대화 제목"
+        onChange={(e) => setDraft(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") onSave(draft);
+          if (e.key === "Escape") onCancel();
+        }}
+      />
+      <button type="button" className="answer-title-save" onClick={() => onSave(draft)}>저장</button>
+      <button type="button" className="answer-title-cancel" onClick={onCancel}>취소</button>
     </div>
   );
 }

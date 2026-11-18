@@ -1,14 +1,14 @@
 // @vitest-environment jsdom
-// 사건 상세 패널(EventDetail) — 녹화한 T3Q 응답으로 그려 본다.
-// 순서 요약 → 근거(T3Q-19 재해연보 쪽, R41) → 피해·복구 → 사건 타임라인 → 유사도 근거(접힘) → 사건 개요, 보고 단계 = 받은 값 표,
-// 받은 값 그대로(같은 값도 합치지 않음, 건수·명·기준 시각도 받은 글자 그대로), 섹션마다 원본 항목 전체 보기,
-// 부연 설명·유엔이가 센 수 없음(R25). npx vitest run harness/explore
+// 사건 상세 패널(EventDetail = 개발서버 EventPane) — 녹화한 T3Q 응답으로 그려 본다.
+// 순서 요약 → 근거(T3Q-19) → 피해·복구 → 사건 타임라인 → 유사도 근거(접힘) → 사건 개요, 머리 「사건 ID」·제목·칩(기간·재난유형·상태)·
+// 「주관 … · 데이터 기준 …」 한 줄, 소제목 평글(.evp-h). 우리만 있던 표로 보기·기록 목록 보기·요인 표로 보기·원본 항목·⚠·히어로 아이콘은 없다.
+// npx vitest run harness/explore
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import EventDetail from "@/components/explore/EventDetail";
-import { fieldKo } from "@/lib/labels";
+import { won } from "@/components/summary/SimilarSummary";
 
 type Req = { api: string; id?: string; body?: unknown };
 const h = vi.hoisted(() => ({ env: new Map<string, { http: number; envelope: unknown }>(), calls: [] as { api: string; id?: string; body?: unknown }[] }));
@@ -75,155 +75,112 @@ afterEach(() => cleanup());
 /** 다섯 조회가 모두 그려질 때까지 */
 async function full() {
   const v = render(<EventDetail id={EV} label="목록에서 받은 이름" ctx={ctx} />);
-  await screen.findByText("보고 단계별 피해액·복구비");
-  await screen.findByText("근거 원본 항목 전체 보기");
-  await screen.findByText("특보·재난문자 기록");
+  await screen.findByText("공공시설 시설유형별 피해액");
   await screen.findByText("요인군 기여");
+  await waitFor(() => expect(v.container.querySelector(".evp-tl")).not.toBeNull());
+  await waitFor(() => expect(v.container.querySelector(".evp-evd")).not.toBeNull());
   return v.container;
 }
+const secOf = (c: Element, name: string) => [...c.querySelectorAll(".evp-sec")].find((s) => s.querySelector("h3")?.textContent === name)!;
 
-describe("사건 상세 패널 — 배치(R25)", () => {
-  it("섹션 순서 요약 → 근거 → 피해·복구 → 사건 타임라인 → 유사도 근거 → 사건 개요, 유사도 근거는 처음에 접힘", async () => {
+describe("사건 상세 패널 — 개발서버 EventPane 짜임", () => {
+  it("섹션 순서 요약 → 근거 → 피해·복구 → 사건 타임라인 → 유사도 근거 → 사건 개요, 유사도 근거는 처음에 접힘 · 소제목은 평글(.evp-h)", async () => {
     const c = await full();
     expect([...c.querySelectorAll("h3")].map((x) => x.textContent)).toEqual(["요약", "근거", "피해·복구", "사건 타임라인", "유사도 근거", "사건 개요"]);
-    const fold = c.querySelector("details.ev-fold");
+    expect([...c.querySelectorAll("h3")].every((x) => x.className === "evp-h")).toBe(true);
+    const fold = c.querySelector("details.evp-fold");
     expect(fold?.querySelector("summary h3")?.textContent).toBe("유사도 근거");
     expect(fold?.hasAttribute("open")).toBe(false);
-    // V2 그림·요인 비교표는 접힌 안에 그대로
-    expect(fold?.querySelector(".viz-stack")).not.toBeNull();
   });
 
-  it("보고 단계 — 피해액·복구비 묶음 막대(사용자 지시 2026-11-02) + 「표로 보기」에 받은 값 표, 값이 같아도 행마다", async () => {
+  it("머리 — 「사건 ID …」 · 제목 · 칩(기간 · 재난유형 · 상태, 아이콘 없음) · 「주관 … · 데이터 기준 …」 한 줄", async () => {
     const c = await full();
-    const fig = screen.getByText("보고 단계별 피해액·복구비").closest("figure");
-    expect(fig?.getAttribute("role")).toBe("img");
-    expect(fig?.querySelectorAll(".viz-group").length).toBe(2);
-    expect([...(fig?.querySelectorAll(".viz-group .val") ?? [])].map((x) => x.textContent)).toEqual(["950,141,668,000원", "3,263,503,307,000원", "950,173,767,000원", "3,279,393,548,000원"]);
-    const tbl = [...c.querySelectorAll("details")].find((d) => d.querySelector("summary")?.textContent === "표로 보기");
-    expect([...(tbl?.querySelectorAll("thead th") ?? [])].map((x) => x.textContent)).toEqual(["보고 단계", "항목 수", "피해액(원)", "복구비(원)"]);
-    const fig2 = tbl;
-    // 숫자는 천 단위 쉼표로 통일(사용자 결정 2026-10-28) — 항목 수·금액 모두
-    expect(rowsOf(fig2 as unknown as HTMLElement)).toEqual([
-      ["중앙", "15,506", "950,141,668,000", "3,263,503,307,000"],
-      ["시군구", "15,506", "950,173,767,000", "3,279,393,548,000"],
-    ]);
+    const ev = rec("T3Q-10").response as { result: { display_name: string; disaster_types: string[]; lead_agency: string; time_profile: { started_at: string; ended_at: string } }; meta: { base_time: string } };
+    expect(c.querySelector(".evp-id")?.textContent).toBe(`사건 ID ${EV}`);
+    expect(c.querySelector(".evp-title")?.textContent).toBe(ev.result.display_name);
+    const chips = [...c.querySelectorAll(".evp-chip")].map((x) => x.textContent);
+    expect(chips[0]).toBe(`${ev.result.time_profile.started_at} ~ ${ev.result.time_profile.ended_at}`);
+    expect(chips.slice(1, 1 + ev.result.disaster_types.length)).toEqual(ev.result.disaster_types);
+    expect(c.querySelector(".evp-chips svg")).toBeNull();
+    expect(c.querySelector(".evp-sub")?.textContent).toBe(`주관 ${ev.result.lead_agency} · 데이터 기준 ${ev.meta.base_time.replace("T", " ").slice(0, 16)}`);
+    expect(c.querySelector(".evd-hero, .evd-hero-ic")).toBeNull();
+  });
+
+  it("피해·복구 — 값 칸(재산피해·공공시설·사유시설·인명 받은 키마다) · 시설유형 막대(이름 옆 건수) · 보고 단계 표(억·만 원)", async () => {
+    const c = await full();
+    type Rcv = { report_level: string; item_count: number; damage_amount_krw: number; recovery_cost_krw: number };
+    const dmg = (rec("T3Q-13").response.result as { damage: { property: { property_damage_krw: number }; facilities: { recovery: Rcv[] } } }).damage;
+    const sec = secOf(c, "피해·복구");
+    const labels = [...sec.querySelectorAll(".sm-value-label")].map((x) => x.textContent);
+    expect(labels[0]).toBe("재산피해");
+    expect(sec.querySelector(".sm-value-num")?.textContent).toBe(won(dmg.property.property_damage_krw));
+    expect(labels.some((x) => x?.startsWith("공공시설 · "))).toBe(true);
+    expect(labels).toContain("이재민");
+    const bars = [...sec.querySelectorAll(".sm-bar-label")].map((x) => x.textContent);
+    expect(bars[0]).toBe("하수도 · 69건");
+    expect(rowsOf(sec.querySelector(".evp-table"))).toEqual(dmg.facilities.recovery.map((x) => [x.report_level, String(x.item_count), won(x.damage_amount_krw), won(x.recovery_cost_krw)]));
+    expect(sec.textContent).not.toContain("인명·이재민");
+  });
+
+  it("사건 타임라인 — 분류별 개수 칩 · 받은 순서 세로 목록(12건까지, 「외 N건 더 보기」) · 전체 건수 안내", async () => {
+    const c = await full();
+    const sec = secOf(c, "사건 타임라인");
+    expect(sec.querySelectorAll(".sm-count").length).toBe(new Set(tl.items.map((i) => i.category)).size);
+    expect(sec.textContent).toContain(`전체 ${tl.total_count}건 중 ${tl.items.length}건을 받았습니다.`);
+    expect(sec.querySelectorAll(".evp-tl > li").length).toBe(Math.min(12, tl.items.length));
+    expect(sec.querySelector(".evp-tl-at")?.textContent).toBe(tl.items[0].occurred_at.replace("T", " ").slice(0, 16));
+    if (tl.items.length > 12) {
+      fireEvent.click(btn(sec, `외 ${tl.items.length - 12}건 더 보기`));
+      expect(sec.querySelectorAll(".evp-tl > li").length).toBe(tl.items.length);
+    }
+  });
+
+  it("유사도 근거 — 요인군 기여 막대 + 요인 표(요인 · 현재 조건 · 과거 사례 · 일치도 · 기여도)", async () => {
+    const c = await full();
+    const fold = c.querySelector("details.evp-fold")!;
+    expect(fold.querySelector(".sm-mod-title")?.textContent).toBe("요인군 기여");
+    expect([...fold.querySelectorAll("thead th")].map((x) => x.textContent)).toEqual(["요인", "현재 조건", "과거 사례", "일치도", "기여도"]);
+    expect(rowsOf(fold)[0]).toEqual(["재난유형 · 재난유형", "T10107 호우", "T10107 호우", "1", "46.6667"]);
+  });
+
+  it("우리만 있던 것은 없다 — 표로 보기 · 기록 목록 보기 · 요인 표로 보기 · 원본 항목 · ⚠ 관련 시도 더 있음 · 막대 제목", async () => {
+    const text = (await full()).textContent ?? "";
+    for (const s of ["표로 보기", "기록 목록 보기", "요인 표로 보기", "원본 항목", "⚠", "관련 시도 더 있음", "보고 단계별 피해액·복구비", "특보·재난문자 기록", "인명·이재민"]) {
+      expect(text, s).not.toContain(s);
+    }
   });
 });
 
-describe("사건 상세 패널 — 받은 값 그대로", () => {
-  it("사건 요약·인명 칸·제공처 알림은 받은 그대로, 같은 「—」도 키마다", async () => {
-    const c = await full();
-    const ev = rec("T3Q-10").response.result as { event_summary: string };
-    expect(screen.getByText(ev.event_summary).tagName).toBe("P");
-    const text = c.textContent ?? "";
-    expect(text).toContain("사망 — · 실종 — · 부상 — · 이재민 16,767");
-    expect(text).toContain("재산피해1,037,156,500,000원");
-    // 건수·인원도 천 단위 쉼표(통일)
-    expect(text).toContain("공공시설913건 · 95,965,587,000원");
-    expect(text).toContain("사유시설228,298건 · 406,065,397,000원");
-    // 데이터 기준 시각은 받은 글자 그대로(날짜만 자르지 않음)
-    expect(text).toContain(`데이터 기준 ${(rec("T3Q-10").response.meta as { base_time: string }).base_time}`);
-    // 제공처 알림(warnings·data_gaps)은 각 섹션 끝에 그대로
-    expect(text).toContain("사건과 명시적으로 연결된 기록이 아니라 사건 기간 × 관련 시도가 겹치는 특보·재난문자입니다.");
-    expect(text).toContain("유사도는 현재 위험도·발생확률·피해규모의 예측 결과가 아님");
-    // 기록 목록의 시각은 받은 글자 그대로(T 포함)
-    expect(text).toContain(tl.items[0].occurred_at);
-  });
-
-  it("시작 = 종료여도 둘 다 보인다", async () => {
-    render(<EventDetail id={SAME} label="" ctx={null} />);
-    expect(await screen.findByText(/^2021-08-25 ~ 2021-08-25 · 주관 /)).toBeTruthy();
-  });
-
-  it("없는 사건 — 제공처 알림 원문", async () => {
+describe("사건 상세 패널 — 비어 있음·실패", () => {
+  it("없는 사건 — 「사건 상세를 불러오지 못했습니다.」", async () => {
     render(<EventDetail id={NONE} label="없는 사건" ctx={null} />);
-    expect(await screen.findByText(`· 사건 «${NONE}» 이 없습니다.`)).toBeTruthy();
+    expect(await screen.findByText("사건 상세를 불러오지 못했습니다.")).toBeTruthy();
   });
 
-  it("비교 조건이 없으면 유사도 근거를 조회하지 않는다 — 설명 문구 없이 빈 값(—)", async () => {
+  it("비교 조건이 없으면 유사도 근거를 조회하지 않는다 — 「해당 정보가 제공되지 않습니다.」", async () => {
     h.calls.length = 0;
     const { container } = render(<EventDetail id={SAME} label="" ctx={null} />);
-    await screen.findByText(/^2021-08-25 ~ 2021-08-25/);
+    await screen.findByText(/^2021-08-25 ~ 2021-08-25$/);
     expect(h.calls.some((x) => x.api === "T3Q-11")).toBe(false);
-    expect(container.querySelector("details.ev-fold")!.textContent).toBe("유사도 근거—");
-    expect(container.textContent).not.toContain("조회하지 않았습니다");
+    expect(container.querySelector("details.evp-fold")!.textContent).toBe("유사도 근거해당 정보가 제공되지 않습니다.");
   });
 
-  it("제공처가 주지 않는 섹션(타임라인 없음)은 빈 값(—)만 — 「제공하지 않습니다」 같은 문장 없음, 받은 사실은 제공 항목 줄에", async () => {
+  it("제공처가 주지 않는 섹션(타임라인 없음)은 「해당 정보가 제공되지 않습니다.」, 받은 사실은 제공 항목 줄에", async () => {
     const { container } = render(<EventDetail id={SAME} label="" ctx={null} />);
-    await screen.findByText(/^2021-08-25 ~ 2021-08-25/);
-    const sec = [...container.querySelectorAll("section.ev-sec")].find((s) => s.querySelector("h3")?.textContent === "사건 타임라인");
-    expect(sec?.textContent).toBe("사건 타임라인—");
-    expect(container.textContent).not.toContain("제공하지 않습니다");
+    await screen.findByText(/^2021-08-25 ~ 2021-08-25$/);
+    expect(secOf(container, "사건 타임라인").textContent).toBe("사건 타임라인해당 정보가 제공되지 않습니다.");
     expect(container.textContent).toContain("타임라인 없음");
   });
-
-  it("시설유형 막대 — 이름 옆에 받은 건수(툴팁에만 두지 않음)", async () => {
-    const c = await full();
-    const labels = [...c.querySelectorAll(".viz-bars .lb")].map((x) => x.textContent);
-    expect(labels[0]).toBe("하수도 · 69건");
-    expect(labels[3]).toBe("수리시설 · 125건");
-  });
-
-  it("재해대장 — 받은 행마다 받은 값 그대로(연도·번호에 쉼표 없음)", async () => {
-    const c = await full();
-    const fig = screen.getByText("재해대장").closest("figure");
-    expect([...(fig?.querySelectorAll("thead th") ?? [])].map((x) => x.textContent)).toEqual(["재해 번호", "연도", "이름"]);
-    expect(rowsOf(fig)).toEqual([
-      ["227", "2020", "7.28~8.11 호우"],
-      ["228", "2020", "7.28~8.11 호우(12차 전환)"],
-    ]);
-    expect(c.textContent).not.toContain("2,020");
-  });
-
-  it("기록 목록 — 받은 항목 전부(순번·경과·시각 단위·기록 종류·연결 근거 포함), 코드는 사전의 한국어 이름", async () => {
-    const c = await full();
-    const table = [...c.querySelectorAll("details.xs table")].find((t) => t.querySelector("th")?.textContent === "순번");
-    expect([...(table?.querySelectorAll("thead th") ?? [])].map((x) => x.textContent)).toEqual(Object.keys(tl.items[0]).map(fieldKo));
-    expect(rowsOf(table)[0]).toEqual(["1", "2020-07-30T04:00:00", "52", "분", "특보", "홍수주의보 발령 — 여주시(원부교) (청미천)", "한강홍수통제소", "실제 기록", "—", "홍수특보 제2020-1호", "기간·지역 겹침"]);
-  });
-
-  it("유사도 근거 — 유사도 받은 키 전부(산식 판·비교에 쓴 요인 비율 포함), 요인 표에 가중치", async () => {
-    const c = await full();
-    const fold = c.querySelector("details.ev-fold")!;
-    expect(fold.querySelector(".viz-title")!.textContent).toBe("요인군 기여점수 68.24 · 순위 43 · 척도 0~100 · 산식 판 sim-0.1.0 · 비교에 쓴 요인 비율 0.75");
-    expect([...fold.querySelectorAll("thead th")].map((x) => x.textContent)).toEqual(["요인군", "요인", "현재 조건", "과거 사례", "일치도", "가중치", "기여도"]);
-    expect(rowsOf(fold)[0]).toEqual(["재난유형", "재난유형", "T10107 호우", "T10107 호우", "1", "0.4667", "46.6667"]);
-  });
-
-  it("섹션마다 원본 항목 전체 보기 — 화면에 고르지 않은 받은 값도 전부(가중치·제공되지 않은 요인군·대응·근거·시간 기준)", async () => {
-    const c = await full();
-    const before = c.textContent ?? "";
-    for (const s of ["프로파일 default(sim.profile)", "EV-DMG-T10107-20200728-0001", "ABSOLUTE"]) expect(before, s).not.toContain(s);
-    for (const name of ["피해·대응", "사건 타임라인", "유사도 근거"]) fireEvent.click(btn(c, `${name} 원본 항목 전체 보기`));
-    const text = c.textContent ?? "";
-    expect(text).toContain("프로파일 default(sim.profile)"); // weights.weight_stage
-    expect(text).toContain("제공되지 않은 요인군피해, 대응"); // factor_groups_not_provided
-    expect(text).toContain("EV-DMG-T10107-20200728-0001"); // T3Q-13 evidence_refs
-    expect(text).toContain("도로 통제"); // T3Q-13 response
-    expect(text).toContain("ABSOLUTE"); // T3Q-12 time_origin.type
-    expect(btn(c, "유사도 근거 원본 항목 닫기").getAttribute("aria-expanded")).toBe("true");
-  });
 });
 
-describe("사건 상세 패널 — 근거(T3Q-19, R41)", () => {
-  type EvdEnv = { result: { items: { title: string | null; page: string | null; section_path: string | null; evidence_ref: string }[] }; meta: { base_time: string } };
+describe("사건 상세 패널 — 근거(T3Q-19)", () => {
+  type EvdEnv = { result: { items: { title: string | null; page: string | null; section_path: string | null }[] } };
   const evd = rec("T3Q-19").response as unknown as EvdEnv;
-  const sec = (c: Element) => [...c.querySelectorAll("section.ev-sec")].find((s) => s.querySelector("h3")?.textContent === "근거")!;
 
-  // SAME 사건은 근거 조회를 녹화하지 않았다(받지 못함 — 실패는 다시 쓰지 않으므로 열 때마다 요청이 남는다)
-  const openSame = async () => {
-    const v = render(<EventDetail id={SAME} label="" ctx={null} />);
-    return waitFor(() => {
-      const x = sec(v.container)?.querySelector("p.xs.muted");
-      if (!x || x.textContent === "불러오는 중…") throw new Error("기다림");
-      return sec(v.container);
-    });
-  };
-
-  it("사건 ID 로 조회한다(실측과 같은 요청 모양 — 호출자 칸은 서버 쪽) — 브라우저는 우리 서버(/api/t3q/data) 경유", async () => {
+  it("사건 ID 로 조회한다(실측과 같은 요청 모양 — 호출자 칸은 서버 쪽)", async () => {
     h.calls.length = 0;
-    await openSame();
+    render(<EventDetail id={SAME} label="" ctx={null} />);
+    await waitFor(() => expect(h.calls.some((x) => x.api === "T3Q-19")).toBe(true));
     const call = h.calls.find((x) => x.api === "T3Q-19");
     expect(call?.id).toBeUndefined();
     const shape = { ...(rec("T3Q-19").body as Record<string, unknown>) };
@@ -231,67 +188,14 @@ describe("사건 상세 패널 — 근거(T3Q-19, R41)", () => {
     expect(call?.body).toEqual({ ...shape, object_id: SAME });
   });
 
-  it("받은 항목마다 한 줄 — 문서 제목·쪽·장 경로를 받은 글자 그대로, 쪽이 없으면 받은 칸만", async () => {
-    const c = sec(await full());
-    const lines = [...c.querySelectorAll("ul.ev-evd > li")].map((li) => li.textContent);
-    expect(lines).toEqual([
-      "2020 재해연보 p.153 · 사건ID 목록 › 2020년 7.28.~8.11. 호우",
-      "피해대장 집계 — 2020 7.28~8.11 호우 · 2020 7.28~8.11 호우(12차 전환)",
-    ]);
-    // 받은 값과 그대로 같다(고르거나 합치지 않음 — 받은 항목 수 그대로)
-    expect(lines).toHaveLength(evd.result.items.length);
-    expect(c.querySelector("li b")?.textContent).toBe(`${evd.result.items[0].title} ${evd.result.items[0].page}`);
+  it("받은 항목마다 한 줄 — 「제목 쪽」 굵게 · 장 경로", async () => {
+    const sec = secOf(await full(), "근거");
+    const lines = [...sec.querySelectorAll("ul.evp-evd > li")].map((li) => li.textContent);
+    expect(lines).toEqual(evd.result.items.map((it) => [it.title, it.page].filter(Boolean).join(" ") + (it.section_path ? ` · ${it.section_path}` : "")));
   });
 
-  it("데이터 기준 시각은 받은 글자 그대로, 제공처 알림(정보 부족)도 그대로, 원본 항목 전체 보기", async () => {
-    const root = await full();
-    const c = sec(root);
-    expect(c.textContent).toContain(`데이터 기준 ${evd.meta.base_time}`);
-    expect(c.querySelector(".gaps")?.textContent).toBeTruthy();
-    expect(c.textContent).not.toContain("EV-EVT-T10107-20200728-0001");
-    fireEvent.click(btn(c, "근거 원본 항목 전체 보기"));
-    expect(c.textContent).toContain("EV-EVT-T10107-20200728-0001");
-    expect(c.textContent).toContain("사건ID_목록");
-  });
-
-  it("받은 항목이 제공처 전체 건수보다 적을 때만 부분 목록 주의(제공처 전체 건수로) — 녹화는 다 받아 주의 없음", async () => {
-    const PART = "T10107-20200728-9999";
-    h.env.set(`T3Q-10:${PART}`, { http: 200, envelope: rec("T3Q-10").response });
-    const env = rec("T3Q-19").response as { result: Record<string, unknown> };
-    h.env.set(`T3Q-19:${PART}`, { http: 200, envelope: { ...env, result: { ...env.result, total_count: 57 } } });
-    const v = render(<EventDetail id={PART} label="" ctx={null} />);
-    await screen.findByText("근거 원본 항목 전체 보기");
-    expect(sec(v.container).querySelector(".ev-caution")?.textContent).toBe("⚠ 전체 57건 중 일부만 받았습니다.");
-    cleanup();
-    expect((env.result as { total_count?: number }).total_count).toBe(evd.result.items.length);
-    const c = sec(await full());
-    expect(c.querySelector(".ev-caution")).toBeNull();
-  });
-
-  it("받지 못하면 회색 한 줄", async () => {
-    const c = await openSame();
-    expect([...c.querySelectorAll("p")].map((x) => [x.className, x.textContent])).toEqual([["xs muted", "정보를 불러오지 못했습니다."]]);
-    expect(c.querySelector(".ev-caution")).toBeNull();
-  });
-});
-
-describe("사건 상세 패널 — 두지 않는 것(R25)", () => {
-  it("읽는 법·부연 설명 문구가 없다", async () => {
-    const text = (await full()).textContent ?? "";
-    for (const s of ["받은 순서 그대로", "합 = 유사도 점수", "요인군마다 색이", "같은 단위", "유엔이가 센 값", "제공처 한계", "(원문)", "유사사례 목록에서 열면", "겹치는 특보·재난문자 기록 없음", "제공하지 않습니다", "조회하지 않았습니다"]) {
-      expect(text, s).not.toContain(s);
-    }
-  });
-
-  it("유엔이가 센 수 없음 — 부분 목록 주의는 제공처 전체 건수로만", async () => {
-    const c = await full();
-    const text = c.textContent ?? "";
-    expect(tl.total_count).toBeGreaterThan(tl.items.length);
-    expect(text).toContain(`⚠ 전체 ${tl.total_count}건 중 일부만 받았습니다.`);
-    expect(text).not.toContain(`${tl.items.length}건`);
-    // 타임라인 줄 이름 = 받은 분류 이름만(옆에 센 수 없음)
-    const lanes = [...c.querySelectorAll(".viz-tl .lane-lb")].map((x) => x.textContent);
-    expect(lanes).toEqual([...new Set(tl.items.map((i) => i.category))]);
-    expect(c.querySelector(".viz-tl")?.getAttribute("aria-label")).not.toMatch(/\d/);
+  it("받지 못하면 「불러오지 못했습니다.」", async () => {
+    const { container } = render(<EventDetail id={SAME} label="" ctx={null} />);
+    await waitFor(() => expect(secOf(container, "근거")?.textContent).toBe("근거불러오지 못했습니다."));
   });
 });

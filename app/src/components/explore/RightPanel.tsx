@@ -1,13 +1,13 @@
 "use client";
 import dynamic from "next/dynamic";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import type OlMap from "ol/Map";
 import { useSession } from "@/lib/session";
 import { api } from "@/lib/api";
 import { SYMBOL_NAMES, detailIdOf, hasDetail, sameObject, symbolOf, type MapSymbol, type RefLike } from "@/lib/mapRef";
 import type { PanelTab } from "./ExploreCtx";
 import { useExplore } from "./ExploreCtx";
-import { DEFAULT_LAYERS, type Basemap, type MapFeature, type MapLayers, type MissingItem, zoomBy } from "../map/MapView";
+import { DEFAULT_LAYERS, type Basemap, type MapFeature, type MissingItem } from "../map/MapView";
 import MapLegendPanel from "../map/MapLegendPanel";
 import { useAdminNames } from "../map/useAdminNames";
 import SopPane from "../sop/SopPane";
@@ -15,7 +15,6 @@ import { DocPane } from "../sop/DocPane";
 import DetailPane from "./DetailPane";
 import PosterSummary, { type SummarySource } from "../summary/PosterSummary";
 import MapSummary from "../summary/MapSummary";
-import { IcExpand, IcLayers, IcPushpin, IcX } from "../Icons";
 
 const MapView = dynamic(() => import("../map/MapView"), { ssr: false, loading: () => <div className="olmap" /> });
 
@@ -65,19 +64,27 @@ export default function RightPanel(p: Props) {
   }, [tab?.key, p.tabs.length]);
   return (
     <aside className="rpanel" aria-label="우측 패널">
+      {/* 개발서버 SidePanel panel-head — 탭이 넘치면 좌우로 밀어서 본다 · [패널 접기]는 밖에 고정 */}
       <div className="rtabs">
-       <div className="rtabs-list" role="tablist" ref={list}>
-        {p.tabs.map((t) => (
-          <div key={t.key} className={`rtab ${t.key === tab?.key ? "on" : ""} ${t.pinned ? "pinned" : ""}`} role="tab" aria-selected={t.key === tab?.key}>
-            <button className="rtab-b" onClick={() => p.setActive(t.key)}>
-              {t.pinned && <IcPushpin size={13} />}
-              <span className="tl2">{t.title}</span>
-            </button>
-            {!t.pinned && t.kind !== "map" && t.kind !== "summary" && <button className="x" onClick={() => p.close(t.key)} aria-label={`${t.title} 닫기`}><IcX size={13} /></button>}
-          </div>
-        ))}
-       </div>
-        <button className="lnk s" style={{ alignSelf: "center", marginRight: 8 }} onClick={p.closeAll} title="패널 접기">패널 접기 <IcExpand size={14} /></button>
+        <div className="rtabs-list" role="tablist" aria-label="열린 탭" ref={list}>
+          {p.tabs.map((t) => (
+            <div key={t.key} className={`rtab${t.key === tab?.key ? " on" : ""}`}>
+              <button type="button" role="tab" aria-selected={t.key === tab?.key} className="rtab-b" title={t.title} onClick={() => p.setActive(t.key)}>
+                {t.title}
+              </button>
+              {/* 붙박이 탭(지도·한눈 요약·대응절차)은 닫지 않는다 */}
+              {!t.pinned && t.kind !== "map" && t.kind !== "summary" && (
+                <button type="button" className="x" aria-label={`${t.title} 탭 닫기`} onClick={() => p.close(t.key)}>
+                  <CloseIcon />
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+        <button type="button" className="panel-collapse" onClick={p.closeAll} title="패널 접기">
+          패널 접기
+          <ChevronIcon dir="right" />
+        </button>
       </div>
       {/* 지도는 탭을 바꿔도 상태 유지 */}
       <div className={`rbody map ${tab?.kind === "map" ? "" : "hide"}`}>
@@ -92,6 +99,24 @@ export default function RightPanel(p: Props) {
         </div>
       )}
     </aside>
+  );
+}
+
+/** 개발서버 SidePanel ChevronIcon — 16px 꺾쇠 */
+export function ChevronIcon({ dir }: { dir: "left" | "right" }) {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+      <path d={dir === "right" ? "m6 3.5 5 4.5-5 4.5" : "m10 3.5-5 4.5 5 4.5"} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+/** 개발서버 SidePanel CloseIcon — 12px × */
+function CloseIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+      <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
   );
 }
 
@@ -132,10 +157,7 @@ function riskHasDetail(r: RefLike | undefined): Promise<boolean> {
 function MapPanel(p: Props) {
   const { cond } = useSession();
   const x = useExplore();
-  const [layers, setLayers] = useState<MapLayers>(DEFAULT_LAYERS);
   const [basemap, setBasemap] = useState<Basemap>("Base");
-  const [tile, setTile] = useState<"vworld" | "osm">("vworld");
-  const [lp, setLp] = useState(false);
   const scope = p.mapScope ?? p.activeJobId ?? "";
   // 범례 거르기·구 거르기 — 지도가 그리는 답이 바뀌면 풀린다(개발 서버)
   const [filt, setFilt] = useState<{ scope: string; key: string | null }>({ scope: "", key: null });
@@ -143,17 +165,19 @@ function MapPanel(p: Props) {
   const setFilter = (key: string | null) => setFilt({ scope, key });
   const [areaPick, setAreaPick] = useState<{ scope: string; label: string; ids: ReadonlySet<string> } | null>(null);
   const area = areaPick?.scope === scope ? areaPick : null;
-  // 「지도 표시」에서 끈 갈래(개발 서버 MapLayerPicker)
+  // 「지도 표시」에서 끈 갈래(개발 서버 MapLayerPicker) — 기본은 모두 켬
   const [hidden, setHidden] = useState<ReadonlySet<MapSymbol>>(new Set());
   const [olMap, setOlMap] = useState<OlMap | null>(null);
   const [summaryOn, setSummaryOn] = useState(false);
   const adminNames = useAdminNames(p.features);
-  const shown = p.features;
-  const symCounts = useMemo(() => {
+  // 답변에 나온 갈래와 그 건수(개발서버 counts — 도형을 받은 것만. 지도에 그린 대상은 모두 도형이 있다)
+  const counts = useMemo(() => {
     const m = new Map<MapSymbol, number>();
-    for (const f of shown) m.set(symbolOf(f.entityType), (m.get(symbolOf(f.entityType)) ?? 0) + 1);
-    return m;
-  }, [shown]);
+    for (const f of p.features) m.set(symbolOf(f.entityType), (m.get(symbolOf(f.entityType)) ?? 0) + 1);
+    return (Object.keys(SYMBOL_NAMES) as MapSymbol[]).filter((k) => m.has(k)).map((k): [MapSymbol, number] => [k, m.get(k) ?? 0]);
+  }, [p.features]);
+  // 지도 위 가로 범례가 읽는 것 — 도형이 있는 대상 가운데 「지도 표시」에서 끈 갈래는 뺀다(개발서버 legendFeatures)
+  const legendFeatures = useMemo(() => p.features.filter((f) => f.geometry && !hidden.has(symbolOf(f.entityType))), [p.features, hidden]);
   const detailOf = useCallback((f: MapFeature) => riskHasDetail(f.t3qRef), []);
   const onDetail = useCallback((f: MapFeature) => {
     const id = f.t3qRef ? detailIdOf(f.t3qRef) : null;
@@ -168,14 +192,8 @@ function MapPanel(p: Props) {
   };
   const nPicked = p.pickedIds?.size ?? 0;
   return (
-    <>
-    {/* 지도 범례 — 개발서버처럼 지도 위 가로 띠(지도를 덮지 않음 · 2026-11-19 사용자 지시). 표시한 대상이 있을 때, 요약 보기 중에는 숨김 — 곳 수는 지도에 그린 대상을 종류별로 센 범례 표시(R25) */}
-    {shown.length > 0 && layers.features && !summaryOn && (
-      <div className="map-pane">
-        <MapLegendPanel features={shown} filter={filter} onFilter={setFilter} boundary={layers.boundary} dimOthers={false} />
-      </div>
-    )}
-    <div className="mapwrap">
+    // 개발서버 MapPane .map-pane — 알림 → 범례 띠 → 지도 칸 → 지도 대체정보를 세로로 쌓는다(MapView 가 그린다)
+    <div className="map-pane">
       <MapView
         region={cond.region}
         areaToken={p.areaToken}
@@ -184,9 +202,8 @@ function MapPanel(p: Props) {
         selectedKey={x.selectedKey}
         focusToken={p.focusToken}
         basemap={basemap}
-        layers={layers}
+        layers={DEFAULT_LAYERS}
         onSelect={(k) => x.selectOnMap(k)}
-        onTileStatus={setTile}
         filter={filter}
         onFilter={setFilter}
         onLocate={locate}
@@ -205,6 +222,12 @@ function MapPanel(p: Props) {
         missingItems={p.missingItems}
         resultStatus={p.resultStatus}
         onMap={setOlMap}
+        top={
+          // 지도 범례 — 지도 위 가로 띠(개발서버 POC MapLegendPanel). 요약 보기 중에는 숨김
+          !summaryOn && legendFeatures.length > 0 && (
+            <MapLegendPanel features={legendFeatures} filter={filter} onFilter={setFilter} boundary={DEFAULT_LAYERS.boundary} dimOthers={false} />
+          )
+        }
       >
         <MapSummary
           map={olMap}
@@ -213,58 +236,89 @@ function MapPanel(p: Props) {
           onRegion={(r) => setAreaPick({ scope, label: r.label, ids: new Set(r.ids) })}
         />
         {area && !summaryOn && (
-          <div className="map-area-chip" role="status">
+          <p className="map-area-chip" role="status">
             {area.label}
-            <button type="button" onClick={() => setAreaPick(null)} aria-label="구 거르기 풀기" title="구 거르기 풀기">×</button>
-          </div>
+            <button type="button" onClick={() => setAreaPick(null)} aria-label="구 거르기 풀기">×</button>
+          </p>
+        )}
+        {/* 지도 레이어 패널(SCR-UNE-207002) — 답변에 나온 갈래가 있을 때만 */}
+        {counts.length > 0 && (
+          <MapLayerPicker
+            counts={counts}
+            hidden={hidden}
+            onToggle={(k) => setHidden((h) => {
+              const n = new Set(h);
+              if (n.has(k)) n.delete(k);
+              else n.add(k);
+              return n;
+            })}
+          />
+        )}
+        {/* 「객체 참조」 — 켜면 지도에서 누른 대상을 다음 질문의 참조로 집는다(개발 서버 map-pickmode) */}
+        {p.onPicking && (
+          <label className={`map-pickmode${p.picking ? " is-on" : ""}`}>
+            <input type="checkbox" checked={!!p.picking} onChange={(e) => p.onPicking?.(e.target.checked)} />
+            객체 참조
+            {nPicked > 0 && <span className="map-pickmode-count">{nPicked}</span>}
+          </label>
         )}
       </MapView>
-      {tile === "osm" && <div className="map-note">배경지도(VWorld)를 불러오지 못해 OpenStreetMap 으로 표시합니다.</div>}
-      <div className="map-tools">
-        <button type="button" className="btn sm map-layers-btn" onClick={() => setLp((v) => !v)} aria-expanded={lp}><IcLayers size={14} /> 지도 표시</button>
-        {lp && (
-          <div className="map-layerpanel">
-            <div className="xs b">배경지도</div>
-            {(["Base", "Satellite", "gray"] as Basemap[]).map((b) => (
-              <label key={b} className="xs"><input type="radio" checked={basemap === b} onChange={() => setBasemap(b)} /> {b === "Base" ? "일반" : b === "Satellite" ? "영상" : "회색"}</label>
-            ))}
-            <div className="xs b" style={{ marginTop: 6 }}>레이어</div>
-            <label className="xs"><input type="checkbox" checked={layers.boundary} onChange={() => setLayers((l) => ({ ...l, boundary: !l.boundary }))} /> 행정경계(VWorld)</label>
-            <label className="xs"><input type="checkbox" checked={layers.features} onChange={() => setLayers((l) => ({ ...l, features: !l.features }))} /> 답변 대상(T3Q)</label>
-            {/* 갈래별 켜고 끄기 — 받은 대상이 있는 갈래만(개발 서버 MapLayerPicker) */}
-            {symCounts.size > 0 && <div className="xs b" style={{ marginTop: 6 }}>대상 갈래</div>}
-            {(Object.keys(SYMBOL_NAMES) as MapSymbol[]).filter((k) => symCounts.has(k)).map((k) => (
-              <label key={k} className="xs map-layers-item">
-                <input
-                  type="checkbox"
-                  checked={!hidden.has(k)}
-                  disabled={!layers.features}
-                  onChange={() => setHidden((h) => {
-                    const n = new Set(h);
-                    if (n.has(k)) n.delete(k);
-                    else n.add(k);
-                    return n;
-                  })}
-                />
-                {SYMBOL_NAMES[k]} {symCounts.get(k)}
-              </label>
-            ))}
-          </div>
-        )}
-      </div>
-      <div className="map-zoom">
-        <button className="btn sm" onClick={() => zoomBy(1)} aria-label="확대">＋</button>
-        <button className="btn sm" onClick={() => zoomBy(-1)} aria-label="축소">－</button>
-      </div>
-      {/* 「객체 참조」 — 켜면 지도에서 누른 대상을 다음 질문의 참조로 집는다(개발 서버 map-pickmode) */}
-      {p.onPicking && (
-        <label className={`map-pickmode${p.picking ? " is-on" : ""}`} title="켜면 지도에서 누른 대상을 다음 질문의 참조로 담습니다">
-          <input type="checkbox" checked={!!p.picking} onChange={(e) => p.onPicking?.(e.target.checked)} />
-          객체 참조
-          {nPicked > 0 && <span className="map-pickmode-count">{nPicked}</span>}
-        </label>
+    </div>
+  );
+}
+
+/**
+ * 지도 표시 팝오버(개발서버 MapPane MapLayerPicker · SCR-UNE-207002) — 답변에 나온 갈래만 체크박스로 세운다.
+ * 체크를 풀면 그 자리에서 표식이 사라지고 범례에서도 빠진다. 바깥을 누르거나 Esc 로 닫는다.
+ */
+function MapLayerPicker({ counts, hidden, onToggle }: { counts: [MapSymbol, number][]; hidden: ReadonlySet<MapSymbol>; onToggle: (k: MapSymbol) => void }) {
+  const id = useId();
+  const [open, setOpen] = useState(false);
+  const root = useRef<HTMLDivElement>(null);
+  // 열려 있는 동안만 바깥 누르기·Escape 를 듣는다
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: PointerEvent) => {
+      if (!root.current?.contains(e.target as Node)) setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("pointerdown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("pointerdown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+  return (
+    <div className="map-layers" ref={root}>
+      <button type="button" className="map-layers-btn" aria-haspopup="true" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
+        <LayersIcon />
+        지도 표시
+      </button>
+      {open && (
+        // 묶음 이름은 낭독에만 쓴다(설계 1-④)
+        <fieldset className="map-layers-panel">
+          <legend className="sr-only">지도 표시</legend>
+          {counts.map(([k, n]) => (
+            <label key={k} className="map-layers-item" htmlFor={`${id}-${k}`}>
+              <input id={`${id}-${k}`} type="checkbox" checked={!hidden.has(k)} onChange={() => onToggle(k)} />
+              {SYMBOL_NAMES[k]} ({n})
+            </label>
+          ))}
+        </fieldset>
       )}
     </div>
-    </>
+  );
+}
+
+/** 개발서버 MapPane LayersIcon */
+function LayersIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+      <path d="M8 2 14 5.2 8 8.4 2 5.2 8 2Z" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" />
+      <path d="M2.6 8.4 8 11.3l5.4-2.9M2.6 11.3 8 14.2l5.4-2.9" stroke="currentColor" strokeWidth="1.3" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
   );
 }

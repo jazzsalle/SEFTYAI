@@ -7,10 +7,11 @@ import type { Account } from "./config";
 import { isActive, locksBase, sourceLocksBase, type JobFull, type JobSource, type JobSummary, type T3qRef } from "./jobTypes";
 import { baseKey, basePilot, baseWire, defaultBase, type BaseRegion } from "./baseRegion";
 import { presetCondition, wireCondition, type CondPreset } from "./library";
+import { defaultPeriod } from "../components/explore/period";
 
-/** 지난 상황으로 보관할 때 함께 보내는 화면 정보 (조치 이름·단계 — 누가·언제는 서버 값) */
-export interface CheckArchiveMeta { title?: string; note?: string; labels?: Record<string, { label: string; step: string }>; /** false = 보관 없이 비움(자동 시연) */ archive?: boolean }
-export interface CheckHistory { id: string; title: string; note: string; startedAt: string | null; endedAt: string; by: string; items: { key: string; label: string; step: string; by: string; at: string }[] }
+/** 체크 비우기 옵션 — 지난 상황 보관(D40)은 개발서버와 같게 뺐다(2026-11-19). 비우기는 늘 보관 없이 비운다.
+ *  archive:false 는 자동 시연이 보내는 값(예전 호출과 맞추려고 받아 둔다 — 뜻은 같다) */
+export interface CheckArchiveMeta { archive?: boolean }
 
 /** 대화의 한 턴 — 답은 작업(jobId)의 T3Q 원응답에서 읽는다(중복 저장 없음, DB 설계 §3) */
 export interface Turn {
@@ -113,7 +114,8 @@ interface SessionState {
   ready: boolean;
   account: Account | null;
   /** force = 다른 곳의 접속을 끊고 들어간다(SCR-UNE-101003). 다른 곳에서 접속 중이면 409 AUTH_SESSION_EXISTS 로 되묻는다 */
-  login: (id: string, password: string, force?: boolean) => Promise<void>;
+  /** 로그인한 계정을 돌려준다 — 첫 로그인(mustChangePw)이면 화면이 /password 로 보낸다(개발서버 LoginPage) */
+  login: (id: string, password: string, force?: boolean) => Promise<Account>;
   logout: () => Promise<void>;
   sessionExpired: boolean;
   /** 이 접속이 끝나는 시각(epoch ms) — 로그인·[시간 연장]부터 240분(개발서버 AuthProvider expiresAt — R57). 사용자 메뉴 「로그아웃까지 남은 시간」 */
@@ -137,6 +139,8 @@ interface SessionState {
   convs: Conversation[];
   /** 대화 이력을 서버에서 불러오지 못함(개발서버 ConversationListPage 「대화 이력을 불러오지 못했습니다.」, R60) */
   convsFailed: boolean;
+  /** 대화 이력을 불러오는 중(개발서버 ConversationListPage 「대화 이력을 불러오는 중입니다.」) */
+  convsLoading: boolean;
   saveConv: (c: Conversation) => void;
   /** 고른 대화를 지운다 — 서버가 지운 건수. 못 지우면 거절(화면은 목록을 그대로 둔다) */
   deleteConvs: (ids: string[]) => Promise<number>;
@@ -176,10 +180,11 @@ export interface LiveAnswer {
 const Ctx = createContext<SessionState | null>(null);
 /** 화면 쪽 특보 조회 실패(fetch 실패·2xx 아님·계정 다름)로 만든 응답 — 서버가 답한 조회 실패와 가른다(참조 특보 떼기) */
 const LOCAL_WX_FAIL = new WeakSet<WeatherResponse>();
-/** 로그인·세션 복원 때의 조건 — 기준지역은 계정 기본(지자체 = 자기 지역, 그 밖 = 전국), 나머지 조건은 비움 */
+/** 로그인·세션 복원 때의 조건 — 기준지역은 계정 기본(지자체 = 자기 지역, 그 밖 = 전국), 발생기간은 최근 한 달(개발서버 defaultConditions), 나머지는 비움 */
 const condFor = (acc: Account): Cond => {
   const base = defaultBase(acc);
-  return { base, region: basePilot(base) };
+  const { from, to } = defaultPeriod();
+  return { base, region: basePilot(base), periodFrom: from.toISOString(), periodTo: to.toISOString() };
 };
 /** 받은 끝나는 시각(ISO) → epoch ms. 알아볼 수 없으면 null(남은 시간을 그리지 않음) */
 const msOf = (iso: string | null | undefined): number | null => {
@@ -203,6 +208,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   const [weather, setWeather] = useState<WeatherResponse | null>(null);
   const [convs, setConvs] = useState<Conversation[]>([]);
   const [convsFailed, setConvsFailed] = useState(false);
+  const [convsLoading, setConvsLoading] = useState(true);
   const [checkInfo, setCheckInfo] = useState<Record<string, { by: string; at: string }>>({});
   const checks = useMemo(() => Object.fromEntries(Object.keys(checkInfo).map((k) => [k, true])), [checkInfo]);
   const [toastMsg, setToast] = useState<string | null>(null);
@@ -234,7 +240,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
 
   const toast = useCallback((m: string) => {
     setToast(m);
-    window.setTimeout(() => setToast(null), 2600);
+    window.setTimeout(() => setToast(null), 3000);
   }, []);
 
   /**
@@ -279,6 +285,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     setCondS(condFor(r.account));
     setAimOnS(false);
     aimLoggedRef.current = false;
+    return r.account;
   }, []);
 
   const logout = useCallback(async () => {
@@ -330,11 +337,18 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   // 대화 이력 (서버 저장, 새 형식 v2 만)
   useEffect(() => {
     setConvsFailed(false);
-    if (!account) return setConvs([]);
-    api<Conversation[]>("/api/conversations").then(setConvs).catch(() => {
-      setConvs([]);
-      setConvsFailed(true);
-    });
+    if (!account) {
+      setConvsLoading(false);
+      return setConvs([]);
+    }
+    setConvsLoading(true);
+    api<Conversation[]>("/api/conversations")
+      .then(setConvs)
+      .catch(() => {
+        setConvs([]);
+        setConvsFailed(true);
+      })
+      .finally(() => setConvsLoading(false));
   }, [account]);
 
   // 기상특보 — 기상청 실시간(시연 시나리오를 켠 시연 계정은 시나리오 특보만 — 서버가 정함, R45), 60초마다. 2xx 가 아니면(세션 끊김 401 등) 오류 본문을 특보로 두지 않고 조회 실패로 — 401 은 세션 만료도 알린다(api() 와 같게).
@@ -658,10 +672,10 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     () => ({
       ready, account, login, logout, sessionExpired, expiresAt, renew, sessionTaken, cond, setCond, setBase, asking, weather,
       reloadWeather: () => setWxTick((t) => t + 1),
-      convs, convsFailed, saveConv, deleteConvs, checks, checkInfo, toggleCheck, resetChecks, toast, toastMsg, aimOn, setAimOn, wxRef, setWxRef,
+      convs, convsFailed, convsLoading, saveConv, deleteConvs, checks, checkInfo, toggleCheck, resetChecks, toast, toastMsg, aimOn, setAimOn, wxRef, setWxRef,
       jobs, jobOrder, medianMs, submit, cancel, full, loadFull, watch, t3qOk, live,
     }),
-    [ready, account, login, logout, sessionExpired, expiresAt, renew, sessionTaken, cond, setCond, setBase, asking, weather, convs, convsFailed, saveConv, deleteConvs, checks, checkInfo, toggleCheck, resetChecks, toast, toastMsg, aimOn, setAimOn, wxRef, setWxRef, jobs, jobOrder, medianMs, submit, cancel, full, loadFull, watch, t3qOk, live],
+    [ready, account, login, logout, sessionExpired, expiresAt, renew, sessionTaken, cond, setCond, setBase, asking, weather, convs, convsFailed, convsLoading, saveConv, deleteConvs, checks, checkInfo, toggleCheck, resetChecks, toast, toastMsg, aimOn, setAimOn, wxRef, setWxRef, jobs, jobOrder, medianMs, submit, cancel, full, loadFull, watch, t3qOk, live],
   );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

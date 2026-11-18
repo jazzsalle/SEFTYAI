@@ -1,32 +1,70 @@
-/* 재난상황 조건 창 — 개발서버 ConditionModal 배치(index.css·ds-search.css cond-*)를 우리 토큰으로(R54) */
-.cond-modal { gap: 14px; }
-.cond-field { display: flex; flex-direction: column; gap: 8px; }
-.cond-title { margin: 0; font-size: var(--fs-s); font-weight: 700; color: var(--c-navy); }
-.cond-title--detail { margin-top: 4px; padding-top: 12px; border-top: 1px solid var(--c-bd); }
-.cond-title-row { display: flex; align-items: center; gap: 12px; }
-.cond-hint { margin: 0; font-size: var(--fs-xs); color: var(--c-sub); }
-.cond-hint--blocked { color: #8a949e; }
-.cond-err { margin: 0; font-size: var(--fs-xs); color: var(--c-danger, #b42318); }
-.cond-chips { display: flex; flex-wrap: wrap; gap: 6px; }
-.cond-chip { display: inline-flex; align-items: center; gap: 4px; height: 32px; padding: 0 14px; border: 1px solid var(--c-bd); border-radius: 16px; background: #fff; color: var(--c-text, #1e2124); font-size: var(--fs-xs); cursor: pointer; }
-.cond-chip.is-on { border-color: var(--c-navy); background: var(--c-navy); color: #fff; font-weight: 700; }
-.cond-noperiod { display: inline-flex; align-items: center; gap: 6px; margin-left: auto; font-size: var(--fs-xs); color: var(--c-sub); cursor: pointer; }
-.cond-period { display: flex; align-items: center; gap: 8px; }
+/* 재난상황 조건 창 — 개발서버 index.css(.modal--condition · cond-*) 위에 renewal/ds-search.css 가 덮은 최종값(rem ×10 px).
+   틀(덮개·테두리·✕·제목·하단 단추)은 ExploreModal(exploreModal.css) */
+.xm-layer > .modal.xm-box.cond-modal { width: 760px; max-width: calc(100vw - 40px); }
+.cond-modal .xm-content { gap: 16px; max-height: 60vh; overflow-y: auto; }
+
+.cond-field { display: flex; flex-direction: column; margin: 0; padding: 0; border: 0; }
+.cond-title { margin: 0 0 8px; font-size: calc(15px * var(--fs-scale)); font-weight: 400; line-height: calc(22px * var(--fs-scale)); color: #464c53; }
+.cond-title--detail { margin: 0; }
+.cond-title-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.cond-hint { margin: 0 0 8px; font-size: calc(14px * var(--fs-scale)); line-height: calc(20px * var(--fs-scale)); color: #6d7882; }
+.cond-hint--blocked { margin: -4px 0 0; color: #464c53; }
+.cond-err { margin: 8px 0 0; font-size: calc(15px * var(--fs-scale)); line-height: calc(23px * var(--fs-scale)); color: #bd2c0f; }
+
+/* 재난유형 칩 — KRDS 칩 48, 테두리 #B1B8BE, 고른 칩은 굵게 하지 않고 색으로만 */
+.cond-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.cond-chip {
+  display: flex; align-items: center; gap: 4px; height: 48px; padding: 0 12px; font-family: inherit;
+  font-size: calc(17px * var(--fs-scale)); font-weight: 400; line-height: calc(26px * var(--fs-scale)); color: #1e2124;
+  background: #fff; border: 1px solid #b1b8be; border-radius: 6px; cursor: pointer;
+}
+.cond-chip.is-on { color: #0b50d0; background: #ecf2fe; border-color: #256ef4; font-weight: 400; }
+
+/* 발생기간 — 날짜 152 + 시각 select, 「묻지 않음」은 제목 줄 오른쪽 */
+.cond-period { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .cond-period.is-off { opacity: 0.45; }
-.cond-date { width: 130px; }
-.cond-tilde { color: var(--c-sub); }
-.cond-detail { display: flex; flex-direction: column; gap: 10px; padding: 14px 16px; border-radius: var(--r-l, 8px); background: #f6f8fa; }
-.cond-group { margin: 4px 0 0; font-size: var(--fs-xs); font-weight: 800; color: var(--c-navy); }
-.cond-two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 20px; }
-.cond-pick { display: flex; flex-direction: column; gap: 4px; }
-.cond-sub { margin: 0; font-size: var(--fs-xs); font-weight: 700; color: #464c53; }
-.cond-sub.is-off { color: #b1b8be; }
-.cond-measures { display: flex; flex-direction: column; gap: 6px; }
-.cond-measure { display: grid; grid-template-columns: 1fr 96px 44px; align-items: center; gap: 8px; }
-.cond-measure-check { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-xs); cursor: pointer; }
-.cond-measure-value { width: 96px; height: 30px; text-align: right; }
-.cond-measure-unit { font-size: var(--fs-xs); color: var(--c-sub); }
-.cond-measure.is-off .cond-measure-check, .cond-measure.is-off .cond-measure-unit { color: #b1b8be; }
+.cond-noperiod { display: inline-flex; align-items: center; gap: 6px; margin-bottom: 8px; font-size: calc(14px * var(--fs-scale)); color: #464c53; cursor: pointer; }
+.cond-noperiod input[type="checkbox"] { width: 18px; height: 18px; margin: 0; accent-color: #0b50d0; cursor: pointer; }
+.cond-tilde { color: #464c53; }
+
+/* 입력칸 — 기간·선택·키워드는 KRDS medium(48 · 17), 수치는 small(40 · 15) */
+.cond-modal .input {
+  height: 48px; padding: 0 16px; font-family: inherit; font-size: calc(17px * var(--fs-scale)); line-height: calc(26px * var(--fs-scale));
+  color: #1e2124; background: #fff; border: 1px solid #58616a; border-radius: 6px;
+}
+.cond-modal .input::placeholder { color: #8a949e; }
+.cond-modal .input:focus-visible { outline: 2px solid #256ef4; outline-offset: 1px; }
+.cond-modal select.input {
+  padding-right: 40px; appearance: none; cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath d='m4 6 4 4 4-4' fill='none' stroke='%231E2124' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 14px center;
+}
+.cond-modal .input.cond-date { width: 152px; }
+.cond-modal .input.cond-time { width: 156px; }
+
+/* 상황 상세정보 상자 — #F4F5F6 · 안쪽 24 · 모서리 12 · 묶음 사이 24(묶음 제목 뒤는 12) */
+.cond-detail { display: flex; flex-direction: column; gap: 24px; padding: 24px; background: #f4f5f6; border-radius: 12px; }
+.cond-detail > .cond-group + * { margin-top: -12px; }
+.cond-group { margin: 0; font-size: calc(15px * var(--fs-scale)); font-weight: 700; line-height: calc(23px * var(--fs-scale)); color: #464c53; }
+.cond-two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.cond-pick { display: flex; flex-direction: column; gap: 8px; }
+.cond-sub { margin: 0; font-size: calc(15px * var(--fs-scale)); font-weight: 400; line-height: calc(23px * var(--fs-scale)); color: #464c53; }
+
+/* 기상·수문 — 이름 120 · 값 120 고정(늘어나면 단위가 끝으로 밀린다) · 단위 40 */
+.cond-measures { display: flex; flex-direction: column; gap: 4px; }
+.cond-measure { display: flex; align-items: center; gap: 8px; }
+.cond-measure-check { flex: none; display: inline-flex; align-items: center; gap: 8px; width: 120px; font-size: calc(17px * var(--fs-scale)); line-height: calc(26px * var(--fs-scale)); color: #131416; cursor: pointer; }
+.cond-measure-check input { flex: none; width: 20px; height: 20px; margin: 0; accent-color: #256ef4; cursor: pointer; }
+.cond-modal .input.cond-measure-value { flex: none; width: 120px; height: 40px; font-size: calc(15px * var(--fs-scale)); line-height: calc(23px * var(--fs-scale)); }
+.cond-measure-unit { flex: none; width: 40px; font-size: calc(15px * var(--fs-scale)); line-height: calc(23px * var(--fs-scale)); color: #464c53; }
+
+/* 전국이면 아홉 줄이 통째로 막힌다(설계 201002 「전국」 ③) — 꺼진 것이 눈에 보여야 한다 */
+.cond-modal .cond-measure .input:disabled { background: #cdd1d5; border-color: #cdd1d5; cursor: not-allowed; }
+.cond-measure.is-off .cond-measure-check,
+.cond-measure.is-off .cond-measure-unit,
+.cond-sub.is-off { color: #8a949e; }
+.cond-measure.is-off .cond-measure-check, .cond-measure.is-off .cond-measure-check input { cursor: not-allowed; }
+
 @media (max-width: 640px) {
   .cond-two { grid-template-columns: 1fr; }
 }

@@ -1,0 +1,32 @@
+/* =====================================================================
+   가운데 칸 대화(개발서버 AnswerPanel — index.css answer-panel·answer-head·answer-turns·answer-ask-row 위에
+   ds-search.css 가 덮어쓴 최종값, 1rem = 10px). 2026-11-19 「개발서버와 동일하게」.
+   - 대화 화면(.thread--conv): 머리줄은 붙박이, 턴 목록(.thread-turns)만 구른다.
+   - 브리핑 화면(.thread--brief): 지금처럼 칸 전체가 구른다(안쪽은 BriefBoard).
+   ===================================================================== */
+
+/* 대화 카드 — 세로 flex, 머리줄 아래 16 */
+.ex-main .thread.thread--conv { display: flex; flex-direction: column; gap: 16px; overflow: hidden; }
+.thread--conv > .thread-h { flex: none; margin-bottom: 0; }
+
+/* 턴 목록 — 구르는 곳은 여기뿐(min-height:0 이 없으면 내용만큼 부푼다). 턴 사이 24 */
+.thread-turns { display: flex; flex: 1; flex-direction: column; gap: 24px; min-height: 0; margin: 0; padding: 0; overflow-y: auto; }
+.thread-turns > .turn { position: relative; display: flex; flex-direction: column; gap: 12px; }
+/* 지금 지도에 그려진 턴(대화가 둘 이상일 때) — 개발서버 map.css answer-turn--on-map */
+.thread-turns > .answer-turn--on-map::before { content: ""; position: absolute; top: 0; bottom: 0; left: -12px; width: 3px; background: var(--c-primary); border-radius: 999px; }
+
+/* 질문 줄 — 제 턴이 끝날 때까지 맨 위에 붙는다. 흰 띠로 덮고, 아래 여백은 패딩으로 만들어 같은 만큼 당긴다 */
+.answer-ask-row { position: sticky; top: 0; z-index: 1; display: flex; justify-content: flex-end; margin-bottom: -12px; padding-bottom: 12px; background: #fff; }
+
+/* ── 머리줄 — 제목 · [수정] · [새 대화] ── */
+.thread-h .answer-title { margin: 0; min-width: 0; font-size: calc(17px * var(--fs-scale)); font-weight: 700; line-height: 26px; color: #464c53; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.thread-h .answer-title-edit { display: inline-flex; flex: none; align-items: center; gap: 3px; padding: 5px 10px; font: inherit; font-size: calc(15px * var(--fs-scale)); line-height: 23px; color: #1e2124; background: #fff; border: 1px solid transparent; border-radius: 6px; cursor: pointer; }
+.thread-h .answer-title-edit:hover { background: #f4f5f6; border-color: #b1b8be; }
+.thread-h .answer-new { margin-left: auto; }
+
+/* 제목 입력 — Enter 저장 · Esc 취소 */
+.answer-title-edit-box { display: flex; flex: 1; align-items: center; gap: 6px; min-width: 0; }
+.answer-title-input { flex: 1; min-width: 0; height: 36px; padding: 0 12px; font: inherit; font-size: calc(17px * var(--fs-scale)); color: #131416; background: #fff; border: 1px solid #256ef4; border-radius: 6px; }
+.answer-title-save, .answer-title-cancel { flex: none; padding: 6px 12px; font: inherit; font-size: calc(14px * var(--fs-scale)); line-height: 20px; border-radius: 6px; cursor: pointer; }
+.answer-title-save { font-weight: 700; color: #fff; background: #256ef4; border: 1px solid #256ef4; }
+.answer-title-cancel { color: #464c53; background: #fff; border: 1px solid #b1b8be; }

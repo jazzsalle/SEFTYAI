@@ -144,6 +144,16 @@ describe("① 로그인 화면(개발서버 LoginPage)", () => {
     await waitFor(() => expect(h.replace).toHaveBeenCalledWith("/explore"));
   });
 
+  it("초기 비밀번호 계정(mustChangePw)은 로그인 뒤 /password 로 간다(개발서버 LoginPage navigate)", async () => {
+    render(<LoginPage />);
+    h.login.mockImplementationOnce(async () => ({ id: "inje_new", mustChangePw: true }) as never);
+    fireEvent.change(idBox(), { target: { value: "inje_new" } });
+    fireEvent.change(pwBox(), { target: { value: "Init1234!" } });
+    fireEvent.click(screen.getByRole("button", { name: "로그인" }));
+    await waitFor(() => expect(h.replace).toHaveBeenCalledWith("/password"));
+    expect(h.replace).not.toHaveBeenCalledWith("/explore");
+  });
+
   it("확인 창 [취소] — 로그인하지 않고 비밀번호를 비운다", async () => {
     render(<LoginPage />);
     h.login.mockRejectedValueOnce(new ApiError(409, "x", { code: "AUTH_SESSION_EXISTS" }));

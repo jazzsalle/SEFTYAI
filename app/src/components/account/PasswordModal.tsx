@@ -6,7 +6,8 @@
  *  · 서버 오류는 코드로 칸을 고른다(AUTH_PASSWORD_MISMATCH → 첫 칸, AUTH_PASSWORD_RULE·SAME → 새 비밀번호, 모르는 코드 → 첫 칸)
  *  · 응답이 없는 실패(통신 장애)는 칸 오류가 아니라 실패 토스트(⑮)
  *  · 첫 로그인 강제(forced)는 첫 칸 「초기 비밀번호」, 나가는 길은 [로그아웃]뿐(✕·Esc 없음)
- * 사용: {open && <PasswordModal onClose={() => setOpen(false)} />}
+ * 띄우는 곳: /password 화면(app/password — 개발서버 router /password). 로그인 뒤 mustChangePw 면 그리로 가고(forced),
+ * 사용자 메뉴 「비밀번호 변경」도 그리로 간다(개발서버 UserMenu go('/password')). 창을 닫거나 바꾸면 /explore 로 돌아간다
  */
 import { useEffect, useRef, useState } from "react";
 import "@/components/krds/fields.css";

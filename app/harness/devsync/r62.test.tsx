@@ -366,8 +366,8 @@ describe("질문 현황(FUN-UFR-301010 — 개발서버 AskList · useAskList)",
     ];
     const pick = vi.fn();
     await mount(<QueuePanel open setOpen={() => {}} turns={turns} onPick={pick} />);
-    const panel = screen.getByRole("complementary", { name: "질문 현황" });
-    expect(panel.querySelector(".qp-h b")?.textContent).toBe("질문 현황");
+    const panel = screen.getByRole("navigation", { name: "질문 현황" });
+    expect(panel.querySelector(".qp-h h2")?.firstChild?.textContent).toBe("질문 현황");
     expect(panel.textContent).not.toContain("질문 other");
     const running = [...panel.querySelectorAll(".qp-item.act")];
     expect(running.map((r) => r.querySelector(".qp-q")?.textContent)).toEqual(["질문 b1", "질문 r1"]);
@@ -398,7 +398,7 @@ describe("질문 현황(FUN-UFR-301010 — 개발서버 AskList · useAskList)",
       { id: "tc", jobId: "c", q: "질문 c", source: "QUICK", at: at(0) },
     ];
     await mount(<QueuePanel open setOpen={() => {}} turns={turns} onPick={() => {}} />);
-    const rows = [...screen.getByRole("complementary", { name: "질문 현황" }).querySelectorAll(".qp-item .qp-m")].map((m) => m.textContent?.split(" · ")[0]);
+    const rows = [...screen.getByRole("navigation", { name: "질문 현황" }).querySelectorAll(".qp-item .qp-m")].map((m) => m.textContent?.split(" · ")[0]);
     expect(rows).toEqual(["브리핑 항목", "이어서 묻기", "이어서 묻기"]);
   });
 });
@@ -415,22 +415,22 @@ describe("통합 탐색 화면 흐름 — 질문 현황은 지금 대화만 · [
   const openAsks = async () => {
     const tab = await screen.findByRole("button", { name: /^질문 현황 펼치기/ }).catch(() => null);
     if (tab) fireEvent.click(tab);
-    return screen.findByRole("complementary", { name: "질문 현황" });
+    return screen.findByRole("navigation", { name: "질문 현황" });
   };
 
   it("질문이 없으면 질문 현황을 내지 않고, 물으면 그 대화의 질문만 — 진행 중 질문을 눌러도 창이 뜨지 않는다", async () => {
     srv.jobs = [job("old", "USER", "DONE")]; // 계정의 지난 작업 — 지금 대화가 아니다
     await mountExplore();
-    expect(screen.queryByRole("complementary", { name: "질문 현황" })).toBeNull();
+    expect(screen.queryByRole("navigation", { name: "질문 현황" })).toBeNull();
     expect(screen.queryByRole("button", { name: /^질문 현황 펼치기/ })).toBeNull();
     nav.sp = new URLSearchParams("q=부산 침수 위험지구는?");
     cleanup();
     await mountExplore();
     // 접힌 채 시작 — 탭에 진행 1
     const tab = await screen.findByRole("button", { name: /^질문 현황 펼치기 — 진행 중 1건/ });
-    expect(screen.queryByRole("complementary", { name: "질문 현황" })).toBeNull();
+    expect(screen.queryByRole("navigation", { name: "질문 현황" })).toBeNull();
     fireEvent.click(tab);
-    const panel = await screen.findByRole("complementary", { name: "질문 현황" });
+    const panel = await screen.findByRole("navigation", { name: "질문 현황" });
     await waitFor(() => expect(panel.querySelectorAll(".qp-item.act")).toHaveLength(1));
     expect(panel.textContent).toContain("부산 침수 위험지구는?");
     expect(panel.textContent).not.toContain("질문 old");
@@ -452,18 +452,20 @@ describe("통합 탐색 화면 흐름 — 질문 현황은 지금 대화만 · [
     });
     await waitFor(() => expect(srv.cancels).toEqual(["n1"]));
     expect(screen.queryByRole("dialog")).toBeNull();
-    expect(screen.queryByRole("complementary", { name: "질문 현황" })).toBeNull();
+    expect(screen.queryByRole("navigation", { name: "질문 현황" })).toBeNull();
     expect(screen.queryByRole("button", { name: /^질문 현황 펼치기/ })).toBeNull();
   });
 
-  it("질문 모음에서 보낸 질문은 출처 QUICK(개발서버 askLibrary — 전 LIBRARY) · 질문 말풍선 출처 이름은 「지역 질문」", async () => {
+  it("질문 모음에서 보낸 질문은 출처 QUICK(개발서버 askLibrary — 전 LIBRARY) · 질문 말풍선은 질문 글만(출처 줄 없음 — 개발서버 answer-ask)", async () => {
     await mountExplore();
     fireEvent.click(await screen.findByRole("button", { name: "질문 모음 보기" }));
     const drawer = await screen.findByRole("dialog", { name: "질문 모음" });
-    fireEvent.click(drawer.querySelector<HTMLButtonElement>(".lib-q button")!);
+    fireEvent.click(drawer.querySelector<HTMLButtonElement>(".qlib-q")!);
     await waitFor(() => expect(srv.posts.length).toBeGreaterThan(0));
     expect(srv.posts[0].source).toBe("QUICK");
     expect(srv.posts[0].libraryId).toBeTruthy();
-    await waitFor(() => expect(document.querySelector(".qb-meta")?.textContent).toContain("지역 질문"));
+    await waitFor(() => expect(document.querySelector(".answer-ask-row .qbubble")).not.toBeNull());
+    expect(document.querySelector(".qb-meta")).toBeNull();
+    expect(document.querySelector(".answer-ask-row .qbubble")!.textContent).toBe(srv.posts[0].question);
   });
 });

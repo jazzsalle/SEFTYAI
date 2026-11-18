@@ -1,59 +1,72 @@
 /* =====================================================================
-   계정 모달 — 비밀번호 변경(101006) · 세션 만료(101005) · 내 권한정보(101007)
-   KRDS modal: 560 폭 · 제목 24 Bold · 설명 17 · 입력 48 · 버튼 48 오른쪽 정렬
-   (globals.css 토큰만 쓰고, 클래스는 모두 acm- 접두로 이 파일 안에서만)
+   공통 창 틀(components/account/Dialog) — 개발서버 Modal 값 그대로(2026-11-19 「개발서버와 동일하게」)
+   index.css .modal-layer · .modal · .modal-close-row · .modal-content · .modal-title · .modal-desc · .modal-footer · .krds-btn,
+   styles/renewal/modal.css(이름 없는 창 560) · index.css .modal--confirm(400), 서랍은 styles/renewal/header.css .modal--help/.modal--alert
+   (1rem = 10px → px. 글자는 우리 글자 크기 배율 --fs-scale 을 곱한다. 클래스는 모두 acm- 접두로 이 파일 안에서만)
    ===================================================================== */
 .acm-ovl {
-  position: fixed; inset: 0; z-index: 400; display: grid; place-items: center; padding: 24px; overflow-y: auto;
-  background: rgba(19, 20, 22, .6); animation: acm-fade .12s ease both;
+  position: fixed; inset: 0; z-index: 400; display: flex; align-items: center; justify-content: center; padding: 24px; overflow-y: auto;
+  /* 시안의 「dim」 — 검정 75% */
+  background: rgba(0, 0, 0, .75);
 }
 .acm-dlg {
-  position: relative; width: min(560px, 100%); max-height: calc(100vh - 48px); overflow-y: auto;
-  padding: 40px 40px 32px; border-radius: var(--r-xl); background: #fff; color: var(--c-text);
-  box-shadow: 0 12px 40px rgba(15, 20, 28, .22); text-align: left; word-break: keep-all; overflow-wrap: break-word;
+  position: relative; box-sizing: border-box; width: 560px; max-width: calc(100vw - 40px); margin: auto;
+  padding: 24px; border: 1px solid #b1b8be; border-radius: 12px; background: #fff; color: #1e2124;
+  text-align: left; word-break: keep-all; overflow-wrap: break-word;
 }
-.acm-dlg.sm { width: min(460px, 100%); }
-.acm-dlg h2 { font-size: var(--fs-hm); line-height: 1.4; padding-right: 36px; }
-.acm-desc { margin: 12px 0 0; font-size: var(--fs-m); line-height: 1.55; }
-.acm-sub { margin: 10px 0 0; font-size: var(--fs-s); line-height: 1.6; color: var(--c-sub); }
-.acm-x {
-  position: absolute; top: 20px; right: 20px; width: 40px; height: 40px; display: grid; place-items: center;
-  border: 0; border-radius: var(--r-m); background: transparent; color: var(--c-text);
-}
-.acm-x:hover { background: var(--c-sec-sub); }
-.acm-ft { display: flex; justify-content: flex-end; gap: 8px; margin-top: 28px; }
+/* 확인 창(되돌리기·닫기 — 개발서버 modal--confirm) */
+.acm-dlg.sm { width: 400px; }
+.acm-form { display: contents; }
+
+/* ✕ 줄 — 흐름 안 24px, 오른쪽 끝 */
+.acm-close-row { display: flex; justify-content: flex-end; height: 24px; }
+.acm-x { display: inline-flex; padding: 0; border: 0; border-radius: 4px; background: none; color: #33363d; cursor: pointer; }
+.acm-x:disabled { color: #8a949e; cursor: not-allowed; }
+.acm-x:focus-visible { outline: 2px solid #256ef4; outline-offset: 2px; }
+
+.acm-body { display: flex; flex-direction: column; gap: 16px; padding: 8px 16px; }
+.acm-title, .acm-dlg h2.acm-title { margin: 0; font-size: calc(24px * var(--fs-scale)); font-weight: 700; line-height: calc(36px * var(--fs-scale)); color: #1e2124; }
+.acm-desc { margin: 0; font-size: calc(17px * var(--fs-scale)); line-height: calc(26px * var(--fs-scale)); color: #1e2124; word-break: keep-all; white-space: pre-line; }
+.acm-sub { margin: 0; font-size: var(--fs-s); line-height: 1.6; color: var(--c-sub); }
+
+/* 바닥 단추 줄 — 개발서버 .modal-footer · .krds-btn(48 · 좌우 16 · 17px · 모서리 6) */
+.acm-ft { display: flex; justify-content: flex-end; gap: 8px; padding: 16px; }
 .acm-btn {
-  height: 48px; min-width: 80px; padding: 0 20px; border: 1px solid var(--c-input-bd); border-radius: var(--r-l);
-  background: #fff; color: var(--c-text); font-size: var(--fs-m); font-weight: 500; white-space: nowrap;
+  height: 48px; padding: 0 16px; border: 1px solid #58616a; border-radius: 6px; background: transparent; color: #1e2124;
+  font-family: inherit; font-size: calc(17px * var(--fs-scale)); font-weight: 400; line-height: calc(26px * var(--fs-scale)); white-space: nowrap; cursor: pointer;
 }
-.acm-btn:hover:not(:disabled) { background: var(--c-surface); }
-.acm-btn.pri { border-color: var(--c-primary); background: var(--c-primary); color: #fff; font-weight: 700; }
-.acm-btn.pri:hover:not(:disabled) { border-color: var(--c-primary-dk); background: var(--c-primary-dk); }
-.acm-btn.danger { border-color: var(--c-dang); background: var(--c-dang); color: #fff; font-weight: 700; }
-.acm-btn.danger:hover:not(:disabled) { border-color: var(--c-dang-dk); background: var(--c-dang-dk); }
-.acm-btn:disabled { border-color: var(--c-line); background: var(--c-line); color: var(--c-dis); cursor: not-allowed; }
+.acm-btn:hover:not(:disabled) { background: #f4f5f6; }
+.acm-btn.pri { border: 0; background: #256ef4; color: #fff; }
+.acm-btn.pri:hover:not(:disabled) { background: #0b50d0; }
+.acm-btn.danger { border: 0; background: var(--c-dang); color: #fff; }
+.acm-btn.danger:hover:not(:disabled) { background: var(--c-dang-dk); }
+.acm-btn:disabled { cursor: not-allowed; color: #8a949e; }
+.acm-btn.pri:disabled, .acm-btn.danger:disabled { color: #6d7882; background: #cdd1d5; }
 
-/* 입력 — 칸은 KRDS 패키지(components/krds PasswordField · fields.css .modal-fields, R64) */
-.acm-fields { margin-top: 20px; }
+/* 입력 — 칸은 KRDS 패키지(components/krds PasswordField · fields.css .modal-fields, R64). 사이는 본문 gap 16 이 준다 */
+.acm-fields { margin-top: 0; }
 
-/* 내 권한정보 */
-.acm-kv { margin: 20px 0 0; }
-.acm-kv > div { display: grid; grid-template-columns: 150px 1fr; gap: 16px; padding: 14px 0; border-bottom: 1px solid var(--c-line); font-size: var(--fs-m); }
-.acm-kv dt { color: var(--c-text); }
-.acm-kv dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
-.acm-kv dd small { display: block; margin-top: 2px; font-size: var(--fs-xs); color: var(--c-sub); }
-.acm-kv code { font-family: ui-monospace, "SFMono-Regular", Consolas, monospace; font-size: .94em; }
-.acm-perm li { display: flex; justify-content: space-between; gap: 12px; padding: 2px 0; font-size: var(--fs-s); }
-.acm-perm .nm::before { display: inline-block; width: 18px; font-weight: 800; }
-.acm-perm li.on .nm::before { content: "✓"; color: var(--c-ok); }
-.acm-perm li.off .nm::before { content: "–"; color: var(--c-dis); }
-.acm-perm .lv { color: var(--c-sub); text-align: right; }
-.acm-perm li.off .nm, .acm-perm li.off .lv { color: var(--c-dis); }
+/* 내 권한정보(개발서버 PermissionModal — index.css .perm-* 위에 ds-auth.css 가 덮은 값) */
+.acm-dlg .perm-list { margin: 0; }
+.acm-dlg .perm-row { display: grid; grid-template-columns: 170px 1fr; gap: 16px; padding: 12px 0; border-bottom: 1px solid #dee0e5; }
+.acm-dlg .perm-row dt, .acm-dlg .perm-row dd { margin: 0; font-size: calc(17px * var(--fs-scale)); line-height: calc(26px * var(--fs-scale)); color: #1e2124; }
 
-@keyframes acm-fade { from { opacity: 0; } to { opacity: 1; } }
+/* ── 오른쪽 서랍(개발서버 header.css .modal-layer:has(> .modal--help/.modal--alert) · .modal.modal--help/--alert) ── */
+.acm-ovl.acm-ovl-drawer { justify-content: flex-end; align-items: stretch; padding: 0; overflow: hidden; background: rgba(15, 20, 28, .24); }
+.acm-dlg.acm-drawer {
+  display: flex; flex-direction: column; width: min(720px, 100vw); max-width: 100%; height: 100%; margin: 0;
+  padding: 16px 0 0; border: 0; border-left: 1px solid #cdd1d5; border-radius: 0;
+  box-shadow: -8px 0 24px rgba(15, 20, 28, .14); animation: acm-drawer-in .18s ease-out;
+}
+.acm-drawer .acm-close-row { flex: none; padding: 0 20px; }
+.acm-drawer .acm-body { flex: 1 1 auto; min-height: 0; padding: 0 24px 20px; overflow-y: auto; }
+.acm-drawer .acm-title, .acm-drawer h2.acm-title { font-size: calc(24px * var(--fs-scale)); line-height: calc(32px * var(--fs-scale)); color: #131416; }
+.acm-drawer .acm-ft { flex: none; padding: 12px 24px; border-top: 1px solid #e6e8ea; }
+@keyframes acm-drawer-in { from { transform: translateX(24px); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .acm-dlg.acm-drawer { animation: none; } }
+
 @media (max-width: 520px) {
-  .acm-dlg { padding: 32px 20px 20px; }
-  .acm-x { top: 12px; right: 12px; }
-  .acm-kv > div { grid-template-columns: 1fr; gap: 2px; }
+  .acm-dlg:not(.acm-drawer) { padding: 20px 12px; }
+  .acm-dlg .perm-row { grid-template-columns: 1fr; gap: 2px; }
   .acm-ft .acm-btn { flex: 1; }
 }

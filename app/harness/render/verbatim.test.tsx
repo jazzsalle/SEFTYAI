@@ -179,15 +179,14 @@ describe("답 속 표(C11)", () => {
     const d = domOf(render("| 값 |\n|---|\n| 1 |\n| 2 |\n| 가 |\n| 나 |\n| 3 |"));
     expect(d.querySelector(".num")).toBeNull();
   });
-  it("표마다 「표 복사」, 20행이 넘을 때만 「표 끝으로」 — 둘 다 답 글이 아닌 도구(data-ui)", () => {
-    for (const [rows, end] of [[20, false], [21, true]] as const) {
-      const html = render(table(rows));
+  it("표에 「표 복사」·「표 끝으로」 단추를 두지 않는다 — 개발서버 answer-md-table 처럼 표만(2026-11-19)", () => {
+    for (const rows of [20, 21]) {
       const d = document.createElement("div");
-      d.innerHTML = html;
-      const tools = d.querySelector(".md-tbl-tools")!;
-      expect(tools.hasAttribute("data-ui")).toBe(true);
-      expect(tools.textContent).toContain("표 복사");
-      expect(tools.textContent?.includes("표 끝으로")).toBe(end);
+      d.innerHTML = render(table(rows));
+      expect(d.querySelector(".md-tbl-tools")).toBeNull();
+      expect(d.textContent).not.toContain("표 복사");
+      expect(d.textContent).not.toContain("표 끝으로");
+      expect(d.querySelector(".md-table > table")).not.toBeNull();
     }
   });
   it("표 복사 — 탭 구분, 행은 줄바꿈, 칸 안 <br> 은 빈칸, 링크는 글자만", () => {

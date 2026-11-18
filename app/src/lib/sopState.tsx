@@ -1,13 +1,17 @@
 "use client";
 /**
  * 대응절차 화면 상태 — 단계 바(AppShell)와 우측 「대응절차」 탭(탐색 화면)이 함께 쓴다.
- *  · 지자체 계정만, 자기 지역 매뉴얼만 (중앙정부·운영자 계정은 숨김)
+ *  · 계정의 관할 지역 매뉴얼만 (개발서버 useManual — 관할 지역이 없는 전국 계정은 NO_REGION)
+ *  · 불러오기 실패 문구 세 갈래(개발서버 sopState failMsg): NO_REGION 「관할 지역이 없는 계정이라 대응절차가 없습니다.」,
+ *    NOT_BUILT 「{지역}의 행동매뉴얼은 아직 준비되지 않았습니다.」, 그 밖은 서버 문구(없으면 「대응절차를 불러오지 못했습니다.」)
+ *    특보 줄 [대응절차]로 패널을 열면 매뉴얼이 없는 계정에도 이 문구가 보인다
  *  · 단계 = 사용자가 고른 단계, 없으면 1단계 (특보 연동 추천은 2026-11-03 사용자 지시로 뺌)
  *  · 체크 = 세션 checks (기관 공용 서버 저장, D39)
  *  · 수정본 = 담당자가 매뉴얼 개정을 반영해 고친 내용 (기관·매뉴얼별 서버 저장 D39 — scope org:지역, key sopEdits:매뉴얼ID, 판 rev 로 충돌 확인. 원문 추출본은 그대로)
  */
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { useSession } from "./session";
+import { REGIONS } from "./config";
 import { api, ApiError } from "./api";
 import { applyEdits, emptyEdits, type SopEdits, type SopManual, type SopStep } from "./sop";
 
@@ -30,7 +34,9 @@ interface SopState {
   saveEdits: (fn: (e: SopEdits) => SopEdits | void, what: string) => void;
   /** 가져온 수정본으로 바꿈 (다른 PC·담당자에게서 받은 파일) */
   replaceEdits: (e: SopEdits | null, what: string) => void;
+  /** 매뉴얼을 보일 수 없음(관할 지역 없음·미구축·불러오기 실패) — 문구는 failMsg */
   failed: boolean;
+  failMsg: string;
   step: SopStep;
   /** 사용자가 추천과 다른 단계를 직접 골랐는지 */
   picked: boolean;
@@ -63,30 +69,37 @@ const LS = {
 
 export function SopProvider({ children }: { children: React.ReactNode }) {
   const { account, toast } = useSession();
-  const region = account?.role === "지자체" && account.region !== "national" ? account.region : null;
+  // 관할 지역 — 전국 계정(중앙정부·운영자)은 없다(개발서버 NO_REGION)
+  const region = account && account.region !== "national" ? account.region : null;
   const [base, setBase] = useState<SopManual | null>(null);
   const [edits, setEditsS] = useState<SopEdits | null>(null);
   const [editing, setEditing] = useState(false);
-  const [failed, setFailed] = useState(false);
+  /** 매뉴얼을 못 보이는 까닭 — null 이면 불러오는 중이거나 불러옴 */
+  const [fail, setFail] = useState<{ kind: "NOT_BUILT" | "FAILED"; msg?: string } | null>(null);
   const [pick, setPick] = useState<{ step: SopStep; rec: string } | null>(null);
   const [scope, setScopeS] = useState<SopScope>("mine");
   const [openReq, setOpenReq] = useState<{ n: number; focus?: string } | null>(null);
 
   useEffect(() => {
     setBase(null);
-    setFailed(false);
+    setFail(null);
     setEditing(false);
     if (!region) return;
     const hit = cache.get(region);
     if (hit) return setBase(hit);
     let alive = true;
     fetch(`/api/sop?region=${region}`)
-      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then(async (r) => {
+        if (r.ok) return (await r.json()) as SopManual;
+        // 404 = 이 지역 매뉴얼을 아직 뽑지 않음(NOT_BUILT), 그 밖은 서버 문구 그대로
+        const msg = ((await r.json().catch(() => null)) as { error?: string } | null)?.error;
+        throw { kind: r.status === 404 ? "NOT_BUILT" : "FAILED", msg };
+      })
       .then((m: SopManual) => {
         cache.set(region, m);
         if (alive) setBase(m);
       })
-      .catch(() => alive && setFailed(true));
+      .catch((e: { kind?: "NOT_BUILT" | "FAILED"; msg?: string }) => alive && setFail({ kind: e?.kind ?? "FAILED", msg: e?.msg }));
     return () => {
       alive = false;
     };
@@ -196,12 +209,19 @@ export function SopProvider({ children }: { children: React.ReactNode }) {
   const requestOpen = useCallback((focus?: string) => setOpenReq((p) => ({ n: (p?.n ?? 0) + 1, focus })), []);
   const clearOpen = useCallback(() => setOpenReq(null), []);
 
+  const failed = !!account && (!region || !!fail);
+  const failMsg = !region
+    ? "관할 지역이 없는 계정이라 대응절차가 없습니다."
+    : fail?.kind === "NOT_BUILT"
+      ? `${REGIONS[region]?.name || "이 지역"}의 행동매뉴얼은 아직 준비되지 않았습니다.`
+      : (fail?.msg ?? "대응절차를 불러오지 못했습니다.");
+
   const value = useMemo<SopState>(
     () => ({
       enabled: !!region && !!manual, manual, base, editView, edits, canEdit, editing, setEditing, saveEdits, replaceEdits,
-      failed, step, picked, setStep, scope, setScope, openReq, requestOpen, clearOpen,
+      failed, failMsg, step, picked, setStep, scope, setScope, openReq, requestOpen, clearOpen,
     }),
-    [region, manual, base, editView, edits, canEdit, editing, saveEdits, replaceEdits, failed, step, picked, setStep, scope, setScope, openReq, requestOpen, clearOpen],
+    [region, manual, base, editView, edits, canEdit, editing, saveEdits, replaceEdits, failed, failMsg, step, picked, setStep, scope, setScope, openReq, requestOpen, clearOpen],
   );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
