@@ -11,6 +11,7 @@ import type { Advisory, WeatherResponse } from "@/lib/contract/agent";
 import type { BaseRegion } from "@/lib/baseRegion";
 import { bulletinHead, bulletinSteps, countAdvisories, parseStatusBars, parseWrnMsg, type WxDetailResponse } from "@/lib/wxBulletin";
 import { advLabel } from "@/lib/wxref";
+import type { PwnChange } from "@/lib/wxPwn";
 import sample from "./kma_wrnmsg_sample.json";
 
 const session = vi.hoisted(() => ({ s: {} as Record<string, unknown> }));
@@ -160,6 +161,74 @@ describe("기상특보 상세 창", () => {
     expect(sec(/발효 중 특보/).querySelector(".wx-item-area")!.textContent).toBe("강원도(인제평지, 인제산지)");
     expect(dlg.querySelector(".wx-source")!.textContent).toMatch(/^기상청 · 기상특보 조회서비스 · \d\d\.\d\d \d\d:\d\d 갱신$/);
     expect(dlg.textContent).not.toMatch(/시연 시나리오|끊음/);
+  });
+
+  // 2026-11-19 특보 시각 처리를 개발서버와 같게 — 특보코드(getPwnCd) 구역 단위 칸(lib/server/kma)
+  const ZONE: Advisory = {
+    id: "KMA-강풍경보-강원도(인제군산지)#L1022920", type: "강풍", level: "경보", area: "강원도(인제군산지)", regionId: "inje", status: "발효",
+    issuedAt: "2026-11-18T21:00:00+09:00", effectiveAt: "2026-11-18T21:00:00+09:00", announcedAt: "2026-11-18T18:00:00+09:00",
+    areaCode: "L1022920", areaName: "인제군산지", changeType: "변경", sea: false,
+  };
+  const step = (o: Partial<PwnChange>): PwnChange => ({ key: "k", areaCode: "L1022920", areaName: "인제군산지", area: "강원도(인제군산지)", kind: "강풍", level: "경보", sea: false, state: "발효", at: "2026-11-18T21:00:00+09:00", ...o });
+
+  it("특보코드 구역 — 구역 이름·변경 표지, 발효(startTime)·발표(tmFc)·구역코드를 따로(개발서버 AlertDetailModal wx-fields)", async () => {
+    const { sec } = await open({ advs: [ZONE, HAN] });
+    const items = [...sec(/발효 중 특보/).querySelectorAll(".wx-item")];
+    expect(items[0].querySelector(".wx-item-area")!.textContent).toBe("인제군산지변경");
+    expect(items[0].querySelector(".wx-tag--change")!.textContent).toBe("변경");
+    const dd = [...items[0].querySelectorAll(".wx-fields dd")].map((x) => x.textContent);
+    expect(dd).toEqual(["11.18 21:00", "11.18 18:00", "기상청", "L1022920"]);
+    // 특보 현황 글로만 받은 특보(특보코드를 받지 못했을 때) — 발효·구역코드는 「미제공」, 발표는 현황 한 장의 시각
+    const old = [...items[1].querySelectorAll(".wx-fields dd")].map((x) => x.textContent);
+    expect([old[0], old[3]]).toEqual(["미제공", "미제공"]);
+    expect(old[1]).not.toBe("미제공");
+  });
+
+  it("특보 줄 — 구역 이름(areaName)과 발효 시각(effectiveAt) 「HH:MM 발효」", async () => {
+    session.s = { weather: weather([ZONE]), account: { id: "inje" }, cond: { base: INJE }, wxRef: null, setWxRef: () => {}, aimOn: false, setCond: vi.fn(), toast: vi.fn(), reloadWeather: () => {} };
+    render(<WxBar />);
+    expect(document.querySelector(".wxbar .tit")!.textContent).toBe("인제군산지 강풍경보 발효 중");
+    expect(document.querySelector(".wxbar .meta")!.textContent).toMatch(/^21:00 발효 · 기상청 \d\d:\d\d 갱신$/);
+  });
+
+  it("상태이력 — 특보코드 장부(recent)의 발효·변경·해제 단계를 기준지역으로 걸러 최신순으로(시각 · 상태 · 특보 · 구역), 바다는 「해상」", async () => {
+    detailOverride = {
+      ...DETAIL,
+      recent: [
+        step({ key: "a", state: "변경", at: "2026-11-18T21:00:00+09:00" }),
+        step({ key: "b", areaCode: "L1022720", areaName: "홍천군산지", area: "강원도(홍천군산지)", state: "해제", at: "2026-11-18T20:00:00+09:00" }),
+        step({ key: "c", state: "해제", level: "주의보", at: "2026-11-18T21:00:00+09:00" }),
+        step({ key: "d", areaCode: "S1151200", areaName: "강원중부앞바다", area: "강원중부앞바다", kind: "풍랑", level: "주의보", sea: true, state: "발효", at: "2026-11-18T19:00:00+09:00" }),
+      ],
+    };
+    const { sec } = await open({ advs: [ZONE] });
+    const rowsOf = (s: HTMLElement) => [...s.querySelectorAll(".wx-step")].map((li) => [...li.children].map((x) => x.textContent));
+    // 인제군 — 홍천군산지는 빠지고, 강원 바다 구역은 시·군 이름으로 시작하지 않아 빠진다(lib/wxMatch)
+    expect(rowsOf(sec(/상태이력/))).toEqual([
+      ["11.18 21:00", "변경", "강풍경보", "인제군산지"],
+      ["11.18 21:00", "해제", "강풍주의보", "인제군산지"],
+    ]);
+    expect(sec(/상태이력/).querySelectorAll(".wx-state--changed")).toHaveLength(1);
+    expect(sec(/상태이력/).querySelector(".wx-count")!.textContent).toBe("2건");
+    cleanup();
+    const all = await open({ advs: [ZONE], base: null });
+    expect(rowsOf(all.sec(/상태이력/))).toHaveLength(4);
+    expect(rowsOf(all.sec(/상태이력/))[3]).toEqual(["11.18 19:00", "발효", "풍랑주의보(해상)", "강원중부앞바다해상"]);
+  });
+
+  it("시연 특보(가상) — 장부에 없는 특보도 켠 시각의 「발효」 단계로 상태이력에 싣는다(진짜 특보처럼)", async () => {
+    detailOverride = { ...DETAIL, recent: [] };
+    const scn: Advisory = {
+      id: "SCN-IJ-1", type: "호우", level: "주의보", area: "강원도(인제평지, 인제산지)", issuedAt: "2026-11-19T09:00:00+09:00", status: "발효", scenario: true,
+      areaCode: "5181000000", areaName: "강원도(인제평지, 인제산지)", effectiveAt: "2026-11-19T09:00:00+09:00", announcedAt: "2026-11-19T09:00:00+09:00", changeType: "신규", sea: false,
+    };
+    const { sec } = await open({ advs: [scn] });
+    const it0 = sec(/발효 중 특보/).querySelector(".wx-item")!;
+    expect([...it0.querySelectorAll(".wx-fields dd")].map((x) => x.textContent)).toEqual(["11.19 09:00", "11.19 09:00", "기상청", "5181000000"]);
+    expect(it0.querySelector(".wx-tag--change")!.textContent).toBe("신규");
+    expect([...sec(/상태이력/).querySelectorAll(".wx-step")].map((li) => [...li.children].map((x) => x.textContent))).toEqual([
+      ["11.19 09:00", "발효", "호우주의보", "강원도(인제평지, 인제산지)"],
+    ]);
   });
 
   it("받지 못하면 — 서랍 위에 실패 안내(wx-alarm), 특보가 없다고 하지 않는다", async () => {

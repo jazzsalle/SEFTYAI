@@ -32,12 +32,14 @@ export interface ScnDef {
   level: "경보" | "주의보" | "예비특보";
   /** 기상청 특보 현황의 구역 글 꼴 그대로(lib/wxMatch 가 기준지역과 맞춘다) */
   area: string;
+  /** 구역코드 칸 — 개발서버 가상 특보처럼 그 지역의 행정구역 코드(시연 특보는 기상청 특보구역이 아니다). 재사용 열쇠에는 안 들어간다 */
+  areaCode: string;
 }
 export const SCN_DEFS: Record<ScnRegion, ScnDef> = {
   // 부산 = 호우 예비특보(사용자 지시 2026-11-02 — 시연 ①묶음 「호우 예비특보 AI 모드 브리핑」과 같은 특보 번호 SCN-BS-PRE-1, lib/library SHOW_PRE_WARNING)
-  busan: { key: "SCN-BS-PRE-1", type: "호우", level: "예비특보", area: "부산" },
-  inje: { key: "SCN-IJ-1", type: "호우", level: "주의보", area: "강원도(인제평지, 인제산지)" },
-  yeongcheon: { key: "SCN-YC-1", type: "호우", level: "경보", area: "경상북도(영천)" },
+  busan: { key: "SCN-BS-PRE-1", type: "호우", level: "예비특보", area: "부산", areaCode: "2600000000" },
+  inje: { key: "SCN-IJ-1", type: "호우", level: "주의보", area: "강원도(인제평지, 인제산지)", areaCode: "5181000000" },
+  yeongcheon: { key: "SCN-YC-1", type: "호우", level: "경보", area: "경상북도(영천)", areaCode: "4723000000" },
 };
 
 /** 서버 저장(kv system · demo_scenario) 값 */
@@ -79,7 +81,12 @@ export function scenarioAdvisories(st: ScenarioState | null | undefined, account
   const r = scenarioRegionOf(accountId);
   if (!r || !scenarioCuts(st, accountId, now)) return [];
   const d = SCN_DEFS[r];
-  return [{ id: d.key, type: d.type, level: d.level, area: d.area, regionId: r, issuedAt: st!.startedAt!, status: "발효", scenario: true }];
+  // 시각 = 켠 시각(발효·발표 같은 시각 — 개발서버 가상 특보 announcedDe = effectiveDe), 구역 이름 = 구역 글, 처음 뜬 특보(신규)
+  const at = st!.startedAt!;
+  return [{
+    id: d.key, type: d.type, level: d.level, area: d.area, regionId: r, issuedAt: at, status: "발효", scenario: true,
+    areaCode: d.areaCode, areaName: d.area, effectiveAt: at, announcedAt: at, changeType: "신규", sea: false,
+  }];
 }
 
 /** 끊긴 화면에서 기상청 시각·상태가 나오던 자리의 글(회색 주의) — 실제 특보가 없다고 오해하지 않게 */

@@ -10,7 +10,8 @@
  */
 import type { BaseRegion } from "./baseRegion";
 import { isSeaArea, splitTop, wxCovers, type WxTarget } from "./wxMatch";
-import type { PwnCount } from "./wxPwn";
+import type { Advisory } from "./contract/agent";
+import type { PwnChange, PwnCount } from "./wxPwn";
 
 /** 통보문을 내는 지점 하나 — sido = 맡는 시·도 법정동 코드 앞 두 자리(옛 코드·새 코드 함께). 비어 있으면 전국 */
 export interface WxStation {
@@ -115,12 +116,28 @@ export interface WxDetailResponse {
   bulletins: WxBulletinHead[];
   /** 끊었는가(더 있다) */
   bulletinsMore: boolean;
-  /** 받은 통보문 모두의 단계 — 최신순(화면이 기준지역으로 거른다 — stepsFor) */
+  /** 받은 통보문 모두의 단계 — 최신순(화면이 기준지역으로 거른다 — stepsFor). 특보코드 상태이력(recent)을 받지 못했을 때만 화면이 쓴다 */
   steps: WxStep[];
+  /**
+   * 최근 상태이력 — 특보코드(getPwnCd) 장부를 펼친 발효·변경·해제 단계(개발 서버 WarningOverview.Recent · WeatherService.Steps), 전국 모두 최신순.
+   * 화면이 기준지역으로 거른다(area — lib/wxMatch wxCovers). 시연 시나리오를 켠 계정(realtimeCut)은 시나리오 특보의 발효 단계만. 특보코드를 받지 못했으면 없다
+   */
+  recent?: PwnChange[];
   /** 특보 id → 「이 특보로 질의」에 쓸 기준지역. null = 정할 수 없음(바다 구역 등 — 지금 기준지역 그대로) */
   askRegions: Record<string, BaseRegion | null>;
   /** 전국 발효 현황 — 특보코드조회(getPwnCd)를 되짚어 센 (종류·단계·해상 여부)별 구역 수(lib/wxPwn). 부르지 못했으면 없다(화면이 countAdvisories 로 센다) */
   counts?: PwnCount[];
+}
+
+/** 시연 시나리오 특보(R43·R54) → 상태이력 「발효」 단계(그 특보의 발효 시각) */
+export function scenarioSteps(advs: Advisory[]): PwnChange[] {
+  return advs
+    .filter((a) => a.scenario && a.status !== "해제")
+    .map((a) => ({
+      key: a.id, areaCode: a.areaCode ?? "", areaName: a.areaName ?? a.area, area: a.area, kind: a.type, level: a.level, sea: !!a.sea,
+      state: "발효" as const, at: a.effectiveAt ?? a.issuedAt, scenario: true,
+    }))
+    .sort((x, y) => y.at.localeCompare(x.at));
 }
 
 export const DETAIL_HOURS = 24;

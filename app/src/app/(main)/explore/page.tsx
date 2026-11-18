@@ -272,7 +272,11 @@ function Explore() {
     if (manualOn) {
       setPanelOpen(true);
       setActive("sop");
-    } else setActive((a) => (a === "sop" ? (summary?.refs.length ? "summary" : "map") : a));
+    } else {
+      // 끄면 대응절차에서 연 원문 탭도 함께 닫는다(개발서버 usePanel.showManual)
+      setActive((a) => (a === "sop" || a.startsWith("doc:") ? (summary?.refs.length ? "summary" : "map") : a));
+      setTabs((p) => p.filter((t) => t.kind !== "doc"));
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [manualOn]);
 

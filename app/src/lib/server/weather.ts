@@ -19,6 +19,7 @@ export async function liveWeather(): Promise<WeatherResponse> {
         status: { ok: live.ok, fetchedAt: new Date().toISOString(), message: live.message },
         advisories: live.advisories,
         preliminary: live.preliminary,
+        ...(live.statusAt ? { statusAt: live.statusAt } : {}),
       }),
     };
   }

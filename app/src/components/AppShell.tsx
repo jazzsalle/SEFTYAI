@@ -44,9 +44,12 @@ export const WX_ROTATE_MS = 5_000;
 /** 넘기는 특보 수 — 설계 ② 「최대 5건」. 나머지는 [모두 보기]·[특보 상세]로 본다 */
 export const WX_ROTATE_MAX = 5;
 
-/** 넘김 차례 — 설계 ② 「경보 먼저, 같으면 최근 발표 순」, 최대 5건(개발 서버 AlertBanner rotation) */
+/** 특보 발효 시각 — 특보코드 구역이면 발효 시각(startTime), 특보 현황 글로만 받았으면 대표 시각(issuedAt) */
+export const wxEffective = (a: Advisory) => a.effectiveAt ?? a.issuedAt;
+
+/** 넘김 차례 — 설계 ② 「경보 먼저, 같으면 최근 발효 순」, 최대 5건(개발 서버 AlertBanner rotation — effectiveDe) */
 export function wxRotation(list: Advisory[]): Advisory[] {
-  return [...list].sort((a, b) => Number(b.level === "경보") - Number(a.level === "경보") || b.issuedAt.localeCompare(a.issuedAt)).slice(0, WX_ROTATE_MAX);
+  return [...list].sort((a, b) => Number(b.level === "경보") - Number(a.level === "경보") || wxEffective(b).localeCompare(wxEffective(a))).slice(0, WX_ROTATE_MAX);
 }
 
 /** 운영체제의 「움직임 줄이기」 — 켜져 있으면 저절로 넘기지 않는다(설계 ③) */
@@ -68,7 +71,8 @@ function useReducedMotion() {
  * 지금 기준지역을 덮는 특보만(R32 — lib/wxMatch). 전국이면 모든 특보. 시연 시나리오 특보(R43)도 표지 없이 진짜 특보처럼 보인다(개발서버 가상 특보 override 와 같이)
  *  · 받지 못함(아직 못 받음 포함) — 한 모양 「기상특보를 불러오지 못했습니다.」(role=alert, [특보 … 보기] 없음)
  *  · 특보 없음 — 「발효 중인 기상특보가 없습니다」 · 「기상청 HH:MM 갱신」 · [특보 현황 보기]
- *  · 1건 — 「{구역} {특보} 발효 중」(예비특보는 「발표」) · 여러 건 — 「특보 N건 발효 중 · {구역} {특보}」, 5초마다 한 건씩(경보 먼저·최근 순 최대 5건)
+ *  · 1건 — 「{구역} {특보} 발효 중」(예비특보는 「발표」) · 여러 건 — 「특보 N건 발효 중 · {구역} {특보}」, 5초마다 한 건씩(경보 먼저·최근 발효 순 최대 5건)
+ *    구역 = 기상청 구역 이름(areaName — 「인제군산지」), 오른쪽 글 = 「{발효 시각} 발효 · 기상청 {갱신} 갱신」(개발서버 effectiveDe — 발표 시각은 상세에서)
  *    [정지]/[다시 시작] · 「i / N」. 마우스를 올리거나 초점이 들어가면 멈추고, 움직임 줄이기 설정이면 돌지 않는다
  * 5초마다 바뀌는 자리라 aria-live 를 걸지 않는다. 줄 어디를 눌러도 상세(서랍)가 열린다
  */
@@ -149,7 +153,8 @@ export function WxBar() {
   const top = items[Math.min(at, n - 1)];
   const alarm = top.level === "경보";
   const pre = top.level === "예비특보";
-  const meta = [`${fmtT(top.issuedAt)} ${pre ? "발표" : "발효"}`, updated].filter(Boolean).join(" · ");
+  const meta = [`${fmtT(wxEffective(top))} ${pre ? "발표" : "발효"}`, updated].filter(Boolean).join(" · ");
+  const place = top.areaName ?? top.area;
   return (
     <div
       className={`wxbar ${items.some((a) => a.level === "경보") ? "danger" : ""}`}
@@ -176,9 +181,9 @@ export function WxBar() {
       )}
       <p className="tit">
         {single ? (
-          <><b>{top.area} {wxLabel(top)}</b>{pre ? " 발표" : " 발효 중"}</>
+          <><b>{place} {wxLabel(top)}</b>{pre ? " 발표" : " 발효 중"}</>
         ) : (
-          <><b>특보 {mine.length}건 발효 중</b><span className="wxsep" aria-hidden="true">·</span>{top.area} {wxLabel(top)}</>
+          <><b>특보 {mine.length}건 발효 중</b><span className="wxsep" aria-hidden="true">·</span>{place} {wxLabel(top)}</>
         )}
       </p>
       <p className="meta">{meta}</p>

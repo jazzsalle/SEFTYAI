@@ -64,6 +64,10 @@ export const ISLANDS: Record<string, { sido: string; sgg: string; whole?: boolea
   서해5도: { sido: "인천", sgg: "옹진" },
   "흑산도.홍도": { sido: "전라남도", sgg: "신안" },
   "거문도.초도": { sido: "전라남도", sgg: "여수" },
+  // 특보코드(getPwnCd) 구역 이름 — 특보 현황 글은 「서해5도」·「제주도(추자도 제외)」처럼 묶어 쓰지만 구역 단위로는 이 이름으로 온다(2026-11 실응답)
+  "백령도.대청도": { sido: "인천", sgg: "옹진" },
+  "연평도.우도": { sido: "인천", sgg: "옹진" },
+  추자도: { sido: "제주도", sgg: "제주" },
 };
 
 const isMetro = (sido: string) => /광역시$/.test(sido) || sido === "서울특별시" || sido === "세종특별자치시";
@@ -184,10 +188,11 @@ export function wxTargetOfT3q(region: unknown): WxTarget | null | undefined {
 /** 특보 id — 「KMA-종류단계-구역」(빈칸 없음). 서버 kma.ts 가 만들고, 답을 받은 때 특보(wx_seen)의 구역 글을 여기서 다시 읽는다 */
 export const kmaAdvId = (type: string, level: string, area: string) => `KMA-${type}${level}-${area}`.replace(/\s/g, "");
 
-/** 답을 받은 때 특보(wx_seen 한 건)의 구역 글 — 특보 id 에서 읽는다. 그 꼴이 아니면 null */
+/** 답을 받은 때 특보(wx_seen 한 건)의 구역 글 — 특보 id 에서 읽는다(특보코드 구역이면 끝의 「#구역코드」는 뗀다 — lib/server/kma). 그 꼴이 아니면 null */
 export function seenArea(w: { id: string; type: string; level: string }): string | null {
   const p = kmaAdvId(w.type, w.level, "");
-  return w.id.startsWith(p) && w.id.length > p.length ? w.id.slice(p.length) : null;
+  const area = w.id.startsWith(p) ? w.id.slice(p.length).replace(/#[^#]*$/, "") : "";
+  return area ? area : null;
 }
 
 /**

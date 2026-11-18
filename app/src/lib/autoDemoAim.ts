@@ -33,7 +33,12 @@ export const aimDemoAsOf = (it: AimDemoItem) => new Date(Date.parse(aimDemoIssue
 
 /** 특보 줄에 얹는 가상 특보 — 「시연 시나리오」 표지를 단다(기상청 특보로 읽히지 않게, R43 과 같은 표지) */
 export function aimDemoAdvisory(it: AimDemoItem): Advisory {
-  return { id: it.warning.key, type: it.warning.kind, level: it.warning.level, area: it.regionName, issuedAt: aimDemoIssued(it), status: "발효", isNew: true, scenario: true };
+  // 칸은 개발서버 SearchPage 가상 특보 그대로 — 구역코드 = 장면 지역의 행정구역 코드, 발표 = 발효 = 장면 시각, 변경 구분 = 장면 값
+  const at = aimDemoIssued(it);
+  return {
+    id: it.warning.key, type: it.warning.kind, level: it.warning.level, area: it.regionName, issuedAt: at, status: "발효", isNew: true, scenario: true,
+    areaCode: it.adminCode, areaName: it.regionName, effectiveAt: at, announcedAt: at, changeType: it.warning.changeType, sea: false,
+  };
 }
 
 /** 받을 때 보내는 질의 — 실제 AI 모드 점검(lib/server/aiMode startCheck)과 같은 꼴, 특보는 그 하나만 */

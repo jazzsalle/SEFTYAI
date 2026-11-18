@@ -88,7 +88,8 @@ export function aimSignature(advs: Pick<Advisory, "id">[]): string {
 /** 기준 시각에 보낼 특보 — 해제는 보내지 않는다(WarningChange). 변경은 그대로, 새로 뜬 것은 신규 */
 const changeOf = (a: Advisory) => (a.isNew ? "신규" : a.status === "변경" ? "변경" : null);
 const warningOf = (a: Advisory): AimWarning => ({
-  warningKey: a.id, kind: a.type, level: a.level, areaName: a.area, effectiveDe: a.issuedAt ?? null, changeType: changeOf(a), ...(a.scenario ? { scenario: true } : {}),
+  // 구역 이름·발효 시각은 특보코드 칸(개발서버 WarningItem.AreaName·EffectiveDe), 없으면 구역 글·대표 시각
+  warningKey: a.id, kind: a.type, level: a.level, areaName: a.areaName ?? a.area, effectiveDe: a.effectiveAt ?? a.issuedAt ?? null, changeType: changeOf(a), ...(a.scenario ? { scenario: true } : {}),
 });
 
 const iso = (d: Date) => {

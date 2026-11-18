@@ -8,8 +8,9 @@ import { api } from "@/lib/api";
 import type { Advisory } from "@/lib/contract/agent";
 import { baseName, baseTarget } from "@/lib/baseRegion";
 import { wxLabel } from "@/lib/wxref";
-import { isSeaArea } from "@/lib/wxMatch";
-import { countAdvisories, stepState, stepsFor, type WxBulletin, type WxBulletinHead, type WxDetailResponse } from "@/lib/wxBulletin";
+import { isSeaArea, wxCovers } from "@/lib/wxMatch";
+import { STEP_LIMIT, countAdvisories, scenarioSteps, stepState, stepsFor, type WxBulletin, type WxBulletinHead, type WxDetailResponse } from "@/lib/wxBulletin";
+import type { PwnChange } from "@/lib/wxPwn";
 import { requestWxAsk } from "@/lib/wxAsk";
 import { Dialog } from "@/components/account/Dialog";
 import BulletinCard from "./BulletinCard";
@@ -23,6 +24,19 @@ export const wxDateTime = (iso?: string | null) => {
   return `${p(d.getMonth() + 1)}.${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
 };
 
+/** 발효 · 변경 · 해제 → 색(개발서버 stateKey) */
+const changeState = (state: string) => (state.startsWith("해제") ? "ended" : state === "변경" ? "changed" : "raised");
+
+/**
+ * 기준지역의 최근 상태이력(특보코드 장부 — 개발서버 overview.recent) — 기준지역을 덮는 단계(lib/wxMatch)만, 최신순. 시연 특보(자동 시연 가상 특보·시나리오 특보)가
+ * 줄에 떠 있으면 그 발효 단계를 함께 싣는다(서버 장부에 없는 특보라 — 진짜 특보처럼 보이게). 특보코드를 받지 못했으면 null(통보문 단계로 대신)
+ */
+export function recentFor(detail: WxDetailResponse | null, mine: Advisory[], target: Parameters<typeof wxCovers>[1]): PwnChange[] | null {
+  if (!detail?.recent) return null;
+  const have = new Set(detail.recent.map((c) => c.key));
+  return [...detail.recent.filter((c) => wxCovers(c.area, target)), ...scenarioSteps(mine).filter((c) => !have.has(c.key))].sort((a, b) => b.at.localeCompare(a.at));
+}
+
 /** 기상청 단계 제목(「한파주의보 발표」「호우경보 해제」) → 특보 이름 · 상태 낱말 */
 const splitStep = (title: string): [string, string] => {
   const m = title.trim().match(/^(.*\S)\s+(\S+)$/);
@@ -32,6 +46,8 @@ const splitStep = (title: string): [string, string] => {
 /**
  * 기상특보 상세 — 개발서버 AlertDetailModal(오른쪽 서랍 modal--alert) 그대로(2026-11-19 「개발서버와 동일하게」)
  * 출처·갱신 → (실패 안내) → 발효 중 특보(줄과 같은 목록 — 지금 기준지역을 덮는 것) → 최근 24시간 상태이력 → 전국 발효 현황 → 최근 통보문(펼칠 때 본문)
+ *  · 발효 중 특보마다 구역 이름 · 해상 · 신규/변경 표지, 발효(startTime)·발표(tmFc)·발령기관·구역코드(개발서버 AlertDetailModal)
+ *  · 상태이력 = 특보코드 장부의 발효·변경·해제 단계(시각 · 상태 · 특보 · 구역), 최신 100건(개발서버 recent·capped)
  *  · 발효 중 특보마다 [조건에 반영] · [이 특보로 질의](그 특보가 걸린 행정구역으로 바로 묻는다 — AI 모드·질문이 꽉 찼을 때는 막음)
  *  · 시연 시나리오 특보는 표지 없이 진짜 특보처럼 보인다(개발서버 가상 특보와 같이)
  * 열 때 한 번 묻고, 그다음은 [새로고침]을 누를 때만 — 상세는 1분마다 긁을 값이 아니다
@@ -72,7 +88,10 @@ export default function WxDetailModal({ mine, onClose }: { mine: Advisory[]; onC
   }, [load]);
 
   const all = (weather?.advisories ?? []).filter((a) => a.status !== "해제");
-  const steps = detail ? stepsFor(detail.steps, target) : [];
+  // 상태이력 — 특보코드 장부(개발서버 recent). 받지 못했으면 통보문 단계(예전 방식)
+  const recent = recentFor(detail, mine, target);
+  const steps = detail && !recent ? stepsFor(detail.steps, target) : [];
+  const recentShown = recent?.slice(0, STEP_LIMIT) ?? [];
   // 특보코드조회(getPwnCd)로 센 값(개발 서버와 같은 셈). 받지 못했으면 받은 특보 현황 글로 센다
   const counts: { type: string; level: string; sea: boolean; count: number }[] = detail?.counts ?? countAdvisories(all);
   const total = counts.reduce((n, c) => n + c.count, 0);
@@ -135,18 +154,20 @@ export default function WxDetailModal({ mine, onClose }: { mine: Advisory[]; onC
                   <span className={`wx-badge${a.level === "주의보" ? " wx-badge--watch" : ""}`}>{wxLabel(a)}</span>
                   <div className="wx-item-body">
                     <p className="wx-item-area">
-                      {a.area}
-                      {isSeaArea(a.area) && <span className="wx-tag">해상</span>}
+                      {a.areaName ?? a.area}
+                      {(a.sea ?? isSeaArea(a.area)) && <span className="wx-tag">해상</span>}
+                      {a.changeType && <span className="wx-tag wx-tag--change">{a.changeType}</span>}
                     </p>
+                    {/* 특보코드 구역이면 발효(startTime)·발표(tmFc)·구역코드가 따로 온다. 특보 현황 글로만 받았으면 현황 한 장의 발표 시각뿐 — 발효는 「미제공」 */}
                     <dl className="wx-fields">
                       <dt>발효</dt>
-                      <dd>{wxDateTime(a.issuedAt) || "미제공"}</dd>
+                      <dd>{wxDateTime(a.areaCode ? a.effectiveAt : null) || "미제공"}</dd>
                       <dt>발표</dt>
-                      <dd>{wxDateTime(a.issuedAt) || "미제공"}</dd>
+                      <dd>{wxDateTime(a.areaCode ? a.announcedAt : a.issuedAt) || "미제공"}</dd>
                       <dt>발령기관</dt>
                       <dd>기상청</dd>
                       <dt>구역코드</dt>
-                      <dd>미제공</dd>
+                      <dd>{a.areaCode || "미제공"}</dd>
                     </dl>
                   </div>
                   <div className="wx-actions">
@@ -172,10 +193,30 @@ export default function WxDetailModal({ mine, onClose }: { mine: Advisory[]; onC
       <section className="wx-section">
         <h3 className="wx-section-title">
           최근 {hours}시간 상태이력
-          <span className="wx-count">{detail ? `${steps.length}건` : "—"}</span>
+          <span className="wx-count">
+            {!detail ? "—" : recent ? (recent.length > recentShown.length ? `${recent.length}건 · 최신 ${recentShown.length}건` : `${recent.length}건`) : `${steps.length}건`}
+          </span>
         </h3>
         {!detail ? (
           <p className="wx-empty">{loadingText}</p>
+        ) : recent ? (
+          !recent.length ? (
+            <p className="wx-empty">최근 {hours}시간 동안 걸리거나 풀린 특보가 없습니다.</p>
+          ) : (
+            <ol className="wx-timeline">
+              {recentShown.map((c, i) => (
+                <li key={`${c.key}-${c.state}-${i}`} className="wx-step">
+                  <span className="wx-step-at">{wxDateTime(c.at)}</span>
+                  <span className={`wx-state wx-state--${changeState(c.state)}`}>{c.state}</span>
+                  <span className="wx-step-label">{wxLabel({ type: c.kind, level: c.level, sea: c.sea })}</span>
+                  <span className="wx-step-area">
+                    {c.areaName}
+                    {c.sea && <span className="wx-tag">해상</span>}
+                  </span>
+                </li>
+              ))}
+            </ol>
+          )
         ) : !steps.length ? (
           <p className="wx-empty">최근 {hours}시간 동안 걸리거나 풀린 특보가 없습니다.</p>
         ) : (

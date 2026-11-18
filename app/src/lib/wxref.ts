@@ -55,6 +55,7 @@ export function warningsPayload(weather: WeatherResponse | null | undefined, adv
     collect_status: weather?.status.ok ? "COLLECTED" : "FAILED",
     collected_at: weather?.status.fetchedAt ?? null,
     source: scn ? SCN_SOURCE : KMA_SOURCE,
-    items: advs.map((a) => ({ warning_key: a.id, kind: a.type, level: a.level, area: a.area, announced_at: a.issuedAt, effective_at: a.issuedAt, change: a.status })),
+    // 발표(tmFc)·발효(startTime)를 따로(특보코드 구역 — 개발서버 announcedDe·effectiveDe). 특보 현황 글로만 받았으면 둘 다 현황 한 장의 발표 시각
+    items: advs.map((a) => ({ warning_key: a.id, kind: a.type, level: a.level, area: a.area, announced_at: a.announcedAt ?? a.issuedAt, effective_at: a.effectiveAt ?? a.issuedAt, change: a.status })),
   };
 }
