@@ -140,6 +140,8 @@ export interface SubmitInput {
   pinId?: string | null;
   /** 고정 답을 쓰지 않고 새로 받기(받은 답이 성공이면 고정을 바꾼다) */
   pinFresh?: boolean;
+  /** 시연 모드 대상 계정일 때만 받아 둔 답을 쓰고, 없거나 대상이 아니면 실시간(받아 두기 없음) — 브리핑·한눈 요약 질의 목록 */
+  pinDemo?: boolean;
   /** 스트리밍(T3Q v0.4 STREAM) — 접수만 하고 제출은 화면이 여는 /api/agent/jobs/{id}/stream 이 한다. 열지 않으면 폴링이 ASYNC 로 제출 */
   stream?: boolean;
   /** 자동 조회 데이터(R3) — 라우트가 미리 받아 둔 Data API 원응답 */
@@ -201,10 +203,10 @@ export async function submitJob(acc: Account, input: SubmitInput): Promise<Job> 
   // 첫 턴만(개발서버 AgentCacheKey.IsCacheable — 이어 가는 대화는 앞 대화에 기대므로) · 점검 대상 지역만(DbAgentAnswerCache.SaveAsync — ai_region, 전국 제외)
   const reusable = !t3qConv && reuseRegion((input.queryContext?.region as { admin_code?: string } | undefined)?.admin_code);
   // 브리핑의 받아 둔 답(질문 모음 「시연」·「한눈 요약 질의」와 글이 같은 항목) — 개발서버 useBriefing 처럼 시연 모드 대상 계정일 때만, 받아 둔 답이 없으면 실시간(고정하지 않음)
-  if (input.pinId && input.source === "BRIEFING") {
+  if (input.pinId && (input.source === "BRIEFING" || input.pinDemo)) {
     const pinned = demo ? await pinnedJob(input.pinId) : null;
     if (pinned) return copyJob(base, input, pinned);
-    input = { ...input, pinId: null };
+    input = { ...input, pinId: null, pinDemo: false };
   }
   // 질문 모음 「시연」·「한눈 요약 질의」 받아 둔 답 — 받아 둔 답이 있으면 그대로(사본 행). 없으면 아래에서 새로 받고 받는 작업을 고정 대기로 둔다(개발서버 질문 모음과 같음 — 시연 모드와 무관)
   if (input.pinId && !input.pinFresh) {

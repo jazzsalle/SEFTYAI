@@ -81,6 +81,8 @@ export interface SubmitArgs {
   cond?: CondPreset | null;
   /** 시연 고정 답 항목(질문 모음 「시연」) · 새로 받기 */
   pinId?: string | null;
+  /** 시연 모드일 때만 받아 둔 답(pinId) — 아니면 실시간 */
+  pinDemo?: boolean;
   pinFresh?: boolean;
   /**
    * 이 질문에만 싣는 기준지역 — 특보 상세 「이 특보로 질의」가 그 특보가 걸린 행정구역으로 묻는다(개발 서버 kjw 998facb, lib/wxAskRegion).

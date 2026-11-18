@@ -445,7 +445,8 @@ function Explore() {
    * 질문 모음 「한눈 요약 질의」 한 건 — 질문 글만 조건 없이(개발서버 askDay · UFR-006-001-11 I열). 전에는 항목의 가정 조건(프리셋)을 얹고 받아 둔 답이 있으면 그것을 세웠다.
    * 자동 조회(질문 모음 경로)는 그대로. 받아 두기·받아 둔 답(sa_demo_pins)은 자동 시연·브리핑 시연이 쓴다
    */
-  const askDemo = (d: DemoItem) => ask({ question: d.text, source: "QUICK", libraryId: d.id, quickQueryId: d.quickQueryId ?? null }, undefined, false, true).catch(toastErr);
+  // 시연 모드에서는 받아 둔 답을 바로 놓는다(2026-11-19 사용자 지시 — 개발서버는 늘 실시간). 시연 모드가 아니거나 받아 둔 답이 없으면 실시간
+  const askDemo = (d: DemoItem) => ask({ question: d.text, source: "QUICK", libraryId: d.id, quickQueryId: d.quickQueryId ?? null, pinId: d.id, pinDemo: true, revealMs: 3000 }, undefined, false, true).catch(toastErr);
   /** 「이어서 물어보기」 추천 후속질문 — 질문 글 그대로 이 대화에 이어 묻는다(개발서버 onFollowUp: FOLLOW_UP · 지금 조건 · FUN-UFR-301003) */
   const askSuggested = (text: string) => ask({ question: text, source: "FOLLOW_UP" }).catch(toastErr);
   /** 자동 시연(개발서버 features/demoMode — R54) — 받아 둔 답을 대본대로 놓고 음성으로 안내. 시연 배치 = 질의 목록 접고 대화 55% */

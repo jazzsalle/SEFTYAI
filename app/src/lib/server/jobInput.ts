@@ -8,7 +8,7 @@ import type { JobSource, SubmitInput } from "./jobs";
 export interface JobBody {
   question?: string; source?: JobSource; libraryId?: string | null; convId?: string | null; turnNo?: number | null; condition?: ClientCondition;
   warnings?: Record<string, unknown> | null; briefing?: Record<string, unknown> | null; quickQueryId?: string | null; aiMode?: Record<string, unknown> | null;
-  followUp?: { jobId: string; refs?: { display_name?: string; entity_type?: string }[] } | null; noCache?: boolean; stream?: boolean; pinId?: string | null; pinFresh?: boolean;
+  followUp?: { jobId: string; refs?: { display_name?: string; entity_type?: string }[] } | null; noCache?: boolean; stream?: boolean; pinId?: string | null; pinFresh?: boolean; pinDemo?: boolean;
   /** 지도에서 집어 둔 참조 객체(「객체 참조」) — id = lib/mapRef objectIdOf, name = display_name 그대로 */
   objectRefs?: { id?: string | null; name?: string | null }[] | null;
 }
@@ -48,6 +48,6 @@ export function jobInputOf(who: Account, b: JobBody | null | undefined, question
     aiMode: b?.aiMode ?? null, followUp: b?.followUp ?? null, noCache: !!b?.noCache,
     ...(picked.objectIds.length ? { reference: { object_ids: picked.objectIds } } : {}),
     stream: !!b?.stream && process.env.T3Q_MODE !== "replay",
-    pinId: b?.pinId ?? null, pinFresh: !!b?.pinFresh,
+    pinId: b?.pinId ?? null, pinFresh: !!b?.pinFresh, pinDemo: !!b?.pinDemo,
   };
 }
