@@ -783,6 +783,21 @@ export const AutoScript: AutoScene[] = [
         say: "지도에서 위험지구와 지하차도 위치를 함께 봅니다. 정확한 위치가 없는 지하차도는 행정구역 중심에 표시됩니다.",
         wait: 800,
       },
+      // 사용자 지시 2026-11-19 — 침수 위험지역을 요약 보기로 한 번 보이고, 상세가 있는 지구를 눌러 상세도 한 번 보인다
+      {
+        click: { sel: `${Panel} .sm-map-toggle`, text: "요약 보기" },
+        focus: ["panel"],
+        wait: 1500,
+        say: "요약 보기로 바꾸면 하천 주변 침수 위험지역과 지하차도가 자치구별로 몇 곳인지 색의 진하기로 한눈에 비교할 수 있습니다.",
+      },
+      { silentClick: { sel: `${Panel} .sm-map-toggle`, text: "지도 보기" }, wait: 300 },
+      { click: { sel: Entity, text: "정림" }, wait: 600 },
+      {
+        click: { sel: Tab, text: "정림" },
+        orElse: [{ click: { sel: RefDetail } }],
+        focus: ["panel"],
+        say: "답에서 정림 지구를 누르면, 위험등급과 지정 사유 같은 상세정보를 바로 확인할 수 있습니다.",
+      },
     ],
     outro: "호우특보가 내려지면 어느 구간부터 진입을 막고 안내 방송을 할지, 이 목록이 현장 점검의 출발점이 됩니다.",
   },

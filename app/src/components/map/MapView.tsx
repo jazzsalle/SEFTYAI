@@ -58,6 +58,7 @@ import {
   type LegendEntry, type Look,
 } from "./mapStyle";
 import MapPopup from "./MapPopup";
+import { sigunguShapes } from "../summary/MapSummary";
 import MapBrowserEvent from "ol/MapBrowserEvent";
 import { MAP_CLICK_EVENT, MAP_FIND_EVENT, type MapHit, type MapQuery } from "@/lib/autoDemoMap";
 import { currentScale, onScaleChange, scaledPx } from "@/lib/fontScale";
@@ -111,6 +112,8 @@ export const DEFAULT_LAYERS: MapLayers = { boundary: true, features: true };
 interface Props {
   region: RegionId; // 초기 중심: lib/config REGIONS[region].center/zoom
   areaToken?: number; // 바뀌면 region 중심으로 이동
+  /** 기준지역 코드(시·도 2자리 · 시·군·구 5자리) — 바뀌면 그 행정경계에 지도를 맞춘다(개발서버 MapPane fitRegion) */
+  baseCode?: string;
   features: MapFeature[];
   activeJobId?: string | null; // 이 작업의 feature 는 진하게, 나머지는 흐리게(설명서 7.5-2)
   selectedKey?: string | null; // 선택 강조 + 라벨
@@ -488,6 +491,7 @@ interface Api {
   restyle(): void;
   focus(duration: number): void;
   toRegion(): void;
+  toBase(code: string): void;
   /** 거르기가 바뀜 → 다시 그리고 그 범위로 맞춤 */
   applyFilter(): void;
   /** 말풍선 자리 다시 잡기 (닫기·다시 열기) */
@@ -916,6 +920,34 @@ export default function MapView(p: Props) {
       v.cancelAnimations();
       v.animate({ center: fromLonLat(r.center), zoom: r.zoom, duration: 450 });
     };
+    /**
+     * 기준지역 행정경계로 맞춤 — 개발서버는 기준지역을 바꾸면 그 경계를 받아 fitRegion 한다(MapPane).
+     * 우리 경계는 WMS 타일이라 모양이 없어, 요약 보기가 쓰는 시·군·구 경계(/api/map/sigungu)를 받아 범위를 잡는다.
+     * 먼 섬 조각(가장 큰 덩어리의 5% 미만)은 범위에서 뺀다. 못 받으면 시범 지역 중심(toRegion)으로.
+     */
+    const toBase = (code: string) => {
+      const sido = code.slice(0, 2);
+      if (!/^\d{2}$/.test(sido)) return toRegion();
+      void sigunguShapes(sido).then((list) => {
+        if (propsRef.current.baseCode !== code) return;
+        const pick = code.length >= 5 ? (list ?? []).filter((x) => x.code.startsWith(code.slice(0, 5))) : (list ?? []);
+        if (!pick.length) return toRegion();
+        const fmt = new GeoJSON();
+        const polys: Polygon[] = [];
+        for (const x of pick) {
+          const g = fmt.readGeometry(x.geometry, { dataProjection: "EPSG:4326", featureProjection: "EPSG:3857" });
+          if (g instanceof MultiPolygon) polys.push(...g.getPolygons());
+          else if (g instanceof Polygon) polys.push(g);
+        }
+        const big = Math.max(0, ...polys.map((q) => q.getArea()));
+        const ext = createEmpty();
+        for (const q of polys) if (q.getArea() >= big * 0.05) extendExtent(ext, q.getExtent());
+        if (bndState === "ok") setBndState("loading");
+        waitUntil = 0;
+        waitSize = false;
+        if (!fitExt(ext, 13, 450)) toRegion();
+      });
+    };
     const zoomTo = (key: string) => {
       const fs = byKey.get(key);
       if (fs?.length && moveTo(fs, 450, panPop)) moved = true;
@@ -1170,6 +1202,7 @@ export default function MapView(p: Props) {
       },
       focus,
       toRegion,
+      toBase,
       applyFilter,
       placePop,
       zoomTo,
@@ -1273,6 +1306,19 @@ export default function MapView(p: Props) {
     areaSeen.current = { token: p.areaToken };
     a.toRegion();
   }, [p.areaToken, ready]);
+
+  // 기준지역이 바뀌면 그 행정경계로 맞춘다(개발서버 MapPane — 경계를 받으면 fitRegion). 처음 열 때는 답이 없을 때만
+  const baseSeen = useRef<string | undefined | null>(null);
+  useEffect(() => {
+    const a = api.current;
+    if (!a || p.baseCode === undefined) return;
+    const first = baseSeen.current === null;
+    if (!first && baseSeen.current === p.baseCode) return;
+    baseSeen.current = p.baseCode;
+    if (first && p.features.length) return;
+    a.toBase(p.baseCode);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [p.baseCode, ready]);
 
   const selFeature = p.selectedKey ? p.features.find((f) => f.key === p.selectedKey) : undefined;
   const satOn = p.basemap === "Satellite";

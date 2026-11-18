@@ -3,6 +3,7 @@ import dynamic from "next/dynamic";
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import type OlMap from "ol/Map";
 import { useSession } from "@/lib/session";
+import { baseKey } from "@/lib/baseRegion";
 import { api } from "@/lib/api";
 import { SYMBOL_NAMES, detailIdOf, hasDetail, sameObject, symbolOf, type MapSymbol, type RefLike } from "@/lib/mapRef";
 import type { PanelTab } from "./ExploreCtx";
@@ -196,6 +197,7 @@ function MapPanel(p: Props) {
     <div className="map-pane">
       <MapView
         region={cond.region}
+        baseCode={baseKey(cond.base)}
         areaToken={p.areaToken}
         features={p.features}
         activeJobId={p.activeJobId}

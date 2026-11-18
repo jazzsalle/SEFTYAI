@@ -33,7 +33,7 @@ const ISLAND_RATIO = 0.05;
 interface Shape { code: string; name: string; geometry: { type: string; coordinates: unknown } }
 const shapes = new Map<string, Promise<Shape[] | null>>();
 /** 시도 코드 → 시군구 경계(/api/map/sigungu). 한 번 받은 것은 다시 묻지 않는다(못 받으면 다음에 다시) */
-function sigunguShapes(sido: string): Promise<Shape[] | null> {
+export function sigunguShapes(sido: string): Promise<Shape[] | null> {
   const hit = shapes.get(sido);
   if (hit) return hit;
   const pending = api<{ items: Shape[] }>(`/api/map/sigungu?sido=${sido}`).then((r) => r.items).catch(() => null);
