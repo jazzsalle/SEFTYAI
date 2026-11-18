@@ -38,7 +38,7 @@ export interface ScnDef {
 export const SCN_DEFS: Record<ScnRegion, ScnDef> = {
   // 부산 = 호우 예비특보(사용자 지시 2026-11-02 — 시연 ①묶음 「호우 예비특보 AI 모드 브리핑」과 같은 특보 번호 SCN-BS-PRE-1, lib/library SHOW_PRE_WARNING)
   busan: { key: "SCN-BS-PRE-1", type: "호우", level: "예비특보", area: "부산", areaCode: "2600000000" },
-  inje: { key: "SCN-IJ-1", type: "호우", level: "주의보", area: "강원도(인제평지, 인제산지)", areaCode: "5181000000" },
+  inje: { key: "SCN-IJ-1", type: "호우", level: "주의보", area: "강원도(인제군산지)", areaCode: "5181000000" },
   yeongcheon: { key: "SCN-YC-1", type: "호우", level: "경보", area: "경상북도(영천)", areaCode: "4723000000" },
 };
 
@@ -85,7 +85,7 @@ export function scenarioAdvisories(st: ScenarioState | null | undefined, account
   const at = st!.startedAt!;
   return [{
     id: d.key, type: d.type, level: d.level, area: d.area, regionId: r, issuedAt: at, status: "발효", scenario: true,
-    areaCode: d.areaCode, areaName: d.area, effectiveAt: at, announcedAt: at, changeType: "신규", sea: false,
+    areaCode: d.areaCode, areaName: d.area.replace(/^.*\((.*)\)$/, "$1"), effectiveAt: at, announcedAt: at, changeType: "신규", sea: false,
   }];
 }
 

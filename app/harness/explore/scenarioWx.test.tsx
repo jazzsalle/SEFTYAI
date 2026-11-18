@@ -74,11 +74,11 @@ describe("특보 줄 — 시연 시나리오 특보도 표지 없이 진짜 특�
 
   it("인제·영천 — 시연 계정 기준지역에서 그 지역 시나리오가 보인다", () => {
     const b1 = bar(cutOf("inje"), { sido: { code: "51", name: "강원특별자치도" }, sigungu: { code: "51810", name: "인제군" } });
-    expect(b1.querySelector(".tit")!.textContent).toBe("강원도(인제평지, 인제산지) 호우주의보 발효 중");
+    expect(b1.querySelector(".tit")!.textContent).toBe("인제군산지 호우주의보 발효 중");
     expect(b1.querySelector(".meta")!.textContent).not.toContain("끊음");
     cleanup();
     const b2 = bar(cutOf("01000"), { sido: { code: "47", name: "경상북도" }, sigungu: { code: "47230", name: "영천시" } });
-    expect(b2.querySelector(".tit")!.textContent).toBe("경상북도(영천) 호우경보 발효 중");
+    expect(b2.querySelector(".tit")!.textContent).toBe("영천 호우경보 발효 중");
   });
 });
 

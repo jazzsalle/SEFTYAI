@@ -122,7 +122,8 @@ describe("T3Q weather_warnings — 대본 정의·녹화(demo_v3/AIM-*)와 같�
       // 녹화의 시각(그때 보낸 시각 — 세 칸이 같음)만 수집 시각 = 이번에 받은 시각, 발표·발효 시각 = 이번에 켠 시각으로 바꾸면 글자까지 같다
       const at = recd.collected_at;
       expect(recd.items.every((i) => i.announced_at === at && i.effective_at === at)).toBe(true);
-      const t = (s: string) => (s === at ? ON.startedAt : s);
+      // 2026-11-19 인제 시연 특보 구역을 실제 기상청 이름(「인제군산지」)으로 — 녹화 뒤 바뀐 글
+      const t = (s: string) => (s === at ? ON.startedAt : s === "강원도(인제평지, 인제산지)" ? "강원도(인제군산지)" : s);
       expect(ww).toEqual({ ...recd, collected_at: new Date(NOW).toISOString(), items: recd.items.map((i) => Object.fromEntries(Object.entries(i).map(([k, v]) => [k, t(v)]))) });
       expect(ww.source).toBe(SCN_SOURCE);
       expect(ww.items).toHaveLength(1);
