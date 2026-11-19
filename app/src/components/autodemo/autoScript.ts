@@ -819,8 +819,45 @@ export const AutoScript: AutoScene[] = [
         say: "지도에서 위험지구와 지하차도 위치를 함께 봅니다. 정확한 위치가 없는 지하차도는 행정구역 중심에 표시됩니다.",
         wait: 800,
       },
+      // 사용자 지시 2026-11-19 — 갑천을 따라 있는 하천 인접 침수 위험 지하차도를 답에서 차례로 눌러 지도로 보이고,
+      // 문예지하차도 상세의 위험·취약정보에서 차단시설 등 설비 정보를 확인한다
+      {
+        click: { sel: Entity, text: "만년지하차도" },
+        orElse: [{ open: "map", click: { sel: MapPinAny, text: "만년지하차도" } }],
+        focus: ["panel", { sel: MdText, text: "만년지하차도" }],
+        say: "갑천 쪽 하천 인접 지하차도를 차례로 눌러 봅니다. 먼저 만년지하차도,",
+        wait: 1000,
+      },
+      {
+        click: { sel: Entity, text: "갑천지하차도" },
+        orElse: [{ open: "map", click: { sel: MapPinAny, text: "갑천지하차도" } }],
+        focus: ["panel", { sel: MdText, text: "갑천지하차도" }],
+        say: "이어서 갑천지하차도,",
+        wait: 1000,
+      },
+      {
+        click: { sel: Entity, text: "문예지하차도" },
+        orElse: [{ open: "map", click: { sel: MapPinAny, text: "문예지하차도" } }],
+        focus: ["panel", { sel: MdText, text: "문예지하차도" }],
+        say: "그리고 문예지하차도까지, 모두 갑천 가까이에 있다는 것을 지도에서 확인할 수 있습니다.",
+        wait: 1000,
+      },
+      {
+        click: { sel: Tab, text: "문예지하차도" },
+        orElse: [{ click: { sel: RefDetail } }],
+        focus: ["panel"],
+        say: "문예지하차도의 상세를 열고,",
+        wait: 700,
+      },
+      {
+        scroll: { sel: `${UI.detailPane} .ev-sec`, text: "위험·취약정보" },
+        focus: [{ sel: `${UI.detailPane} .ev-sec`, text: "위험·취약정보" }],
+        orElse: [{ scroll: { sel: DetailKv }, focus: [{ sel: DetailKv }] }],
+        say: "위험·취약정보에서 차단시설 같은 설비 정보와 통제 기준을 확인합니다.",
+      },
       // 사용자 지시 2026-11-19 — 침수 위험지역을 요약 보기로 한 번 보이고, 상세가 있는 지구를 눌러 상세도 한 번 보인다
       {
+        open: "map",
         click: { sel: `${Panel} .sm-map-toggle`, text: "요약 보기" },
         focus: ["panel"],
         wait: 1500,
