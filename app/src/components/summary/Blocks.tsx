@@ -1,7 +1,7 @@
 "use client";
 // 개발 서버 features/search/summary/Blocks.tsx 그대로 옮김(2026-11-06) — 값은 받은 그대로, 그림은 크기·순서·기간만. 치수(rem)는 summary.css 에서 px 로.
 import { useState, type ReactNode } from 'react'
-import { MAX_ROWS as MaxRows, cell, shortDate, text, type SummaryGroup, type SummaryRow } from '@/lib/summary'
+import { MAX_ROWS as MaxRows, cell, depthUnit, shortDate, text, type SummaryGroup, type SummaryRow } from '@/lib/summary'
 
 /**
  * 구분별 블록 — 템플릿 정의 ② 블록 카탈로그.
@@ -29,7 +29,10 @@ export function GroupBlocks(props: BlockProps): ReactNode {
       return <Module {...props} sub="사업기간" wide={props.variant === 'poster'}><Gantt {...props} /></Module>
     case 'check':
       return props.variant === 'poster' ? <CheckPoster {...props} /> : (
-        <Module {...props} sub="위험 요소"><Checklist rows={props.group.rows} /></Module>
+        <>
+          <Module {...props} sub="위험 요소"><Checklist rows={props.group.rows} /></Module>
+          <ControlDepth {...props} />
+        </>
       )
     case 'gauge':
       return <Module {...props} sub="대응수위" wide={props.variant === 'poster'}><Gauge {...props} /></Module>
@@ -92,6 +95,14 @@ function TraceBlocks({ group, variant, basisAt }: BlockProps) {
     .filter((r) => typeof r.f.area === 'number')
     .sort((a, b) => (b.f.area as number) - (a.f.area as number))
   const total = group.rows.length
+  // 평균 침수심(T3Q-30 avg_flood_depth_raw) — 깊은 순. 값이 온 곳만
+  const depths = group.rows
+    .filter((r) => typeof r.f.depth === 'number')
+    .sort((a, b) => (b.f.depth as number) - (a.f.depth as number))
+  const dUnit = depthUnit(depths[0]?.f.depthUnit)
+  const dNote = text(depths[0]?.f.depthUnit)
+  const depthRows = (n: number): [string, number, string][] =>
+    depths.slice(0, n).map((r) => [r.name, r.f.depth as number, `${cell(r.f.depth)}${dUnit}`])
 
   if (variant === 'poster') {
     const peak = [...dates].sort((a, b) => b[1] - a[1])[0]
@@ -135,6 +146,14 @@ function TraceBlocks({ group, variant, basisAt }: BlockProps) {
           </article>
         )}
         {areas.length > 0 && <Treemap rows={areas} />}
+        {depths.length > 0 && (
+          <article className="sm-mod sm-mod--poster sm-mod--wide sm-tone--blue">
+            <h4 className="sm-mod-title">
+              침수흔적 평균 침수심<span className="sm-mod-sub">깊은 순 {Math.min(depths.length, MaxRows)}곳 (물 높이 = 침수심)</span>
+            </h4>
+            <WaterBars rows={depthRows(MaxRows)} unit={dUnit} note={dNote} />
+          </article>
+        )}
       </>
     )
   }
@@ -156,6 +175,18 @@ function TraceBlocks({ group, variant, basisAt }: BlockProps) {
           <Bars
             rows={areas.slice(0, 5).map((r) => [r.name, r.f.area as number, `${m2(r.f.area)}㎡`])}
           />
+        </Module>
+      )}
+      {depths.length > 0 && (
+        <Module
+          group={group}
+          variant={variant}
+          basisAt={basisAt}
+          sub={`깊은 순 ${Math.min(depths.length, 5)}곳`}
+          title="침수흔적 평균 침수심"
+          noMore
+        >
+          <WaterBars rows={depthRows(5)} unit={dUnit} note={dNote} />
         </Module>
       )}
     </>
@@ -284,6 +315,95 @@ function Bars({ rows }: { rows: [string, number, string][] }) {
         </li>
       ))}
     </ul>
+  )
+}
+
+// ── 물 높이(침수심 · 통제 수심 · 대응수위) — 한 가지 그림말 ───────────────
+/*
+ * 사용자 지시 2026-11-20 — 침수심·수위처럼 「물 높이」인 값은 구분이 달라도 같은 그림으로 보인다.
+ *  · 물색(파랑) 채움 + 눈금 — 구분 색(노랑·빨강 바탕)과 상관없이 늘 같은 물색
+ *  · 길이는 받은 값 / 그 블록의 최댓값(다른 가로 막대와 같은 비례), 값 글은 받은 그대로
+ *  · 대응수위(0.7·0.9)는 한 줄 물기둥 위 두 눈금 — 눈금 자리는 이름의 비율(70%·90%), 적힌 값은 받은 그대로
+ * T3Q 실측(2026-11-20): T3Q-30 avg_flood_depth_raw(단위 글 「원천 단위 미표기(cm 로 보임)」) · T3Q-15 control_depth_cm ·
+ * response_level_07/09 는 값이 온다. T3Q-30 max_depth_m · T3Q-16 stations(관측소 수위)는 원천에 없어 오지 않는다 — 오면 같은 그림에 얹는다.
+ */
+
+/** 물 높이 막대 [이름, 값, 값 글] — 막대 길이 = 값 / 최댓값. 아래에 0 ~ 최댓값 눈금자 */
+function WaterBars({ rows, unit, note }: { rows: [string, number, string][]; unit: string; note?: string | null }) {
+  if (rows.length === 0) return null
+  const max = Math.max(...rows.map(([, v]) => v), 0)
+  return (
+    <div className="sm-water">
+      <ul className="sm-bars">
+        {rows.map(([label, v, shown], i) => (
+          <li key={`${label}-${i}`} className="sm-bar">
+            <span className="sm-bar-label" title={label}>
+              {label}
+            </span>
+            <span className="sm-bar-track sm-water-track" aria-hidden="true">
+              <span className="sm-bar-fill sm-water-fill" style={{ width: `${max > 0 ? (v / max) * 100 : 0}%` }} />
+            </span>
+            <span className="sm-bar-val">{shown}</span>
+          </li>
+        ))}
+        <li className="sm-bar sm-water-axis" aria-hidden="true">
+          <span />
+          <span className="sm-water-scale">
+            <span>0</span>
+            <span>
+              {cell(max)}
+              {unit}
+            </span>
+          </span>
+          <span />
+        </li>
+      </ul>
+      {/* 단위 글이 「cm」 한 글자가 아니면(원천 단위 미표기 등) 받은 글을 그대로 적는다 */}
+      {note && note !== unit && <p className="sm-note">단위 — {note}</p>}
+    </div>
+  )
+}
+
+/** 지하차도 통제 기준 수심(T3Q-15 control_depth_cm) — 응답 순서 그대로(위 점검표와 같은 줄 순서) */
+function ControlDepth(props: BlockProps) {
+  const rows: [string, number, string][] = []
+  for (const r of head(props.group.rows)) {
+    const raw = text(r.f.control_depth_cm)
+    if (raw === null) continue
+    const v = Number(raw.replace(/,/g, ''))
+    if (Number.isFinite(v)) rows.push([r.name, v, `${raw}cm`])
+  }
+  if (rows.length === 0) return null
+  return (
+    <Module {...props} sub="물 높이 = 통제 수심" title="통제 기준 수심">
+      <WaterBars rows={rows} unit="cm" />
+    </Module>
+  )
+}
+
+/** 대응수위 두 눈금 — 물기둥 한 줄 위에 0.7 · 0.9 자리. 값은 받은 그대로 */
+function LevelMarks({ l07, l09 }: { l07: string | number | null; l09: string | number | null }) {
+  const marks: [number, string, string | number | null][] = [
+    [70, '0.7', l07],
+    [90, '0.9', l09],
+  ]
+  const shown = marks.filter(([, , v]) => v !== null)
+  if (shown.length === 0) return null
+  const first = shown[0][0]
+  const top = Math.max(...shown.map(([p]) => p))
+  return (
+    <div className="sm-level" role="img" aria-label={shown.map(([, k, v]) => `대응수위 ${k} ${cell(v)}`).join(', ')}>
+      <span className="sm-level-track">
+        <span className="sm-level-fill" style={{ width: `${first}%` }} />
+        {top > first && <span className="sm-level-band" style={{ left: `${first}%`, width: `${top - first}%` }} />}
+        {shown.map(([p, k, v]) => (
+          <span key={k} className={`sm-level-mark sm-level-mark--${k === '0.7' ? 'lo' : 'hi'}`} style={{ left: `${p}%` }}>
+            <b>{cell(v)}</b>
+            <small>대응수위 {k}</small>
+          </span>
+        ))}
+      </span>
+    </div>
   )
 }
 
@@ -499,13 +619,14 @@ function CheckPoster({ group, basisAt }: BlockProps) {
           </tfoot>
         </table>
       </Module>
+      <ControlDepth group={group} variant="poster" basisAt={basisAt} />
     </>
   )
 }
 
 // ── 홍수취약지구 — 대응수위 ───────────────────────────────────────────────
 
-function Gauge({ group, variant }: BlockProps) {
+function Gauge({ group }: BlockProps) {
   const withValue = head(group.rows).filter((r) => r.f.l07 !== null || r.f.l09 !== null)
   const without = group.rows.length - withValue.length
   return (
@@ -515,19 +636,7 @@ function Gauge({ group, variant }: BlockProps) {
           <p className="sm-gauge-name">
             <b>{r.name}</b> {[text(r.f.river), text(r.f.station) && `특보지점 ${r.f.station}`].filter(Boolean).join(' · ')}
           </p>
-          {variant === 'poster' ? (
-            <Bars
-              rows={[
-                ['0.9', (r.f.l09 as number) ?? 0, cell(r.f.l09)],
-                ['0.7', (r.f.l07 as number) ?? 0, cell(r.f.l07)],
-              ]}
-            />
-          ) : (
-            <div className="sm-values">
-              <Value value={r.f.l07} unit="" label="대응수위 0.7" />
-              <Value value={r.f.l09} unit="" label="대응수위 0.9" />
-            </div>
-          )}
+          <LevelMarks l07={r.f.l07} l09={r.f.l09} />
         </div>
       ))}
       {without > 0 && <p className="sm-note">대응수위 값 없음 {without}곳</p>}

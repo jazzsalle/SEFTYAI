@@ -106,3 +106,35 @@ describe("패널 탭(PosterSummary)", () => {
     expect(await screen.findByText("답변 한눈 요약")).toBeTruthy();
   });
 });
+
+// 2026-11-20 사용자 지시 — 「물 높이」 값(침수심·통제 수심·대응수위)은 구분이 달라도 같은 그림(물색 막대·눈금)으로
+describe("물 높이 그림(침수심 · 통제 수심 · 대응수위)", () => {
+  it("지하차도 — 통제 기준 수심을 물 높이 막대로(값은 받은 그대로 + cm)", async () => {
+    const { container } = render(<CompactSummary refs={[UP("1", "a"), UP("2", "b")]} basisAt="" onEntity={() => {}} />);
+    expect(await screen.findByText("통제 기준 수심")).toBeTruthy();
+    await waitFor(() => expect(container.querySelectorAll(".sm-water .sm-water-fill").length).toBe(2));
+    expect(container.querySelector(".sm-water")?.textContent).toContain("15cm");
+  });
+  it("침수흔적 — 평균 침수심 깊은 순, 단위 글은 받은 그대로 적는다", async () => {
+    vi.stubGlobal("fetch", async (url: string, init?: { body?: string }) => {
+      const b = init?.body ? JSON.parse(init.body) : {};
+      if (String(url) === "/api/t3q/data" && b.api === "T3Q-30") {
+        return reply({ envelope: { status: "SUCCESS", result: { items: [
+          { flood_trace_id: "FT-1", district_name: "얕은 곳", admin_code: "3023010200", area_m2: 100, started_on: "2024-07-10", avg_flood_depth_raw: 20, avg_flood_depth_unit: "원천 단위 미표기(cm 로 보임)" },
+          { flood_trace_id: "FT-2", district_name: "깊은 곳", admin_code: "3023010200", area_m2: 50, started_on: "2024-07-10", avg_flood_depth_raw: 80, avg_flood_depth_unit: "원천 단위 미표기(cm 로 보임)" },
+          { flood_trace_id: "FT-3", district_name: "값 없는 곳", admin_code: "3023010200", area_m2: 10, started_on: "2024-07-10", avg_flood_depth_raw: null },
+        ] } } });
+      }
+      return reply({ items: [] });
+    });
+    const FT = (n: string) => ({ ref: `f${n}`, entity_type: "FLOOD_TRACE", display_name: `흔적${n}`, entity_id: `FT-${n}` });
+    const { container } = render(<CompactSummary refs={[FT("1"), FT("2"), FT("3")]} basisAt="" onEntity={() => {}} />);
+    expect(await screen.findByText("침수흔적 평균 침수심")).toBeTruthy();
+    const labels = [...container.querySelectorAll(".sm-water .sm-bar-label")].map((e) => e.textContent);
+    expect(labels).toEqual(["깊은 곳", "얕은 곳"]);
+    const fills = [...container.querySelectorAll<HTMLElement>(".sm-water .sm-water-fill")].map((e) => e.style.width);
+    expect(fills).toEqual(["100%", "25%"]);
+    expect(container.querySelector(".sm-water")?.textContent).toContain("80cm");
+    expect(screen.getByText("단위 — 원천 단위 미표기(cm 로 보임)")).toBeTruthy();
+  });
+});

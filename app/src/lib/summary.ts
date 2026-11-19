@@ -55,7 +55,7 @@ export const OPEN_GROUPS = 3;
 
 /** 표로 보기 칸 — 블록에 쓴 값 그대로 */
 export const BLOCK_COLUMNS: Record<BlockKind, { key: string; label: string }[]> = {
-  trace: [{ key: "date", label: "호우 일자" }, { key: "area", label: "면적(㎡)" }, { key: "event", label: "재해" }, { key: "cause", label: "원인" }],
+  trace: [{ key: "date", label: "호우 일자" }, { key: "area", label: "면적(㎡)" }, { key: "depth", label: "평균 침수심" }, { key: "event", label: "재해" }, { key: "cause", label: "원인" }],
   gantt: [{ key: "from", label: "사업 시작" }, { key: "to", label: "사업 종료" }, { key: "released", label: "해제일" }, { key: "type", label: "재해유형" }],
   check: [
     { key: "u_shaped", label: "U형" },
@@ -263,7 +263,11 @@ async function fillDetails(g: SummaryGroup) {
   });
 }
 
-interface FloodTraceItem { flood_trace_id: string; district_name?: string | null; admin_code?: string | null; area_m2?: number | null; started_on?: string | null; cause?: string | null; flood_event?: { name?: string | null } | null }
+interface FloodTraceItem {
+  flood_trace_id: string; district_name?: string | null; admin_code?: string | null; area_m2?: number | null; started_on?: string | null; cause?: string | null; flood_event?: { name?: string | null } | null;
+  /** 평균 침수심 — 원천 값 그대로. 단위는 avg_flood_depth_unit 글(실측 2026-11-20: 「원천 단위 미표기(cm 로 보임)」) */
+  avg_flood_depth_raw?: number | null; avg_flood_depth_unit?: string | null;
+}
 
 /** T3Q-30 — 침수흔적 ID 로 한 번(최대 100) */
 async function tracePart(keyed: KeyedRef[]): Promise<SummaryGroup | null> {
@@ -280,7 +284,10 @@ async function tracePart(keyed: KeyedRef[]): Promise<SummaryGroup | null> {
       ref: k?.ref,
       adminCode: t.admin_code ?? null,
       grade: null,
-      f: { date: text(t.started_on), area: typeof t.area_m2 === "number" ? t.area_m2 : null, event: text(t.flood_event?.name), cause: text(t.cause) },
+      f: {
+        date: text(t.started_on), area: typeof t.area_m2 === "number" ? t.area_m2 : null, event: text(t.flood_event?.name), cause: text(t.cause),
+        depth: typeof t.avg_flood_depth_raw === "number" ? t.avg_flood_depth_raw : null, depthUnit: text(t.avg_flood_depth_unit),
+      },
     };
   });
   return { key: "침수흔적", name: "침수흔적", short: "침수흔적", tone: "blue", block: "trace", count: Math.max(items.length, keyed.length), rows, order: Math.min(...keyed.map((k) => k.order)) };
@@ -324,6 +331,18 @@ function num(value: string | null): number | null {
   if (value === null) return null;
   const n = Number(value.replace(/,/g, ""));
   return Number.isFinite(n) ? n : null;
+}
+
+/**
+ * 물 높이 값의 단위 글 — 받은 단위 글에 cm·m 가 있으면 그것, 없으면 빈 글(임의로 붙이지 않는다).
+ * 「원천 단위 미표기(cm 로 보임)」 → 「cm」
+ */
+export function depthUnit(raw: string | number | null | undefined): string {
+  const s = text(raw);
+  if (!s) return "";
+  if (/cm|㎝/i.test(s)) return "cm";
+  if (/(^|[^a-z])m($|[^a-z])|미터/i.test(s)) return "m";
+  return "";
 }
 
 /** 법정동 코드 → 시군구 코드(앞 5자리, 브이월드 sig_cd 와 같은 체계). 모르면 null */

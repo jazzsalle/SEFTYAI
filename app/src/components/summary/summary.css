@@ -370,6 +370,36 @@
 .sm-donut-legend { margin: 0; padding: 0; list-style: none; font-size: var(--fs-xs); color: var(--c-sub); }
 .sm-donut-legend b { color: var(--sm-ink); font-size: var(--fs-s); }
 
+/* ── 물 높이(침수심·통제 수심·대응수위) — 구분 색과 상관없이 늘 같은 물색 ── */
+.sm-water, .sm-level { --sm-water: #0b78cb; --sm-water-soft: #a9d4f5; --sm-water-ink: #085a99; }
+.sm-water .sm-bar-val { color: var(--sm-water-ink); }
+/* 눈금 — 4등분 세로줄 */
+.sm-water-track {
+  height: 12px;
+  border-radius: 3px;
+  background:
+    repeating-linear-gradient(90deg, transparent 0 calc(25% - 1px), rgba(8, 90, 153, 0.22) calc(25% - 1px) 25%),
+    rgba(11, 120, 203, 0.08);
+}
+.sm-water-fill { border-radius: 3px 0 0 3px; background: linear-gradient(180deg, #3d9be0 0%, var(--sm-water) 100%); }
+.sm-water-scale { display: flex; justify-content: space-between; font-size: calc(10px * var(--fs-scale)); color: var(--c-mute); line-height: 1; }
+.sm-water .sm-note { margin-top: 6px; }
+
+/* 대응수위 — 물기둥 한 줄 위 두 눈금 */
+.sm-level { padding: 20px 0 22px; }
+.sm-level-track { position: relative; display: block; height: 12px; border-radius: 3px; background: rgba(11, 120, 203, 0.08); }
+.sm-level-fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 3px 0 0 3px; background: linear-gradient(180deg, #3d9be0 0%, var(--sm-water) 100%); }
+.sm-level-band { position: absolute; top: 0; bottom: 0; background: var(--sm-water-soft); }
+.sm-level-mark { position: absolute; top: -4px; bottom: -4px; width: 2px; margin-left: -1px; background: var(--sm-water-ink); }
+.sm-level-mark b,
+.sm-level-mark small { position: absolute; white-space: nowrap; line-height: 1; }
+.sm-level-mark b { bottom: calc(100% + 3px); font-size: var(--fs-2xs); font-weight: 700; color: #131416; }
+.sm-level-mark small { top: calc(100% + 3px); font-size: calc(10px * var(--fs-scale)); color: var(--c-sub); }
+/* 0.7 글은 눈금 왼쪽으로, 0.9 글은 오른쪽으로 — 두 눈금이 가까워도 겹치지 않는다 */
+.sm-level-mark--lo b, .sm-level-mark--lo small { right: 4px; }
+.sm-level-mark--hi b, .sm-level-mark--hi small { left: 4px; }
+.sm-hero--fill .sm-level-mark b, .sm-hero--fill .sm-level-mark small { color: #fff; }
+
 /* ── 값 카드 ────────────────────────────────────────────────────────── */
 .sm-gauge + .sm-gauge { margin-top: 10px; }
 .sm-gauge-name { margin: 0 0 6px; font-size: var(--fs-2xs); color: var(--c-sub); }
