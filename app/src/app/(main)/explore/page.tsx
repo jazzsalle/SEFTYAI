@@ -490,6 +490,8 @@ function Explore() {
   /** 질문 모음 「지역 질문」 하나 — 재난상황 조건 없이 질문 문장 그대로(기준지역만 따라간다 — {지역} 자리, 개발서버 askLibrary · FUN-UFR-301007). 출처 QUICK(개발서버 askLibrary — 전 LIBRARY) */
   const askLib = (q: LibraryQuestion) =>
     ask({ question: fillText(q, regionName), source: "QUICK", libraryId: q.id, quickQueryId: q.quickQueryId ?? null, warnings: null }, undefined, false, true).catch(toastErr);
+  /** 질문 모음 「추천 질문」 하나 — T3Q-03 이 기준지역에 맞춰 준 글 그대로(출처 SUGGEST). 재난상황 조건은 싣지 않는다(지역 질문과 같음) */
+  const askSuggest = (text: string) => ask({ question: text, source: "SUGGEST", warnings: null }, undefined, false, true).catch(toastErr);
   /** 브리핑 항목 하나 질의 (시작 화면 타일 · 질의 줄 메뉴 · AI 모드 타일) — q 는 질의문 원형. 개발서버처럼 질의문 그대로(출처 BRIEFING) */
   const askBrief = (q: string) =>
     ask({ question: q.replaceAll("{지역}", regionName), source: "BRIEFING", warnings: s.aimOn ? liveWarnings() : null, ...showPin(q, 0) }, undefined, true).catch(toastErr);
@@ -916,6 +918,7 @@ function Explore() {
             onClose={() => setLibOpen(false)}
             onAsk={(q) => { setLibOpen(false); askLib(q); }}
             onAskDemo={(d) => { setLibOpen(false); askDemo(d); }}
+            onAskSuggest={(t) => { setLibOpen(false); askSuggest(t); }}
           />
         )}
         <AutoDemoBar demo={autoDemo}><AimPrep /></AutoDemoBar>

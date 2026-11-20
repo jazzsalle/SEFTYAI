@@ -3,18 +3,36 @@ import "./qlib.css";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { api } from "@/lib/api";
 import { demoAsk, dayItemsFor, fillText, libraryFor, type DayItem, type DemoItem, type LibraryQuestion, type Stage } from "@/lib/library";
-import { baseDayRegion, baseQuestionPilot } from "@/lib/baseRegion";
+import { baseDayRegion, baseKey, baseQuestionPilot } from "@/lib/baseRegion";
 import { useSession } from "@/lib/session";
 
 /**
- * 질문 모음 (화면 오른쪽 서랍) — 개발서버 QuestionLibrary 그대로. 두 갈피:
+ * 질문 모음 (화면 오른쪽 서랍) — 개발서버 QuestionLibrary 의 두 갈피(①②)에 우리가 ③을 더했다:
  * ① 지역 질문 — 업무단계별 평소 질문. 하나를 누르면 그 질문만 바로 묻는다(UFR-006-001-11). 글·순서는 개발서버 questionLibrary 그대로(R51)
  * ② 한눈 요약 질의 — lib/library DAY_ITEMS. 누르면 질문 글만 묻는다(가정 조건·받아 둔 답을 쓰지 않음 — UFR-006-001-11 I열). 받아 두기·다시 받기·지우기는 그대로(자동 시연·브리핑 시연이 쓴다)
+ * ③ 추천 질문 — T3Q-03(/api/t3q/suggested). 기준지역 코드를 넘겨 T3Q 가 시·도 이름으로 맞춘 질문을 받은 그대로, 받은 묶음 차례로(v0.4.9 · 11/20). 누르면 그 글만 묻는다(출처 SUGGEST).
+ *    화면 설계: 디자인 캔버스 ④ 「지역 맞춤 추천 질문·후속질문」
  * 재난상황 조건은 싣지 않는다(explore askLib·askDemo — 기준지역만). 서랍은 뒤 화면을 덮지 않아 바깥 누르기로 닫지 않고 Esc·✕ 로 닫는다.
  * 열 때마다 「지역 질문」 갈피로 연다(개발서버 useState('lib')). 받아 둔 답(sa_demo_pins)은 계정과 상관없이 하나
  */
 const STAGES: Stage[] = ["평시", "특보", "비상", "복구"];
-type Tab = "lib" | "day";
+type Tab = "lib" | "day" | "sug";
+/** T3Q-03 추천 질문 한 건 — 글·묶음 이름만 쓴다 */
+export type SuggestItem = { question_id: string; group_label: string; text: string };
+type SugState = { key: string; items: SuggestItem[] | null; error: string | null };
+
+/** 받은 차례 그대로 묶음 이름별로 모은다(글이 빈 것은 뺀다) */
+export function suggestGroups(items: SuggestItem[]): { label: string; items: SuggestItem[] }[] {
+  const out: { label: string; items: SuggestItem[] }[] = [];
+  for (const q of items) {
+    if (!q || typeof q.text !== "string" || !q.text.trim()) continue;
+    const label = typeof q.group_label === "string" ? q.group_label : "";
+    const g = out.find((x) => x.label === label);
+    if (g) g.items.push(q);
+    else out.push({ label, items: [q] });
+  }
+  return out;
+}
 type Pin = { at: string | null; jobId: string | null; pending: { id: string; state: string } | null };
 const RUNNING = ["QUEUED", "SUBMITTED", "RUNNING"];
 /** 받아 둔 답 목록을 다시 읽는 간격 — 한 건이 40초~2분이라 끝나는 때를 알 길이 이것뿐 */
@@ -30,7 +48,7 @@ function clock(iso: string): string {
   return `${p(at.getMonth() + 1)}.${p(at.getDate())} ${p(at.getHours())}:${p(at.getMinutes())}`;
 }
 
-export default function LibraryDrawer({ regionName, busy = false, onClose, onAsk, onAskDemo }: {
+export default function LibraryDrawer({ regionName, busy = false, onClose, onAsk, onAskDemo, onAskSuggest }: {
   regionName: string;
   /** 질문을 더 받을 수 없다(개별 질문 넷이 다 돌거나 브리핑 세트가 도는 중 — 개발서버 QuestionLibrary busy · R57). 보내는 단추를 막는다(받아 두기는 그대로) */
   busy?: boolean;
@@ -38,6 +56,8 @@ export default function LibraryDrawer({ regionName, busy = false, onClose, onAsk
   onAsk: (q: LibraryQuestion) => void;
   /** 한눈 요약 질의 한 건 — 질문 글만 조건 없이 보낸다(정의서 UFR-006-001-11) */
   onAskDemo: (d: DemoItem) => void;
+  /** 추천 질문 한 건 — T3Q 가 준 글 그대로 보낸다 */
+  onAskSuggest?: (text: string) => void;
 }) {
   const s = useSession();
   const [tab, setTab] = useState<Tab>("lib");
@@ -84,6 +104,22 @@ export default function LibraryDrawer({ regionName, busy = false, onClose, onAsk
     const t = setInterval(() => void load(), PIN_POLL_MS);
     return () => clearInterval(t);
   }, [tab, load]);
+
+  // 추천 질문 — 갈피를 열었을 때, 기준지역이 바뀌었을 때만 받는다. 지역 코드는 화면 값 그대로(시·도로 맞추는 것은 T3Q)
+  const sugKey = baseKey(s.cond.base);
+  const sugName = s.cond.base?.sido.name ?? "전국";
+  const [sug, setSug] = useState<SugState | null>(null);
+  useEffect(() => {
+    if (tab !== "sug") return;
+    let off = false;
+    api<{ envelope?: { result?: { items?: SuggestItem[] } } }>(`/api/t3q/suggested${sugKey ? `?region=${sugKey}` : ""}`).then(
+      (r) => { if (!off) setSug({ key: sugKey, items: Array.isArray(r.envelope?.result?.items) ? r.envelope.result.items : [], error: null }); },
+      (e: unknown) => { if (!off) setSug({ key: sugKey, items: null, error: (e as Error).message }); },
+    );
+    return () => { off = true; };
+  }, [tab, sugKey]);
+  const sugNow = sug && sug.key === sugKey ? sug : null;
+  const sugList = useMemo(() => suggestGroups(sugNow?.items ?? []), [sugNow]);
 
   /** 그 항목의 받아 둘 자리 — 목록을 못 읽었으면 null(「저장 자리 없음」). 아직 한 번도 받지 않은 항목은 빈 자리 */
   const pinOf = (id: string): Pin | null => (pins === null ? null : pins[id] ?? { at: null, jobId: null, pending: null });
@@ -138,11 +174,13 @@ export default function LibraryDrawer({ regionName, busy = false, onClose, onAsk
       <div className="qlib-tabs" role="tablist" aria-label="질문 갈래">
         <button type="button" role="tab" aria-selected={tab === "lib"} className={tab === "lib" ? "is-on" : undefined} onClick={() => setTab("lib")}>지역 질문</button>
         <button type="button" role="tab" aria-selected={tab === "day"} className={tab === "day" ? "is-on" : undefined} onClick={() => setTab("day")}>한눈 요약 질의</button>
+        {onAskSuggest && <button type="button" role="tab" aria-selected={tab === "sug"} className={tab === "sug" ? "is-on" : undefined} onClick={() => setTab("sug")}>추천 질문</button>}
       </div>
 
       <p className="qlib-note">
         {tab === "lib" && <>{regionName} 기준으로 보냅니다. 질문을 하나 누르면 그 질문만 바로 묻습니다.</>}
         {tab === "day" && <>{regionName} 담당자의 하루를 장면 차례로 놓은 질문입니다. 질문 글만 보내며, 입력창의 재난상황 조건은 싣지도 바꾸지도 않습니다.</>}
+        {tab === "sug" && <>{sugName} 기준으로 받은 추천 질문입니다.{sugKey ? " 지역 이름은 시·도 단위로 맞춰 옵니다." : ""} 질문을 하나 누르면 그 질문만 바로 묻습니다.</>}
       </p>
 
       {tab === "day" && (
@@ -199,6 +237,34 @@ export default function LibraryDrawer({ regionName, busy = false, onClose, onAsk
           </div>
         );
       })()}
+
+      {tab === "sug" && (
+        <div className="qlib-scroll">
+          {!sugNow ? (
+            <p className="qlib-empty">추천 질문을 불러오는 중입니다…</p>
+          ) : sugNow.error ? (
+            <p className="qlib-empty">{sugNow.error}</p>
+          ) : sugList.length === 0 ? (
+            <p className="qlib-empty">이 기준지역으로 받은 추천 질문이 없습니다.</p>
+          ) : (
+            sugList.map((g) => (
+              <section key={g.label} className="qlib-sec" aria-label={g.label}>
+                <h3 className="qlib-stage">{g.label}</h3>
+                {g.items.map((q) => (
+                  <div key={q.question_id} className="qlib-row">
+                    <button type="button" className="qlib-q" disabled={busy} onClick={() => onAskSuggest?.(q.text.trim())}>{q.text.trim()}</button>
+                  </div>
+                ))}
+              </section>
+            ))
+          )}
+        </div>
+      )}
+      {tab === "sug" && sugKey && sugList.length > 0 && (
+        <div className="qlib-foot">
+          <span className="qlib-count">지역에 따라 해당 자료가 없으면 「지정된 곳이 없다」는 답이 올 수 있습니다.</span>
+        </div>
+      )}
 
       {tab === "lib" && (
         <div className="qlib-scroll">
