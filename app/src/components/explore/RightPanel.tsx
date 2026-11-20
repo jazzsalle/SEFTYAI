@@ -14,6 +14,7 @@ import { useAdminNames } from "../map/useAdminNames";
 import SopPane from "../sop/SopPane";
 import { DocPane } from "../sop/DocPane";
 import DetailPane from "./DetailPane";
+import EvidencePane from "./EvidencePane";
 import PosterSummary, { type SummarySource } from "../summary/PosterSummary";
 import MapSummary from "../summary/MapSummary";
 
@@ -96,6 +97,9 @@ export default function RightPanel(p: Props) {
           {tab.kind === "summary" && <PosterSummary source={p.summary ?? null} onEntity={onEntity} />}
           {tab.kind === "sop" && <SopPane focus={p.sopFocus} />}
           {tab.kind === "doc" && tab.citation && <DocPane c={tab.citation} />}
+          {tab.kind === "evidence" && tab.evidence && (
+            <EvidencePane jobId={tab.evidence.jobId} row={tab.evidence.row} rows={tab.evidence.rows} view={tab.evidence.view} onPick={(r) => x.openEvidence(tab.evidence!.jobId, r, tab.evidence!.rows)} />
+          )}
           {tab.kind === "detail" && tab.detail && <DetailPane apiId={tab.detail.api} id={tab.detail.id} label={tab.detail.label} ctx={tab.detail.ctx} hasGeometry={geometryKnown(p, tab.detail.ctx)} />}
         </div>
       )}

@@ -1,4 +1,5 @@
 "use client";
+import { MaskedText } from "../answer/PiiMask";
 import { useState, type ReactNode } from "react";
 import { type T3qEnvelope, useT3qData } from "@/lib/t3qData";
 import { LIFE_KO, won } from "../summary/SimilarSummary";
@@ -370,7 +371,7 @@ function TimelineView({ items, total, note }: { items: TlItem[]; total: number |
           <li key={n}>
             <span className="evp-tl-at">{i.occurred_at.replace("T", " ").slice(0, 16)}</span>
             <span className="evp-tl-cat">{i.category}</span>
-            <p className="evp-tl-desc">{i.description}</p>
+            <p className="evp-tl-desc"><MaskedText text={i.description} /></p>
             {i.agency && <span className="evp-tl-agency">{i.agency}</span>}
           </li>
         ))}

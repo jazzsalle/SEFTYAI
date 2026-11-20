@@ -54,6 +54,25 @@ export async function t3q<T = unknown>(method: "GET" | "POST" | "DELETE", path: 
 }
 
 /**
+ * 이미지 받기(근거 쪽 이미지·문서 속 그림 — 설명서 6.10절 · v0.4.8 figures). 같은 인증으로 받아 그대로 넘긴다.
+ * 이미지가 아니면(오류 봉투 403·404·410) 본문을 JSON 으로 읽어 code 를 돌려준다.
+ */
+export async function t3qImage(path: string, timeoutMs = 20000): Promise<{ http: number; type: string | null; bytes: ArrayBuffer | null; code: string | null }> {
+  const base = process.env.T3Q_BASE_URL?.replace(/\/$/, "");
+  const token = process.env.T3Q_CLIENT_TOKEN;
+  if (!base || !token) return { http: 0, type: null, bytes: null, code: null };
+  try {
+    const r = await fetch(base + path, { headers: { Authorization: `Bearer ${token}`, "X-Request-Id": newRequestId() }, signal: AbortSignal.timeout(timeoutMs), cache: "no-store" });
+    const type = r.headers.get("content-type");
+    if (r.status === 200 && type && /^image\/(png|jpeg|webp|gif)/i.test(type)) return { http: 200, type, bytes: await r.arrayBuffer(), code: null };
+    const j = (await r.json().catch(() => null)) as { warnings?: { code?: string }[]; detail?: unknown } | null;
+    return { http: r.status === 200 ? 502 : r.status, type: null, bytes: null, code: j?.warnings?.[0]?.code ?? null };
+  } catch {
+    return { http: 0, type: null, bytes: null, code: null };
+  }
+}
+
+/**
  * T3Q-01 스트리밍(v0.4 — response_mode STREAM, text/event-stream) — 응답 머리까지만 기다리고 본문은 부른 쪽이 읽는다.
  * 본문이 스트림이 아니면(오류 봉투·202) 읽어서 돌려준다. 닿지 못하면 http 0
  */

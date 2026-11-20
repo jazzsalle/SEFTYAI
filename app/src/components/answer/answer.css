@@ -94,13 +94,57 @@
 .md .md-table tbody tr:nth-child(even) { background: #fafbfc; }
 .md .md-table th.num, .md .md-table td.num { text-align: right; font-variant-numeric: tabular-nums; }
 
-/* 근거 문서 줄(개발서버 answer-tools.css .ans-docs — T3Q v0.4.5 doc_refs) */
-.ans-docs { display: flex; align-items: flex-start; gap: 12px; margin-top: 16px; padding: 12px 16px; border: 1px solid #cdd1d5; border-radius: 8px; background: #f4f5f6; }
-.ans-docs-h { flex: none; padding-top: 5px; font-size: calc(15px * var(--fs-scale)); color: #464c53; }
-.ans-docs-list { display: flex; flex-wrap: wrap; gap: 6px 8px; margin: 0; padding: 0; list-style: none; }
-.ans-docs-list li { display: inline-flex; align-items: center; gap: 6px; }
+/* ── 근거 문서 · 문서 속 그림 · 개인정보 가림 — 디자인 캔버스 「근거 문서·문서 그림·개인정보 가림 화면 설계」 2026-11-20 ── */
+/* 답 글 속 근거 표지 [문서 p.N](#doc:dN) */
+.doc-cite { display: inline-flex; align-items: center; gap: 4px; margin: 0 2px; padding: 0 8px; min-height: 24px; border-radius: 6px; border: 1px solid #c9dafc; background: #ecf2fe; color: #0b50d0; font: inherit; font-size: 0.9em; font-weight: 500; line-height: 1.5; cursor: pointer; vertical-align: baseline; text-align: left; }
+.doc-cite::before { content: ""; flex: none; width: 11px; height: 12px; background: currentColor; -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 1h5l2 2v8h-7z' fill='none' stroke='black'/%3E%3C/svg%3E") center / contain no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 1h5l2 2v8h-7z' fill='none' stroke='black'/%3E%3C/svg%3E") center / contain no-repeat; }
+.doc-cite:hover, .doc-cite.on { background: #256ef4; border-color: #256ef4; color: #fff; }
+.doc-cite:focus-visible, .ans-docrow:focus-visible, .ans-fig:focus-visible { outline: 2px solid #256ef4; outline-offset: 2px; }
+
+/* 답 아래 「근거 문서」 */
+.ans-docs { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; padding-top: 14px; border-top: 1px solid #e6e8ea; }
+.ans-docs-h, .ans-figs-h { margin: 0; display: flex; align-items: baseline; gap: 8px; }
+.ans-docs-h b, .ans-figs-h b { font-size: calc(14px * var(--fs-scale)); color: #1e2124; }
+.ans-docs-h span, .ans-figs-h span { font-size: calc(13px * var(--fs-scale)); color: #464c53; }
+.ans-docs-list { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.ans-docrow { display: grid; grid-template-columns: 28px minmax(0, 1fr) auto auto; gap: 12px; align-items: center; width: 100%; min-height: 48px; padding: 6px 12px; border: 1px solid #e6e8ea; border-radius: 8px; background: #fff; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.ans-docrow:hover { border-color: #c9dafc; background: #f7faff; }
+.ans-docrow.on { border-color: #256ef4; box-shadow: inset 3px 0 0 #256ef4; }
+.ans-docrow-n { display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: #ecf2fe; color: #0b50d0; font-size: calc(12px * var(--fs-scale)); font-weight: 700; }
+.ans-docrow.on .ans-docrow-n { background: #256ef4; color: #fff; }
+.ans-docrow-t { min-width: 0; display: flex; flex-direction: column; }
+.ans-docrow-t b { font-size: calc(14px * var(--fs-scale)); font-weight: 500; overflow-wrap: anywhere; }
+.ans-docrow-t em { font-style: normal; color: #0b50d0; }
+.ans-docrow-t small { font-size: calc(12px * var(--fs-scale)); color: #464c53; }
+.ans-docrow-fig { font-size: calc(12px * var(--fs-scale)); padding: 1px 8px; border-radius: 999px; background: #ecf2fe; color: #0b50d0; white-space: nowrap; }
+.ans-docrow-go { font-size: calc(12px * var(--fs-scale)); color: #6d7882; white-space: nowrap; }
+.ans-docrow.on .ans-docrow-go { color: #0b50d0; }
+/* 번호 없는 옛 꼴(새 창 링크) — 개발서버 answer-tools.css .ans-docs */
+.ans-docs-old { display: inline-flex; align-items: center; gap: 6px; }
 .ans-doc { display: inline-flex; align-items: center; gap: 4px; min-height: 32px; padding: 0 10px; border: 1px solid #b1b8be; border-radius: 6px; background: #fff; color: #1e2124; font-size: calc(14px * var(--fs-scale)); text-decoration: none; }
 a.ans-doc:hover { border-color: #256ef4; color: #256ef4; background: #ecf2fe; }
 .ans-doc--off { color: #6d7882; }
 .ans-doc-t { max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ans-doc-src { font-size: calc(13px * var(--fs-scale)); color: #6d7882; }
+
+/* 답 아래 「문서 속 그림」 */
+.ans-figs { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
+.ans-figs-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; margin: 0; padding: 0; list-style: none; }
+.ans-fig { display: flex; flex-direction: column; width: 100%; padding: 0; border: 1px solid #e6e8ea; border-radius: 10px; background: #fff; color: inherit; font: inherit; text-align: left; overflow: hidden; cursor: pointer; }
+.ans-fig:hover { border-color: #c9dafc; }
+.ans-fig.on { border-color: #256ef4; box-shadow: 0 0 0 1px #256ef4; }
+.ans-fig-img { position: relative; display: block; height: 132px; background: #f4f5f6; }
+.ans-fig-img img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.ans-fig-img .fig-kind { position: absolute; left: 8px; top: 8px; }
+.ans-fig-t { display: flex; flex-direction: column; padding: 8px 10px; }
+.ans-fig-t b { font-size: calc(13px * var(--fs-scale)); font-weight: 500; line-height: 1.4; }
+.ans-fig-t small { font-size: calc(12px * var(--fs-scale)); color: #464c53; }
+
+/* 개인정보 가림 — T3Q 가 *** 로 가려 보낸 자리. 답 글·사건 타임라인·근거 쪽 어디서나 같은 표시 */
+.pii-mask { display: inline-flex; align-items: center; gap: 3px; margin: 0 2px; padding: 0 7px; border-radius: 4px; background: #e6e8ea; color: #464c53; font-size: 0.82em; font-weight: 500; line-height: 1.6; white-space: nowrap; vertical-align: 1px; }
+.pii-mask::before { content: ""; width: 10px; height: 11px; background: currentColor; -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M3 5.5V4a3 3 0 0 1 6 0v1.5M2.2 5.5h7.6v5H2.2z' fill='none' stroke='black' stroke-width='1.2'/%3E%3C/svg%3E") center / contain no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M3 5.5V4a3 3 0 0 1 6 0v1.5M2.2 5.5h7.6v5H2.2z' fill='none' stroke='black' stroke-width='1.2'/%3E%3C/svg%3E") center / contain no-repeat; }
+.pii-note { display: flex; align-items: flex-start; gap: 10px; margin: 12px 0 4px; padding: 10px 14px; border: 1px solid #e6e8ea; border-radius: 8px; background: #f4f5f6; color: #464c53; }
+.pii-note svg { flex: none; margin-top: 3px; }
+.pii-note div { display: flex; flex-direction: column; gap: 2px; }
+.pii-note b { font-size: calc(14px * var(--fs-scale)); color: #1e2124; }
+.pii-note span { font-size: calc(13px * var(--fs-scale)); }

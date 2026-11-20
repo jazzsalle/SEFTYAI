@@ -6,6 +6,7 @@ import remarkGfm from "remark-gfm";
 import remarkCjkFriendly from "remark-cjk-friendly/parseOnly";
 import type { T3qRef } from "@/lib/jobTypes";
 import { displayAnswer, isRefId, mappable, sameThing } from "@/lib/answerText";
+import { MASK_CHAR, MASK_LABEL, MASK_TIP, markMasks } from "@/lib/piiMask";
 import "./answer.css";
 
 /**
@@ -116,7 +117,31 @@ function annotateTable(table: HNode, no: number) {
   p.dataBodyRows = body.length;
 }
 
-const REHYPE_PLUGINS = [rehypeBrOnly, rehypeAnswerTables];
+/**
+ * 가림 표지(lib/piiMask MASK_CHAR — T3Q 가 `***` 로 가려 보낸 자리)를 「가림」 표시로 바꾼다. 글·표·목록 어디에 있어도 같다.
+ * 표시는 글자(가림)와 자물쇠 그림(CSS)뿐 — 가려진 값은 우리에게도 오지 않는다.
+ */
+export function rehypeMask() {
+  const visit = (p: HNode) => {
+    if (!p.children) return;
+    const out: HNode[] = [];
+    for (const c of p.children) {
+      if (c.type === "text" && typeof c.value === "string" && c.value.includes(MASK_CHAR)) {
+        c.value.split(MASK_CHAR).forEach((part, i) => {
+          if (i > 0) out.push({ type: "element", tagName: "span", properties: { className: ["pii-mask"], title: MASK_TIP }, children: [{ type: "text", value: MASK_LABEL }] });
+          if (part) out.push({ type: "text", value: part });
+        });
+      } else {
+        visit(c);
+        out.push(c);
+      }
+    }
+    p.children = out;
+  };
+  return (tree: HNode) => visit(tree);
+}
+
+const REHYPE_PLUGINS = [rehypeBrOnly, rehypeAnswerTables, rehypeMask];
 /** 각주(답에 오면) — 화면 읽기 프로그램 문구도 한국어로 */
 const REMARK_REHYPE = { footnoteLabel: "각주", footnoteBackLabel: (i: number) => `본문 ${i + 1}번 자리로` };
 
@@ -208,6 +233,10 @@ interface MdCtxValue {
   activeRef: string | null;
   onRef: (r: T3qRef) => void;
   text: string;
+  /** 이 답의 근거 번호들(doc_refs[].doc) — 답 글의 `#doc:dN` 을 근거 표지 단추로 */
+  docs: ReadonlySet<string>;
+  activeDoc: string | null;
+  onDoc: ((doc: string) => void) | null;
 }
 const MdCtx = createContext<MdCtxValue | null>(null);
 
@@ -227,6 +256,17 @@ function MdLink({ node, href, children }: ComponentProps<"a"> & ExtraProps) {
     return (
       <button type="button" className={`ref-link${on ? " on" : ""}`} data-ref={r.ref} aria-pressed={on} title={refTitle(r)} onClick={() => c?.onRef(r)}>
         {asId ? (r.display_name ?? children) : children}
+      </button>
+    );
+  }
+  // 근거 표지 [문서 p.N](#doc:dN) — doc_refs 에 짝이 있을 때만 단추(누르면 우측 「근거 문서」에 그 쪽). 없으면 글자(T3Q 설명서 6.10절)
+  const d = href?.match(/^#doc:(d[0-9]{1,4})$/);
+  if (d) {
+    if (!c?.onDoc || !c.docs.has(d[1])) return <>{children}</>;
+    const on = c.activeDoc === d[1];
+    return (
+      <button type="button" className={`doc-cite${on ? " on" : ""}`} data-doc={d[1]} aria-pressed={on} title="근거 문서의 이 쪽 보기" onClick={() => c.onDoc?.(d[1])}>
+        {children}
       </button>
     );
   }
@@ -277,17 +317,35 @@ function MdTable({ node, children }: ComponentProps<"table"> & ExtraProps) {
 const COMPONENTS: Components = { a: MdLink, img: MdImg, li: MdLi, table: MdTable };
 const keepUrl = (u: string) => u;
 
-export function AnswerMarkdown({ text, refs, onRef, activeRef }: { text: string; refs: T3qRef[]; onRef?: (ref: T3qRef) => void; activeRef?: string | null }) {
+const NO_DOCS: readonly string[] = [];
+
+export function AnswerMarkdown({ text, refs, onRef, activeRef, docs = NO_DOCS, onDoc, activeDoc }: {
+  text: string; refs: T3qRef[]; onRef?: (ref: T3qRef) => void; activeRef?: string | null;
+  /** 근거 번호들 · 누르면 부를 것 · 지금 열려 있는 근거 */
+  docs?: readonly string[]; onDoc?: (doc: string) => void; activeDoc?: string | null;
+}) {
   // 누를 때 부를 함수는 최신 것으로(부모가 다시 그려져도 답 글을 다시 그리지 않게)
   const onRefNow = useRef(onRef);
   useEffect(() => {
     onRefNow.current = onRef;
   });
   const fire = useCallback((r: T3qRef) => onRefNow.current?.(r), []);
+  const onDocNow = useRef(onDoc);
+  useEffect(() => {
+    onDocNow.current = onDoc;
+  });
+  const fireDoc = useCallback((d: string) => onDocNow.current?.(d), []);
   const byRef = useMemo(() => new Map(refs.map((r) => [r.ref, r])), [refs]);
-  // 화면 처리를 거친 글 — 목록 표지(MdLi)도 이 글의 자리로 읽는다
-  const shown = useMemo(() => displayAnswer(text), [text]);
-  const ctx = useMemo<MdCtxValue>(() => ({ byRef, activeRef: activeRef ?? null, onRef: fire, text: shown }), [byRef, activeRef, fire, shown]);
+  const docKey = docs.join(",");
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const docSet = useMemo(() => new Set(docs), [docKey]);
+  // 화면 처리를 거친 글 — 목록 표지(MdLi)도 이 글의 자리로 읽는다. `***`(T3Q 가 가린 자리)는 가림 표지로(lib/piiMask)
+  const shown = useMemo(() => markMasks(displayAnswer(text)), [text]);
+  const ctx = useMemo<MdCtxValue>(
+    () => ({ byRef, activeRef: activeRef ?? null, onRef: fire, text: shown, docs: docSet, activeDoc: activeDoc ?? null, onDoc: onDoc ? fireDoc : null }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [byRef, activeRef, fire, shown, docSet, activeDoc, !!onDoc, fireDoc],
+  );
   const body = useMemo(
     () => (
       <ReactMarkdown

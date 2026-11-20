@@ -54,7 +54,7 @@ import { fieldKo } from "@/lib/labels";
 import type { MapFeature } from "@/components/map/MapView";
 import type OlMap from "ol/Map";
 
-const mockExplore = (): ExploreApi => ({ openCitation: vi.fn(), openDetail: vi.fn(), showOnMap: vi.fn(), openEntity: vi.fn(), selectOnMap: vi.fn(), showSummary: vi.fn(), selectedKey: null, retry: vi.fn() });
+const mockExplore = (): ExploreApi => ({ openCitation: vi.fn(), openDetail: vi.fn(), showOnMap: vi.fn(), openEntity: vi.fn(), selectOnMap: vi.fn(), showSummary: vi.fn(), selectedKey: null, openEvidence: vi.fn(), activeEvidence: null, retry: vi.fn() });
 
 beforeAll(() => {
   globalThis.ResizeObserver ??= class { observe() {} unobserve() {} disconnect() {} } as unknown as typeof ResizeObserver;

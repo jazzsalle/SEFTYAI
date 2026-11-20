@@ -431,6 +431,25 @@ export async function streamAbort(id: string) {
   await q(`update sa_agent_jobs set state = 'QUEUED', t3q_request_id = null, submitted_at = null, last_polled_at = null where id = $1 and state = 'SUBMITTED'`, [id]);
 }
 
+/**
+ * 근거 문서(doc_refs) 조회에 쓸 T3Q request_id — 그 답을 실제로 받은 작업의 것.
+ * 받아 둔 답의 사본(cached_from — 시연 고정 답·재사용)은 request_id 가 없어 원본 작업의 것을 쓴다.
+ * 내 작업(운영자는 모두)만, 그리고 그 답의 doc_refs 에 있는 doc(·figure)만 연다 — 주소를 손으로 바꿔 다른 쪽을 열 수 없게.
+ */
+export async function docRefTarget(acc: Account, id: string, doc: string, figure?: string): Promise<{ requestId: string } | { error: 404 | 409 }> {
+  const [job] = await q("select * from sa_agent_jobs where id = $1 and (account_id = $2 or $3)", [id, acc.id, acc.role === "운영자"]);
+  if (!job) return { error: 404 };
+  const refs = ((job.raw as { result?: { doc_refs?: { doc?: string; figures?: { figure?: string }[] }[] } } | null)?.result?.doc_refs ?? []);
+  const hit = Array.isArray(refs) ? refs.find((d) => d?.doc === doc) : undefined;
+  if (!hit || (figure !== undefined && !(hit.figures ?? []).some((f) => f?.figure === figure))) return { error: 404 };
+  let requestId = job.t3q_request_id;
+  if (!requestId && job.cached_from) {
+    const [src] = await q<{ t3q_request_id: string | null }>("select t3q_request_id from sa_agent_jobs where id = $1", [job.cached_from]);
+    requestId = src?.t3q_request_id ?? null;
+  }
+  return requestId ? { requestId } : { error: 409 };
+}
+
 /** 상태 조회 — 필요하면 T3Q 를 한 번 폴링 (lazy) */
 export async function getJob(acc: Account, id: string): Promise<Job | null> {
   const [job] = await q("select * from sa_agent_jobs where id = $1 and (account_id = $2 or $3)", [id, acc.id, acc.role === "운영자"]);

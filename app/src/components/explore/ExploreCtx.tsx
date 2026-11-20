@@ -2,8 +2,9 @@
 import { createContext, useContext } from "react";
 import type { Citation } from "@/lib/contract/agent";
 import type { RefLike } from "@/lib/mapRef";
+import type { DocRow } from "@/lib/docRefs";
 
-export type TabKind = "map" | "summary" | "sop" | "doc" | "detail";
+export type TabKind = "map" | "summary" | "sop" | "doc" | "detail" | "evidence";
 export interface PanelTab {
   key: string;
   kind: TabKind;
@@ -13,6 +14,8 @@ export interface PanelTab {
   citation?: Citation;
   /** T3Q Data API 상세 (T3Q-10·15·16·17 등) — ID 는 T3Q 가 준 값 그대로 */
   detail?: { api: string; id: string; label: string; ctx?: Record<string, unknown> | null };
+  /** 답의 근거 문서 쪽(T3Q 쪽 본문 API) — 탭은 하나, 다른 근거를 누르면 내용만 바뀐다 */
+  evidence?: { jobId: string; row: DocRow; rows: DocRow[]; view?: string };
 }
 
 export interface ExploreApi {
@@ -28,6 +31,10 @@ export interface ExploreApi {
   openEntity: (jobId: string, ref: RefLike) => void;
   /** 지도에서 대상을 누름 — 고른 표시만(지도 맞춤 없음). key = `${jobId}:${ref}` */
   selectOnMap: (key: string) => void;
+  /** 답의 근거 표지·「근거 문서」 줄·문서 속 그림을 누름 — 우측 「근거 문서」 탭에 그 쪽(view = 「figure:f1」 이면 그 그림부터) */
+  openEvidence: (jobId: string, row: DocRow, rows: DocRow[], view?: string) => void;
+  /** 지금 「근거 문서」 탭에 열려 있는 근거 */
+  activeEvidence: { jobId: string; doc: string } | null;
   /** 「한눈 요약」 탭에서 이 답을 크게(답 카드 [패널에서 크게 보기]) */
   showSummary: (jobId: string) => void;
   selectedKey: string | null;

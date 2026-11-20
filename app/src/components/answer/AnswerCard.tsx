@@ -10,6 +10,8 @@ import type { Advisory, WeatherResponse } from "@/lib/contract/agent";
 import type { RefLike } from "@/lib/mapRef";
 import { useExplore } from "../explore/ExploreCtx";
 import { AnswerMarkdown, mdPlainText } from "./Markdown";
+import { PrivacyNote } from "./PiiMask";
+import { docRows } from "@/lib/docRefs";
 import DocRefs from "./DocRefs";
 import AnswerFeedback from "./AnswerFeedback";
 import FollowUps from "./FollowUps";
@@ -249,6 +251,10 @@ function Card({ job, full, compact, noActions, brief }: CardProps) {
 
   const refsId = `refs-${job.id}`;
   const activeRef = x.selectedKey?.startsWith(job.id + ":") ? x.selectedKey.slice(job.id.length + 1) : null;
+  // 근거 문서(doc_refs) — 번호(doc)가 있는 것만 화면 안 「근거 문서」 패널로 연다
+  const docList = docRows(res?.doc_refs, answer).filter((r) => r.doc);
+  const docIds = docList.map((r) => r.doc as string);
+  const activeDoc = x.activeEvidence?.jobId === job.id ? x.activeEvidence.doc : null;
   const basis = basisTime(at ?? job.created_at);
   const onMap = refs.filter(mappable).length;
 
@@ -287,12 +293,25 @@ function Card({ job, full, compact, noActions, brief }: CardProps) {
       {/* 유사사례 답 — refs 가 없어 위 요약이 안 붙는다. 순위·1위 사건·답에 나온 수치(개발서버 SimilarSummary). 사건을 누르면 사건 상세 탭 */}
       {similarCtx && <SimilarSummary ctx={similarCtx} answer={answer} regionName={regionName} onEvent={(ev) => x.openDetail("T3Q-10", ev.id, ev.label, ev.ctx)} />}
 
+      {/* 개인정보 가림 안내 — T3Q 가 *** 로 가려 보낸 곳 수(없으면 그리지 않음) */}
+      <PrivacyNote text={answer} />
       <div ref={bodyRef} className={folded ? "answer-body is-folded" : "answer-body"}>
-        <AnswerMarkdown text={answer} refs={refs} activeRef={activeRef} onRef={(r) => x.openEntity(job.id, r)} />
+        <AnswerMarkdown
+          text={answer}
+          refs={refs}
+          activeRef={activeRef}
+          onRef={(r) => x.openEntity(job.id, r)}
+          docs={docIds}
+          activeDoc={activeDoc}
+          onDoc={(d) => {
+            const row = docList.find((r) => r.doc === d);
+            if (row) x.openEvidence(job.id, row, docList);
+          }}
+        />
       </div>
       {folded && <button type="button" className="ans-lnk" onClick={() => setFolded(false)}>전체 보기 ▼</button>}
       {/* 근거 문서(T3Q v0.4.5 doc_refs — 개발서버 DocRefs) — 문서 이름 · 쪽, 누르면 원문 미리보기 새 창. 비면 답 글 안 문서 링크로 */}
-      <DocRefs refs={res?.doc_refs} text={answer} />
+      <DocRefs refs={res?.doc_refs} text={answer} jobId={job.id} activeDoc={activeDoc} onOpen={(row, rows, view) => x.openEvidence(job.id, row, rows, view)} />
 
       <AnswerTargets id={refsId} rows={targets.rows} kinds={targets.kinds} kind={kind} onKind={setKind} onEntity={(r) => x.openEntity(job.id, r)} />
 

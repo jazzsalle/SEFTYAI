@@ -92,3 +92,10 @@
 - 행정경계 WMS 도 서버가 대신 받아 브라우저에 키가 남지 않는다(개발서버는 배경지도 타일만 대리) (`app/api/map/wms`, `lib/server/vworldTiles.ts`)
 - 대상 상세 [지도에서 보기]가 지도 점으로 돌아간다(지도에서 연 경우) — 패널 탭을 지도로 바꾸고 그 점을 고른다 (`components/explore/EntityDetail.tsx`)
 - 개발서버 반영 시 참고: 개발서버 BriefingPanel summarize 는 실패 항목 이름이 비면 「 은(는)」 앞이 빈다 — 우리는 「n번 항목」으로 메운다 (`components/explore/BriefBoard.tsx` briefSummary)
+
+## 15. 사용자 지시로 더한 기능(2026-11-20) — 개발서버에는 아직 없음
+- **근거 문서 화면 안에서 보기**(UFR-005-001-01) — 답 글의 근거 표지 `[문서 p.N](#doc:dN)` 와 답 아래 「근거 문서」 줄을 누르면 우측 「근거 문서」 탭에 그 쪽이 열린다: 인용 부분(passage) → 쪽 전체(markdown) → 원본 쪽(이미지), 낱말 칠하기(띄어쓰기 무시), PDF 쪽·인쇄 쪽·공개 등급. T3Q 쪽 본문 API(설명서 6.10절)는 우리 서버가 대신 받는다(`app/api/agent/jobs/[id]/doc-refs/…`, `lib/server/jobs.ts` docRefTarget — 그 답의 doc 만). 화면 `components/explore/EvidencePane.tsx`, `components/answer/DocRefs.tsx`. 개발서버 DocRefs 는 http 주소만 새 창 링크로 달아 지금 규격(상대 주소)에서는 링크가 걸리지 않는다
+- **문서 속 그림 확인** — `doc_refs[].figures[]`(T3Q v0.4.8, 위치도·차트·사진 등)를 답 아래 「문서 속 그림」 줄과 패널 「그림」 탭으로 보인다. 종류·제목은 받은 그대로
+- **개인정보 가림 표시** — T3Q 가 `***` 로 가려 보낸 자리를 「가림」 표시 하나로(답 글·사건 타임라인·근거 쪽), 답 위에 「개인정보 N곳을 가리고 보여 드립니다」. 가린 쪽은 원본 이미지·그림이 오지 않는 까닭을 글로 알린다(`lib/piiMask.ts`, `components/answer/PiiMask.tsx`)
+- **한눈 요약의 물 높이 그림** — 침수심(T3Q-30 avg_flood_depth_raw)·지하차도 통제 수심·대응수위(0.7·0.9)를 구분이 달라도 같은 물색 막대·눈금으로(`components/summary/Blocks.tsx` WaterBars·LevelMarks)
+- 화면 설계는 클로드 디자인 캔버스 「근거 문서·문서 그림·개인정보 가림 화면 설계」(2026-11-20)에 먼저 그리고 적용했다. T3Q 실측(2026-11-20): 근거 질의는 agent 생략(auto)으로 22~86초, 쪽 본문 0.2초, 쪽 이미지 JPEG 약 120KB

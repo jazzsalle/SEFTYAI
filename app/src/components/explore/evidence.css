@@ -1,0 +1,57 @@
+/* 우측 패널 「근거 문서」(EvidencePane) — 디자인 캔버스 「근거 문서·문서 그림·개인정보 가림 화면 설계」 2026-11-20 */
+.evp { display: flex; flex-direction: column; gap: 12px; }
+.evp-head { display: flex; flex-direction: column; gap: 6px; }
+.evp-crumb { font-size: calc(12px * var(--fs-scale)); color: #464c53; }
+.evp-title { margin: 0; font-size: calc(19px * var(--fs-scale)); line-height: 1.35; color: #131416; }
+.evp-badges { display: flex; flex-wrap: wrap; gap: 6px; }
+.evp-badge { font-size: calc(12px * var(--fs-scale)); padding: 2px 8px; border-radius: 6px; background: #f4f5f6; border: 1px solid #e6e8ea; color: #464c53; }
+.evp-badge--lock { background: #fff3db; border-color: transparent; color: #8a5c00; font-weight: 700; }
+.evp-badge--mask { background: #e6e8ea; border-color: transparent; color: #1e2124; font-weight: 700; }
+
+.evp-nav { display: flex; align-items: center; gap: 6px; }
+.evp-nav-b { width: 28px; height: 28px; border-radius: 50%; border: 0; background: #ecf2fe; color: #0b50d0; font-size: calc(12px * var(--fs-scale)); font-weight: 700; cursor: pointer; }
+.evp-nav-b.on { background: #256ef4; color: #fff; }
+.evp-nav-t { margin-left: 4px; font-size: calc(12px * var(--fs-scale)); color: #464c53; }
+
+.evp-pageno { display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: center; font-size: calc(13px * var(--fs-scale)); padding: 8px 12px; border-radius: 8px; background: #f4f5f6; }
+.evp-pageno .mute { color: #464c53; }
+.evp-words { margin-left: auto; color: #464c53; display: inline-flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+.evp mark { background: #ffe79a; color: #3a2a00; padding: 0 3px; border-radius: 3px; }
+.evp-note { margin: 0; font-size: calc(13px * var(--fs-scale)); padding: 8px 12px; border-radius: 8px; background: #ecf2fe; color: #0b50d0; }
+
+.evp-tabs { display: flex; gap: 4px; padding: 3px; border-radius: 8px; background: #f4f5f6; width: fit-content; max-width: 100%; }
+.evp-tab { display: inline-flex; align-items: center; gap: 5px; min-height: 34px; padding: 0 14px; border: 0; border-radius: 6px; background: transparent; color: #464c53; font-size: calc(13.5px * var(--fs-scale)); cursor: pointer; white-space: nowrap; }
+.evp-tab.on { background: #fff; color: #0b50d0; font-weight: 700; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08); }
+.evp-tab.is-locked { color: #6d7882; }
+.evp-tab i { font-style: normal; font-size: calc(12px * var(--fs-scale)); padding: 0 6px; border-radius: 999px; background: #ecf2fe; color: #0b50d0; }
+
+.evp-body { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.evp-md { font-size: calc(14px * var(--fs-scale)); border: 1px solid #e6e8ea; border-radius: 8px; padding: 12px 14px; overflow-x: auto; }
+.evp-md > :first-child { margin-top: 0; }
+.evp-md > :last-child { margin-bottom: 0; }
+.evp-body--page .evp-md { max-height: 62vh; overflow-y: auto; }
+.evp-foot { margin: 0; font-size: calc(12px * var(--fs-scale)); color: #464c53; }
+.evp-img { display: block; width: 100%; border: 1px solid #cdd1d5; border-radius: 8px; background: #fff; }
+
+.evp-withheld { display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px; border-radius: 8px; background: #fff3db; color: #6b4700; }
+.evp-withheld svg { flex: none; width: 18px; height: 18px; margin-top: 2px; }
+.evp-withheld div { display: flex; flex-direction: column; gap: 2px; }
+.evp-withheld b { font-size: calc(14px * var(--fs-scale)); }
+.evp-withheld span { font-size: calc(13px * var(--fs-scale)); }
+
+.evp-fig { position: relative; }
+.evp-fig .fig-kind { position: absolute; left: 12px; top: 12px; }
+.evp-fig-cap { margin: 0; display: flex; flex-direction: column; gap: 4px; }
+.evp-fig-cap b { font-size: calc(14px * var(--fs-scale)); color: #131416; }
+.evp-fig-cap span { font-size: calc(13px * var(--fs-scale)); color: #464c53; }
+.evp-fig-foot { display: flex; align-items: center; gap: 8px; }
+.evp-fig-pager { display: inline-flex; align-items: center; gap: 8px; font-size: calc(13px * var(--fs-scale)); color: #464c53; }
+
+.evp-lock { margin: 4px 0 0; display: flex; align-items: center; gap: 8px; padding-top: 10px; border-top: 1px solid #e6e8ea; font-size: calc(12px * var(--fs-scale)); color: #464c53; }
+
+/* 그림 종류 표지 — 답 아래 그림 줄과 패널이 함께 쓴다 */
+.fig-kind { font-size: calc(11px * var(--fs-scale)); font-weight: 700; padding: 1px 8px; border-radius: 999px; background: #fff; border: 1px solid #cdd1d5; color: #464c53; }
+.fig-kind--map { color: #1a6a2c; border-color: #b8dcbf; }
+.fig-kind--chart { color: #0b50d0; border-color: #c9dafc; }
+.fig-kind--diagram { color: #4f32a8; border-color: #cfc2f3; }
+.fig-kind--photo { color: #8a5c00; border-color: #ffe1a3; }

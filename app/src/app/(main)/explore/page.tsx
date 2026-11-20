@@ -149,7 +149,7 @@ function Explore() {
   useEffect(() => {
     if (baseSeenK.current === baseK) return;
     baseSeenK.current = baseK;
-    setTabs((p) => p.filter((t) => t.kind !== "detail"));
+    setTabs((p) => p.filter((t) => t.kind !== "detail" && t.kind !== "evidence"));
     setActive((a) => (a === "sop" ? a : "map"));
   }, [baseK]);
   /** 보낼 질의에 집어 둔 것을 얹는다 — 접수 본문 objectRefs(서버 lib/server/jobInput objectRefsOf 가 reference·키워드로) */
@@ -705,6 +705,16 @@ function Explore() {
       setMapJob(key.split(":")[0]);
       setSelectedKey(key);
     },
+    openEvidence: (jobId, row, rows, view) => {
+      // 탭은 하나 — 다른 근거를 누르면 그 자리에서 내용만 바뀐다(탭이 근거 수만큼 늘지 않게)
+      setTabs((p) => [...p.filter((t) => t.kind !== "evidence"), { key: "evidence", kind: "evidence", title: "근거 문서", evidence: { jobId, row, rows, view } }]);
+      setActive("evidence");
+      setPanelOpen(true);
+    },
+    activeEvidence: (() => {
+      const e = active === "evidence" ? tabs.find((t) => t.kind === "evidence")?.evidence : undefined;
+      return e?.row.doc ? { jobId: e.jobId, doc: e.row.doc } : null;
+    })(),
     showSummary: (jobId) => {
       setMapJob(jobId);
       setActive("summary");
