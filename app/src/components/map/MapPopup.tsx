@@ -4,7 +4,8 @@
  *
  * - 보이는 값은 받은 것만: T3Q entity_type(한글) · display_name 그대로 · EXT-01 precision(한글).
  *   세부 종류 이름(지하차도 등)은 받은 display_name 에 그 낱말이 있을 때만 붙는다.
- * - 동작은 이미 있는 것만: 답변 목록으로 이동 · 이 대상으로 확대 · 같은 종류만 보기(범례 거르기) · 닫기.
+ * - 동작은 이미 있는 것만: 상세 보기 · 답변 목록으로 이동 · 이 대상으로 확대(가까이 본 뒤에는 「전체 보기」) · 닫기.
+ *   「같은 종류만」은 지도(MapView)가 넘기지 않는다(개발서버 e9f6fd2 — 범례 거르기와 겹침). onFilter 를 주는 곳이 생기면 다시 선다.
  */
 import type { CSSProperties } from "react";
 import type { MapFeature } from "./MapView";
@@ -21,12 +22,14 @@ interface Props {
   onLocate?: () => void;
   onFilter?: (key: string | null) => void;
   onZoom: () => void;
+  /** 이미 이 대상을 가까이 보고 있는가 — 그러면 단추가 「전체 보기」가 된다(개발서버 e9f6fd2) */
+  zoomOut?: boolean;
   /** 상세 탭 열기(개발 서버 「상세 보기」) — 주면 단추를 둔다. detail 이 "yes" 일 때만 눌린다(없으면 회색 「상세 없음」) */
   onDetail?: () => void;
   detail?: "checking" | "yes" | "no";
 }
 
-export default function MapPopup({ f, other, filter, onClose, onLocate, onFilter, onZoom, onDetail, detail = "checking" }: Props) {
+export default function MapPopup({ f, other, filter, onClose, onLocate, onFilter, onZoom, zoomOut = false, onDetail, detail = "checking" }: Props) {
   const look = lookOf(f.entityType, f.displayName);
   const c = look.entry.pin;
   const pk = precisionKo(f.precision);
@@ -79,8 +82,8 @@ export default function MapPopup({ f, other, filter, onClose, onLocate, onFilter
           </button>
         )}
         <button type="button" className="mp-btn" onClick={onZoom}>
-          <svg width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.6" fill="none" stroke="currentColor" strokeWidth="1.7" /><path d="M10.4 10.4L14 14M7 5v4M5 7h4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" /></svg>
-          가까이 보기
+          <svg width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.6" fill="none" stroke="currentColor" strokeWidth="1.7" /><path d={zoomOut ? "M10.4 10.4L14 14M5 7h4" : "M10.4 10.4L14 14M7 5v4M5 7h4"} stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" /></svg>
+          {zoomOut ? "전체 보기" : "가까이 보기"}
         </button>
         {onFilter && (
           <button type="button" className={`mp-btn${filtered ? " on" : ""}`} aria-pressed={filtered} onClick={() => onFilter(filtered ? null : myKey)}>

@@ -9,7 +9,7 @@ import { useSession } from "@/lib/session";
 /**
  * 질문 모음 (화면 오른쪽 서랍) — 개발서버 QuestionLibrary 의 두 갈피(①②)에 우리가 ③을 더했다:
  * ① 지역 질문 — 업무단계별 평소 질문. 하나를 누르면 그 질문만 바로 묻는다(UFR-006-001-11). 글·순서는 개발서버 questionLibrary 그대로(R51)
- * ② 한눈 요약 질의 — lib/library DAY_ITEMS. 누르면 질문 글만 묻는다(가정 조건·받아 둔 답을 쓰지 않음 — UFR-006-001-11 I열). 받아 두기·다시 받기·지우기는 그대로(자동 시연·브리핑 시연이 쓴다)
+ * ② 한눈 요약 질의 — lib/library DAY_ITEMS. 누르면 질문 글만 묻는다(가정 조건 없음 — UFR-006-001-11 I열). 받아 둔 답은 시연 모드(대상 계정)일 때만 쓴다(사용자 결정 2026-11-24). 받아 두기·다시 받기·지우기는 그대로(자동 시연·브리핑 시연이 쓴다)
  * ③ 추천 질문 — T3Q-03(/api/t3q/suggested). 기준지역 코드를 넘겨 T3Q 가 시·도 이름으로 맞춘 질문을 받은 그대로, 받은 묶음 차례로(v0.4.9 · 11/20). 누르면 그 글만 묻는다(출처 SUGGEST).
  *    화면 설계: 디자인 캔버스 ④ 「지역 맞춤 추천 질문·후속질문」
  * 재난상황 조건은 싣지 않는다(explore askLib·askDemo — 기준지역만). 서랍은 뒤 화면을 덮지 않아 바깥 누르기로 닫지 않고 Esc·✕ 로 닫는다.
@@ -157,7 +157,7 @@ export default function LibraryDrawer({ regionName, busy = false, onClose, onAsk
     await api(`/api/demo-pins?id=${encodeURIComponent(d.id)}`, { method: "DELETE" }).catch((e) => s.toast((e as Error).message));
     void load();
   };
-  /** 한눈 요약 질의 — 받아 둔 답을 보여 주지 않고 질문 글만 묻는다(개발서버 askDayItem · 정의서 UFR-006-001-11 I열) */
+  /** 한눈 요약 질의 — 질문 글만 묻는다(개발서버 askDayItem · 정의서 UFR-006-001-11 I열). 받아 둔 답은 시연 모드일 때만(explore askDemo pinDemo) */
   const askDay = (d: DayItem) => onAskDemo(d);
   /** 이 질문이 기대하는 기준지역 이름(개발서버 DayItem.baseName) */
   const baseOf = (d: DayItem) => d.base?.sigungu?.name ?? d.base?.sido.name;

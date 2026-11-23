@@ -7,7 +7,7 @@ import { scenarioCuts } from "../scenario";
 import { activeAdvisories, warningsPayload } from "../wxref";
 import { wxTargetOfT3q } from "../wxMatch";
 import {
-  AIM_GUIDE_MAX, AIM_INTERVAL_MIN, AIM_MAX_AGE_MIN, AIM_NAMES, AIM_PROMPT_ID, AIM_Q, AIM_RETENTION_DAYS, AIM_GROUPS,
+  AIM_GUIDE_MAX, AIM_INTERVAL_MIN, AIM_NAMES, AIM_PROMPT_ID, AIM_Q, AIM_RETENTION_DAYS, AIM_GROUPS,
   aimGroupOf, aimSlotStart, aimSupported, code10,
   type AimGuide, type AimResponse, type AimView, type AimWarning,
 } from "../aiMode";
@@ -99,8 +99,11 @@ const iso = (d: Date) => {
 };
 const checkId = () => `AIM-${iso(new Date()).slice(0, 10).replace(/-/g, "")}-${randomUUID().replace(/-/g, "").slice(0, 6).toUpperCase()}`;
 
-/** 묵었는가 — 마지막으로 답을 받은 때부터 60분(AiMode:MaxAgeMin) */
-const isStale = (last: CheckRow, now: number) => Date.parse(last.checked_at ?? last.requested_at) + AIM_MAX_AGE_MIN * 60_000 <= now;
+/**
+ * 직전 점검 뒤 한 주기(10분 — AiMode:IntervalMin)가 지나 다시 물을 때가 됐는가(개발서버 IsDue — FUN-UFR-202001, 8756667·5d4d40a).
+ * 사람별 점검(aimCheck)에서만 쓴다. 배경 회차는 이 판정 없이 매번 묻는다. 센 시각은 답을 받은 때, 비어 있으면 요청한 때
+ */
+const isDue = (last: CheckRow, now: number) => Date.parse(last.checked_at ?? last.requested_at) + AIM_INTERVAL_MIN * 60_000 <= now;
 
 /** 점검 하나를 건다 — 발효 특보마다 따로(동시 4는 시스템 계정 동시 한도가 맡는다), 없으면 한 번 */
 async function startCheck(row: { admin_code: string; region_name: string; account_id: string | null; slot: number | null; trigger: string; sig: string },
@@ -196,15 +199,17 @@ function advsFor(weather: WeatherResponse, base: BaseWire): Advisory[] {
   return target === undefined ? [] : activeAdvisories(weather, target);
 }
 
-/** 무엇 때문에 묻는가 — 처음 · 특보 바뀜 · 묵음(주기) · 묻지 않음(null) */
-function triggerOf(last: CheckRow | undefined, sig: string, now: number): string | null {
+/**
+ * 왜 묻는가 — 처음 · 특보 바뀜 · 주기. 특보 서명은 이 표시에만 쓴다(개발서버 8756667 — 같은 질문 답 재사용 금지 · 정의서 UFR-001-001-05 10분마다 점검).
+ * 예전의 「서명이 그대로이고 답이 60분 안이면 건너뜀」(MaxAgeMin)은 없앴다
+ */
+function triggerOf(last: CheckRow | undefined, sig: string): string {
   if (!last) return "FIRST";
-  if (last.sig !== sig) return "WARNING_CHANGED";
-  return isStale(last, now) ? "SCHEDULED" : null;
+  return last.sig !== sig ? "WARNING_CHANGED" : "SCHEDULED";
 }
 
 /**
- * 배경 지역 회차 — 지금 회차가 아직 없으면 만든다(개발서버 RunAsync 의 한 지역 몫). 특보가 그대로이고 답이 젊으면 SKIPPED 줄만 남긴다
+ * 배경 지역 회차 — 지금 회차가 아직 없으면 만든다(개발서버 RunAsync 의 한 지역 몫). 특보가 바뀌었는지와 관계없이 회차마다(10분) 묻는다 — 건너뛰는 SKIPPED 줄은 남기지 않는다
  */
 async function tickManaged(base: BaseWire, code: string, now = Date.now()) {
   const group = aimGroupOf(code);
@@ -215,15 +220,7 @@ async function tickManaged(base: BaseWire, code: string, now = Date.now()) {
   const weather = await liveWeather();
   const advs = advsFor(weather, base);
   const sig = aimSignature(advs);
-  const trigger = triggerOf(await lastDone(code, null), sig, now);
-  if (trigger === null) {
-    await q(
-      `insert into sa_aim_checks (id, check_id, admin_code, region_name, account_id, slot, trigger, sig, status, collect_status, checked_at)
-       values ($1,$2,$3,$4,null,$5,'SCHEDULED',$6,'SKIPPED',$7, now()) on conflict do nothing`,
-      [randomUUID(), checkId(), code, AIM_NAMES[code] ?? base.name, new Date(slot), sig, weather.status.ok ? "SUCCESS" : "FAILED"],
-    );
-    return;
-  }
+  const trigger = triggerOf(await lastDone(code, null), sig);
   await startCheck({ admin_code: code, region_name: AIM_NAMES[code] ?? base.name, account_id: null, slot, trigger, sig }, base, weather, advs);
 }
 
@@ -258,17 +255,19 @@ export async function aimLatest(acc: Account, base: BaseWire | null): Promise<Ai
 
 /**
  * 점검 한 번(POST /api/ai-mode/check) — 켜 둔 화면이 켤 때·10분마다 부른다. 배경 지역이면 읽기만(서버가 막는다 — 개발서버 IsManaged).
- * 특보 서명이 그대로이고 답이 60분보다 젊으면 상류를 부르지 않고 앞 점검을 준다
+ * 직전 점검이 한 주기(10분) 안이면 특보가 바뀌었어도 상류를 부르지 않고 앞 점검을 준다 — 특보 변경은 다음 점검에 「특보 변경」(WARNING_CHANGED)으로 반영된다.
+ * 주기가 지났으면 특보가 그대로여도 다시 묻는다(개발서버 CheckForUserAsync — 5d4d40a)
  */
 export async function aimCheck(acc: Account, base: BaseWire | null, now = Date.now()): Promise<AimResponse> {
   const r = await aimLatest(acc, base);
   if (!r.supported || r.managed || r.running || !base) return r;
   const code = code10(base.code);
+  const last = await lastDone(code, acc.id);
+  if (last && !isDue(last, now)) return r;
   const weather = await weatherFor(acc);
   const advs = advsFor(weather, base);
   const sig = aimSignature(advs);
-  const trigger = triggerOf(await lastDone(code, acc.id), sig, now);
-  if (trigger === null) return r;
+  const trigger = triggerOf(last, sig);
   const started = await startCheck({ admin_code: code, region_name: base.name, account_id: acc.id, slot: null, trigger, sig }, base, weather, advs);
   return { ...r, running: !!started || r.running };
 }

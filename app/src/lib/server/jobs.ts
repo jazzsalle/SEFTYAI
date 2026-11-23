@@ -117,8 +117,15 @@ export function cacheKeyOf(
   const bucket = input.source === "AI_MODE" ? Math.floor((o.now ?? Date.now()) / 600_000) : null;
   const reference = o.reference === undefined ? input.reference ?? null : o.reference;
   return createHash("sha256")
-    .update([o.questionSent ?? input.question.trim(), T3Q_SOURCE[input.source], canon(input.queryContext ?? null), canon(warnKeys(input.weatherWarnings)), canon(reference), o.t3qConv ?? "", bucket ?? ""].join("‖"))
+    .update([o.questionSent ?? input.question.trim(), T3Q_SOURCE[input.source], canon(withoutObservedAt(input.queryContext ?? null)), canon(warnKeys(input.weatherWarnings)), canon(reference), o.t3qConv ?? "", bucket ?? ""].join("‖"))
     .digest("hex");
+}
+
+/** 열쇠에서 기상·수문 값의 기준시각(observed_at)은 뺀다 — 창을 거치지 않은 값은 보내는 시각이 찍혀 매번 달라진다(진행 중 합류가 깨지지 않게) */
+function withoutObservedAt(qc: Record<string, unknown> | null) {
+  const detail = qc?.detail as { conditions?: Record<string, unknown>[] } | undefined;
+  if (!qc || !detail?.conditions) return qc;
+  return { ...qc, detail: { ...detail, conditions: detail.conditions.map((c) => Object.fromEntries(Object.entries(c).filter(([k]) => k !== "observed_at"))) } };
 }
 
 export interface SubmitInput {

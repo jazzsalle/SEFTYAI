@@ -7,10 +7,12 @@ import remarkCjkFriendly from "remark-cjk-friendly/parseOnly";
 import type { T3qRef } from "@/lib/jobTypes";
 import { displayAnswer, isRefId, mappable, sameThing } from "@/lib/answerText";
 import { MASK_CHAR, MASK_LABEL, MASK_TIP, markMasks } from "@/lib/piiMask";
+import { cleanT3qText } from "@/lib/t3qText";
 import "./answer.css";
 
 /**
  * T3Q 답변 마크다운 렌더러 (R5, 설계 §6 · 시각 설계 08 C — 적용 범위 R25)
+ * - 깨진 글자 표시(U+FFFD)·PDF 아이콘 자리 문자는 걷는다(lib/t3qText cleanT3qText — 개발서버 9e664db).
  * - 그리기 전에 개발서버와 같은 화면 처리(lib/answerText displayAnswer — 사용자 결정 2026-11-06): 내부 DB 표 이름·표의 「정비 내용」 칸·대상 링크 이름의 대괄호를 걷는다.
  *   그 밖의 글자는 바꾸지 않고 마크다운 뜻대로만 그린다(GFM 표·목록·인용·코드). 받은 글 그대로는 카드의 원문 보기·마크다운 원문 복사에서.
  * - 굵게·기울임은 CJK 친화 구분자 규칙(remark-cjk-friendly, G5) — 「…저지대)**입니다」처럼 한글 옆 별표도 글쓴이 뜻대로 굵게. 글자는 그대로.
@@ -264,8 +266,10 @@ function MdLink({ node, href, children }: ComponentProps<"a"> & ExtraProps) {
   if (d) {
     if (!c?.onDoc || !c.docs.has(d[1])) return <>{children}</>;
     const on = c.activeDoc === d[1];
+    // 개발서버 화면목록 203001(11-23): 적힌 문서명 그대로 링크 — 대상 링크와 같은 모양
+    const label = node ? textOf(node as HNode) : "";
     return (
-      <button type="button" className={`doc-cite${on ? " on" : ""}`} data-doc={d[1]} aria-pressed={on} title="근거 문서의 이 쪽 보기" onClick={() => c.onDoc?.(d[1])}>
+      <button type="button" className={`doc-cite${on ? " on" : ""}`} data-doc={d[1]} aria-pressed={on} title={`${label} 근거문서 보기`.trim()} onClick={() => c.onDoc?.(d[1])}>
         {children}
       </button>
     );
@@ -340,7 +344,8 @@ export function AnswerMarkdown({ text, refs, onRef, activeRef, docs = NO_DOCS, o
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const docSet = useMemo(() => new Set(docs), [docKey]);
   // 화면 처리를 거친 글 — 목록 표지(MdLi)도 이 글의 자리로 읽는다. `***`(T3Q 가 가린 자리)는 가림 표지로(lib/piiMask)
-  const shown = useMemo(() => markMasks(displayAnswer(text)), [text]);
+  // 깨진 글자 표시·PDF 아이콘 자리 문자는 먼저 걷는다(lib/t3qText — 개발서버 cleanT3qText, 가림 표지보다 먼저)
+  const shown = useMemo(() => markMasks(displayAnswer(cleanT3qText(text))), [text]);
   const ctx = useMemo<MdCtxValue>(
     () => ({ byRef, activeRef: activeRef ?? null, onRef: fire, text: shown, docs: docSet, activeDoc: activeDoc ?? null, onDoc: onDoc ? fireDoc : null }),
     // eslint-disable-next-line react-hooks/exhaustive-deps

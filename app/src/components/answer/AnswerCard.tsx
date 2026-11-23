@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from "react";
 import { useSession } from "@/lib/session";
 import { isActive, receivedAt, type JobFull, type JobSummary, type T3qRef, type WxSeen } from "@/lib/jobTypes";
-import { ANSWER_FAILED, BRIEF_FAILED, failureText, hideDbNames, isAnswerOk, mappable } from "@/lib/answerText";
+import { ANSWER_FAILED, BRIEF_FAILED, failureText, isAnswerOk, mappable } from "@/lib/answerText";
 import { fmtElapsed } from "@/lib/format";
 import { activeAdvisories } from "@/lib/wxref";
 import { legacyAdvIds, seenArea, wxCovers, wxTargetOfT3q, type WxTarget } from "@/lib/wxMatch";
@@ -10,6 +10,9 @@ import type { Advisory, WeatherResponse } from "@/lib/contract/agent";
 import type { RefLike } from "@/lib/mapRef";
 import { useExplore } from "../explore/ExploreCtx";
 import { AnswerMarkdown, mdPlainText } from "./Markdown";
+import DataGroupTabs from "./DataGroupTabs";
+import { buildDataGroups, effectiveCondition, judgeSimilar, mismatchMarks, withoutDocumentGroups } from "@/lib/dataGroups";
+import { copyPlain } from "@/lib/clipboard";
 import { PrivacyNote } from "./PiiMask";
 import { docRows } from "@/lib/docRefs";
 import DocRefs from "./DocRefs";
@@ -179,12 +182,30 @@ function Card({ job, full, compact, noActions, brief }: CardProps) {
   const targets = useMemo(() => targetsOf(sm), [sm]);
   const regionName = (full?.request as { query_context?: { region?: { name?: string } | null } } | undefined)?.query_context?.region?.name ?? null;
   // 유사사례 한눈 요약(개발서버 AnswerPanel caseCtx) — 사례를 물은 답이면 그 답을 보낸 조건(+ 질문에서 읽은 재난유형)으로 T3Q-04 를 부른다
+  // T3Q(v0.4.8~)가 유사사례 순위를 매긴 답인지·질문에서 읽은 재난유형을 context_used 로 알려 주면 그대로 따른다(개발서버 3e03b0f, FUN-UFR-401001).
+  // context_used 가 없는 옛 답만 질문 낱말로 짐작한다
   const similarCtx = useMemo(() => {
     const text = typeof res?.answer === "string" ? res.answer : "";
-    if (brief || !text || !wantsSimilarSummary(job.question_user, text)) return null;
+    if (brief || !text) return null;
     const qc = (full?.request as { query_context?: Record<string, unknown> | null } | undefined)?.query_context;
-    return qc && typeof qc === "object" ? withDisasterType(qc, job.question_user) : null;
+    if (!qc || typeof qc !== "object") return null;
+    const judged = judgeSimilar(res?.context_used);
+    if (judged) {
+      if (!judged.similar) return null;
+      const hasType = Array.isArray(qc.disaster_types) && qc.disaster_types.length > 0;
+      return judged.disasterTypes.length > 0 && !hasType ? { ...qc, disaster_types: judged.disasterTypes } : qc;
+    }
+    return wantsSimilarSummary(job.question_user, text) ? withDisasterType(qc, job.question_user) : null;
   }, [brief, res, job.question_user, full?.request]);
+  // 데이터군(T3Q result_groups — 개발서버 97e1fdc, FUN-UFR-303008) — 있으면 데이터군 탭, 없는 옛 답은 종전 「답변 대상」 상자.
+  // 객체의 지역·재난유형이 질의 조건과 다르면 구분 표시(FUN-UFR-302003) — 비교는 T3Q 가 실제로 쓴 조건으로
+  const groups = useMemo(() => {
+    const sent = (full?.request as { query_context?: Record<string, unknown> | null } | undefined)?.query_context ?? null;
+    const ic = (res?.context_used as { interpreted_conditions?: unknown } | null | undefined)?.interpreted_conditions;
+    const cond = effectiveCondition(ic, sent);
+    return buildDataGroups(res?.result_groups, res?.refs, res?.doc_refs, (r) => mismatchMarks(r, cond));
+  }, [res, full?.request]);
+  const [groupKey, setGroupKey] = useState<string | null>(null);
 
   // 진행 중은 1초마다(경과 시계)
   useEffect(() => {
@@ -209,7 +230,6 @@ function Card({ job, full, compact, noActions, brief }: CardProps) {
             <span className="answer-spinner" aria-hidden="true" />
             확인하고 있습니다… <strong>{fmtWaiting(ms)}</strong>
             {/* 한 건이 1~5분 — 그만두는 것은 이 항목 하나(개발서버 briefing-cancel, 줄 안) */}
-            {!partial && lv?.stage ? <span className="answer-stage"> · {lv.stage}</span> : null}
             <button type="button" className="briefing-cancel" onClick={cancel}>취소</button>
           </p>
           {partial && (
@@ -225,7 +245,6 @@ function Card({ job, full, compact, noActions, brief }: CardProps) {
           <span className="answer-spinner" aria-hidden="true" />
           <p>
             {partial ? "답변을 작성하고 있습니다…" : "답변을 만들고 있습니다…"} <strong>{fmtWaiting(ms)}</strong>
-            {!partial && lv?.stage ? <span className="answer-stage"> · {lv.stage}</span> : null}
           </p>
           {/* 실제로 25~100초가 걸린다. 기다리다 그만둘 수 있어야 한다 */}
           {!noActions && <button type="button" className="answer-cancel" onClick={cancel}>취소</button>}
@@ -278,11 +297,9 @@ function Card({ job, full, compact, noActions, brief }: CardProps) {
           long={!compact && answer.length > FOLD_AT}
           folded={folded}
           onFold={() => setFolded((v) => !v)}
-          kinds={targets.kinds}
+          kinds={groups.length > 0 ? [] : targets.kinds}
           kind={kind}
           onKind={pickKind}
-          bodyRef={bodyRef}
-          markdown={hideDbNames(answer)}
         />
       </header>
 
@@ -310,10 +327,26 @@ function Card({ job, full, compact, noActions, brief }: CardProps) {
         />
       </div>
       {folded && <button type="button" className="ans-lnk" onClick={() => setFolded(false)}>전체 보기 ▼</button>}
-      {/* 근거 문서(T3Q v0.4.5 doc_refs — 개발서버 DocRefs) — 문서 이름 · 쪽, 누르면 원문 미리보기 새 창. 비면 답 글 안 문서 링크로 */}
+      {/* 근거 표 · 그림 카드(개발서버 EvidenceTable · FigureCards, FUN-UFR-801007) — 쪽 단추·그림을 누르면 우측 「근거 문서」. 번호 없는 옛 꼴은 새 창 링크 */}
       <DocRefs refs={res?.doc_refs} text={answer} jobId={job.id} activeDoc={activeDoc} onOpen={(row, rows, view) => x.openEvidence(job.id, row, rows, view)} />
 
-      <AnswerTargets id={refsId} rows={targets.rows} kinds={targets.kinds} kind={kind} onKind={setKind} onEntity={(r) => x.openEntity(job.id, r)} />
+      {/* 데이터군 탭(T3Q result_groups) — 근거 표가 문서를 보여 주면 「근거 문서」 군은 뺀다(같은 문서를 두 번 보이지 않게). 칸이 빈 옛 답은 「답변 대상」 상자 */}
+      {groups.length > 0 ? (
+        <DataGroupTabs
+          id={refsId}
+          groups={docList.length > 0 ? withoutDocumentGroups(groups) : groups}
+          selected={groupKey}
+          onSelect={setGroupKey}
+          onEntity={(r) => x.openEntity(job.id, r as unknown as T3qRef)}
+          onEvent={similarCtx ? (it) => x.openDetail("T3Q-10", it.key, it.name, similarCtx) : undefined}
+          onDoc={(d) => {
+            const row = docList.find((r) => r.doc === d);
+            if (row) x.openEvidence(job.id, row, docList);
+          }}
+        />
+      ) : (
+        <AnswerTargets id={refsId} rows={targets.rows} kinds={targets.kinds} kind={kind} onKind={setKind} onEntity={(r) => x.openEntity(job.id, r)} />
+      )}
 
       {/* 지도에 보일 수 있는 것만 센다(개발서버 mappableRefs) — 하나도 없으면 줄을 내지 않는다 */}
       {onMap > 0 && (
@@ -325,45 +358,31 @@ function Card({ job, full, compact, noActions, brief }: CardProps) {
           {raw.warnings.map((w, i) => <li key={`w${i}`}>{w.message}</li>)}
         </ul>
       )}
-      {/* 답변 평가(T3Q-31) — response_id 가 없는 답은 상류가 가리킬 데가 없어 자리를 내지 않는다(개발서버) */}
-      {!!res?.response_id && <AnswerFeedback jobId={job.id} />}
+      {/* 답변 동작 영역(개발서버 .ans-actions — Figma 203001): 왼쪽 [복사](FUN-UFR-303006) · 오른쪽 답변 평가(T3Q-31 — response_id 가 없는 답은 자리를 내지 않는다).
+          브리핑 항목 카드에는 복사가 없다(개발서버 BriefingItemCard) */}
+      {(!brief || !!res?.response_id) && (
+        <div className="ans-actions">
+          {!brief && <AnswerCopy bodyRef={bodyRef} />}
+          {!!res?.response_id && <AnswerFeedback jobId={job.id} />}
+        </div>
+      )}
       {/* 이어서 물어보기 — 추천 후속질문(개발서버 AnswerPanel · FUN-UFR-301003, R62). 브리핑 항목 카드에는 없다(개발서버 브리핑 결과에 onFollowUp 없음) */}
       {!brief && <FollowUps list={res?.follow_up_questions} onAsk={x.askSuggested} />}
     </article>
   );
 }
 
-/** 머리 줄 도구 — 접기 · 답변 대상 · 답변 복사(개발서버 AnswerTools). 복사 결과는 툴바 안에 2초(토스트 아님) */
-function AnswerTools({ long, folded, onFold, kinds, kind, onKind, bodyRef, markdown }: {
+/** 머리 줄 도구 — 접기 · 답변 대상(개발서버 AnswerTools). 답변 복사는 카드 아래 답변 동작 영역(AnswerCopy · FUN-UFR-303006, 개발서버 9e664db) */
+function AnswerTools({ long, folded, onFold, kinds, kind, onKind }: {
   long: boolean;
   folded: boolean;
   onFold: () => void;
   kinds: string[];
   kind: string | null;
   onKind: (kind: string | null) => void;
-  bodyRef: RefObject<HTMLDivElement | null>;
-  markdown: string;
 }) {
-  const [done, setDone] = useState<string | null>(null);
-  useEffect(() => {
-    if (done === null) return;
-    const t = setTimeout(() => setDone(null), 2000);
-    return () => clearTimeout(t);
-  }, [done]);
-  const copy = (text: string, msg: string) => {
-    if (!navigator.clipboard) return setDone("복사하지 못했습니다");
-    navigator.clipboard.writeText(text).then(
-      () => setDone(msg),
-      () => setDone("복사하지 못했습니다"),
-    );
-  };
-  const copyPlain = () => {
-    const md = bodyRef.current?.querySelector(".md");
-    if (md) copy(mdPlainText(md), "서식 없는 글로 복사했습니다");
-  };
   return (
     <div className="ans-tools" role="toolbar" aria-label="답변 도구">
-      {done && <span className="ans-done" role="status">{done}</span>}
       {long && <button type="button" className="ans-lnk" onClick={onFold}>{folded ? "전체 보기" : "접기"}</button>}
       {kinds.length > 0 && (
         <Menu label="답변 대상">
@@ -377,15 +396,37 @@ function AnswerTools({ long, folded, onFold, kinds, kind, onKind, bodyRef, markd
           )}
         </Menu>
       )}
-      <Menu label="답변 복사">
-        {(close) => (
-          <>
-            <button type="button" role="menuitem" onClick={() => { close(); copyPlain(); }}>서식 없는 글</button>
-            <button type="button" role="menuitem" onClick={() => { close(); copy(markdown, "마크다운 원문을 복사했습니다"); }}>마크다운 원문</button>
-          </>
-        )}
-      </Menu>
     </div>
+  );
+}
+
+/**
+ * 답변 복사 — 개발서버 AnswerCopy(FUN-UFR-303006 · Figma 203001 「복사」): 답 본문을 일반 텍스트 하나로(마크다운 기호 빼고 글자 그대로, 목록은 글쓴이 표지, 표는 탭 구분).
+ * 텍스트 단추 + 왼쪽 복사 그림. Figma 에 완료 문구·토스트가 없어 결과는 화면낭독으로만 알린다.
+ */
+function AnswerCopy({ bodyRef }: { bodyRef: RefObject<HTMLDivElement | null> }) {
+  const [done, setDone] = useState<string | null>(null);
+  useEffect(() => {
+    if (done === null) return;
+    const t = setTimeout(() => setDone(null), 2000);
+    return () => clearTimeout(t);
+  }, [done]);
+  const copy = async () => {
+    const md = bodyRef.current?.querySelector(".md");
+    if (!md) return setDone("복사하지 못했습니다");
+    const ok = await copyPlain(mdPlainText(md));
+    setDone(ok ? "답변을 복사했습니다" : "복사하지 못했습니다");
+  };
+  return (
+    <>
+      <button type="button" className="ans-copy" aria-label="답변 복사" onClick={() => void copy()}>
+        <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+          <path d="M5.5 5.5h7v8h-7zM3.5 10.5v-8h7" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
+        </svg>
+        복사
+      </button>
+      <span className="sr-only" role="status">{done ?? ""}</span>
+    </>
   );
 }
 

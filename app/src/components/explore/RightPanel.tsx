@@ -1,11 +1,14 @@
 "use client";
 import dynamic from "next/dynamic";
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type OlMap from "ol/Map";
 import { useSession } from "@/lib/session";
 import { baseKey } from "@/lib/baseRegion";
 import { api } from "@/lib/api";
-import { SYMBOL_NAMES, detailIdOf, hasDetail, sameObject, symbolOf, type MapSymbol, type RefLike } from "@/lib/mapRef";
+import { detailIdOf, hasDetail, sameObject, type RefLike } from "@/lib/mapRef";
+import { fetchT3qData } from "@/lib/t3qData";
+import { floodTraceBody, floodTraceId, floodTraceItem, isFloodTrace } from "@/lib/floodTrace";
+import { isClosable, tabTitles } from "@/lib/panelTabs";
 import type { PanelTab } from "./ExploreCtx";
 import { useExplore } from "./ExploreCtx";
 import { DEFAULT_LAYERS, type Basemap, type MapFeature, type MissingItem } from "../map/MapView";
@@ -27,6 +30,8 @@ interface Props {
   setActive: (k: string) => void;
   close: (k: string) => void;
   closeAll: () => void;
+  /** [모두 닫기] — 상세 탭을 한 번에 닫는다. 붙박이 탭은 남는다(개발서버 SidePanel onCloseAll) */
+  closeTabs?: () => void;
   features: MapFeature[];
   activeJobId: string | null;
   focusToken: number;
@@ -64,25 +69,37 @@ export default function RightPanel(p: Props) {
     if (a < l.scrollLeft) l.scrollLeft = a;
     else if (a + on.offsetWidth > l.scrollLeft + l.clientWidth) l.scrollLeft = a + on.offsetWidth - l.clientWidth;
   }, [tab?.key, p.tabs.length]);
+  // 이름이 같은 탭은 갈래(없으면 객체 ID)를 붙여 가른다(개발서버 panelTabs.tabTitles)
+  const titles = tabTitles(p.tabs);
+  const closable = p.tabs.filter(isClosable);
   return (
     <aside className="rpanel" aria-label="우측 패널">
-      {/* 개발서버 SidePanel panel-head — 탭이 넘치면 좌우로 밀어서 본다 · [패널 접기]는 밖에 고정 */}
+      {/* 개발서버 SidePanel panel-head — 탭이 넘치면 좌우로 밀어서 본다 · [모두 닫기]·[패널 접기]는 밖에 고정 */}
       <div className="rtabs">
         <div className="rtabs-list" role="tablist" aria-label="열린 탭" ref={list}>
-          {p.tabs.map((t) => (
-            <div key={t.key} className={`rtab${t.key === tab?.key ? " on" : ""}`}>
-              <button type="button" role="tab" aria-selected={t.key === tab?.key} className="rtab-b" title={t.title} onClick={() => p.setActive(t.key)}>
-                {t.title}
-              </button>
-              {/* 붙박이 탭(지도·한눈 요약·대응절차)은 닫지 않는다 */}
-              {!t.pinned && t.kind !== "map" && t.kind !== "summary" && (
-                <button type="button" className="x" aria-label={`${t.title} 탭 닫기`} onClick={() => p.close(t.key)}>
-                  <CloseIcon />
+          {p.tabs.map((t) => {
+            const name = titles.get(t.key) ?? t.title;
+            return (
+              <div key={t.key} className={`rtab${t.key === tab?.key ? " on" : ""}`}>
+                <button type="button" role="tab" aria-selected={t.key === tab?.key} className="rtab-b" title={name} onClick={() => p.setActive(t.key)}>
+                  {name}
                 </button>
-              )}
-            </div>
-          ))}
+                {/* 붙박이 탭(지도·한눈 요약·대응절차)은 닫지 않는다 */}
+                {isClosable(t) && (
+                  <button type="button" className="x" aria-label={`${name} 탭 닫기`} onClick={() => p.close(t.key)}>
+                    <CloseIcon />
+                  </button>
+                )}
+              </div>
+            );
+          })}
         </div>
+        {/* 닫을 수 있는 탭이 둘 이상일 때만 — 하나면 그 탭의 × 와 같다 */}
+        {p.closeTabs && closable.length > 1 && (
+          <button type="button" className="panel-collapse panel-close-all" onClick={p.closeTabs} title="상세 탭 모두 닫기(지도·한눈 요약은 남습니다)">
+            모두 닫기
+          </button>
+        )}
         <button type="button" className="panel-collapse" onClick={p.closeAll} title="패널 접기">
           패널 접기
           <ChevronIcon dir="right" />
@@ -137,11 +154,19 @@ export function geometryKnown(p: Pick<Props, "features" | "resultStatus">, ctx: 
   return p.features.some((f) => f.jobId === job) ? false : null;
 }
 
-/** 상세(T3Q-15) 유무 — 객체 ID 마다 한 번 묻는다. 못 물으면(통신 실패) 다음에 다시 */
+/** 상세(T3Q-15 · 침수흔적은 T3Q-30) 유무 — 객체 ID 마다 한 번 묻는다. 못 물으면(통신 실패) 다음에 다시 */
 const detailSeen = new Map<string, Promise<boolean>>();
 function riskHasDetail(r: RefLike | undefined): Promise<boolean> {
   const id = r ? detailIdOf(r) : null;
   if (!id) return Promise.resolve(false);
+  // 침수흔적은 T3Q-30 결과로 가린다(개발서버 usePanel.selectFromMap · a4cb228) — 상세 탭과 같은 조회라 받은 것을 탭이 다시 쓴다
+  if (isFloodTrace(r!)) {
+    const ft = floodTraceId(r!);
+    if (!ft) return Promise.resolve(false);
+    return fetchT3qData<{ result?: unknown }>({ api: "T3Q-30", body: floodTraceBody(ft) })
+      .then((e) => !!floodTraceItem(e?.result, ft))
+      .catch(() => false);
+  }
   const hit = detailSeen.get(id);
   if (hit) return hit;
   const pending = api<{ envelope: { status?: string; result?: Record<string, unknown> | null } }>("/api/t3q/data", { method: "POST", json: { api: "T3Q-15", id } })
@@ -170,24 +195,18 @@ function MapPanel(p: Props) {
   const setFilter = (key: string | null) => setFilt({ scope, key });
   const [areaPick, setAreaPick] = useState<{ scope: string; label: string; ids: ReadonlySet<string> } | null>(null);
   const area = areaPick?.scope === scope ? areaPick : null;
-  // 「지도 표시」에서 끈 갈래(개발 서버 MapLayerPicker) — 기본은 모두 켬
-  const [hidden, setHidden] = useState<ReadonlySet<MapSymbol>>(new Set());
+  // 「지도 표시」(SCR-UNE-207002) 갈래 켜고 끄기는 뺐다(개발서버 e9f6fd2 — 범례 거르기와 겹치고 옛 분류라 범례와 이름이 달랐다)
   const [olMap, setOlMap] = useState<OlMap | null>(null);
   const [summaryOn, setSummaryOn] = useState(false);
   const adminNames = useAdminNames(p.features);
-  // 답변에 나온 갈래와 그 건수(개발서버 counts — 도형을 받은 것만. 지도에 그린 대상은 모두 도형이 있다)
-  const counts = useMemo(() => {
-    const m = new Map<MapSymbol, number>();
-    for (const f of p.features) m.set(symbolOf(f.entityType), (m.get(symbolOf(f.entityType)) ?? 0) + 1);
-    return (Object.keys(SYMBOL_NAMES) as MapSymbol[]).filter((k) => m.has(k)).map((k): [MapSymbol, number] => [k, m.get(k) ?? 0]);
-  }, [p.features]);
-  // 지도 위 가로 범례가 읽는 것 — 도형이 있는 대상 가운데 「지도 표시」에서 끈 갈래는 뺀다(개발서버 legendFeatures)
-  const legendFeatures = useMemo(() => p.features.filter((f) => f.geometry && !hidden.has(symbolOf(f.entityType))), [p.features, hidden]);
+  // 지도 위 가로 범례가 읽는 것 — 도형이 있는 대상(개발서버 legendFeatures)
+  const legendFeatures = useMemo(() => p.features.filter((f) => f.geometry), [p.features]);
   const detailOf = useCallback((f: MapFeature) => riskHasDetail(f.t3qRef), []);
   const onDetail = useCallback((f: MapFeature) => {
     const id = f.t3qRef ? detailIdOf(f.t3qRef) : null;
-    // 지도에서 연 대상 — 상세 머리 [지도에서 보기]가 이 점으로 돌아온다(개발서버 EntityTab onShowMap)
-    if (id) x.openDetail("T3Q-15", id, f.displayName ?? id, { mapJob: f.jobId, mapRef: f.ref });
+    // 지도에서 연 대상 — 상세 머리 [지도에서 보기]가 이 점으로 돌아온다(개발서버 EntityTab onShowMap). 침수흔적은 T3Q-30(개발서버 a4cb228)
+    const apiId = f.t3qRef && isFloodTrace(f.t3qRef) ? "T3Q-30" : "T3Q-15";
+    if (id) x.openDetail(apiId, id, f.displayName ?? id, { mapJob: f.jobId, mapRef: f.ref, entityType: f.entityType ?? null });
   }, [x]);
   // 말풍선 「답변에서 보기」 — 그 답변의 대상 목록(없으면 답변 머리)으로
   const locate = (f: MapFeature) => {
@@ -211,13 +230,11 @@ function MapPanel(p: Props) {
         layers={DEFAULT_LAYERS}
         onSelect={(k) => x.selectOnMap(k)}
         filter={filter}
-        onFilter={setFilter}
         onLocate={locate}
         onBasemap={setBasemap}
         picking={p.picking}
         pickedIds={p.pickedIds}
         onTogglePick={p.onTogglePick}
-        hidden={hidden}
         areaIds={area?.ids ?? null}
         summaryOn={summaryOn}
         scope={scope}
@@ -247,19 +264,6 @@ function MapPanel(p: Props) {
             <button type="button" onClick={() => setAreaPick(null)} aria-label="구 거르기 풀기">×</button>
           </p>
         )}
-        {/* 지도 레이어 패널(SCR-UNE-207002) — 답변에 나온 갈래가 있을 때만 */}
-        {counts.length > 0 && (
-          <MapLayerPicker
-            counts={counts}
-            hidden={hidden}
-            onToggle={(k) => setHidden((h) => {
-              const n = new Set(h);
-              if (n.has(k)) n.delete(k);
-              else n.add(k);
-              return n;
-            })}
-          />
-        )}
         {/* 「객체 참조」 — 켜면 지도에서 누른 대상을 다음 질문의 참조로 집는다(개발 서버 map-pickmode) */}
         {p.onPicking && (
           <label className={`map-pickmode${p.picking ? " is-on" : ""}`}>
@@ -270,61 +274,5 @@ function MapPanel(p: Props) {
         )}
       </MapView>
     </div>
-  );
-}
-
-/**
- * 지도 표시 팝오버(개발서버 MapPane MapLayerPicker · SCR-UNE-207002) — 답변에 나온 갈래만 체크박스로 세운다.
- * 체크를 풀면 그 자리에서 표식이 사라지고 범례에서도 빠진다. 바깥을 누르거나 Esc 로 닫는다.
- */
-function MapLayerPicker({ counts, hidden, onToggle }: { counts: [MapSymbol, number][]; hidden: ReadonlySet<MapSymbol>; onToggle: (k: MapSymbol) => void }) {
-  const id = useId();
-  const [open, setOpen] = useState(false);
-  const root = useRef<HTMLDivElement>(null);
-  // 열려 있는 동안만 바깥 누르기·Escape 를 듣는다
-  useEffect(() => {
-    if (!open) return;
-    const onDown = (e: PointerEvent) => {
-      if (!root.current?.contains(e.target as Node)) setOpen(false);
-    };
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
-    };
-    document.addEventListener("pointerdown", onDown);
-    document.addEventListener("keydown", onKey);
-    return () => {
-      document.removeEventListener("pointerdown", onDown);
-      document.removeEventListener("keydown", onKey);
-    };
-  }, [open]);
-  return (
-    <div className="map-layers" ref={root}>
-      <button type="button" className="map-layers-btn" aria-haspopup="true" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
-        <LayersIcon />
-        지도 표시
-      </button>
-      {open && (
-        // 묶음 이름은 낭독에만 쓴다(설계 1-④)
-        <fieldset className="map-layers-panel">
-          <legend className="sr-only">지도 표시</legend>
-          {counts.map(([k, n]) => (
-            <label key={k} className="map-layers-item" htmlFor={`${id}-${k}`}>
-              <input id={`${id}-${k}`} type="checkbox" checked={!hidden.has(k)} onChange={() => onToggle(k)} />
-              {SYMBOL_NAMES[k]} ({n})
-            </label>
-          ))}
-        </fieldset>
-      )}
-    </div>
-  );
-}
-
-/** 개발서버 MapPane LayersIcon */
-function LayersIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
-      <path d="M8 2 14 5.2 8 8.4 2 5.2 8 2Z" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" />
-      <path d="M2.6 8.4 8 11.3l5.4-2.9M2.6 11.3 8 14.2l5.4-2.9" stroke="currentColor" strokeWidth="1.3" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
   );
 }

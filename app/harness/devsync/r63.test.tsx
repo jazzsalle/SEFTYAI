@@ -54,13 +54,13 @@ describe("① 스트리밍 — 진행 단계와 자라는 글(개발서버 글�
     sess.on = false;
   });
 
-  it("글이 오기 전: 「답변을 만들고 있습니다… 1분 5초 · {진행 단계}」 + [취소] — 개발서버 answer-running 한 줄(머리줄·카드 없음)", () => {
+  it("글이 오기 전: 「답변을 만들고 있습니다… 1분 5초」 + [취소] — 진행 단계(도구·인자 이름)는 보이지 않는다(개발서버 9603d93, FUN-UFR-303005)", () => {
     sess.live = { j1: { text: "", stage: "데이터 조회", refs: [] } };
     const { container } = wrap(<AnswerCard job={running()} full={undefined} />);
     const card = container.querySelector(".answer-running")!;
-    expect(card.querySelector("p")!.textContent).toBe("답변을 만들고 있습니다… 1분 5초 · 데이터 조회");
+    expect(card.querySelector("p")!.textContent).toBe("답변을 만들고 있습니다… 1분 5초");
     expect(card.querySelector("p strong")!.textContent).toBe("1분 5초");
-    expect(card.querySelector(".answer-stage")!.textContent).toBe(" · 데이터 조회");
+    expect(card.querySelector(".answer-stage")).toBeNull();
     // 순서: 도는 고리 → 글 → [취소](줄 오른쪽 끝)
     expect([...card.children].map((c) => c.className || c.tagName)).toEqual(["answer-spinner", "P", "answer-cancel"]);
     expect(container.querySelector(".answer-streaming")).toBeNull();
@@ -89,7 +89,7 @@ describe("① 스트리밍 — 진행 단계와 자라는 글(개발서버 글�
     sess.live = { j1: { text: "", stage: "데이터 조회", refs: [] } };
     const { container, rerender } = wrap(<AnswerCard job={running({ source: "BRIEFING" })} full={undefined} brief noActions />);
     const line = container.querySelector("p.briefing-item-wait")!;
-    expect(line.textContent).toBe("확인하고 있습니다… 1분 5초 · 데이터 조회취소");
+    expect(line.textContent).toBe("확인하고 있습니다… 1분 5초취소");
     expect(line.querySelector("button.briefing-cancel")?.textContent).toBe("취소");
     expect(container.querySelector(".acard")).toBeNull();
     // 그만두는 것은 이 항목 하나

@@ -12,6 +12,7 @@
 import { useSyncExternalStore } from "react";
 import { baseKey, type BaseRegion } from "./baseRegion";
 import type { Cond } from "./session";
+import { defaultPeriod } from "../components/explore/period";
 
 /** 질문 현황에 올리는 질문의 최대 수(정의서 UFR-006-001-10 「최근 20개」) */
 export const ASK_LIST_MAX = 20;
@@ -218,6 +219,20 @@ export function restoreCond(context: Record<string, unknown> | null | undefined)
 export const convProvince = (baseCode: string | undefined) => (typeof baseCode === "string" ? baseCode.slice(0, 2) : undefined);
 /** 기준지역의 시·도(전국 「」) */
 export const baseProvince = (b: BaseRegion | null | undefined) => baseKey(b).slice(0, 2);
+
+/**
+ * 기본 조건(개발서버 defaultConditions) — 재난유형 전체 · 발생기간 최근 한 달(정시) · 상세 비움. 기준지역은 건드리지 않는다.
+ * 「이 특보로 질의」가 묻기 전에 조건을 이 값으로 되돌린다(개발서버 askAlert 1c4ea03)
+ */
+export function condReset(): Partial<Omit<Cond, "base" | "region">> {
+  const { from, to } = defaultPeriod();
+  return { ...BARE_COND, referenceTime: undefined, periodFrom: from.toISOString(), periodTo: to.toISOString() };
+}
+
+/** 되돌릴 입력이 있었는가 — 재난유형을 골랐거나 · 발생기간을 묻지 않거나 · 상세(특보·키워드·기상·수문)를 넣었으면(개발서버 hasInputConditions) */
+export function hasInputCond(c: Pick<Cond, "disasterType" | "periodFrom" | "periodTo" | "warningKind" | "warningLevel" | "keywords" | "conditions">): boolean {
+  return (!!c.disasterType && c.disasterType !== "전체") || (!c.periodFrom && !c.periodTo) || !!c.warningKind || !!c.warningLevel || !!c.keywords?.length || !!c.conditions?.length;
+}
 
 /** 질문 모음은 재난상황 조건 없이 질문 문장 그대로(UFR-006-001-11 · FUN-UFR-301007) — 기준지역·기준시각만 남기고 나머지 조건을 덮어 비운다 */
 export const BARE_COND: Partial<Omit<Cond, "base" | "region">> = {

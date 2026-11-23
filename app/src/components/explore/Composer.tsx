@@ -6,6 +6,7 @@ import { useBriefItems, type BriefingItem } from "@/lib/briefing";
 import CondModal, { useClearMeasuresOnNation } from "./CondModal";
 import { formatDate, formatTime, parsePeriod } from "./period";
 import { openBriefingSettings } from "@/components/briefing/BriefingSettingsModal";
+import { useUpdateGuard } from "@/components/UpdateNotice";
 
 /** 질문 칸에 글을 넣는다(보내지 않음) — 시작 화면 브리핑 타일(개발서버 StartGuide onPick) */
 export const FILL_QUERY_EVENT = "sa:fill-query";
@@ -39,6 +40,8 @@ export default function Composer({ onAsk, onBriefing, onLibrary, libraryOpen = f
   const s = useSession();
   const id = useId();
   const [q, setQ] = useState("");
+  // 질문을 쓰는 중에는 새 배포본이 올라와도 자동 새로고침을 미룬다(개발서버 useUpdateGuard · f668628)
+  useUpdateGuard(q.trim() !== "");
   const input = useRef<HTMLTextAreaElement>(null);
   useEffect(() => {
     const on = (e: Event) => {

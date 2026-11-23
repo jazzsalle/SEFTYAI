@@ -195,6 +195,8 @@
 .k-box { width: 14px; height: 10px; border: 1.5px dashed #58616a; }
 .k-bnd { width: 16px; height: 0; border-top: 2px dashed #5d6c8c; }
 .k-dim { width: 10px; height: 10px; border-radius: 50%; background: #063a74; opacity: 0.4; }
+/* 갈래가 하나뿐인 범례 줄 — 누를 수 없으니 손가락 모양·흐림을 거둔다(개발서버 e9f6fd2) */
+.mlp-row.mlp-row--static, .mlp-chip:disabled { cursor: default; opacity: 1; }
 
 @media (max-width: 760px) {
   .mlp { left: 8px; top: 8px; max-width: calc(100% - 72px); }
@@ -263,28 +265,6 @@
 .map-zoom .map-sat { display: grid; place-items: center; margin-bottom: 8px; color: #464c53; }
 .map-zoom .map-sat.is-on { border-color: #256ef4; background: #256ef4; color: #fff; }
 .map-zoom .map-sat.is-on:hover { background: #0b50d0; }
-
-/* 지도 표시 (SCR-UNE-207002 · 개발서버 index.css .map-layers + renewal/map.css) — 오른쪽 위 단추와 그 아래 팝오버 */
-.map-layers { position: absolute; top: 12px; right: 12px; z-index: 800; }
-.map-layers-btn {
-  display: inline-flex; align-items: center; gap: 4px; height: 30px; padding: 0 10px; font-family: inherit;
-  font-size: var(--fs-xs); font-weight: 600; color: var(--c-text); background: #fff;
-  border: 1px solid var(--c-bd); border-radius: 6px; box-shadow: 0 2px 6px rgba(30, 33, 36, 0.12); cursor: pointer;
-}
-.map-layers-btn svg { width: 14px; height: 14px; }
-.map-layers-panel {
-  position: absolute; top: calc(100% + 8px); right: 0; display: flex; flex-direction: column; gap: 12px;
-  min-width: 260px; margin: 0; padding: 16px; background: #fff; border: 1px solid var(--c-bd); border-radius: 8px;
-  box-shadow: 0 4px 16px rgba(30, 33, 36, 0.16);
-}
-.map-layers-item {
-  display: flex; align-items: center; gap: 8px; font-size: var(--fs-s); line-height: calc(22px * var(--fs-scale));
-  color: #1e2124; white-space: nowrap; cursor: pointer;
-}
-.map-layers-item input[type="checkbox"] {
-  position: static; flex: none; width: 16px; height: 16px; margin: 0; opacity: 1; clip: auto; clip-path: none;
-  appearance: auto; accent-color: #256ef4; cursor: pointer;
-}
 
 /* ── 지도 영역 (SCR-UNE-207001 · 개발서버 MapPane) — .map-pane 하나 안에 알림 → 범례 띠 → 지도 칸 → 지도 대체정보 ── */
 .map-pane { display: flex; flex: 1; flex-direction: column; min-height: 0; container: map-pane / inline-size; }

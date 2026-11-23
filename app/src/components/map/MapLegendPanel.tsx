@@ -88,9 +88,11 @@ export default function MapLegendPanel({ features, filter, onFilter, boundary, d
     const g = groups.find((x) => x.entry.id === eid);
     if (!g) return null;
     if (sid === undefined) return g.entry.label;
-    return sid === "_" ? "그 밖" : (g.subs.get(sid)?.sub?.label ?? g.entry.label);
+    return sid === "_" ? "기타" : (g.subs.get(sid)?.sub?.label ?? g.entry.label);
   })();
   const pick = (k: string) => onFilter(filter === k ? null : k);
+  /** 지도에 갈래가 하나뿐인가 — 그러면 갈래 거르기는 할 일이 없다(세부 종류 칩은 그대로 둔다 · 개발서버 e9f6fd2) */
+  const single = groups.length <= 1;
 
   return (
     <section ref={box} className={`mlp${open ? "" : " folded"}`} aria-label="지도 범례">
@@ -111,7 +113,7 @@ export default function MapLegendPanel({ features, filter, onFilter, boundary, d
             const on = activeId === g.entry.id;
             return (
               <button key={g.entry.id} type="button" className={`mlp-chip${on ? " on" : ""}${activeId && !on ? " off" : ""}`}
-                style={{ "--c": g.entry.pin } as CSSProperties} aria-pressed={on} onClick={() => pick(k)}
+                style={{ "--c": g.entry.pin } as CSSProperties} aria-pressed={single ? undefined : on} disabled={single} onClick={() => pick(k)}
                 aria-label={`${g.entry.label} 지도 표시 ${g.n}곳${on ? " · 이 종류만 보는 중" : ""}`}>
                 <i style={{ backgroundImage: `url("${pinDataUri({ pin: g.entry.pin, glyph: g.entry.glyph, shape: g.entry.shape })}")` }} aria-hidden="true" />
                 <b>{g.n}</b>
@@ -139,8 +141,10 @@ export default function MapLegendPanel({ features, filter, onFilter, boundary, d
               const style = { "--c": e.pin, "--c2": shade(e.pin, 0.3), "--s": e.stroke, "--f": e.fill, "--w": `${Math.max(8, (g.n / max) * 100)}%` } as CSSProperties;
               return (
                 <li key={e.id} className={`mlp-item${inGroup ? " on" : ""}${activeId && !inGroup ? " off" : ""}`} style={style}>
-                  <button type="button" className="mlp-row" aria-pressed={on} onClick={() => pick(k)}
-                    title={on ? "다시 누르면 모두 보기" : "이 종류만 보기"}>
+                  {/* 갈래가 하나뿐이면 거를 것이 없다 — 눌러도 변화가 없어 고장처럼 보였다(개발서버 e9f6fd2). 표시만 한다 */}
+                  <button type="button" className={`mlp-row${single ? " mlp-row--static" : ""}`} aria-pressed={single ? undefined : on}
+                    disabled={single} onClick={() => pick(k)}
+                    title={single ? undefined : on ? "다시 누르면 모두 보기" : "이 종류만 보기"}>
                     <span className="mlp-badge" aria-hidden="true">
                       <i style={{ backgroundImage: `url("${glyphDataUri(e.glyph, shade(e.pin, -0.12))}")` }} />
                     </span>
@@ -163,7 +167,7 @@ export default function MapLegendPanel({ features, filter, onFilter, boundary, d
                         return (
                           <button key={sid} type="button" className={`mlp-sub${son ? " on" : ""}`} aria-pressed={son} onClick={() => pick(sk)}>
                             {s.sub ? <i style={{ backgroundImage: `url("${glyphDataUri(s.sub.glyph, shade(e.pin, -0.12))}")` }} aria-hidden="true" /> : <i className="etc" aria-hidden="true" />}
-                            {s.sub ? s.sub.label : "그 밖"}
+                            {s.sub ? s.sub.label : "기타"}
                             <b>{s.n}</b>
                           </button>
                         );

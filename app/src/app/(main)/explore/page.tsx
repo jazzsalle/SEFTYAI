@@ -6,15 +6,18 @@ import { useSession, uid, type Conversation, type SubmitArgs, type Turn } from "
 import { useSop } from "@/lib/sopState";
 import { useBriefingSet } from "@/lib/briefing";
 import { briefRequest, DAY_ITEMS, DEMO_SHOW, fillText, type DemoItem, type LibraryQuestion } from "@/lib/library";
-import { activityOf, BARE_COND, baseFromSaved, baseProvince, convProvince, defaultTitleOf, LEAVE_OK, LEAVE_TITLE, leaveMessage, openConvBus, REGION_BREAK_EVENT, regionBreakText, restoreCond, type RegionBreak } from "@/lib/dialogue";
+import { activityOf, BARE_COND, condReset, hasInputCond, baseFromSaved, baseProvince, convProvince, defaultTitleOf, LEAVE_OK, LEAVE_TITLE, leaveMessage, openConvBus, REGION_BREAK_EVENT, regionBreakText, restoreCond, type RegionBreak } from "@/lib/dialogue";
 import { Dialog } from "@/components/account/Dialog";
 import "@/components/explore/dialogue.css";
 import { REGIONS } from "@/lib/config";
 import { api } from "@/lib/api";
 import type { Citation } from "@/lib/contract/agent";
-import { activeAdvisories, warningsPayload } from "@/lib/wxref";
+import { activeAdvisories, aimWarningsPayload, latestBulletinKeys, toRefBulletin, toRefInfo, warningsPayload } from "@/lib/wxref";
+import type { WxBulletin, WxInfo } from "@/lib/wxBulletin";
 import { baseKey, baseName, basePilot, baseTarget, type BaseRegion } from "@/lib/baseRegion";
 import { detailIdOf, entityKey, objectIdOf, type RefLike } from "@/lib/mapRef";
+import { capDetailTabs, isClosable } from "@/lib/panelTabs";
+import { isFloodTrace } from "@/lib/floodTrace";
 import { WX_ASK_EVENT, takeWxAsk, wxAskQuestion, type WxAskRequest } from "@/lib/wxAsk";
 import { receivedAt, type JobSummary, type T3qRef } from "@/lib/jobTypes";
 import type { AskEntry } from "@/lib/queueList";
@@ -175,13 +178,24 @@ function Explore() {
   const regionName = baseName(s.cond.base);
   const wxTarget = baseTarget(s.cond.base);
 
+  /**
+   * 앞 대화에서 연 상세 탭(대상 상세·근거 문서·원문)은 그 대화의 것이다 — 새 대화·다른 대화를 열면 비우고 지도 탭으로, 지도의 고른 표시도 푼다
+   * (개발서버 usePanel.reset · 96c419a UFR-006-001-02). 붙박이 탭(지도·한눈 요약·대응절차)은 남는다
+   */
+  const resetPanel = useCallback(() => {
+    setTabs((p) => p.filter((t) => !isClosable(t)));
+    setActive("map");
+    setSelectedKey(null);
+  }, []);
+
   /** 새 대화 — 빈 대화(시작 화면)로. [＋ 새 대화] 단추와 머리줄 기준지역 변경(sa:new-conv)이 함께 쓴다 */
   const newConv = useCallback(() => {
     openConvBus.reset();
     setConv(null);
     resetPicks();
+    resetPanel();
     router.replace("/explore");
-  }, [router, resetPicks]);
+  }, [router, resetPicks, resetPanel]);
   useEffect(() => {
     window.addEventListener("sa:new-conv", newConv);
     return () => window.removeEventListener("sa:new-conv", newConv);
@@ -238,6 +252,8 @@ function Explore() {
       openedC.current = id;
       const prev = openConvBus.get().convId;
       const open = () => {
+        // 앞 대화에서 연 상세 탭도 닫는다 — 열린 대화의 객체가 아니다(개발서버 SearchPage panel.reset · UFR-006-001-02)
+        resetPanel();
         setConv(latest.current.get(c.id) ?? c);
         void restoreTop(c);
       };
@@ -447,8 +463,11 @@ function Explore() {
   );
   const toastErr = (e: unknown) => s.toast((e as Error).message);
 
-  /** 지금 기준지역에서 발효 중인 특보(AI 모드 질의·브리핑에 원문 그대로) — 시연 시나리오를 켠 시연 계정은 서버가 준 시나리오 특보만(R45 — 기상청 실시간 끊음) */
-  const liveWarnings = () => warningsPayload(s.weather, activeAdvisories(s.weather, wxTarget));
+  /**
+   * AI 모드 창에서 보내는 브리핑 세트·개별 질문에만 싣는 특보 — 지금 기준지역에서 발효 중인 모든 특보를 질의 1건에 한 번에, 없으면 싣지 않는다(개발서버 aiModeWarnings · 810fe49).
+   * 일반 창 질의(시작 화면·질의 줄 브리핑)는 AI 모드를 켜 두었어도 싣지 않는다. 시연 시나리오를 켠 시연 계정은 서버가 준 시나리오 특보만(R45 — 기상청 실시간 끊음)
+   */
+  const aimWarnings = () => aimWarningsPayload(s.weather, activeAdvisories(s.weather, wxTarget));
 
   /**
    * 시작 화면 브리핑 항목 타일로 넣은 글 — 그 글 그대로 보내면 출처 BRIEFING(개발서버 StartGuide onPick → setSource('BRIEFING')).
@@ -475,15 +494,23 @@ function Explore() {
     );
   };
   /**
-   * 특보 상세 「이 특보로 질의」(lib/wxAsk) — 특보 종류·단계를 조건에 넣고(세션 조건에도 남긴다) 그 특보가 걸린 행정구역으로 바로 묻는다(개발 서버 kjw 998facb).
-   * 세션 기준지역은 바꾸지 않는다 — 그 질문 하나에만 싣는다(r.base 가 없으면 지금 기준지역). 특보는 원문 그대로 함께 보낸다(특보로 질문과 같은 QUICK)
+   * 특보 상세 「이 특보로 질의」(lib/wxAsk · 개발서버 askAlert 1c4ea03·0247dbf·810fe49·74974d2) — 재난상황 조건을 기본으로 되돌리고(되돌릴 입력이 있었으면 알림)
+   * 기준지역은 그대로 둔 채 묻는다. 특보종류·단계는 조건에 넣지 않는다. 그 특보 1건과 기준지역 관할 통보문 본문 전문(관서별 최신 한 장)·기상정보문(「기상정보(예보)」)을
+   * weather_warnings 참조로 함께 싣는다 — 가져오지 못한 것은 빼고 간다(질의를 막을 일이 아니다)
    */
-  const askWx = (r: WxAskRequest) => {
+  const askWx = async (r: WxAskRequest) => {
     const a = r.adv;
-    const patch = { warningKind: a.type, warningLevel: a.level === "경보" || a.level === "주의보" ? a.level : undefined };
-    s.setCond(patch);
+    const reset = condReset();
+    if (hasInputCond(sRef.current.cond)) s.toast("특보 기준으로 묻기 위해 재난상황 조건을 기본으로 되돌렸습니다.");
+    s.setCond(reset);
+    const sido = sRef.current.cond.base?.sido.code;
+    const [loaded, infos] = await Promise.all([
+      Promise.all(latestBulletinKeys(r.bulletins ?? []).map((key) => api<WxBulletin>(`/api/weather/bulletin?key=${encodeURIComponent(key)}`).catch(() => null))),
+      api<{ items: WxInfo[] }>(`/api/weather/infos${sido ? `?sido=${sido}` : ""}`).then((x) => x.items ?? []).catch(() => [] as WxInfo[]),
+    ]);
+    const bulletins = loaded.filter((b): b is WxBulletin => !!b).map(toRefBulletin);
     return ask(
-      { question: wxAskQuestion(a), source: "QUICK", warnings: warningsPayload(s.weather, [a]), condPatch: patch, ...(r.base !== undefined ? { base: r.base } : {}) },
+      { question: wxAskQuestion(a), source: "QUICK", warnings: warningsPayload(s.weather, [a], { bulletins, weatherInfo: infos.map(toRefInfo) }), condPatch: reset },
       { refAdv: { type: a.type, level: a.level, area: a.area, issuedAt: a.issuedAt, ...(a.scenario ? { scenario: true } : {}) } },
     ).catch(toastErr);
   };
@@ -492,9 +519,9 @@ function Explore() {
     ask({ question: fillText(q, regionName), source: "QUICK", libraryId: q.id, quickQueryId: q.quickQueryId ?? null, warnings: null }, undefined, false, true).catch(toastErr);
   /** 질문 모음 「추천 질문」 하나 — T3Q-03 이 기준지역에 맞춰 준 글 그대로(출처 SUGGEST). 재난상황 조건은 싣지 않는다(지역 질문과 같음) */
   const askSuggest = (text: string) => ask({ question: text, source: "SUGGEST", warnings: null }, undefined, false, true).catch(toastErr);
-  /** 브리핑 항목 하나 질의 (시작 화면 타일 · 질의 줄 메뉴 · AI 모드 타일) — q 는 질의문 원형. 개발서버처럼 질의문 그대로(출처 BRIEFING) */
-  const askBrief = (q: string) =>
-    ask({ question: q.replaceAll("{지역}", regionName), source: "BRIEFING", warnings: s.aimOn ? liveWarnings() : null, ...showPin(q, 0) }, undefined, true).catch(toastErr);
+  /** 브리핑 항목 하나 질의 (시작 화면 타일 · 질의 줄 메뉴 · AI 모드 타일) — q 는 질의문 원형. 개발서버처럼 질의문 그대로(출처 BRIEFING). aim = AI 모드 창에서 보냄(특보를 싣는다) */
+  const askBrief = (q: string, aim = false) =>
+    ask({ question: q.replaceAll("{지역}", regionName), source: "BRIEFING", warnings: aim ? aimWarnings() : null, ...showPin(q, 0) }, undefined, true).catch(toastErr);
   /**
    * 브리핑 항목 글이 질문 모음 「시연」 질문과 같으면 그 항목의 고정 답을 쓴다 — 받아 둔 답을 몇 초 뒤 차례로 보인다(사용자 지시 2026-11-02).
    * 「한눈 요약 질의」 항목도 찾는다(개발서버 useBriefing storedAnswer — 질문 글로 받아 둔 답을 찾음). 받아 둔 답은 시연 모드일 때만 쓰고, 아니면 실시간(서버 판단 — R52)
@@ -509,7 +536,8 @@ function Explore() {
    */
   // 한눈 요약 질의는 시연용 — 받아 둔 답(sa_demo_pins)이 있으면 시연 모드와 상관없이 늘 그 답을 놓는다(2026-11-19 사용자 지시 · 개발서버는 늘 실시간).
   // 받아 둔 답이 없으면 새로 받아 그 답을 받아 둔다(질문 모음 「받아 두기」와 같은 길)
-  const askDemo = (d: DemoItem) => ask({ question: d.text, source: "QUICK", libraryId: d.id, quickQueryId: d.quickQueryId ?? null, pinId: d.id, revealMs: 3000 }, undefined, false, true).catch(toastErr);
+  // 받아 둔 답은 시연 모드(대상 계정)일 때만 — 평소에는 개발서버 askDay 처럼 질문 글만 실시간으로(사용자 결정 2026-11-24). 자동 시연은 따로 늘 받아 둔 답(useExploreAutoDemo)
+  const askDemo = (d: DemoItem) => ask({ question: d.text, source: "QUICK", libraryId: d.id, quickQueryId: d.quickQueryId ?? null, pinId: d.id, pinDemo: true, revealMs: 3000 }, undefined, false, true).catch(toastErr);
   /** 「이어서 물어보기」 추천 후속질문 — 질문 글 그대로 이 대화에 이어 묻는다(개발서버 onFollowUp: FOLLOW_UP · 지금 조건 · FUN-UFR-301003) */
   const askSuggested = (text: string) => ask({ question: text, source: "FOLLOW_UP" }).catch(toastErr);
   /** 자동 시연(개발서버 features/demoMode — R54) — 받아 둔 답을 대본대로 놓고 음성으로 안내. 시연 배치 = 질의 목록 접고 대화 55% */
@@ -520,13 +548,16 @@ function Explore() {
     open: (what) => { setPanelOpen(true); setActive(what); },
   });
 
-  /** 브리핑 세트 — 항목마다 자리 턴을 먼저 만들고(실패해도 자리 유지) 동시에 보낸다(R2) */
-  const startBriefing = async () => {
+  /**
+   * 브리핑 세트 — 항목마다 자리 턴을 먼저 만들고(실패해도 자리 유지) 동시에 보낸다(R2). aim = AI 모드 창에서 시작(발효 특보를 싣는다 — 개발서버 startBriefing(aiModeWarnings())).
+   * 단추 onClick 에 그대로 물리지 않는다 — 클릭 이벤트가 aim 자리로 들어간다(개발서버 8fe1980). 참·거짓만 받는다
+   */
+  const startBriefing = async (aim?: boolean) => {
     const items = briefItems;
     if (!items.length) return s.toast("브리핑 항목이 없습니다. [브리핑 항목 설정]에서 사용할 항목을 고르세요.");
     const gid = uid("b");
     const now = new Date().toISOString();
-    const warnings = s.aimOn ? liveWarnings() : null;
+    const warnings = aim === true ? aimWarnings() : null;
     const plan = items.map((it, i) => {
       // 질문 글·briefing 칸(lib/library briefRequest — 질의문 그대로)
       const a: AskArgs = withRefs({ ...briefRequest(it, i, items.length, regionName), source: "BRIEFING", warnings, ...showPin(it.question, i) });
@@ -573,8 +604,9 @@ function Explore() {
   const askWxRef = useRef(askWx);
   askWxRef.current = askWx;
   useEffect(() => {
-    const onBrief = () => briefRef.current().catch(toastErr);
-    const onAsk = (e: Event) => { const d = (e as CustomEvent<{ q: string }>).detail; askBriefRef.current(d.q); };
+    // sa:briefing 은 AI 모드 창만 보낸다 — 발효 특보를 싣는다
+    const onBrief = () => briefRef.current(true).catch(toastErr);
+    const onAsk = (e: Event) => { const d = (e as CustomEvent<{ q: string; aim?: boolean }>).detail; askBriefRef.current(d.q, d.aim === true); };
     // 특보 상세 「이 특보로 질의」 — 다른 화면에서 맡기고 옮겨 왔으면 처음 그릴 때 받아 간다
     const onWx = () => { const r = takeWxAsk(); if (r) void askWxRef.current(r); };
     onWx();
@@ -594,8 +626,9 @@ function Explore() {
     if (brief && !q && !briefLoaded) return;
     handledQ.current = key;
     if (q) askRef.current({ question: q, source: "USER" }, undefined, true).catch(toastErr);
-    else if (brief) briefRef.current().catch(toastErr);
-    else if (bq) askBriefRef.current(bq);
+    // ?brief=1 · ?bq= 는 다른 화면에서 연 AI 모드 창이 보낸다(components/explore/AiModeModal) — 발효 특보를 싣는다
+    else if (brief) briefRef.current(true).catch(toastErr);
+    else if (bq) askBriefRef.current(bq, true);
     router.replace("/explore");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sp, s.account, briefLoaded]);
@@ -685,8 +718,9 @@ function Explore() {
     setActive("map");
     setPanelOpen(true);
   };
+  // 상세 탭은 최대 8개 — 넘치면 가장 먼저 연 것부터 닫고 막 연 탭은 남긴다(개발서버 panelTabs.capDetailTabs · 96c419a)
   const openTab = (t: PanelTab) => {
-    setTabs((p) => (p.some((x) => x.key === t.key) ? p : [...p, t]));
+    setTabs((p) => (p.some((x) => x.key === t.key) ? p : capDetailTabs([...p, t], t.key)));
     setActive(t.key);
     setPanelOpen(true);
   };
@@ -698,8 +732,11 @@ function Explore() {
       // 개발서버 usePanel.openEntity — 탭은 만들되(열쇠가 없어도 — 상세 탭이 「지역 단위로 가리킨 것」을 알린다) 보이는 것은 지도
       const id = detailIdOf(r);
       const label = r.display_name ?? r.ref;
-      const key = `d:T3Q-15:${id ?? `${jobId}:${r.ref}`}`;
-      setTabs((p) => (p.some((t) => t.key === key) ? p : [...p, { key, kind: "detail", title: label, detail: { api: "T3Q-15", id: id ?? "", label, ctx: { mapJob: jobId, mapRef: r.ref } } }]));
+      // 침수흔적은 T3Q-15 에 없다 — 침수흔적 조회(T3Q-30)로(개발서버 a4cb228)
+      const apiId = isFloodTrace(r) ? "T3Q-30" : "T3Q-15";
+      const key = `d:${apiId}:${id ?? `${jobId}:${r.ref}`}`;
+      const tab: PanelTab = { key, kind: "detail", title: label, detail: { api: apiId, id: id ?? "", label, ctx: { mapJob: jobId, mapRef: r.ref }, entityType: r.entity_type ?? null } };
+      setTabs((p) => (p.some((t) => t.key === key) ? p : capDetailTabs([...p, tab], key)));
       showOnMap(jobId, r.ref);
     },
     selectOnMap: (key) => {
@@ -709,7 +746,11 @@ function Explore() {
     },
     openEvidence: (jobId, row, rows, view) => {
       // 탭은 하나 — 다른 근거를 누르면 그 자리에서 내용만 바뀐다(탭이 근거 수만큼 늘지 않게)
-      setTabs((p) => [...p.filter((t) => t.kind !== "evidence"), { key: "evidence", kind: "evidence", title: "근거 문서", evidence: { jobId, row, rows, view } }]);
+      // 이미 있으면 그 자리에서 바꾸고, 새로 열면 상세 탭 수 제한 안으로(개발서버 usePanel.openEvidence · capDetailTabs)
+      setTabs((p) => {
+        const tab: PanelTab = { key: "evidence", kind: "evidence", title: "근거 문서", evidence: { jobId, row, rows, view } };
+        return p.some((t) => t.kind === "evidence") ? p.map((t) => (t.kind === "evidence" ? tab : t)) : capDetailTabs([...p, tab], tab.key);
+      });
       setActive("evidence");
       setPanelOpen(true);
     },
@@ -893,6 +934,11 @@ function Explore() {
             setActive={setActive}
             close={(k) => { setTabs((p) => p.filter((t) => t.key !== k)); if (active === k) setActive("map"); }}
             closeAll={() => setPanelOpen(false)}
+            closeTabs={() => {
+              // [모두 닫기] — 상세 탭만 닫고 붙박이 탭(지도·한눈 요약·대응절차)은 남긴다. 보던 탭이 닫히면 지도로(개발서버 usePanel.closeAll)
+              setTabs((p) => p.filter((t) => !isClosable(t)));
+              setActive((a) => (a === "map" || a === "summary" || a === "sop" ? a : "map"));
+            }}
             features={features}
             activeJobId={null}
             mapScope={mapScope.key}

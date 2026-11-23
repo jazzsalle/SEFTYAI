@@ -9,6 +9,7 @@ import { SessionProvider } from "@/lib/session";
 import HelpCenter from "@/components/HelpCenter";
 import { FontBoot } from "@/components/FontSize";
 import { ToastHost } from "@/components/krds/Toast";
+import UpdateNotice from "@/components/UpdateNotice";
 
 export const metadata: Metadata = {
   title: "재난안전 AI 시범서비스 | 행정안전부",
@@ -27,6 +28,8 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           <SessionProvider>
             {children}
             <HelpCenter />
+            {/* 새 배포본이 올라오면 알아서 새로고침(하던 일이 있으면 끝난 뒤 — 개발서버 main.tsx UpdateNotice · f668628) */}
+            <UpdateNotice />
           </SessionProvider>
         </ToastHost>
       </body>

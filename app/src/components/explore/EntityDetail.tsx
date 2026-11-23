@@ -207,7 +207,7 @@ export function RawView({ name, v }: { name: string; v: unknown }) {
   );
 }
 
-function MapIcon() {
+export function MapIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
       <path d="M1.5 3.5 5.5 2l5 1.5 4-1.5v10l-4 1.5-5-1.5-4 1.5zM5.5 2v10.5M10.5 3.5V14" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" />

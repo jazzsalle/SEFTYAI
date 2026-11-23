@@ -6,6 +6,7 @@ import { HOUR_OPTIONS, defaultPeriod, formatDate, formatTime, parseDateTime, par
 import { useSession, type Cond } from "@/lib/session";
 import { COND_DISASTER_TYPES, COND_GROUPS, COND_ITEMS, COND_WARNING_KINDS, COND_WARNING_LEVELS } from "@/lib/library";
 import type { DisasterType } from "@/lib/contract/agent";
+import { toKstIso } from "@/lib/format";
 
 type Group = (typeof COND_ITEMS)[number]["group"];
 /** 모달 안에서 고쳐 쓰는 수치 줄 — 체크와 사람이 치는 글자 그대로(개발서버 MeasureInput) */
@@ -30,8 +31,8 @@ export function toMeasures(c: Pick<Cond, "conditions">): Measure[] {
 }
 
 /** 수치 줄 → 질의 조건(query_context.detail.conditions 로 나감 — 서버가 source_type MANUAL 을 붙인다). 채운 줄만 */
-export function fromMeasures(ms: Measure[]): NonNullable<Cond["conditions"]> {
-  return ms.filter(isFilled).map((m) => ({ item: m.item, label: m.label, value: Number(m.value), unit: m.unit }));
+export function fromMeasures(ms: Measure[], observedAt?: string): NonNullable<Cond["conditions"]> {
+  return ms.filter(isFilled).map((m) => ({ item: m.item, label: m.label, value: Number(m.value), unit: m.unit, ...(observedAt ? { observedAt } : {}) }));
 }
 
 /**
@@ -109,7 +110,8 @@ export default function CondModal({ onClose }: { onClose: () => void }) {
     }
     const kw = keywords.split(",").map((x) => x.trim()).filter(Boolean);
     // 칸을 꺼 두었으니 비어 있겠지만, 나가는 자리에서 한 번 더 턴다
-    const conditions = nationwide ? [] : fromMeasures(measures);
+    // 기상·수문 값은 [적용]을 누른 시각을 기준시각으로 찍는다(observed_at — 개발서버 67617f2 · FUN-UFR-102001)
+    const conditions = nationwide ? [] : fromMeasures(measures, toKstIso(new Date()));
     // 지역은 그대로 두고 조건 칸은 모두 이 값으로 바꾼다(비운 칸은 undefined 로 — 이전 값이 남지 않게).
     // 기준시각은 개발서버 조건에 없는 칸이라 함께 비운다(예전 판이 남긴 값이 몰래 실리지 않게)
     s.setCond({

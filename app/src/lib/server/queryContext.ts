@@ -3,6 +3,7 @@ import type { Account } from "../config";
 import { RegionId } from "../contract/agent";
 import { baseToT3q, parseBaseWire } from "../baseRegion";
 import { toT3qRegion, type T3qRegion } from "../t3q/region";
+import { toKstIso } from "../format";
 
 /**
  * 화면 조건 → T3Q query_context (계약 common.py:54-60)
@@ -23,7 +24,8 @@ export interface ClientCondition {
   warningKind?: string | null;
   warningLevel?: string | null;
   keywords?: string[];
-  conditions?: { item: string; label?: string; value: number; unit?: string }[];
+  /** observedAt = 그 값을 조건 창에서 적용한 시각(ISO +09:00) — T3Q conditions[].observed_at(개발서버 67617f2). 없으면 보내는 시각 */
+  conditions?: { item: string; label?: string; value: number; unit?: string; observedAt?: string }[];
 }
 
 /**
@@ -40,10 +42,12 @@ export function regionOfCondition(acc: Account, c?: ClientCondition | null): T3q
   return toT3qRegion(picked.success ? picked.data : acc.region, c?.sub) ?? null;
 }
 
+const KST_ISO = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\+09:00$/;
+
 /**
  * defaultTypes = 정의된 질문(라이브러리)의 재난유형 — 사용자가 재난유형을 고르지 않았을 때만 쓴다.
  */
-export function buildQueryContext(acc: Account, c?: ClientCondition | null, defaultTypes?: string[]) {
+export function buildQueryContext(acc: Account, c?: ClientCondition | null, defaultTypes?: string[], now: Date = new Date()) {
   const t3qRegion = regionOfCondition(acc, c);
   const qc: Record<string, unknown> = {};
   if (c?.referenceTime) qc.reference_time = c.referenceTime;
@@ -56,7 +60,12 @@ export function buildQueryContext(acc: Account, c?: ClientCondition | null, defa
   if (c?.warningKind) detail.warning_kind = c.warningKind;
   if (c?.warningLevel) detail.warning_level = c.warningLevel;
   if (c?.keywords?.length) detail.keywords = c.keywords;
-  if (c?.conditions?.length) detail.conditions = c.conditions.map((x) => ({ ...x, source_type: "MANUAL" }));
+  // 기상·수문 값마다 observed_at(기준시각) — 조건 창 [적용] 시각, 없거나 꼴이 틀리면 보내는 시각(개발서버 toQueryContext · FUN-UFR-102001 · T3Q v0.4.7 6.11절 ①)
+  if (c?.conditions?.length)
+    detail.conditions = c.conditions.map((x) => ({
+      item: x.item, label: x.label, value: x.value, unit: x.unit, source_type: "MANUAL",
+      observed_at: typeof x.observedAt === "string" && KST_ISO.test(x.observedAt) ? x.observedAt : toKstIso(now),
+    }));
   if (Object.keys(detail).length) qc.detail = detail;
   return qc;
 }

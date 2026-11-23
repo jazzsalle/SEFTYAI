@@ -1,7 +1,7 @@
 "use client";
 /**
  * 접속이 끝났을 때 (개발서버 httpClient·SessionTakenOverModal 그대로, R53)
- *  · 다른 곳에서 같은 계정으로 로그인해 끊겼으면(sessionTaken) 쓰던 화면 위에 「접속이 종료되었습니다」(SCR-UNE-101004) — ✕ 없음, 두 단추 모두 로그인 화면으로
+ *  · 다른 곳에서 같은 계정으로 로그인해 끊겼으면(sessionTaken) 쓰던 화면 위에 「접속이 종료되었습니다」(SCR-UNE-101004) — 오른쪽 위 ✕ + [로그인 화면으로] 하나, 둘 다 로그인 화면으로(개발서버 c7cdcd6). 창 폭은 확인 창(sm, 400), 본문은 설계대로 두 줄(11b4f3e)
  *  · 시간이 지나 끝났으면(sessionExpired) 안내 창 없이 로그인 화면으로 — 로그인 화면이 「일정 시간 동안 사용하지 않아 로그아웃되었습니다」를 띄운다(/login?expired=1)
  *  · 나갈 때 쿠키를 지우고(/api/auth/logout) 새로 읽는다(남은 화면 상태를 모두 비움)
  * 사용: 헤더(AppShell)에 <SessionExpiredModal /> 한 번.
@@ -33,13 +33,12 @@ export function SessionExpiredModal() {
     <Dialog
       role="alertdialog"
       title="접속이 종료되었습니다"
-      desc="다른 곳에서 이 계정으로 로그인했습니다. 다시 로그인하세요."
+      desc={"다른 곳에서 이 계정으로 로그인했습니다.\n다시 로그인하세요."}
+      size="sm"
+      onClose={go}
       busy={leaving}
       footer={
-        <>
-          <button type="button" className="acm-btn" onClick={go} disabled={leaving}>닫기</button>
-          <button type="button" className="acm-btn pri" onClick={go} disabled={leaving}>로그인 화면으로</button>
-        </>
+        <button type="button" className="acm-btn pri" onClick={go} disabled={leaving}>로그인 화면으로</button>
       }
     />
   );

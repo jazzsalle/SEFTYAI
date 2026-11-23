@@ -6,7 +6,7 @@
  * - 점검 대상(ai_region) = 시·도 + 영천시·인제군. 전국·그 밖의 시·군·구·읍·면·동은 쓸 수 없다(「AI 모드를 실행할 수 없습니다」).
  * - 배경 점검 지역(AiMode:Groups) — 접속자와 무관하게 10분마다 지역 공용으로 점검한다. 그룹 둘이 5분씩 엇갈린다.
  *   그 밖의 점검 대상 지역은 켜 둔 화면이 10분마다 점검을 건다(사용자별).
- * - 회차마다 특보 서명(발효 특보 번호 정렬 해시)이 직전 점검과 같고 답이 60분보다 젊으면 T3Q 를 부르지 않는다.
+ * - 특보가 바뀌었는지와 관계없이 10분마다 묻는다(개발서버 8756667·5d4d40a — FUN-UFR-202001). 특보 서명(발효 특보 번호 정렬 해시)은 묻는 이유(FIRST·WARNING_CHANGED·SCHEDULED) 표시에만 쓴다.
  * - 발효 특보가 있으면 특보마다 따로 묻고(동시 4), 받은 답 = 그 특보 카드의 「AI 안내」. 특보가 없으면 한 번.
  */
 import type { BaseWire } from "./baseRegion";
@@ -17,8 +17,6 @@ export const AIM_Q =
 export const AIM_PROMPT_ID = "AIM-PROMPT-01";
 /** 정기 점검 간격(분) — AiMode:IntervalMin */
 export const AIM_INTERVAL_MIN = 10;
-/** 답이 이만큼 묵으면 특보 서명이 그대로여도 다시 묻는다(분) — AiMode:MaxAgeMin */
-export const AIM_MAX_AGE_MIN = 60;
 /** 특보별 질의 동시 수 — T3qAiModeAgent.MaxParallel */
 export const AIM_PARALLEL = 4;
 /** 특보 안내 글자 상한 — ai_mode_guide.message 칸 크기 */

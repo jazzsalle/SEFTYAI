@@ -63,7 +63,8 @@ export interface Cond {
   warningKind?: string;
   warningLevel?: string;
   keywords?: string[];
-  conditions?: { item: string; label?: string; value: number; unit?: string }[];
+  /** observedAt = 그 값을 조건 창에서 적용한 시각(ISO +09:00) — T3Q conditions[].observed_at(개발서버 67617f2). 없으면 보내는 시각 */
+  conditions?: { item: string; label?: string; value: number; unit?: string; observedAt?: string }[];
 }
 
 export interface SubmitArgs {

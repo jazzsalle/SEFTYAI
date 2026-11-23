@@ -18,17 +18,26 @@ const DB_ONLY_PAREN = new RegExp(`\\s*\\(\\s*(?:${DB_NAME}\\s*(?:,|·|/|및|와|
 /** 남은 표 이름과 그 앞 쉼표 */
 const DB_LOOSE = new RegExp(`\\s*[,·]?\\s*${DB_NAME}`, "g");
 
+/**
+ * 따옴표(`) 없이 괄호 안에 온 표 이름 — 「(hazard.zone)」(개발서버 9d0b0dd, 실측 11-23).
+ * 따옴표가 없으면 글자만으로 표 이름인지 가를 수 없다(「(report.pdf)」「(i.e)」 도 같은 꼴) — T3Q 답에서 실제로 본 스키마로 시작할 때만 가린다.
+ */
+const BARE_DB_SCHEMAS = "hazard|flood|weather|link";
+const BARE_DB = `(?:${BARE_DB_SCHEMAS})\\.[a-z_][a-z0-9_]*`;
+const BARE_DB_PAREN = new RegExp(`\\s*\\(\\s*${BARE_DB}(?:\\s*(?:,|·|/)\\s*${BARE_DB})*\\s*\\)`, "g");
+const HAS_BARE_DB = new RegExp(BARE_DB_PAREN.source);
+
 /** 답 글에서 내부 DB 표 이름을 걷는다 — 수치·사건 ID(T10107-…)·문장은 그대로, 표 이름만 */
 export function hideDbNames(text: string): string {
-  if (!HAS_DB_NAME.test(text)) return text;
+  if (!HAS_DB_NAME.test(text) && !HAS_BARE_DB.test(text)) return text;
   return text
     .split("\n")
     .filter((line) => {
-      // 출처만 적은 줄 — 「*(출처: … DB …)*」 「- **데이터 출처**: …(`flood.trace`)」
+      // 출처만 적은 줄 — 「*(출처: … DB …)*」 「- **데이터 출처**: …(`flood.trace`)」 「*출처: …(hazard.zone)*」
       const bare = line.replace(/[*_()>\-\s]/g, "");
-      return !(HAS_DB_NAME.test(line) && /^(데이터)?출처[:：]/.test(bare));
+      return !((HAS_DB_NAME.test(line) || HAS_BARE_DB.test(line)) && /^(데이터)?출처[:：]/.test(bare));
     })
-    .map((line) => line.replace(DB_ONLY_PAREN, "").replace(DB_LOOSE, ""))
+    .map((line) => line.replace(DB_ONLY_PAREN, "").replace(DB_LOOSE, "").replace(BARE_DB_PAREN, ""))
     .join("\n");
 }
 

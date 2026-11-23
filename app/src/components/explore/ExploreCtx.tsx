@@ -13,7 +13,7 @@ export interface PanelTab {
   pinned?: boolean;
   citation?: Citation;
   /** T3Q Data API 상세 (T3Q-10·15·16·17 등) — ID 는 T3Q 가 준 값 그대로 */
-  detail?: { api: string; id: string; label: string; ctx?: Record<string, unknown> | null };
+  detail?: { api: string; id: string; label: string; ctx?: Record<string, unknown> | null; entityType?: string | null };
   /** 답의 근거 문서 쪽(T3Q 쪽 본문 API) — 탭은 하나, 다른 근거를 누르면 내용만 바뀐다 */
   evidence?: { jobId: string; row: DocRow; rows: DocRow[]; view?: string };
 }

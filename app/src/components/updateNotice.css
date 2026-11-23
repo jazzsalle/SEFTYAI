@@ -1,0 +1,12 @@
+/* 새 배포본 알림 — 개발서버 index.css .update-notice(f668628) 그대로 */
+.update-notice {
+  position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 3000;
+  display: flex; align-items: center; gap: 12px; max-width: calc(100vw - 32px);
+  padding: 10px 14px; border-radius: 8px; background: #1e2124; color: #fff;
+  font-size: calc(14px * var(--fs-scale)); box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+}
+.update-notice-btn {
+  flex: none; padding: 4px 10px; border: 1px solid #fff; border-radius: 4px;
+  background: transparent; color: #fff; font: inherit; cursor: pointer;
+}
+.update-notice-btn:hover { background: rgba(255, 255, 255, 0.15); }

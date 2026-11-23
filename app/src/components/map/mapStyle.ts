@@ -173,6 +173,11 @@ export const PRECISION_KO: Readonly<Record<string, string>> = {
   exact: "원천 도형",
   bbox: "범위(사각형)",
   bbox_unchecked: "범위(사각형·미검증)", // 개발 서버 실측 값 — 설명서에는 없음
+  // 개발 서버 실측 값 — 설명서에는 없음(개발서버 e9f6fd2: 2026-11-03 jibun·jibun_main, 11-23 road_addr·source_point). 뜻은 T3Q 확인 대기
+  road_addr: "도로명주소 위치",
+  jibun: "지번 위치",
+  jibun_main: "지번(본번) 위치",
+  source_point: "원천 지점 좌표",
   centroid_only: "중심점",
   building_center: "건축물 중심",
   dong_center: "동 중심(근사)",
@@ -191,7 +196,8 @@ export const isRangePrecision = (p: string | null | undefined) => !!p && p.start
 
 export function precisionKo(p: string | null | undefined): string | null {
   if (!p) return null;
-  return PRECISION_KO[p] ?? (isRangePrecision(p) ? "범위(사각형)" : approxLevel(p) ? "행정구역 중심(근사)" : `정밀도 ${p}`);
+  // 모르는 값은 상류 코드를 그대로 내보이지 않는다(개발서버 e9f6fd2 — 「정밀도 road_addr」이 비쳤다)
+  return PRECISION_KO[p] ?? (isRangePrecision(p) ? "범위(사각형)" : approxLevel(p) ? "행정구역 중심(근사)" : "위치 정밀도 미확인");
 }
 
 /** "#RRGGBB" → rgba() */

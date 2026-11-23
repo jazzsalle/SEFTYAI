@@ -123,23 +123,26 @@ describe("AI 모드 점검(R52) — 사용자별", () => {
     expect(v.status).toBe("DONE");
     expect(v.guides.map((g) => [g.warningKey, g.level, g.message])).toEqual([["W-1", "경보", "하천 주변 통제를 먼저 확인하십시오."]]);
     expect(v.warnings).toHaveLength(2);
-    // 특보가 바뀌면(W-2 해제) 새로 묻고, 모두 실패면 점검 실패
+    // 특보가 바뀌면(W-2 해제) 다음 주기(10분)에 「특보 변경」으로 묻고, 모두 실패면 점검 실패
     wx.advisories = [adv("W-1", "경보", "경남")];
-    expect((await A.aimCheck(busan, GN)).running).toBe(true);
+    expect((await A.aimCheck(busan, GN, Date.now() + 10 * 60_000)).running).toBe(true);
     c = (await checks("4800000000"))[1];
     expect(c.trigger).toBe("WARNING_CHANGED");
     await finish(c, { "W-1": null });
     expect((await A.aimLatest(busan, GN)).view!.status).toBe("FAILED");
   });
 
-  it("특보 서명이 같고 60분 안이면 다시 묻지 않고, 60분이 지나면 SCHEDULED", async () => {
+  it("10분 주기만 따른다 — 10분 안이면 특보가 바뀌어도 다시 묻지 않고, 지나면 특보가 그대로여도 SCHEDULED(개발서버 5d4d40a)", async () => {
     wx.advisories = [adv("W-1", "경보", "경남")];
     await A.aimCheck(busan, GN);
     await finish((await checks("4800000000"))[0], { "W-1": "안내" });
     await A.aimLatest(busan, GN);
     expect((await A.aimCheck(busan, GN)).running).toBe(false);
+    wx.advisories = [adv("W-1", "경보", "경남"), adv("W-2", "주의보", "경남")];
+    expect((await A.aimCheck(busan, GN, Date.now() + 9 * 60_000)).running).toBe(false);
     expect(await checks("4800000000")).toHaveLength(1);
-    await A.aimCheck(busan, GN, Date.now() + 61 * 60_000);
+    wx.advisories = [adv("W-1", "경보", "경남")];
+    await A.aimCheck(busan, GN, Date.now() + 11 * 60_000);
     const all = await checks("4800000000");
     expect(all).toHaveLength(2);
     expect(all[1].trigger).toBe("SCHEDULED");
@@ -178,12 +181,14 @@ describe("AI 모드 점검(R52) — 배경 지역(지역 공용 회차)", () => 
     const v2 = (await A.aimLatest(central, BS)).view!;
     expect(v1.checkId).toBe(v2.checkId);
     expect(v1.guides[0].message).toBe("부산 안내");
-    // 다음 회차(10분 뒤) — 특보 그대로·답이 젊으면 SKIPPED 줄만
+    // 다음 회차(10분 뒤) — 특보가 그대로여도 묻는다(SCHEDULED, 건너뛰는 SKIPPED 줄 없음 — 개발서버 8756667)
     vi.useFakeTimers({ toFake: ["Date"] });
     vi.setSystemTime(Date.now() + 10 * 60_000);
-    await A.aimLatest(busan, BS);
+    expect((await A.aimLatest(busan, BS)).running).toBe(true);
     all = await checks("2600000000");
-    expect(all.map((c) => c.status)).toEqual(["DONE", "SKIPPED"]);
+    expect(all.map((c) => c.status)).toEqual(["DONE", "RUNNING"]);
+    expect(all[1].trigger).toBe("SCHEDULED");
+    await finish(all[1], { "B-1": "부산 안내" });
     // 그다음 회차에 특보가 바뀌면 WARNING_CHANGED
     wx.advisories = [adv("B-1", "경보", "부산"), adv("B-2", "주의보", "부산")];
     vi.setSystemTime(Date.now() + 10 * 60_000);

@@ -1,6 +1,6 @@
 "use client";
 import type { Advisory } from "./contract/agent";
-import type { BaseRegion } from "./baseRegion";
+import type { WxBulletinHead } from "./wxBulletin";
 
 /**
  * 특보 상세 창(머리줄 — components/wx/WxDetailModal) → 통합 탐색 화면(explore) 「이 특보로 질의」 다리.
@@ -8,8 +8,8 @@ import type { BaseRegion } from "./baseRegion";
  */
 export interface WxAskRequest {
   adv: Advisory;
-  /** 그 특보가 걸린 행정구역 — undefined 면 지금 기준지역 그대로(바다 구역 · 정할 수 없음) */
-  base?: BaseRegion | null;
+  /** 상세 창이 받아 둔 기준지역 관할 통보문 목록(제목까지) — 본문은 받는 쪽이 관서별 최신 한 장씩 가져가 싣는다(개발서버 AlertDetailModal onAsk · 810fe49) */
+  bulletins?: WxBulletinHead[];
 }
 
 export const WX_ASK_EVENT = "sa:ask-wx";

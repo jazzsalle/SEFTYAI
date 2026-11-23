@@ -5,7 +5,9 @@ import { useT3qData, type T3qEnvelope } from "@/lib/t3qData";
 import { groupedStateOf } from "@/lib/detailGroups";
 import { text, UNAVAILABLE } from "@/lib/riskObject";
 import { IcCalendar, IcMapPin } from "../answer/infoIcons";
+import { isFloodTraceId } from "@/lib/floodTrace";
 import EventDetail from "./EventDetail";
+import FloodTraceDetail from "./FloodTraceDetail";
 import EntityDetail, { CategoryIcon, RawView, Rows, Sec } from "./EntityDetail";
 import "./tree.css";
 
@@ -17,6 +19,8 @@ type Env = { data_gaps?: { component: string; reason: string }[]; warnings?: { c
 
 export default function DetailPane({ apiId, id, label, ctx, hasGeometry }: { apiId: string; id: string; label: string; ctx?: Record<string, unknown> | null; hasGeometry?: boolean | null }) {
   if (apiId === "T3Q-10") return <EventDetail id={id} label={label} ctx={ctx} />;
+  // 침수흔적(FT-)은 T3Q-15 에 없다 — 침수흔적 조회(T3Q-30)로 그린다(개발서버 SidePanel isFloodTrace → FloodTraceTab). T3Q-15 로 열린 탭도 이쪽으로
+  if (apiId === "T3Q-30" || (apiId === "T3Q-15" && isFloodTraceId(id))) return <FloodTraceDetail id={id} label={label} ctx={ctx} hasGeometry={hasGeometry} />;
   // 위험·취약 대상 — 개발서버 EntityTab 그대로(갈래별 묶음·이름 견줌·예외 문구)
   if (apiId === "T3Q-15") return <EntityDetail id={id} label={label} ctx={ctx} hasGeometry={hasGeometry} />;
   return <GroupedDetail apiId={apiId} id={id} label={label} />;

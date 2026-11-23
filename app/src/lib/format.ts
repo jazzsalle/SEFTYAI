@@ -4,6 +4,11 @@
  * 글자로 온 값(코드 대부분)은 손대지 않는다 — 숫자(number)로 온 값만. 에이전트 답 글 안의 숫자는 원문 그대로(여기 안 거침).
  * toLocaleString 은 소수 3자리로 반올림하므로 쓰지 않는다. 지수 표기·NaN 등 쉼표를 넣을 수 없는 꼴은 글자 그대로.
  */
+/** 시각 → ISO 8601 한국 시간(+09:00) 「2026-11-20T09:10:00+09:00」 — PC 시간대와 상관없이(개발서버 conditions toKstIso · T3Q v0.4.7 6.11절 예시 꼴) */
+export function toKstIso(date: Date): string {
+  return `${new Date(date.getTime() + 9 * 3_600_000).toISOString().slice(0, 19)}+09:00`;
+}
+
 export function fmtNum(n: number): string {
   const s = String(n);
   if (!/^-?\d+(\.\d+)?$/.test(s)) return s;

@@ -2,7 +2,7 @@
 // 하네스 — 답변 카드: 개발서버 AnswerPanel(DoneAnswer · TurnAnswer · AnswerTools · AnswerTargets)과 같은 모양·순서(2026-11-19) ·
 // 받지 못한 답(answer-error) · 답변 대상 N곳 · 대상지역 N건 · 경고 목록 · 복사(툴바 안 글) · 진행 중 경과 시계 · 도우미(받은 뒤 특보 판정 등)
 // npx vitest run harness/render
-import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Advisory, WeatherResponse } from "@/lib/contract/agent";
@@ -24,7 +24,6 @@ vi.mock("@/components/summary/CompactSummary", () => ({ default: () => null }));
 import AnswerCard, { advisoriesAfter, fmtYmdHm, regionOfRequest, seenAdvisories } from "@/components/answer/AnswerCard";
 import { kmaAdvId, legacyAdvIds } from "@/lib/wxMatch";
 import { basisTime } from "@/lib/summary";
-import { hideDbNames } from "@/lib/answerText";
 
 /** 이 컴퓨터 시간대의 2026-10-28 h:m → ISO(시간대와 무관하게 화면 글자를 맞추려고) */
 const local = (h: number, m: number, day = 28) => new Date(2026, 9, day, h, m).toISOString();
@@ -227,7 +226,7 @@ describe("답변 카드 — 개발서버 AnswerPanel DoneAnswer 와 같은 모�
     expect(container.querySelector(".md")!.textContent).toContain("도심 저지대");
   });
 
-  it("답 글은 화면 처리(DB 표 이름·정비 내용 칸), 마크다운 원문 복사는 DB 이름만 걷은 글(개발서버 hideDbNames)", async () => {
+  it("답 글은 화면 처리(DB 표 이름·정비 내용 칸) — 복사는 화면에 보인 글 그대로(개발서버 AnswerCopy, 마크다운 원문 복사 없음)", async () => {
     const job = makeJob();
     const text = "침수흔적(`flood.trace`) 기준입니다.\n\n| 지구 | 주요 정비 내용 | 등급 |\n|---|---|---|\n| [범일2](#ref:r2) | 우수관로 정비 | 가 |";
     const raw = makeRaw({ result: { answer: text, refs } });
@@ -236,10 +235,10 @@ describe("답변 카드 — 개발서버 AnswerPanel DoneAnswer 와 같은 모�
     expect(md.textContent).toContain("침수흔적 기준입니다.");
     expect(md.textContent).not.toContain("flood.trace");
     expect([...md.querySelectorAll("th")].map((t) => t.textContent)).toEqual(["지구", "등급"]);
-    const tools = within(container.querySelector(".ans-tools") as HTMLElement);
-    fireEvent.click(tools.getByRole("button", { name: "답변 복사" }));
-    fireEvent.click(within(screen.getByRole("menu", { name: "답변 복사" })).getByRole("menuitem", { name: "마크다운 원문" }));
-    expect(writeText).toHaveBeenLastCalledWith(hideDbNames(text));
+    fireEvent.click(within(container.querySelector(".ans-actions") as HTMLElement).getByRole("button", { name: "답변 복사" }));
+    await waitFor(() => expect(writeText).toHaveBeenCalled());
+    expect(writeText.mock.lastCall?.[0]).not.toContain("flood.trace");
+    expect(writeText.mock.lastCall?.[0]).not.toContain("우수관로 정비");
   });
 
   it("답 글 속 대상 이름을 누르면 상세 탭을 만들고 지도가 그 대상으로(개발서버 openEntity, R59) — 번호가 다른 이름에 붙은 링크는 글자", () => {
@@ -318,20 +317,18 @@ describe("답을 받은 뒤 특보 주의(C9)는 답 카드에 두지 않는다(
   });
 });
 
-describe("C10 — 답변 복사(머리 도구만, 결과는 툴바 안 글 — 토스트 아님)", () => {
-  it("서식 없는 글(마크다운 기호 빼고 글자 그대로, 표는 탭 구분) · 마크다운 원문", async () => {
+describe("C10 — 답변 복사(카드 아래 답변 동작 영역 [복사] — 개발서버 AnswerCopy 9e664db, 결과는 화면낭독 글만 · 토스트 아님)", () => {
+  it("서식 없는 글 하나(마크다운 기호 빼고 글자 그대로, 표는 탭 구분) · 머리 도구에는 복사가 없다", async () => {
     const job = makeJob();
     const { container } = wrap(<AnswerCard job={job} full={makeFull(job)} />);
     const plain = "결론\n\n부산 도심 저지대)입니다. 초량제1지하차도 · 범일2 · 문현지하차도\n\n구분\t길이\n가 나\t125m";
-    const tools = within(container.querySelector(".ans-tools") as HTMLElement);
-    fireEvent.click(tools.getByRole("button", { name: "답변 복사" }));
-    fireEvent.click(within(screen.getByRole("menu", { name: "답변 복사" })).getByRole("menuitem", { name: "서식 없는 글" }));
-    expect(writeText).toHaveBeenLastCalledWith(plain);
-    expect(await tools.findByRole("status")).toHaveProperty("textContent", "서식 없는 글로 복사했습니다");
-    fireEvent.click(tools.getByRole("button", { name: "답변 복사" }));
-    fireEvent.click(within(screen.getByRole("menu", { name: "답변 복사" })).getByRole("menuitem", { name: "마크다운 원문" }));
-    expect(writeText).toHaveBeenLastCalledWith(ANSWER);
-    expect(await tools.findByText("마크다운 원문을 복사했습니다")).toBeTruthy();
+    expect(within(container.querySelector(".acard-h") as HTMLElement).queryByRole("button", { name: "답변 복사" })).toBeNull();
+    const actions = within(container.querySelector(".ans-actions") as HTMLElement);
+    const btn = actions.getByRole("button", { name: "답변 복사" });
+    expect(btn.textContent).toBe("복사");
+    fireEvent.click(btn);
+    await waitFor(() => expect(writeText).toHaveBeenLastCalledWith(plain));
+    await waitFor(() => expect(actions.getByRole("status").textContent).toBe("답변을 복사했습니다"));
     expect(session.toast).not.toHaveBeenCalled();
   });
 });

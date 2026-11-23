@@ -23,6 +23,7 @@ export async function GET(req: Request, ctx: { params: Promise<{ id: string; doc
   if ("error" in t) return fail(t.error, t.error === 404 ? "이 답의 근거 문서가 아닙니다." : "이 답은 근거 쪽을 다시 열 수 없습니다.", { code: t.error === 404 ? "NOT_IN_ANSWER" : "NO_REQUEST_ID" });
   const r = await t3q<{ warnings?: { code?: string }[] }>("GET", `/agent/query/${t.requestId}/doc-refs/${doc}`);
   if (!r.envelope) return fail(502, r.error ?? "근거 쪽을 불러오지 못했습니다.", { http: r.http });
-  if (r.http !== 200) return fail(r.http === 410 ? 410 : r.http === 404 ? 404 : 502, "근거 쪽을 열 수 없습니다.", { code: r.body?.warnings?.[0]?.code ?? null });
+  // 403 = 제공기관 정책으로 볼 수 없는 근거(화면이 「인용 부분만 볼 수 있습니다」로 따로 알린다 — 개발서버 evidenceApi)
+  if (r.http !== 200) return fail(r.http === 410 ? 410 : r.http === 404 ? 404 : r.http === 403 ? 403 : 502, "근거 쪽을 열 수 없습니다.", { code: r.body?.warnings?.[0]?.code ?? null });
   return json({ http: r.http, envelope: r.body });
 }

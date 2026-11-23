@@ -183,6 +183,58 @@ export function parseWrnMsg(j: unknown, stnId: string): WxBulletin[] {
 }
 
 export const bulletinKey = (stnId: string, tmFc: string, seq: number) => `${stnId}|${tmFc}|${seq}`;
+
+// ── 기상정보문(getWthrInfo — 강수·기온 현황과 전망) — 「이 특보로 질의」가 「기상정보(예보)」로 싣는다(개발 서버 74974d2 · FUN-UFR-104001) ──
+
+/** 기상정보문 한 장 — 기상청이 적어 보낸 글 그대로(요약·자르기 없음) */
+export interface WxInfo {
+  /** 「지점|발표시각(12자리)|발표번호」 */
+  key: string;
+  stnId: string;
+  stnName: string;
+  /** 발표시각(tmFc) */
+  announcedAt: string;
+  /** 발표번호(tmSeq) */
+  seq: number;
+  /** 본문(t1) 원문 */
+  text: string;
+}
+/** 질의에 싣는 기상정보문은 발표 12시간 안의 것만, 최신 3장까지(개발 서버 WeatherService InfoHours·InfoLimit) */
+export const INFO_HOURS = 12;
+export const INFO_LIMIT = 3;
+/** 활용가이드 한도(4,000자) — 넘으면 한도까지만(개발 서버 WeatherCollectorService) */
+const INFO_MAX = 4000;
+
+/** getWthrInfo 응답 → 기상정보문. 03(NODATA)은 빈 목록, 발표시각이나 본문이 없으면 뺀다(개발 서버 KmaClient.ParseInfo) */
+export function parseWthrInfo(j: unknown, stnId: string): WxInfo[] {
+  const res = (j as { response?: { header?: { resultCode?: string; resultMsg?: string }; body?: { items?: { item?: unknown } | "" } } } | null)?.response;
+  const code = res?.header?.resultCode;
+  if (code === "03") return [];
+  if (code !== "00") throw new Error(`기상청 기상정보문 오류 ${code ?? "응답 없음"}: ${res?.header?.resultMsg ?? ""}`.trim());
+  const items = res?.body?.items && typeof res.body.items === "object" ? res.body.items.item : undefined;
+  const list = (items == null ? [] : Array.isArray(items) ? items : [items]) as Record<string, unknown>[];
+  const out: WxInfo[] = [];
+  for (const o of list) {
+    const at = kmaStamp(o.tmFc);
+    const text = o.t1 == null ? "" : String(o.t1).replace(/\r/g, "");
+    if (!at || !text.trim()) continue;
+    const stn = str(o.stnId) || stnId;
+    const n = Number(o.tmSeq);
+    const seq = Number.isFinite(n) ? n : -1;
+    out.push({ key: bulletinKey(stn, String(o.tmFc).trim(), seq), stnId: stn, stnName: wxStation(stn)?.name ?? stn, announcedAt: at, seq, text: text.slice(0, INFO_MAX) });
+  }
+  return out;
+}
+
+/** 받은 기상정보문 → 질의에 실을 것: 발표 INFO_HOURS 안, 최신순(같은 시각이면 번호 큰 것), INFO_LIMIT 장까지. 같은 열쇠는 한 번 */
+export function latestInfos(rows: WxInfo[], now: number): WxInfo[] {
+  const since = now - INFO_HOURS * 3600_000;
+  const seen = new Set<string>();
+  return rows
+    .filter((r) => Date.parse(r.announcedAt) >= since && !seen.has(r.key) && !!seen.add(r.key))
+    .sort((a, b) => Date.parse(b.announcedAt) - Date.parse(a.announcedAt) || b.seq - a.seq)
+    .slice(0, INFO_LIMIT);
+}
 /** 열쇠 검사 — 지점 숫자 · 발표시각 12자리 · 번호. 틀리면 null */
 export function parseBulletinKey(key: string | null | undefined): { stnId: string; tmFc: string; seq: number } | null {
   const m = /^(\d{2,4})\|(\d{12})\|(-?\d{1,6})$/.exec((key ?? "").trim());

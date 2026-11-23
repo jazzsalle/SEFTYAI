@@ -60,7 +60,7 @@ export const LIBRARY: LibraryQuestion[] = [
 /** 조건 편집 창(Composer)의 수치 칸 — 항목·이름·단위(query_context.detail.conditions 에 이 글자 그대로) */
 /**
  * 「기상·수문 조건 (직접 입력)」 줄 — 개발서버 conditions.ts MeasureFields 그대로(이름·단위·묶음·차례, R54).
- * 다만 수위·유량 코드는 T3Q 계약(lib/t3q/schemas ConditionItem — WATER_LEVEL · FLOW)을 따른다(개발서버는 RIVER_LEVEL · RIVER_FLOW 이고 「T3Q 와 확인 필요」라 적어 둠).
+ * 수위·유량 코드는 T3Q 계약(lib/t3q/schemas ConditionItem — WATER_LEVEL · FLOW) — 개발서버도 1c4ea03 부터 같은 코드(T3Q 확정 v0.4.9).
  * label·value·unit 을 함께 보내므로 Agent 가 읽을 것은 같다
  */
 export const COND_ITEMS = [

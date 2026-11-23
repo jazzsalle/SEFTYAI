@@ -25,16 +25,16 @@ describe("재난상황 조건 — 기상·수문 값", () => {
     ]);
   });
 
-  it("query_context.detail.conditions = item·label·value·unit·source_type MANUAL(개발서버 toQueryContext 와 같은 꼴)", () => {
+  it("query_context.detail.conditions = item·label·value·unit·source_type MANUAL·observed_at(개발서버 toQueryContext 와 같은 꼴 — 67617f2)", () => {
     const acc = { id: "busan", role: "지자체", region: "busan" } as unknown as Account;
     const qc = buildQueryContext(acc, {
       base: { code: "26", name: "부산광역시", level: "SIDO" },
       warningKind: "호우", warningLevel: "주의보", keywords: ["지하차도"],
       conditions: [{ item: "RAIN_6H", label: "6시간 누적", value: 90, unit: "mm" }],
-    });
+    }, undefined, new Date("2026-11-24T01:00:00Z"));
     expect(qc.detail).toEqual({
       warning_kind: "호우", warning_level: "주의보", keywords: ["지하차도"],
-      conditions: [{ item: "RAIN_6H", label: "6시간 누적", value: 90, unit: "mm", source_type: "MANUAL" }],
+      conditions: [{ item: "RAIN_6H", label: "6시간 누적", value: 90, unit: "mm", source_type: "MANUAL", observed_at: "2026-11-24T10:00:00+09:00" }],
     });
   });
 });

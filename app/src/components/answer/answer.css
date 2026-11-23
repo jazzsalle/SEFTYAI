@@ -94,32 +94,17 @@
 .md .md-table tbody tr:nth-child(even) { background: #fafbfc; }
 .md .md-table th.num, .md .md-table td.num { text-align: right; font-variant-numeric: tabular-nums; }
 
-/* ── 근거 문서 · 문서 속 그림 · 개인정보 가림 — 디자인 캔버스 「근거 문서·문서 그림·개인정보 가림 화면 설계」 2026-11-20 ── */
-/* 답 글 속 근거 표지 [문서 p.N](#doc:dN) */
-.doc-cite { display: inline-flex; align-items: center; gap: 4px; margin: 0 2px; padding: 0 8px; min-height: 24px; border-radius: 6px; border: 1px solid #c9dafc; background: #ecf2fe; color: #0b50d0; font: inherit; font-size: 0.9em; font-weight: 500; line-height: 1.5; cursor: pointer; vertical-align: baseline; text-align: left; }
-.doc-cite::before { content: ""; flex: none; width: 11px; height: 12px; background: currentColor; -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 1h5l2 2v8h-7z' fill='none' stroke='black'/%3E%3C/svg%3E") center / contain no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 1h5l2 2v8h-7z' fill='none' stroke='black'/%3E%3C/svg%3E") center / contain no-repeat; }
-.doc-cite:hover, .doc-cite.on { background: #256ef4; border-color: #256ef4; color: #fff; }
-.doc-cite:focus-visible, .ans-docrow:focus-visible, .ans-fig:focus-visible { outline: 2px solid #256ef4; outline-offset: 2px; }
+/* ── 근거 문서 · 개인정보 가림 ── */
+/* 답 글 속 근거 표지 [문서 p.N](#doc:dN) — 개발서버 화면목록 203001(11-23): 적힌 문서명 그대로 링크, 대상 링크와 같은 모양 */
+.md .doc-cite { display: inline; margin: 0; padding: 0; border: 0; border-bottom: 1px solid #b1cefb; background: none; font: inherit; line-height: inherit;
+  text-align: inherit; color: #0b50d0; text-decoration: none; cursor: pointer; }
+.md .doc-cite:hover, .md .doc-cite.on { color: #0a47b8; background: #ecf2fe; border-bottom-color: #256ef4; }
+.md .doc-cite:focus-visible { outline: 2px solid #256ef4; outline-offset: 2px; }
 
-/* 답 아래 「근거 문서」 */
-.ans-docs { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; padding-top: 14px; border-top: 1px solid #e6e8ea; }
-.ans-docs-h, .ans-figs-h { margin: 0; display: flex; align-items: baseline; gap: 8px; }
-.ans-docs-h b, .ans-figs-h b { font-size: calc(14px * var(--fs-scale)); color: #1e2124; }
-.ans-docs-h span, .ans-figs-h span { font-size: calc(13px * var(--fs-scale)); color: #464c53; }
-.ans-docs-list { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; }
-.ans-docrow { display: grid; grid-template-columns: 28px minmax(0, 1fr) auto auto; gap: 12px; align-items: center; width: 100%; min-height: 48px; padding: 6px 12px; border: 1px solid #e6e8ea; border-radius: 8px; background: #fff; color: inherit; font: inherit; text-align: left; cursor: pointer; }
-.ans-docrow:hover { border-color: #c9dafc; background: #f7faff; }
-.ans-docrow.on { border-color: #256ef4; box-shadow: inset 3px 0 0 #256ef4; }
-.ans-docrow-n { display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: #ecf2fe; color: #0b50d0; font-size: calc(12px * var(--fs-scale)); font-weight: 700; }
-.ans-docrow.on .ans-docrow-n { background: #256ef4; color: #fff; }
-.ans-docrow-t { min-width: 0; display: flex; flex-direction: column; }
-.ans-docrow-t b { font-size: calc(14px * var(--fs-scale)); font-weight: 500; overflow-wrap: anywhere; }
-.ans-docrow-t em { font-style: normal; color: #0b50d0; }
-.ans-docrow-t small { font-size: calc(12px * var(--fs-scale)); color: #464c53; }
-.ans-docrow-fig { font-size: calc(12px * var(--fs-scale)); padding: 1px 8px; border-radius: 999px; background: #ecf2fe; color: #0b50d0; white-space: nowrap; }
-.ans-docrow-go { font-size: calc(12px * var(--fs-scale)); color: #6d7882; white-space: nowrap; }
-.ans-docrow.on .ans-docrow-go { color: #0b50d0; }
-/* 번호 없는 옛 꼴(새 창 링크) — 개발서버 answer-tools.css .ans-docs */
+/* 번호 없는 옛 꼴 근거 줄(새 창 링크) — 개발서버 answer-tools.css .ans-docs */
+.ans-docs { display: flex; align-items: flex-start; gap: 12px; margin-top: 16px; padding: 12px 16px; border: 1px solid #cdd1d5; border-radius: 8px; background: #f4f5f6; }
+.ans-docs-h { flex: none; padding-top: 5px; font-size: calc(15px * var(--fs-scale)); font-weight: 400; color: #464c53; }
+.ans-docs-list { display: flex; flex-wrap: wrap; gap: 6px 8px; margin: 0; padding: 0; list-style: none; }
 .ans-docs-old { display: inline-flex; align-items: center; gap: 6px; }
 .ans-doc { display: inline-flex; align-items: center; gap: 4px; min-height: 32px; padding: 0 10px; border: 1px solid #b1b8be; border-radius: 6px; background: #fff; color: #1e2124; font-size: calc(14px * var(--fs-scale)); text-decoration: none; }
 a.ans-doc:hover { border-color: #256ef4; color: #256ef4; background: #ecf2fe; }
@@ -127,24 +112,31 @@ a.ans-doc:hover { border-color: #256ef4; color: #256ef4; background: #ecf2fe; }
 .ans-doc-t { max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ans-doc-src { font-size: calc(13px * var(--fs-scale)); color: #6d7882; }
 
-/* 답 아래 「문서 속 그림」 */
-.ans-figs { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
-.ans-figs-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; margin: 0; padding: 0; list-style: none; }
-.ans-fig { display: flex; flex-direction: column; width: 100%; padding: 0; border: 1px solid #e6e8ea; border-radius: 10px; background: #fff; color: inherit; font: inherit; text-align: left; overflow: hidden; cursor: pointer; }
-.ans-fig:hover { border-color: #c9dafc; }
-.ans-fig.on { border-color: #256ef4; box-shadow: 0 0 0 1px #256ef4; }
-.ans-fig-img { position: relative; display: block; height: 132px; background: #f4f5f6; }
-.ans-fig-img img { display: block; width: 100%; height: 100%; object-fit: cover; }
-.ans-fig-img .fig-kind { position: absolute; left: 8px; top: 8px; }
-.ans-fig-t { display: flex; flex-direction: column; padding: 8px 10px; }
-.ans-fig-t b { font-size: calc(13px * var(--fs-scale)); font-weight: 500; line-height: 1.4; }
-.ans-fig-t small { font-size: calc(12px * var(--fs-scale)); color: #464c53; }
-
-/* 개인정보 가림 — T3Q 가 *** 로 가려 보낸 자리. 답 글·사건 타임라인·근거 쪽 어디서나 같은 표시 */
-.pii-mask { display: inline-flex; align-items: center; gap: 3px; margin: 0 2px; padding: 0 7px; border-radius: 4px; background: #e6e8ea; color: #464c53; font-size: 0.82em; font-weight: 500; line-height: 1.6; white-space: nowrap; vertical-align: 1px; }
-.pii-mask::before { content: ""; width: 10px; height: 11px; background: currentColor; -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M3 5.5V4a3 3 0 0 1 6 0v1.5M2.2 5.5h7.6v5H2.2z' fill='none' stroke='black' stroke-width='1.2'/%3E%3C/svg%3E") center / contain no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M3 5.5V4a3 3 0 0 1 6 0v1.5M2.2 5.5h7.6v5H2.2z' fill='none' stroke='black' stroke-width='1.2'/%3E%3C/svg%3E") center / contain no-repeat; }
+/* 개인정보 가림 — T3Q 가 별표로 가려 보낸 자리. 답 글·사건 타임라인·근거 쪽 어디서나 같은 표시(개발서버 mask-chip — 회색 테두리 「가림」) */
+.pii-mask { display: inline-flex; align-items: center; margin: 0 2px; padding: 0 6px; border: 1px solid #b1b8be; border-radius: 4px; background: #fff; color: #464c53; font-size: 0.85em; font-weight: 500; line-height: 1.5; white-space: nowrap; vertical-align: middle; }
 .pii-note { display: flex; align-items: flex-start; gap: 10px; margin: 12px 0 4px; padding: 10px 14px; border: 1px solid #e6e8ea; border-radius: 8px; background: #f4f5f6; color: #464c53; }
 .pii-note svg { flex: none; margin-top: 3px; }
 .pii-note div { display: flex; flex-direction: column; gap: 2px; }
 .pii-note b { font-size: calc(14px * var(--fs-scale)); color: #1e2124; }
 .pii-note span { font-size: calc(13px * var(--fs-scale)); }
+
+/* ── 데이터군 탭(개발서버 answer-tools.css .dg — SCR-UNE-203001 9번, result_groups) ── */
+.dg { margin-top: 12px; padding: 12px 14px; border: 1px solid #e6e8ea; border-radius: 10px; background: #fff; scroll-margin-top: 48px; }
+.dg:focus { outline: 2px solid #256ef4; outline-offset: 2px; }
+.dg-tabs { display: flex; flex-wrap: wrap; gap: 4px 18px; border-bottom: 1px solid #e6e8ea; }
+.dg-tab { padding: 6px 2px 8px; border: 0; border-bottom: 3px solid transparent; background: none; font: inherit; font-size: calc(15px * var(--fs-scale)); font-weight: 600; color: #464c53; cursor: pointer; }
+.dg-tab[aria-selected="true"] { border-bottom-color: #0b2a55; color: #0b2a55; font-weight: 700; }
+.dg-head { margin: 0; font-size: calc(15px * var(--fs-scale)); font-weight: 700; color: #0b2a55; }
+.dg-list { list-style: none; margin: 8px 0 0; padding: 0; }
+.dg-list li { display: flex; flex-direction: column; gap: 2px; padding: 8px 2px; border-bottom: 1px dashed #e6e8ea; min-width: 0; }
+.dg-name { align-self: flex-start; max-width: 100%; text-align: left; font-size: calc(15px * var(--fs-scale)); overflow-wrap: anywhere; }
+.dg-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font-size: calc(12px * var(--fs-scale)); color: #6d7882; }
+/* 조건과 맞지 않는 객체 구분 표시(FUN-UFR-302003) — 색만으로 구분하지 않고 글자를 단다(문구·모양은 개발서버 임시안 그대로) */
+.dg-mark { padding: 1px 8px; border: 1px solid #b95000; border-radius: 999px; background: #fff4e6; color: #8a3b00; font-weight: 600; }
+.dg-more { margin-top: 8px; }
+
+/* ── 답변 동작 영역(개발서버 .ans-actions — Figma 203001): 위 구분선, 왼쪽 [복사](FUN-UFR-303006) · 오른쪽 답변 평가 ── */
+.ans-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-top: 16px; padding-top: 12px; border-top: 1px solid #e6e8ea; }
+.ans-actions .answer-rate { margin-top: 0; padding-top: 0; border-top: 0; margin-left: auto; }
+.ans-copy { display: inline-flex; align-items: center; gap: 4px; min-height: 32px; padding: 0 4px; border: 0; background: none; color: #1e2124; font: inherit; font-size: calc(14px * var(--fs-scale)); cursor: pointer; }
+.ans-copy:hover { color: #256ef4; text-decoration: underline; text-underline-offset: 3px; }

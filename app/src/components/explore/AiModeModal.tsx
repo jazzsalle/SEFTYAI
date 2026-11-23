@@ -19,7 +19,7 @@ const RUNNING_POLL_MS = 5000;
 /**
  * AI 모드 — 사람마다 따로 켜고, 켠 동안 점검 결과를 읽는다(개발서버 useAiMode 복제, R52).
  * 배경 점검 지역(lib/aiMode AIM_GROUPS)은 서버가 지역 공용으로 10분마다 돌고 화면은 2분마다 읽기만,
- * 그 밖의 지역은 켤 때 한 번·그 뒤 10분마다 점검을 건다(특보가 그대로이고 답이 60분 안이면 서버가 상류를 부르지 않음).
+ * 그 밖의 지역은 켤 때 한 번·그 뒤 10분마다 점검을 건다(직전 점검이 10분 안이면 특보가 바뀌었어도 서버가 상류를 부르지 않음).
  */
 function useAiMode(enabled = true) {
   const s = useSession();
@@ -129,7 +129,8 @@ export default function AiModeModal({ open, onClose, demo = null }: { open: bool
   };
   const askItem = (q: string) => {
     onClose();
-    if (path?.startsWith("/explore")) window.dispatchEvent(new CustomEvent("sa:ask-brief", { detail: { q } }));
+    // aim — AI 모드 창에서 보낸 질문이라 발효 중인 특보를 함께 싣는다(개발서버 askItem(item, aiModeWarnings()) · 810fe49). sa:briefing·?brief=1·?bq= 도 이 창에서만 온다
+    if (path?.startsWith("/explore")) window.dispatchEvent(new CustomEvent("sa:ask-brief", { detail: { q, aim: true } }));
     else router.push(`/explore?bq=${encodeURIComponent(q)}`);
   };
 

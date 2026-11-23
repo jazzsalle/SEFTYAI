@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 // 하네스 — 기상특보 상세 창(components/wx/WxDetailModal · 개발 서버 AlertDetailModal 을 옮김)
 //  · 특보 줄 [특보 상세] → 창 · 발효 중 특보(줄과 같은 목록, 해상 표지) · 상태 이력(기준지역으로 거름) · 전국 발효 현황(종류·단계별 건수 칩 — 개발 서버와 같이, 2026-11-06) · 통보문 특보발효현황 막대 · 통보문(펼칠 때 본문)
-//  · [조건에 반영] = 특보 종류·단계를 조건에 · [이 특보로 질의] = 그 특보가 걸린 행정구역으로(lib/wxAsk) · AI 모드에서는 막힘
+//  · [조건에 반영] 없음 · [이 특보로 질의] = 그 특보와 이 창이 받은 통보문 목록을 넘긴다(lib/wxAsk — 기준지역 그대로, 개발서버 0247dbf·810fe49) · AI 모드에서도 막지 않음
 //  · 오른쪽 서랍(개발서버 modal--alert) · 시연 시나리오 특보도 표지 없이 진짜 특보처럼(2026-11-19 「개발서버와 동일하게」)
 // 네트워크 없음 — fetch 를 바꿔 끼운다
 // npx vitest run harness/weather/wxDetailModal
@@ -113,26 +113,24 @@ describe("기상특보 상세 창", () => {
     expect(fetched.filter((u) => u.startsWith("/api/weather/bulletin"))).toHaveLength(1);
   });
 
-  it("[조건에 반영] — 종류·단계를 조건에", async () => {
-    const { sec, setCond, toast } = await open();
-    fireEvent.click(sec(/발효 중 특보/).querySelector<HTMLButtonElement>("button")!);
-    expect(setCond).toHaveBeenCalledWith({ warningKind: "한파", warningLevel: "주의보" });
-    expect(toast).toHaveBeenCalledWith("한파주의보를 재난상황 조건에 넣었습니다.");
+  it("[조건에 반영] 단추는 없다 — 특보는 조건이 아니라 질문의 참조로(개발서버 1c4ea03·0247dbf)", async () => {
+    const { sec } = await open();
+    expect([...sec(/발효 중 특보/).querySelectorAll("button")].map((b) => b.textContent)).toEqual(["이 특보로 질의"]);
   });
 
-  it("[이 특보로 질의] — 그 특보가 걸린 행정구역으로, 통합 탐색으로 옮겨 간다", async () => {
+  it("[이 특보로 질의] — 그 특보와 받아 둔 통보문 목록을 넘기고 통합 탐색으로 옮겨 간다(기준지역은 바꾸지 않는다)", async () => {
     const { sec } = await open({ base: null });
     const items = [...sec(/발효 중 특보/).querySelectorAll(".wx-item")];
     expect(items).toHaveLength(3); // 전국이면 모두
     const askOf = (i: number) => [...items[i].querySelectorAll("button")].find((b) => b.textContent === "이 특보로 질의")!;
     expect(askOf(0).title).toBe("한파주의보 기준으로 바로 묻습니다");
     fireEvent.click(askOf(0));
-    expect(wxAsk.req).toHaveBeenCalledWith({ adv: HAN, base: INJE });
+    expect(wxAsk.req).toHaveBeenCalledWith({ adv: HAN, bulletins: DETAIL.bulletins });
     expect(nav.push).toHaveBeenCalledWith("/explore");
     expect(screen.queryByRole("dialog")).toBeNull();
   });
 
-  it("바다 구역 — 이름에 「(해상)」(개발 서버 WarningCodes.LabelOf), 기준지역을 정할 수 없어 지금 기준지역 그대로", async () => {
+  it("바다 구역 — 이름에 「(해상)」(개발 서버 WarningCodes.LabelOf)", async () => {
     const { sec } = await open({ base: null });
     const item = [...sec(/발효 중 특보/).querySelectorAll(".wx-item")][1];
     // 개발서버처럼 구역 옆에 「해상」 꼬리표
@@ -142,13 +140,13 @@ describe("기상특보 상세 창", () => {
     const ask = [...item.querySelectorAll("button")].find((b) => b.textContent === "이 특보로 질의")!;
     expect(ask.title).toBe("풍랑경보(해상) 기준으로 바로 묻습니다");
     fireEvent.click(ask);
-    expect(wxAsk.req).toHaveBeenCalledWith({ adv: SEA });
+    expect(wxAsk.req).toHaveBeenCalledWith({ adv: SEA, bulletins: DETAIL.bulletins });
   });
 
-  it("AI 모드에서는 [이 특보로 질의]를 막는다", async () => {
+  it("AI 모드를 켜 두어도 [이 특보로 질의]를 막지 않는다(개발서버 askDisabled = 질문이 꽉 찼을 때만)", async () => {
     const { sec } = await open({ aimOn: true });
     const ask = [...sec(/발효 중 특보/).querySelectorAll("button")].find((b) => b.textContent === "이 특보로 질의")!;
-    expect(ask.disabled).toBe(true);
+    expect(ask.disabled).toBe(false);
   });
 
   it("시연 시나리오를 켠 시연 계정 — 표지·「끊음」 없이 진짜 특보처럼(개발서버 가상 특보와 같이)", async () => {

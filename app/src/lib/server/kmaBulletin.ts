@@ -5,8 +5,8 @@ import type { AreaPick, BaseRegion } from "../baseRegion";
 import { resolveAskRegion } from "../wxAskRegion";
 import { ISLANDS, parseArea } from "../wxMatch";
 import {
-  BULLETIN_LIMIT, DETAIL_HOURS, STEP_LIMIT, bulletinHead, bulletinKey, bulletinSteps, coveringStations, parseBulletinKey, parseWrnMsg, scenarioSteps, wxStation,
-  type WxBulletin, type WxDetailResponse,
+  BULLETIN_LIMIT, DETAIL_HOURS, INFO_HOURS, STEP_LIMIT, bulletinHead, bulletinKey, bulletinSteps, coveringStations, latestInfos, parseBulletinKey, parseWrnMsg, parseWthrInfo, scenarioSteps, wxStation,
+  type WxBulletin, type WxDetailResponse, type WxInfo,
 } from "../wxBulletin";
 import { countPwn, ledgerPwn, pwnStampOf, pwnSteps, type PwnWarning } from "../wxPwn";
 import { fetchPwnRows, kmaYmd } from "./kma";
@@ -128,6 +128,39 @@ export async function wxDetail(acc: Account, sidoCode: string | null, now = Date
     bulletinsMore: rows.length > BULLETIN_LIMIT,
     steps: rows.flatMap(bulletinSteps).slice(0, STEP_LIMIT),
   };
+}
+
+// ── 기상정보문(getWthrInfo) — 개발 서버 74974d2 는 10분마다 표(wx_info)에 쌓아 두고 읽는다. 여기는 표 없이 「이 특보로 질의」 때만 부르고 지점마다 60초 캐시(통보문과 같은 키·같은 지점) ──
+const infoCache = new Map<string, { at: number; rows: WxInfo[] }>();
+
+/** 한 지점의 from~to(yyyyMMdd) 기상정보문 — 끝은 「덜 찬 장」으로 안다(통보문과 같음) */
+export async function fetchStationInfos(stnId: string, from: string, to: string): Promise<WxInfo[]> {
+  const key = process.env.KMA_SERVICE_KEY ?? "";
+  if (!key) throw new Error("기상청 API 키 미설정 (KMA_SERVICE_KEY)");
+  const ck = `${stnId}|${from}|${to}`;
+  const hit = infoCache.get(ck);
+  if (hit && Date.now() - hit.at < CACHE_MS) return hit.rows;
+  const rows: WxInfo[] = [];
+  for (let page = 1; page <= MAX_PAGES; page++) {
+    const url = `${BASE}/getWthrInfo?serviceKey=${key}&dataType=JSON&numOfRows=${PAGE}&pageNo=${page}&stnId=${encodeURIComponent(stnId)}&fromTmFc=${from}&toTmFc=${to}`;
+    const r = await fetch(url, { cache: "no-store", signal: AbortSignal.timeout(8000) });
+    if (!r.ok) throw new Error(`기상청 기상정보문 응답 ${r.status}`);
+    const got = parseWthrInfo(await r.json(), stnId);
+    rows.push(...got);
+    if (got.length < PAGE) break;
+  }
+  infoCache.set(ck, { at: Date.now(), rows });
+  return rows;
+}
+
+/**
+ * 기준지역을 맡는 지방청·본청(전국)이 발표 12시간 안에 낸 기상정보문 최신 3장 — 본문까지(개발 서버 GET /api/weather/infos · WeatherService.GetInfosAsync).
+ * sidoCode 가 없으면(전국) 지점 열 곳 모두. 받지 못한 지점은 빼고 준다 — 질의를 막을 일이 아니다
+ */
+export async function wxInfos(sidoCode: string | null, now = Date.now()): Promise<WxInfo[]> {
+  const since = now - INFO_HOURS * 3600_000;
+  const got = await Promise.allSettled(coveringStations(sidoCode).map((s) => fetchStationInfos(s.stnId, ymd(since), ymd(now))));
+  return latestInfos(got.flatMap((g) => (g.status === "fulfilled" ? g.value : [])), now);
 }
 
 /** 통보문 한 장(본문 포함) — 열쇠의 지점·발표 날짜로 다시 받아 찾는다(지점 캐시를 그대로 쓴다). 없으면 null */

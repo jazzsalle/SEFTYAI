@@ -48,13 +48,13 @@ const splitStep = (title: string): [string, string] => {
  * 출처·갱신 → (실패 안내) → 발효 중 특보(줄과 같은 목록 — 지금 기준지역을 덮는 것) → 최근 24시간 상태이력 → 전국 발효 현황 → 최근 통보문(펼칠 때 본문)
  *  · 발효 중 특보마다 구역 이름 · 해상 · 신규/변경 표지, 발효(startTime)·발표(tmFc)·발령기관·구역코드(개발서버 AlertDetailModal)
  *  · 상태이력 = 특보코드 장부의 발효·변경·해제 단계(시각 · 상태 · 특보 · 구역), 최신 100건(개발서버 recent·capped)
- *  · 발효 중 특보마다 [조건에 반영] · [이 특보로 질의](그 특보가 걸린 행정구역으로 바로 묻는다 — AI 모드·질문이 꽉 찼을 때는 막음)
+ *  · 발효 중 특보마다 [이 특보로 질의] — 조건을 기본으로 되돌리고 기준지역 그대로, 그 특보·관할 통보문·기상정보문을 참조로 싣고 묻는다(질문이 꽉 찼을 때는 막음 — 개발서버 0247dbf·810fe49)
  *  · 시연 시나리오 특보는 표지 없이 진짜 특보처럼 보인다(개발서버 가상 특보와 같이)
  * 열 때 한 번 묻고, 그다음은 [새로고침]을 누를 때만 — 상세는 1분마다 긁을 값이 아니다
  */
 export default function WxDetailModal({ mine, onClose }: { mine: Advisory[]; onClose: () => void }) {
   const s = useSession();
-  const { weather, cond, aimOn } = s;
+  const { weather, cond } = s;
   // 질문을 더 받을 수 없을 때(넷이 다 돌거나 브리핑 중 — 개발서버 AlertDetailModal askDisabled · R57)
   const askLocked = useAskLock().locked;
   const router = useRouter();
@@ -99,14 +99,10 @@ export default function WxDetailModal({ mine, onClose }: { mine: Advisory[]; onC
   const countsReady = !!weather && (!!detail || failed || !loading);
   const hours = detail?.hours ?? 24;
 
-  const apply = (a: Advisory) => {
-    // 조건 창의 특보 단계는 주의보·경보만 고른다 — 그 밖(예비특보)은 종류만 넣는다
-    s.setCond({ warningKind: a.type, warningLevel: a.level === "경보" || a.level === "주의보" ? a.level : undefined });
-    s.toast(`${wxLabel(a)}를 재난상황 조건에 넣었습니다.`);
-  };
+  // [조건에 반영] 은 없다 — 특보는 조건이 아니라 질문의 참조로 간다(개발서버 1c4ea03·0247dbf, 2026-11-13 결정)
   const ask = (a: Advisory) => {
-    const r = detail?.askRegions[a.id];
-    requestWxAsk({ adv: a, ...(r ? { base: r } : {}) });
+    // 이 창이 받아 둔 기준지역 관할 통보문 목록을 함께 넘긴다 — 본문은 받는 쪽이 가져간다(개발서버 onAsk(item, overview.bulletins))
+    requestWxAsk({ adv: a, bulletins: detail?.bulletins ?? [] });
     onClose();
     if (!path?.startsWith("/explore")) router.push("/explore");
   };
@@ -148,7 +144,7 @@ export default function WxDetailModal({ mine, onClose }: { mine: Advisory[]; onC
         ) : (
           <ul className="wx-list">
             {mine.map((a) => {
-              const lockedAsk = aimOn || askLocked || (loading && !detail);
+              const lockedAsk = askLocked || (loading && !detail);
               return (
                 <li key={a.id} className="wx-item">
                   <span className={`wx-badge${a.level === "주의보" ? " wx-badge--watch" : ""}`}>{wxLabel(a)}</span>
@@ -171,12 +167,11 @@ export default function WxDetailModal({ mine, onClose }: { mine: Advisory[]; onC
                     </dl>
                   </div>
                   <div className="wx-actions">
-                    <button type="button" className="wx-apply" onClick={() => apply(a)}>조건에 반영</button>
                     <button
                       type="button"
                       className="wx-apply wx-apply--ask"
                       disabled={lockedAsk}
-                      title={askLocked ? "진행 중인 질문이 끝난 뒤 보낼 수 있습니다" : aimOn ? undefined : `${wxLabel(a)} 기준으로 바로 묻습니다`}
+                      title={askLocked ? "진행 중인 질문이 끝난 뒤 보낼 수 있습니다" : `${wxLabel(a)} 기준으로 바로 묻습니다`}
                       onClick={() => ask(a)}
                     >
                       이 특보로 질의

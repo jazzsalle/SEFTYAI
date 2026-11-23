@@ -52,7 +52,7 @@ import { defaults as defaultControls } from "ol/control";
 import { defaults as defaultInteractions } from "ol/interaction";
 import type { RegionId } from "@/lib/contract/agent";
 import { REGIONS } from "@/lib/config";
-import { CLUSTER_UNTIL_ZOOM, SYMBOL_NAMES, type RefLike, centerLabel, clusterPoints, coreIndices, focusZoomOf, pointZoom, symbolOf, type MapSymbol } from "@/lib/mapRef";
+import { CLUSTER_UNTIL_ZOOM, SYMBOL_NAMES, type RefLike, centerLabel, clusterPoints, coreIndices, focusZoomOf, pointZoom, symbolOf } from "@/lib/mapRef";
 import {
   MAP_COLOR, PIN, approxLevel, entityTypeKo, isRangePrecision, lookOf, matchFilter, pinDataUri, precisionKo, rgba, shade,
   type LegendEntry, type Look,
@@ -123,8 +123,6 @@ interface Props {
   onSelect?: (key: string) => void;
   /** 범례 거르기 열쇠(mapStyle filterKey) — 주면 그 종류만 그린다. null/없음 = 모두 */
   filter?: string | null;
-  /** 말풍선의 「같은 종류만 보기」 — 거르기 열쇠(null = 모두 보기) */
-  onFilter?: (key: string | null) => void;
   /** 말풍선의 「답변에서 보기」 — 그 대상이 든 답변으로 이동 */
   onLocate?: (f: MapFeature) => void;
   /** 주면 확대·축소 묶음 맨 위에 위성 단추를 둔다(위성 실패 시 "Base" 로 되돌림) */
@@ -134,8 +132,6 @@ interface Props {
   /** 집어 둔 대상 열쇠(eid) — 파랑 고리·점선으로, 묶지 않는다 */
   pickedIds?: ReadonlySet<string>;
   onTogglePick?: (f: MapFeature) => void;
-  /** 「지도 표시」에서 끈 갈래 */
-  hidden?: ReadonlySet<MapSymbol>;
   /** 요약 보기에서 고른 구 — 이 열쇠(eid)의 대상만 그린다 */
   areaIds?: ReadonlySet<string> | null;
   /** 요약 보기 켬 — 핀을 거두고 하천 띠만 남긴다(시군구 색칠이 주인공) */
@@ -498,6 +494,8 @@ interface Api {
   placePop(pan?: boolean): void;
   /** 한 대상으로 확대 */
   zoomTo(key: string): void;
+  /** 그리는 대상 전체로 물러남(말풍선 「전체 보기」) */
+  fitAll(): void;
   /** 사람이 옮긴 자리를 놓고 다시 맞춤(답·요약 보기·고른 구가 바뀜) */
   refit(): void;
 }
@@ -522,6 +520,11 @@ export default function MapView(p: Props) {
   const [satFailed, setSatFailed] = useState(false);
   // 행정경계 상태(개발서버 useMapLayers BoundaryStatus) — 받는 중 · 받음 · 못 받음 · 서버에 키 없음 · 기준지역 밖이라 거절
   const [bnd, setBnd] = useState<BoundaryStatus>("loading");
+  /**
+   * 지금 가까이 보고 있는 대상(mf.key) — 말풍선 단추가 이것을 보고 「가까이 보기」↔「전체 보기」로 바뀐다(개발서버 MapPane nearId · e9f6fd2).
+   * 이름·[가까이 보기]로 그 대상에 당겨 둔 뒤 같은 단추만 있으면 눌러도 아무 일이 없어 보였다. 사람이 지도를 움직이거나 답이 바뀌면 풀린다
+   */
+  const [nearKey, setNearKey] = useState<string | null>(null);
 
   // 초기화 (한 번)
   useEffect(() => {
@@ -607,14 +610,13 @@ export default function MapView(p: Props) {
     const eidOf = (r: Rec) => r.mf.eid ?? r.mf.key;
     const heldRec = (r: Rec) => !!propsRef.current.pickedIds?.has(eidOf(r));
     /**
-     * 그릴 대상인가 — 요약 보기 중이면 하천만(띠), 요약에서 고른 구가 있으면 그 구의 대상만, 「지도 표시」에서 끈 갈래는 빼고,
-     * 범례 거르기(선택한 대상은 거르기와 상관없이 보인다)
+     * 그릴 대상인가 — 요약 보기 중이면 하천만(띠), 요약에서 고른 구가 있으면 그 구의 대상만,
+     * 범례 거르기(선택한 대상은 거르기와 상관없이 보인다). 「지도 표시」 갈래 끄기는 뺐다(개발서버 e9f6fd2)
      */
     const shownRec = (r: Rec): boolean => {
       const P = propsRef.current;
       if (P.summaryOn) return r.entry.id === "river";
       if (P.areaIds && !P.areaIds.has(eidOf(r))) return false;
-      if (P.hidden?.has(symbolOf(r.mf.entityType))) return false;
       return matchFilter(P.filter, r.look) || (!!P.selectedKey && r.mf.key === P.selectedKey);
     };
     /** 점 묶음에 든 대상(mf.key) — 핀·이름표를 숨기고 묶음 원 하나로 */
@@ -889,7 +891,10 @@ export default function MapView(p: Props) {
       if (sel?.length) {
         ok = moveTo(sel, duration, panPop);
         // 사람이 고른 자리다 — 다음 답이 와도 빼앗지 않는다
-        if (ok) moved = true;
+        if (ok) {
+          moved = true;
+          setNearKey(P.selectedKey ?? null);
+        }
       } else {
         if (P.selectedKey) wait = true; // 선택 대상 도형이 아직 오지 않음
         const groups = jobGroups();
@@ -953,7 +958,18 @@ export default function MapView(p: Props) {
     };
     const zoomTo = (key: string) => {
       const fs = byKey.get(key);
-      if (fs?.length && moveTo(fs, 450, panPop)) moved = true;
+      if (fs?.length && moveTo(fs, 450, panPop)) {
+        moved = true;
+        setNearKey(key);
+      }
+    };
+    /** 말풍선 「전체 보기」 — 지금 그리는 대상 전체가 들어오게 물러난다(개발서버 allBounds). 사람이 고른 자리로 두어 다음 답이 빼앗지 않는다 */
+    const fitAll = () => {
+      const groups = jobGroups();
+      if (groups.length && fitCore(groups, 450)) {
+        moved = true;
+        setNearKey(null);
+      }
     };
 
     /**
@@ -1009,6 +1025,8 @@ export default function MapView(p: Props) {
         all.push(...fs);
       }
       byKey = next;
+      // 답이 바뀌면 「가까이 보는 중」을 푼다(개발서버 layers.objects → setNearId(null))
+      setNearKey(null);
       src.clear(true);
       src.addFeatures(all);
       if (hoverKey && !next.has(hoverKey)) hoverKey = null;
@@ -1027,6 +1045,7 @@ export default function MapView(p: Props) {
     const refit = () => {
       moved = false;
       fitted = null;
+      setNearKey(null);
       restyle();
       autoFit(0);
       recluster();
@@ -1058,8 +1077,10 @@ export default function MapView(p: Props) {
       if (r && !(r.mf.key === propsRef.current.selectedKey && pop.getPosition())) showTip(r, e.coordinate);
       else if (tipKey) hideTip();
     });
+    // 사람이 지도를 움직이면(끌기·휠·확대 단추·묶음 확대) 「가까이 보는 중」을 푼다(개발서버 onMove → setNearId(null))
     m.on("pointerdrag", () => {
       moved = true;
+      setNearKey(null);
     });
     m.on("singleclick", (e) => {
       const P = propsRef.current;
@@ -1072,6 +1093,7 @@ export default function MapView(p: Props) {
         if (getWidth(ext) === 0 && getHeight(ext) === 0) v.animate({ center: getCenter(ext), zoom: Math.min((v.getZoom() ?? 0) + 2, CLUSTER_UNTIL_ZOOM), duration: 300 });
         else fitExt(ext, CLUSTER_UNTIL_ZOOM, 300);
         moved = true;
+        setNearKey(null);
         return;
       }
       const r = hitRec(e.pixel);
@@ -1110,6 +1132,7 @@ export default function MapView(p: Props) {
     };
     const onWheel = () => {
       moved = true;
+      setNearKey(null);
     };
     vp.addEventListener("pointerleave", onLeave);
     vp.addEventListener("wheel", onWheel, { passive: true });
@@ -1118,6 +1141,7 @@ export default function MapView(p: Props) {
     const onZoom = (ev: Event) => {
       const v = m.getView();
       moved = true;
+      setNearKey(null);
       v.animate({ zoom: (v.getZoom() ?? 10) + Number((ev as CustomEvent<number>).detail || 0), duration: 200 });
     };
     window.addEventListener("sa-map-zoom", onZoom);
@@ -1209,6 +1233,7 @@ export default function MapView(p: Props) {
       applyFilter,
       placePop,
       zoomTo,
+      fitAll,
       refit,
     };
     P0.onMap?.(m);
@@ -1256,7 +1281,7 @@ export default function MapView(p: Props) {
   // 작업 강조 · 선택 · 집기 · 끈 갈래 · 지역 이름(이름표 글)
   useEffect(() => {
     api.current?.restyle();
-  }, [p.activeJobId, p.selectedKey, p.pickedIds, p.hidden, p.adminNames, ready]);
+  }, [p.activeJobId, p.selectedKey, p.pickedIds, p.adminNames, ready]);
 
   // 답이 바뀜 · 요약 보기 켜고 끔 · 요약에서 고른 구 → 사람이 옮긴 자리를 놓고 새로 맞춤(개발 서버 scope·onSummary·onRegion)
   const refitSeen = useRef<string | null>(null);
@@ -1405,8 +1430,9 @@ export default function MapView(p: Props) {
               filter={p.filter ?? null}
               onClose={() => setClosedKey(selFeature.key)}
               onLocate={p.onLocate ? () => p.onLocate?.(selFeature) : undefined}
-              onFilter={p.onFilter}
-              onZoom={() => api.current?.zoomTo(selFeature.key)}
+              // 「같은 종류만」은 뺐다(개발서버 e9f6fd2 — 범례 거르기와 겹치고, 같은 종류뿐이면 변화가 없어 고장처럼 보였다)
+              zoomOut={nearKey === selFeature.key}
+              onZoom={() => (nearKey === selFeature.key ? api.current?.fitAll() : api.current?.zoomTo(selFeature.key))}
               onDetail={p.onDetail && p.detailOf ? () => p.onDetail?.(selFeature) : undefined}
               detail={detail?.key === selFeature.key ? detail.v : "checking"}
             />,
