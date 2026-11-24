@@ -37,6 +37,8 @@ describe("자동 시연 대본", () => {
       "부산 · 강우·하천 수위·풍속 조건으로 묻기",
       "부산 · 자연재해저감종합계획 위험지구 위치도",
       "부산 · 호우경보 때 매뉴얼상 누가 무엇을",
+      "부산 · 2020년 7월 23일 사건 깊이 보기와 비슷했던 호우",
+      "부산 · 개인정보는 가려서 보여 줍니다",
       "부산 · 119 신고가 가장 많았던 날과 그날 비",
       "인제 · 하천 인접 캠핑장 주변 범람 위험",
       "인제 · 호우경보 때 야영객 대피는 누가 언제",
@@ -56,7 +58,7 @@ describe("자동 시연 대본", () => {
     const day = new Set(DAY_ITEMS.map((d) => d.id));
     expect(answers.filter((id) => !day.has(id))).toEqual([]);
     expect(answers.sort()).toEqual([
-      "CQ-BS-01", "CQ-BS-02", "CQ-BS-03", "IG-BS-01", "IG-BS-02", "IG-BS-08", "IG-BS-11", "IG-BS-14", "IG-BS-15", "IG-BS-16", "IG-BS-17", "IG-BS-19", "IG-BS-20",
+      "CQ-BS-01", "CQ-BS-02", "CQ-BS-03", "IG-BS-01", "IG-BS-02", "IG-BS-08", "IG-BS-11", "IG-BS-14", "IG-BS-15", "IG-BS-16", "IG-BS-17", "IG-BS-19", "IG-BS-20", "IG-BS-21", "IG-BS-22",
       "IG-DJ-01", "IG-DJ-03", "IG-DJ-07", "IG-IJ-01", "IG-IJ-08", "IG-IJ-09", "IG-SE-01", "IG-SE-02", "IG-SE-03", "IG-SE-04", "IG-SE-06", "IG-SE-07", "SIM-SH-1-3",
     ]);
     // AIM-BS-00 = 특보 없음(초록) 첫 화면 — 받아 둔 답이 아니라 화면이 그린다(2026-11-24)
