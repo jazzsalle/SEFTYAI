@@ -1302,8 +1302,15 @@ export const AutoScript: AutoScene[] = [
       { fill: { at: { sel: UI.questionBox }, value: "재난상황 조건에서 가장 먼저 확인해야 할 우선 위험지역과, 이 조건과 비슷했던 과거 호우 사례를 유사도 순으로 보여줘." } },
       { look: { sel: UI.askButton, text: "질의" }, play: "CQ-BS-04" },
       // 답 내용 설명으로 바로(사용자 지시 2026-11-25) — 소제목 아래 목록을 가운데로 굴려 읽는 동안 머문다
+      // 답이 나오면 결론부터 잠깐 보인다(사용자 지시 2026-11-25)
       {
         fold: true,
+        scroll: { sel: MdText, text: "입력하신 조건" },
+        focus: [{ sel: MdText, text: "입력하신 조건" }],
+        say: "설정한 조건에 맞춘 답이 나왔습니다.",
+        wait: 800,
+      },
+      {
         scroll: { sel: `${BodyBox} h4`, text: "재해위험개선지구", next: true },
         focus: [{ sel: `${BodyBox} h4`, text: "재해위험개선지구" }, { sel: `${BodyBox} h4`, text: "재해위험개선지구", next: true }],
         say: "설정한 조건에서 먼저 점검할 곳으로 가 등급 재해위험개선지구,",
