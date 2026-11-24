@@ -1333,11 +1333,15 @@ export const AutoScript: AutoScene[] = [
         focus: [{ sel: MdTable }],
         say: "비슷했던 과거 호우가 유사도 순으로 정리되고, 사건마다 인명과 재산 피해가 함께 나옵니다.",
       },
+      // 2022년 8월 사건은 지도 좌표가 없어 답 글 속 링크가 되지 않는다 — 답 아래 사건 목록(데이터군)에서 연다.
+      // 목록에서 열어야 유사도 조건(질의 조건)이 함께 넘어가 「유사도 근거」가 나온다(11/24 브라우저 점검)
+      { scroll: { sel: `${LastTurn} .dg-more` }, click: { sel: `${LastTurn} .dg-more` }, wait: 400 },
       {
-        click: { sel: Entity, text: "2022년 08.08." },
+        scroll: { sel: `${LastTurn} .dg-name`, text: "2022년 08.08." },
+        click: { sel: `${LastTurn} .dg-name`, text: "2022년 08.08." },
         waitFor: EventTimeline,
-        focus: ["panel", { sel: MdText, text: "2022년 08.08." }],
-        say: "기준이 된 2022년 8월 사건을 누르면 패널에 사건 상세가 열립니다.",
+        focus: ["panel", { sel: `${LastTurn} .dg-name`, text: "2022년 08.08." }],
+        say: "답 아래 사건 목록에서 기준이 된 2022년 8월 사건을 누르면 패널에 사건 상세가 열립니다.",
         wait: 400,
       },
       {
