@@ -274,7 +274,9 @@ export function useAutoDemo(actions: AutoDemoActions) {
             const target = document.querySelector<HTMLElement>(s)
             // 위에 붙어 있는 것(질문 말풍선 등 position: sticky)이 제목 열을 가리지 않게 그 높이만큼 띄운다(2026-11-25 브라우저 점검)
             if (target && st.scrollTop) {
-              const box = target.closest<HTMLElement>(UI.scroll)
+              // 실제로 굴러가는 틀(브리핑은 .thread--brief 등 UI.scroll 과 다를 수 있다 — 11/25 점검)
+              let box: HTMLElement | null = target.parentElement
+              while (box && !(box.scrollHeight > box.clientHeight + 5 && /auto|scroll/.test(getComputedStyle(box).overflowY))) box = box.parentElement
               const top = box?.getBoundingClientRect().top ?? 0
               let cover = 0
               box?.querySelectorAll<HTMLElement>("*").forEach((e) => {

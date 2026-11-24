@@ -486,9 +486,10 @@ export const AutoScript: AutoScene[] = [
       },
       // 말만 하고 화면이 멈춰 있지 않게 실제로 내려 짚는다(사용자 지시 2026-11-24). 답은 실제로 받아 오므로 표가 없으면 소제목, 그것도 없으면 그대로.
       {
-        scroll: { sel: ".brief-big table" },
+        // 「1. 우선 통제 대상 지하차도」 제목과 표 제목 열이 함께 보이게 제목부터 위에 맞춘다(사용자 지시 2026-11-25)
+        scroll: { sel: ".brief-big h3", text: "지하차도" },
         scrollTop: true,
-        focus: [{ sel: ".brief-big table" }],
+        focus: [{ sel: ".brief-big h3", text: "지하차도" }, { sel: ".brief-big table" }],
         orElse: [{ scroll: { sel: ".brief-big h3" }, focus: [{ sel: ".brief-big h3" }] }],
         say: "대상마다 위치와 통제 기준이 함께 나옵니다.",
         wait: 600,
