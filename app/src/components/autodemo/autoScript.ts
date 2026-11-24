@@ -1335,7 +1335,9 @@ export const AutoScript: AutoScene[] = [
       },
       // 2022년 8월 사건은 지도 좌표가 없어 답 글 속 링크가 되지 않는다 — 답 아래 사건 목록(데이터군)에서 연다.
       // 목록에서 열어야 유사도 조건(질의 조건)이 함께 넘어가 「유사도 근거」가 나온다(11/24 브라우저 점검)
+      // 목록은 5건씩 펼쳐진다 — 11번째(2022년 8월 사건)까지 [더보기]를 두 번
       { scroll: { sel: `${LastTurn} .dg-more` }, click: { sel: `${LastTurn} .dg-more` }, wait: 400 },
+      { silentClick: { sel: `${LastTurn} .dg-more` }, wait: 400 },
       {
         scroll: { sel: `${LastTurn} .dg-name`, text: "2022년 08.08." },
         click: { sel: `${LastTurn} .dg-name`, text: "2022년 08.08." },

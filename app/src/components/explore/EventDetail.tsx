@@ -138,6 +138,11 @@ const SECTION_KO: Record<string, string> = {
 };
 /** 받은 값 글자 — 빈 값은 「—」 */
 const txt = (v: unknown) => (v === null || v === undefined || v === "" ? "—" : String(v));
+/** 유사도 요인 값 — 묶음 값(강우 {"1h": 92.2, "3h": 175.8 …})은 「1시간 92.2 · 3시간 175.8」로 늘어놓는다(값은 받은 그대로 — 「[object Object]」로 찍히던 것, 2026-11-24) */
+const factorVal = (v: unknown) =>
+  v !== null && typeof v === "object" && !Array.isArray(v)
+    ? Object.entries(v as Record<string, unknown>).map(([k, x]) => `${k.replace(/^(\d+)h$/, "$1시간")} ${txt(x)}`).join(" · ") || "—"
+    : txt(v);
 /** 원 단위 전체 금액(개발서버 fullWon) — 칸의 title */
 const fullWon = (v: number | null | undefined) => (typeof v === "number" && Number.isFinite(v) ? `${v.toLocaleString("ko-KR")}원` : "—");
 const lifeKo = (s: string) => LIFE_KO[s] ?? s;
@@ -430,8 +435,8 @@ function SimilarityView({ s }: { s: Sim | null }) {
                   {f.factor_group} · {f.factor}
                   {f.unit ? ` (${f.unit})` : ""}
                 </td>
-                <td>{txt(f.current_value)}</td>
-                <td>{txt(f.past_value)}</td>
+                <td>{factorVal(f.current_value)}</td>
+                <td>{factorVal(f.past_value)}</td>
                 <td>{txt(f.match)}</td>
                 <td>{txt(f.contribution)}</td>
               </tr>
