@@ -30,6 +30,19 @@ describe("자동 시연 대본", () => {
       "대전 · 2024년 7월 집중호우 침수흔적",
       "대전 · 2024년 7월 10일 호우 대피·통제",
       "대전 · 3대 하천 산책로·하상도로 주변",
+      // 2026-11-25 행안부 실장 보고 장면(부산 + 인제(매뉴얼) · 서울 + 부산 + 인제)
+      "부산 · 호우경보 때 먼저 볼 곳",
+      "부산 · 2020년 7월 23일, 그 비가 지금 온다면",
+      "부산 · 경보는 20시, 통제는 22시 53분",
+      "부산 · 호우경보 때 매뉴얼상 누가 무엇을",
+      "부산 · 119 신고가 가장 많았던 날과 그날 비",
+      "인제 · 하천 인접 캠핑장 주변 범람 위험",
+      "인제 · 호우경보 때 야영객 대피는 누가 언제",
+      "전환 · 서울특별시",
+      "서울 · 침수흔적 구역 안 지하차도",
+      "서울 · 2022년 8월 강남역, 그때와 지금",
+      "서울 · 119 신고가 가장 많았던 날과 그날 비",
+      "서울 · 개인정보는 가려서 보여 줍니다",
       "마무리",
     ]);
   });
@@ -38,7 +51,10 @@ describe("자동 시연 대본", () => {
     const { answers, aiMode } = scriptPinIds();
     const day = new Set(DAY_ITEMS.map((d) => d.id));
     expect(answers.filter((id) => !day.has(id))).toEqual([]);
-    expect(answers.sort()).toEqual(["CQ-BS-01", "CQ-BS-02", "IG-BS-01", "IG-BS-02", "IG-BS-08", "IG-BS-11", "IG-DJ-01", "IG-DJ-03", "IG-DJ-07", "IG-IJ-01", "SIM-SH-1-3"]);
+    expect(answers.sort()).toEqual([
+      "CQ-BS-01", "CQ-BS-02", "IG-BS-01", "IG-BS-02", "IG-BS-08", "IG-BS-11", "IG-BS-13", "IG-BS-14", "IG-BS-15", "IG-BS-16", "IG-BS-17",
+      "IG-DJ-01", "IG-DJ-03", "IG-DJ-07", "IG-IJ-01", "IG-IJ-08", "IG-IJ-09", "IG-SE-01", "IG-SE-02", "IG-SE-03", "IG-SE-04", "SIM-SH-1-3",
+    ]);
     expect(aiMode.sort()).toEqual(AIM_DEMO.map((a) => a.id).sort());
   });
 
@@ -134,8 +150,22 @@ describe("대전 한눈 요약 질의(2026-11-19 대전시청 시연)", () => {
 describe("자동 시연 시나리오(2026-11-18 사용자 지시 — 부산+인제 · 부산+대전)", () => {
   it("두 시나리오만, 장면 이름이 모두 대본에 있다", async () => {
     const { DemoScenarios, scenarioScenes } = await import("@/components/autodemo/autoScript");
-    expect(DemoScenarios.map((s) => s.id)).toEqual(["busan-inje", "busan-daejeon", "busan-inje-daejeon"]);
+    expect(DemoScenarios.map((s) => s.id)).toEqual(["busan-inje", "busan-daejeon", "busan-inje-manual", "seoul-busan-inje", "busan-inje-daejeon"]);
     for (const s of DemoScenarios) expect(() => scenarioScenes(s.id)).not.toThrow();
+  });
+
+  it("실장 보고(2026-11-25) — 두 시나리오 모두 AI 모드로 시작, 매뉴얼 장면 뒤 대응절차, 마무리는 한 문장 · 119 장면은 사건을 열지 않는다", async () => {
+    const { scenarioScenes } = await import("@/components/autodemo/autoScript");
+    for (const id of ["busan-inje-manual", "seoul-busan-inje"] as const) {
+      const sc = scenarioScenes(id);
+      expect(sc.slice(0, 4).map((s) => s.label)).toEqual(["프롤로그 · AI 모드 소개", "11:00 · 호우 예비특보, AI 모드 시작", "15:00 · 호우주의보, AI 모드 자동 감지", "15:05 · 현재 상황 브리핑"]);
+      expect(sc.at(-1)?.intro).toBe("이상으로 시연을 마치겠습니다.");
+      const manual = sc.find((s) => s.pinId === "IG-BS-16")!;
+      expect(manual.steps?.some((st) => st.click?.sel === ".wxbar .wxsop")).toBe(true);
+      for (const s of sc.filter((x) => x.pinId === "IG-BS-17" || x.pinId === "IG-SE-03")) expect(JSON.stringify(s.steps)).not.toContain("click");
+    }
+    expect(scenarioScenes("seoul-busan-inje").some((s) => s.region === "seoul")).toBe(true);
+    expect(scenarioScenes("busan-inje-manual").some((s) => s.region === "seoul")).toBe(false);
   });
 
   it("부산+인제 = 대전 장면 없이 부산 하루 + 인제 + 마무리, 마무리에 대전 언급 없음", async () => {

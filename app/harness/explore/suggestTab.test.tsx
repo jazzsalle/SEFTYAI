@@ -37,7 +37,7 @@ const ITEMS = [
 ];
 const drawer = (base: BaseRegion | null, onAskSuggest?: (t: string) => void) => {
   session.s = { cond: { base, region: basePilot(base) } };
-  return render(<LibraryDrawer regionName={baseName(base)} onClose={() => {}} onAsk={() => {}} onAskDemo={() => {}} onAskSuggest={onAskSuggest} />).container;
+  return render(<LibraryDrawer regionName={baseName(base)} onClose={() => {}} onAskDemo={() => {}} onAskSuggest={onAskSuggest} />).container;
 };
 
 describe("질문 모음 「추천 질문」", () => {
@@ -87,7 +87,7 @@ describe("질문 모음 「추천 질문」", () => {
 
   it("보낼 길(onAskSuggest)이 없으면 갈피를 내지 않는다", () => {
     drawer(SEOGU);
-    expect(screen.getAllByRole("tab").map((t) => t.textContent)).toEqual(["지역 질문", "한눈 요약 질의"]);
+    expect(screen.getAllByRole("tab").map((t) => t.textContent)).toEqual(["한눈 요약 질의"]);
   });
 });
 

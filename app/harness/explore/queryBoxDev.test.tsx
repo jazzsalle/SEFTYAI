@@ -102,17 +102,18 @@ describe("질문 모음 서랍(개발서버 QuestionLibrary)", () => {
   const open = () => {
     mount();
     const onClose = vi.fn();
-    render(<LibraryDrawer regionName="부산광역시" onClose={onClose} onAsk={() => {}} onAskDemo={() => {}} />);
+    render(<LibraryDrawer regionName="부산광역시" onClose={onClose} onAskDemo={() => {}} />);
     return onClose;
   };
 
-  it("늘 「지역 질문」 갈피로 열고, 열면 서랍에 초점 · Esc 로 닫는다", () => {
+  it("늘 「한눈 요약 질의」 갈피로 열고(지역 질문 갈피는 뺌 — 2026-11-24), 열면 서랍에 초점 · Esc 로 닫는다", () => {
     open();
     expect(document.activeElement).toBe(screen.getByRole("dialog", { name: "질문 모음" }));
     fireEvent.click(screen.getByRole("tab", { name: "한눈 요약 질의" }));
     cleanup();
     const onClose = open();
-    expect(screen.getByRole("tab", { name: "지역 질문" }).getAttribute("aria-selected")).toBe("true");
+    expect(screen.queryByRole("tab", { name: "지역 질문" })).toBeNull();
+    expect(screen.getByRole("tab", { name: "한눈 요약 질의" }).getAttribute("aria-selected")).toBe("true");
     fireEvent.keyDown(document, { key: "Escape" });
     expect(onClose).toHaveBeenCalledTimes(1);
   });

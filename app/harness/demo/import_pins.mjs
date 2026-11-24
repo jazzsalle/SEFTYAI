@@ -72,7 +72,7 @@ for (const r of rows) {
   const env = typeof r?.response_json === "string" ? (() => { try { return JSON.parse(r.response_json); } catch { return null; } })() : r?.response_json ?? null;
   const at = kst(r?.received_de);
   const why = !item ? "질문 모음에 없는 항목" : item.text !== r?.question ? "질문 글이 다름" : !env || typeof env !== "object" ? "봉투 없음" : env.status !== "SUCCESS" ? `상류 상태 ${env.status ?? "없음"}` : !at || Number.isNaN(at.getTime()) ? "받은 시각 없음" : null;
-  plan.push({ id, item, env, at, why });
+  plan.push({ id, item, env, at, why, row: r });
 }
 for (const p of plan) console.log(`  ${p.id.padEnd(12)} ${p.why ? `건너뜀 — ${p.why}` : `가져옴 · 받은 시각 ${p.at.toISOString()}`}`);
 const ok = plan.filter((p) => !p.why);
@@ -100,11 +100,12 @@ for (const p of ok) {
     );
     continue;
   }
-  const request = { imported_from: "devserver ai_demo_pin", pin_id: p.id };
+  const request = { imported_from: p.row.source ?? "devserver ai_demo_pin", pin_id: p.id };
   await sql.query(
-    `insert into sa_agent_jobs (id, account_id, source, library_id, question_user, question_sent, request, cache_key, state, t3q_status, http_status, raw, t3q_conversation_id, created_at, finished_at)
-     values ($1, $2, 'QUICK', $3, $4, $4, $5, $6, 'DONE', $7, 200, $8, $9, $10, $10)`,
-    [jobId, account, p.id, p.item.text, JSON.stringify(request), `import:${p.id}:${jobId}`, p.env.status, JSON.stringify(p.env), p.env.conversation_id ?? null, p.at],
+    `insert into sa_agent_jobs (id, account_id, source, library_id, question_user, question_sent, request, cache_key, state, t3q_status, http_status, raw, t3q_conversation_id, t3q_request_id, created_at, finished_at)
+     values ($1, $2, 'QUICK', $3, $4, $4, $5, $6, 'DONE', $7, 200, $8, $9, $11, $10, $10)`,
+    // t3q_request_id — 봉투의 request_id(2026-11-24): 근거 문서 쪽 본문·이미지(doc-refs)는 원래 답의 T3Q 요청 번호로 부른다
+    [jobId, account, p.id, p.item.text, JSON.stringify(request), `import:${p.id}:${jobId}`, p.env.status, JSON.stringify(p.env), p.env.conversation_id ?? null, p.at, typeof p.env.request_id === "string" ? p.env.request_id : null],
   );
   await sql.query(
     `insert into sa_demo_pins (item_id, job_id, pending_job_id, updated_at) values ($1, $2, null, now())

@@ -179,7 +179,8 @@ describe("② 답 속 이름 — 개발서버 openEntity(탭은 만들되 보이
     const src = readFileSync(join(__dirname, "..", "..", "src", "components", "autodemo", "autoScript.ts"), "utf8");
     expect(src).not.toMatch(/sel: Tab, text: "[^"]+" \}, orElse/);
     expect(src).not.toMatch(/orElse: \[\{ click: \{ sel: PopDetail \} \}\]/);
-    expect((src.match(/orElse:/g) ?? []).length).toBe(19);
+    // 19 = 개발서버 걸음 + 3 = 2026-11-25 실장 보고 장면(답 속 이름·사건이 눌리지 않으면 [상세 보기]로 — 말풍선 걸음 아님)
+    expect((src.match(/orElse:/g) ?? []).length).toBe(22);
     expect(src).toContain('const SimCard = `${LastTurn} .sim-card`');
   });
 });

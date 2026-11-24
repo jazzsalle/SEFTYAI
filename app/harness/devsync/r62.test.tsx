@@ -456,11 +456,11 @@ describe("통합 탐색 화면 흐름 — 질문 현황은 지금 대화만 · [
     expect(screen.queryByRole("button", { name: /^질문 현황 펼치기/ })).toBeNull();
   });
 
-  it("질문 모음에서 보낸 질문은 출처 QUICK(개발서버 askLibrary — 전 LIBRARY) · 질문 말풍선은 질문 글만(출처 줄 없음 — 개발서버 answer-ask)", async () => {
+  it("질문 모음(한눈 요약 질의 — 지역 질문 갈피는 2026-11-24 뺌)에서 보낸 질문은 출처 QUICK · 질문 말풍선은 질문 글만(출처 줄 없음 — 개발서버 answer-ask)", async () => {
     await mountExplore();
     fireEvent.click(await screen.findByRole("button", { name: "질문 모음 보기" }));
     const drawer = await screen.findByRole("dialog", { name: "질문 모음" });
-    fireEvent.click(drawer.querySelector<HTMLButtonElement>(".qlib-q")!);
+    fireEvent.click(drawer.querySelector<HTMLButtonElement>(".qlib-day-btn")!);
     await waitFor(() => expect(srv.posts.length).toBeGreaterThan(0));
     expect(srv.posts[0].source).toBe("QUICK");
     expect(srv.posts[0].libraryId).toBeTruthy();

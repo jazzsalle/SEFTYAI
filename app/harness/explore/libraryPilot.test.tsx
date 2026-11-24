@@ -5,7 +5,7 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { baseName, basePilot, type BaseRegion } from "@/lib/baseRegion";
-import { dayItemsFor, fillText, libById, type DemoItem, type LibraryQuestion } from "@/lib/library";
+import { dayItemsFor, libById, type DemoItem, type LibraryQuestion } from "@/lib/library";
 
 const session = vi.hoisted(() => ({ s: {} as Record<string, unknown> }));
 vi.mock("@/lib/session", () => ({ useSession: () => session.s, uid: (p: string) => `${p}x` }));
@@ -27,38 +27,34 @@ const GYEONGBUK: BaseRegion = { sido: { code: "47", name: "경상북도" } };
 
 const drawer = (base: BaseRegion, onAskDemo: (d: DemoItem) => void = () => {}) => {
   session.s = { cond: { base, region: basePilot(base) } };
-  return render(<LibraryDrawer regionName={baseName(base)} onClose={() => {}} onAsk={() => {}} onAskDemo={onAskDemo} />).container;
+  return render(<LibraryDrawer regionName={baseName(base)} onClose={() => {}} onAskDemo={onAskDemo} />).container;
 };
 const dayTitles = (c: HTMLElement) => [...c.querySelectorAll(".qlib-day-btn b")].map((b) => b.textContent);
-const libTexts = (c: HTMLElement) => [...c.querySelectorAll(".qlib-q")].map((b) => b.textContent);
 
 describe("질문 모음 — 시·도까지만 고른 기준지역(R48)", () => {
-  it("강원특별자치도 → 인제 「한눈 요약 질의」 전부(개발서버 dayScript 와 같은 차례), 지역 질문에 인제 문항", () => {
+  it("강원특별자치도 → 인제 「한눈 요약 질의」 전부(개발서버 dayScript 와 같은 차례 + 11/25 실장 보고 2문)", () => {
     const ask = vi.fn();
     const c = drawer(GANGWON, ask);
     fireEvent.click(screen.getByRole("tab", { name: "한눈 요약 질의" }));
     expect(dayTitles(c)).toEqual(dayItemsFor("inje").map((d) => d.title));
-    expect(dayItemsFor("inje").map((d) => d.id)).toEqual(["IG-IJ-01", "IG-IJ-02", "IG-IJ-03", "IG-IJ-04", "IG-IJ-05", "IG-IJ-06", "IG-IJ-07", "DD-IJ-04", "DD-IJ-05", "DD-IJ-07-R"]);
+    expect(dayItemsFor("inje").map((d) => d.id)).toEqual(["IG-IJ-01", "IG-IJ-02", "IG-IJ-03", "IG-IJ-04", "IG-IJ-05", "IG-IJ-06", "IG-IJ-07", "IG-IJ-08", "IG-IJ-09", "DD-IJ-04", "DD-IJ-05", "DD-IJ-07-R"]);
     expect(c.textContent).not.toContain("한눈 요약 질의가 없습니다");
     fireEvent.click(c.querySelector(".qlib-day-btn")!);
     expect((ask.mock.calls[0][0] as DemoItem).id).toBe("IG-IJ-01"); // 질문 글만 묻는다
-
-    fireEvent.click(screen.getByRole("tab", { name: "지역 질문" }));
-    const texts = libTexts(c);
-    expect(texts).toContain((libById("IJ-01") as LibraryQuestion).text); // 인제 문항(글에 「인제군」)
-    expect(texts).toContain(fillText(libById("LB-RISK-01")!, "강원특별자치도")); // 공통 문항의 {지역} = 기준지역 이름 그대로
-    expect(texts.some((t) => t?.includes("영천시") || t?.includes("부산광역시"))).toBe(false);
   });
 
-  it("경상북도 → 영천 「한눈 요약 질의」 전부, 지역 질문에 영천 문항", () => {
+  it("경상북도 → 영천 「한눈 요약 질의」 전부", () => {
     const c = drawer(GYEONGBUK);
-    fireEvent.click(screen.getByRole("tab", { name: "한눈 요약 질의" }));
     expect(dayTitles(c)).toEqual(dayItemsFor("yeongcheon").map((d) => d.title));
-    fireEvent.click(screen.getByRole("tab", { name: "지역 질문" }));
-    expect(libTexts(c)).toContain((libById("YC-01") as LibraryQuestion).text);
   });
 
-  it("강원특별자치도 인제군 → 지금과 같음(안내 줄 없음) · 강원특별자치도 춘천시 → 지역 질문 없음(지금과 같음)", () => {
+  it("서울특별시 → 서울 「한눈 요약 질의」(2026-11-25 실장 보고)", () => {
+    const c = drawer({ sido: { code: "11", name: "서울특별시" } });
+    expect(dayItemsFor("seoul").map((d) => d.id)).toEqual(["IG-SE-01", "IG-SE-02", "IG-SE-03", "IG-SE-04", "IG-SE-05"]);
+    expect(dayTitles(c)).toEqual(dayItemsFor("seoul").map((d) => d.title));
+  });
+
+  it("강원특별자치도 인제군 → 지금과 같음(안내 줄 없음) · 강원특별자치도 춘천시 → 한눈 요약 질의 없음", () => {
     let c = drawer(INJE);
     fireEvent.click(screen.getByRole("tab", { name: "한눈 요약 질의" }));
     expect(dayTitles(c)).toEqual(dayItemsFor("inje").map((d) => d.title));
@@ -67,15 +63,13 @@ describe("질문 모음 — 시·도까지만 고른 기준지역(R48)", () => {
     fireEvent.click(screen.getByRole("tab", { name: "한눈 요약 질의" }));
     expect(dayTitles(c)).toEqual([]);
     expect(c.textContent).toContain("이 기준지역의 한눈 요약 질의가 없습니다.");
-    fireEvent.click(screen.getByRole("tab", { name: "지역 질문" }));
-    expect(libTexts(c)).not.toContain((libById("IJ-01") as LibraryQuestion).text);
   });
 });
 
 describe("질문 모음 — 「시연」 갈피 없음 · 한눈 요약 질의는 질문 글만(R62 — 개발서버 256e5ec·352a97c)", () => {
-  it("갈피는 「지역 질문」·「한눈 요약 질의」 둘 — 「시연」·[이 묶음 차례로 보내기] 없음", () => {
+  it("갈피는 「한눈 요약 질의」 하나(지역 질문 갈피는 사용자 지시 2026-11-24로 뺌) — 「시연」·[이 묶음 차례로 보내기] 없음", () => {
     drawer({ sido: { code: "26", name: "부산광역시" }, sigungu: null });
-    expect(screen.getAllByRole("tab").map((t) => t.textContent)).toEqual(["지역 질문", "한눈 요약 질의"]);
+    expect(screen.getAllByRole("tab").map((t) => t.textContent)).toEqual(["한눈 요약 질의"]);
     expect(screen.queryByText("이 묶음 차례로 보내기")).toBeNull();
   });
 

@@ -102,5 +102,8 @@ export const baseToT3q = (w: BaseWire): T3qRegion => ({ admin_code: w.code.padEn
 
 /** 한눈 요약 질의 묶음 지역 — 시범 지역(baseQuestionPilot)에 더해 대전광역시(30) 아래면 daejeon(2026-11-19 대전시청 시연) */
 export function baseDayRegion(b: BaseRegion | null | undefined): string {
-  return baseKey(b).startsWith("30") ? "daejeon" : baseQuestionPilot(b);
+  const c = baseKey(b);
+  if (c.startsWith("30")) return "daejeon";
+  if (c.startsWith("11")) return "seoul";
+  return baseQuestionPilot(b);
 }

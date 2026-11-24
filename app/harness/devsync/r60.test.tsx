@@ -194,7 +194,7 @@ describe("⑥⑦⑧ 문구(개발서버 글자 그대로)", () => {
     expect(bb).toContain('"그만두었습니다."');
     const lib = read("components/explore/LibraryDrawer.tsx");
     expect(lib).not.toContain("시연 질문이 준비되어 있지 않습니다."); // 「시연」 갈피를 지움(R62 — 개발서버 256e5ec)
-    expect(lib).toContain("이 기준지역에서 쓸 수 있는 질문이 없습니다.");
+    expect(lib).not.toContain("이 기준지역에서 쓸 수 있는 질문이 없습니다."); // 「지역 질문」 갈피를 지움(사용자 지시 2026-11-24 — 개발서버와 다른 점)
     // R61 — 로그인 화면을 개발서버 LoginPage 짜임(dl notice-list)으로 바꿈
     expect(read("app/login/page.tsx")).toMatch(/<dt>기술지원<\/dt>\s*<dd>확정 후 기재<\/dd>/);
   });

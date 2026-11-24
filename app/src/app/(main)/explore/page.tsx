@@ -5,7 +5,7 @@ import { manualPanel, useManualPanel } from "@/lib/manualPanel";
 import { useSession, uid, type Conversation, type SubmitArgs, type Turn } from "@/lib/session";
 import { useSop } from "@/lib/sopState";
 import { useBriefingSet } from "@/lib/briefing";
-import { briefRequest, DAY_ITEMS, DEMO_SHOW, fillText, type DemoItem, type LibraryQuestion } from "@/lib/library";
+import { briefRequest, DAY_ITEMS, DEMO_SHOW, type DemoItem } from "@/lib/library";
 import { activityOf, BARE_COND, condReset, hasInputCond, baseFromSaved, baseProvince, convProvince, defaultTitleOf, LEAVE_OK, LEAVE_TITLE, leaveMessage, openConvBus, REGION_BREAK_EVENT, regionBreakText, restoreCond, type RegionBreak } from "@/lib/dialogue";
 import { Dialog } from "@/components/account/Dialog";
 import "@/components/explore/dialogue.css";
@@ -514,10 +514,7 @@ function Explore() {
       { refAdv: { type: a.type, level: a.level, area: a.area, issuedAt: a.issuedAt, ...(a.scenario ? { scenario: true } : {}) } },
     ).catch(toastErr);
   };
-  /** 질문 모음 「지역 질문」 하나 — 재난상황 조건 없이 질문 문장 그대로(기준지역만 따라간다 — {지역} 자리, 개발서버 askLibrary · FUN-UFR-301007). 출처 QUICK(개발서버 askLibrary — 전 LIBRARY) */
-  const askLib = (q: LibraryQuestion) =>
-    ask({ question: fillText(q, regionName), source: "QUICK", libraryId: q.id, quickQueryId: q.quickQueryId ?? null, warnings: null }, undefined, false, true).catch(toastErr);
-  /** 질문 모음 「추천 질문」 하나 — T3Q-03 이 기준지역에 맞춰 준 글 그대로(출처 SUGGEST). 재난상황 조건은 싣지 않는다(지역 질문과 같음) */
+  /** 질문 모음 「추천 질문」 하나 — T3Q-03 이 기준지역에 맞춰 준 글 그대로(출처 SUGGEST). 재난상황 조건은 싣지 않는다(한눈 요약 질의와 같음) */
   const askSuggest = (text: string) => ask({ question: text, source: "SUGGEST", warnings: null }, undefined, false, true).catch(toastErr);
   /** 브리핑 항목 하나 질의 (시작 화면 타일 · 질의 줄 메뉴 · AI 모드 타일) — q 는 질의문 원형. 개발서버처럼 질의문 그대로(출처 BRIEFING). aim = AI 모드 창에서 보냄(특보를 싣는다) */
   const askBrief = (q: string, aim = false) =>
@@ -962,7 +959,6 @@ function Explore() {
             regionName={regionName}
             busy={lock.locked}
             onClose={() => setLibOpen(false)}
-            onAsk={(q) => { setLibOpen(false); askLib(q); }}
             onAskDemo={(d) => { setLibOpen(false); askDemo(d); }}
             onAskSuggest={(t) => { setLibOpen(false); askSuggest(t); }}
           />
