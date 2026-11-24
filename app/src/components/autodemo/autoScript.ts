@@ -965,8 +965,13 @@ export const AutoScript: AutoScene[] = [
       },
       {
         click: { sel: `${LastTurn} .sm-expand` },
+        wait: 300,
+      },
+      // 시연 중에는 지도 탭이 뒤늦게 덮어쓰는 일이 있어 한눈 요약 탭을 한 번 더 집는다(11/25 브라우저 점검)
+      {
+        silentClick: { sel: Tab, text: "한눈 요약" },
         focus: ["panel"],
-        say: "크게 보기로 펼치면 같은 그림을 넓은 화면으로 볼 수 있습니다.",
+        say: "패널에서 크게 펼치면 답변 내용이 막대와 숫자로 바뀌어, 어느 지구가 얼마나 잠겼는지 글을 읽지 않고도 바로 눈에 들어옵니다.",
         wait: 800,
       },
       // 지도를 연 직후에 누르면 요약 보기가 다시 풀린다(11/24 브라우저 점검) — 지도가 자리 잡는 동안 자막을 읽어 빈 틈을 없앤다(사용자 지적 「텀이 길다」)
@@ -1296,22 +1301,19 @@ export const AutoScript: AutoScene[] = [
       },
       // 답 내용 설명 — 소제목마다 위에 맞춰 굴리고 그 내용을 읽는 동안 머문다(한 번에 셋을 짚으니 굴림이 먼저 지나갔다 — 사용자 지시 2026-11-25)
       {
-        scroll: { sel: `${BodyBox} h4`, text: "재해위험개선지구" },
-        scrollTop: true,
+        scroll: { sel: `${BodyBox} h4`, text: "재해위험개선지구", next: true },
         focus: [{ sel: `${BodyBox} h4`, text: "재해위험개선지구" }, { sel: `${BodyBox} h4`, text: "재해위험개선지구", next: true }],
         say: "가 등급 재해위험개선지구가 먼저 나오고,",
         wait: 500,
       },
       {
-        scroll: { sel: `${BodyBox} h4`, text: "급경사" },
-        scrollTop: true,
+        scroll: { sel: `${BodyBox} h4`, text: "급경사", next: true },
         focus: [{ sel: `${BodyBox} h4`, text: "급경사" }, { sel: `${BodyBox} h4`, text: "급경사", next: true }],
         say: "붕괴위험 급경사지,",
         wait: 500,
       },
       {
-        scroll: { sel: `${BodyBox} h4`, text: "홍수취약지구" },
-        scrollTop: true,
+        scroll: { sel: `${BodyBox} h4`, text: "홍수취약지구", next: true },
         focus: [{ sel: `${BodyBox} h4`, text: "홍수취약지구" }, { sel: `${BodyBox} h4`, text: "홍수취약지구", next: true }],
         say: "하천 홍수취약지구 순으로 짚어 줍니다.",
         wait: 500,
