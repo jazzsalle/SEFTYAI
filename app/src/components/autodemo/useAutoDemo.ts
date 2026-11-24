@@ -454,7 +454,8 @@ export function useAutoDemo(actions: AutoDemoActions) {
             await say(scene.outro, voice, run)
             await wait(scene.dwellMs ?? DefaultDwellMs, run)
           }
-          act.current.closeAiMode()
+          // 「화면 유지」 — 다음 장면이 이 창에서 이어 가면 닫지 않는다(사용자 지시 2026-11-24)
+          if (!scene.keepAiMode) act.current.closeAiMode()
           setFocus(null)
           continue
         }

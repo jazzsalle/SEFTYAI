@@ -110,6 +110,8 @@ export interface AutoScene {
   aiModeSteps?: { focus: FocusName[]; say: string }[]
   /** AI 모드 창이 저절로 뜬다 — 커서가 [AI 모드]를 누르지 않는다(켜 둔 AI 모드가 특보 변화를 감지). */
   autoPopup?: boolean
+  /** 장면이 끝나도 AI 모드 창을 닫지 않는다 — 다음 장면이 같은 창에서 이어 간다(「화면 유지」). */
+  keepAiMode?: boolean
   /** 답을 보인 뒤 우측 패널에서 열 것. */
   open?: "summary" | "map"
   /** 강조할 요소. 없으면 방금 놓은 답 카드. */
@@ -214,7 +216,6 @@ const SimCard = `${LastTurn} .sim-card`
 const SimOpen = `${LastTurn} .sim-open`
 const EventTimeline = ".evp-tl" // 개발서버 사건 상세 타임라인(EventDetail — 11/19 화면 맞춤 뒤 이름)
 /** AI 모드 창 브리핑 줄·[브리핑 시작](개발서버 .aim-brief · .aim-brief-go) */
-const AimBrief = UI.aimBrief
 const AimBriefGo = `${UI.aimBrief} .btn`
 /** 답이 온 브리핑 항목의 [크게 보기](개발서버 .briefing-item.is-done .briefing-item-open) · 브리핑 묶음 */
 const BriefDone = ".briefing-item.is-done .briefing-item-open"
@@ -280,14 +281,13 @@ export const AutoScript: AutoScene[] = [
     aiModePinId: "AIM-BS-00",
     region: "busan",
     intro: "부산시 재난안전 담당자의 업무를 살펴보겠습니다. 담당자는 업무를 시작하면서 먼저 AI 모드를 켭니다.",
+    // 대본은 사용자가 고친 그대로(2026-11-24). 창은 닫지 않고 11:00 으로 이어 간다(화면 유지)
     aiModeSteps: [
       { focus: ["aim-card"], say: "지금 부산에는 발효 중인 특보가 없어, 초록색 「특보 없음」으로 표시됩니다." },
-      { focus: ["aimode"], say: "AI 모드를 켜 두면 기상특보를 주기적으로 자동 점검합니다. 담당자가 특보 화면을 계속 지켜보지 않아도 됩니다." },
-      // AI 안내를 말할 때는 AI 안내 카드를, 브리핑을 말할 때는 브리핑을 강조한다(사용자 지시 2026-11-24)
-      { focus: ["aim-card"], say: "특보가 생기거나 바뀌면 창이 먼저 떠서, 이 AI 안내 자리에 확인할 사항을 알려 줍니다." },
-      { focus: ["aim-tiles"], say: "그리고 브리핑으로 지금 상황을 한 번에 정리할 수 있습니다." },
+      { focus: ["aimode"], say: "AI 모드를 켜 두면 기상특보를 주기적으로 자동 점검합니다." },
+      { focus: ["aim-card"], say: "특보가 생기거나 바뀌면, 이 AI 안내 자리에 확인할 사항을 알려 줍니다." },
     ],
-    outro: "AI 모드를 켜 둔 채로 담당자는 평소 업무를 이어갑니다.",
+    keepAiMode: true,
     dwellMs: 1200,
   },
 
@@ -299,11 +299,12 @@ export const AutoScript: AutoScene[] = [
     autoPopup: true,
     region: "busan",
     intro: "오전 11시, 부산에 호우 예비특보가 발표된 상황을 가정하겠습니다.",
+    // 프롤로그의 창이 그대로 열린 채(화면 유지) 초록 → 예비특보로 바뀐다
     aiModeSteps: [
-      { focus: ["alert"], say: "켜 둔 AI 모드가 특보 발표를 감지해 창을 자동으로 띄웁니다. 초록이던 상태가 호우 예비특보로 바뀌었습니다." },
+      { focus: ["alert"], say: "켜 둔 AI 모드가 특보 발표를 감지해 초록이던 상태가 호우 예비특보로 바뀌었습니다." },
       { focus: ["aim-card"], say: "AI 안내에는 과거 사례를 바탕으로, 비가 본격적으로 오기 전에 미리 살펴볼 위험지역과 시설이 정리됩니다." },
     ],
-    outro: "담당자는 안내를 확인한 뒤 평소 업무를 이어갑니다. AI 모드는 켜 둔 채로 특보의 변화를 계속 살핍니다.",
+    outro: "담당자는 안내를 확인한 뒤 평소 업무를 이어갑니다.",
     dwellMs: 1200,
   },
   {
@@ -421,30 +422,36 @@ export const AutoScript: AutoScene[] = [
 
   // 2막 — 주의보: 켜 둔 AI 모드가 먼저 알린다
   {
-    label: "15:00 · 호우주의보, AI 모드 자동 감지",
+    label: "15:00 · 호우주의보, AI 모드",
     aiModePinId: "AIM-BS-03",
     autoPopup: true,
     region: "busan",
     intro: "오후 3시, 다른 업무를 보던 중 호우 예비특보가 주의보로 바뀝니다.",
     aiModeSteps: [
-      // 「자동 팝업」을 말로 짚는다(사용자 지시 2026-11-24)
-      { focus: ["alert"], say: "이번에도 AI 모드 창이 자동으로 팝업됩니다. 예비특보가 주의보로 바뀐 것을 감지해, 우선 확인해야 할 사항을 다시 정리해 줍니다." },
+      // 대본은 사용자가 고친 그대로(2026-11-24). 창은 닫지 않고 15:05 브리핑으로 이어 간다(화면 유지)
+      { focus: ["alert"], say: "AI 모드가 예비특보가 주의보로 바뀐 것을 감지해, 우선 확인해야 할 사항을 다시 정리해 줍니다." },
       { focus: ["aim-card"], say: "저지대 침수 우려 지역과 배수 시설, 하천변 산책로와 지하차도 같은 위험 구간을 점검하라는 안내입니다." },
     ],
-    outro: "이제는 사전에 위험요소를 파악하는 것에서 더 나아가, 어느 시설부터 점검하고 어떤 조치를 준비해야 할지 검토할 때입니다.",
+    outro: "이제는 어느 시설부터 점검하고 어떤 조치를 준비해야 할지 검토할 때입니다.",
+    keepAiMode: true,
     dwellMs: 1200,
   },
   {
     label: "15:05 · 현재 상황 브리핑",
     region: "busan",
-    intro: "주의보가 내려지면 담당자는 지금 상황을 한 번에 정리해 봅니다.",
+    intro: "담당자는 지금 상황을 한 번에 정리하기 위해 현재 상황 브리핑을 시작합니다.",
     steps: [
       // 채팅창의 [브리핑 세트]보다 AI 모드 창의 [브리핑 시작]으로 건다(사용자 지시 2026-11-04).
-      // 앞 장면(11:40)에서 연 상세 탭이 브리핑 동안 패널에 남지 않게 지도 탭으로(11/19 녹화 검수)
-      { open: "map", click: { sel: UI.aiButton, text: "AI" }, waitFor: AimBriefGo, focus: ["aimode"], say: "AI 모드 창을 열어" },
-      { scroll: { sel: AimBrief }, focus: [{ sel: AimBrief }], say: "현재 상황 브리핑을 시작합니다." },
+      // 15:00 의 창이 열린 채 이어 온다(화면 유지 — 사용자 지시 2026-11-24). 이 장면만 돌릴 때처럼 창이 닫혀 있으면 [AI 모드]로 연다.
+      // 앞 장면에서 연 상세 탭이 브리핑 동안 패널에 남지 않게 지도 탭으로(11/19 녹화 검수)
       {
+        scroll: { sel: AimBriefGo },
         click: { sel: AimBriefGo },
+        orElse: [
+          { click: { sel: UI.aiButton, text: "AI" }, waitFor: AimBriefGo },
+          { click: { sel: AimBriefGo } },
+        ],
+        open: "map",
         waitFor: BriefDone,
         focus: [{ sel: BriefBlock }],
         wait: 1200,
@@ -474,11 +481,11 @@ export const AutoScript: AutoScene[] = [
         scroll: { sel: ".brief-big table" },
         focus: [{ sel: ".brief-big table" }],
         orElse: [{ scroll: { sel: ".brief-big h3" }, focus: [{ sel: ".brief-big h3" }] }],
-        say: "대상마다 위치와 통제 기준이 함께 나와, 어디부터 통제를 준비할지 바로 보입니다.",
+        say: "대상마다 위치와 통제 기준이 함께 나와, 어디부터 통제를 준비할지 확인할 수 있습니다.",
         wait: 600,
       },
     ],
-    outro: "브리핑으로 전체 상황을 훑었으니, 이제 궁금한 점을 질문으로 더 깊이 들어가 봅니다.",
+    outro: "브리핑으로 전체 상황을 훑었으니, 이제 궁금한 점을 구체적으로 질문합니다.",
   },
   {
     label: "15:10 · 점검 우선순위",
@@ -1290,7 +1297,7 @@ const BusanDay = [
   "11:00 · 호우 예비특보, AI 모드 시작",
   "11:30 · 온천천 주변 위험지역",
   "11:40 · 동래·연제·금정 위험지구 전체",
-  "15:00 · 호우주의보, AI 모드 자동 감지",
+  "15:00 · 호우주의보, AI 모드",
   "15:05 · 현재 상황 브리핑",
   "15:10 · 점검 우선순위",
   "15:20 · 강우 조건으로 묻고 대응절차까지",
@@ -1301,7 +1308,7 @@ const BusanDay = [
 const BusanAim = [
   "프롤로그 · AI 모드 소개",
   "11:00 · 호우 예비특보, AI 모드 시작",
-  "15:00 · 호우주의보, AI 모드 자동 감지",
+  "15:00 · 호우주의보, AI 모드",
   "15:05 · 현재 상황 브리핑",
   "15:10 · 점검 우선순위",
   "15:15 · 대응절차 확인",
@@ -1350,7 +1357,7 @@ export const DemoScenarios: DemoScenario[] = [
 
 // 사용자 지시 2026-11-24 — 행안부 실장 보고(11/25 · 1.2배속). AI 모드로 시작하는 흐름은 그대로 두고, 범용 업무 질문 + 사건 「한 방」 +
 // 행동매뉴얼(질문 하나 → 근거 쪽 → 대응절차)로 묶는다. 마무리는 한 문장.
-const AimStart = ["프롤로그 · AI 모드 소개", "11:00 · 호우 예비특보, AI 모드 시작", "15:00 · 호우주의보, AI 모드 자동 감지", "15:05 · 현재 상황 브리핑"]
+const AimStart = ["프롤로그 · AI 모드 소개", "11:00 · 호우 예비특보, AI 모드 시작", "15:00 · 호우주의보, AI 모드", "15:05 · 현재 상황 브리핑"]
 const ShortEnd = { 마무리: { intro: "이상으로 시연을 마치겠습니다." } }
 const InjeShort = {
   "전환 · 인제군": { intro: "이번에는 산간 지역인 인제군을 살펴보겠습니다. 계곡과 하천을 따라 사람이 머무는 곳이 많은 지역입니다." },
