@@ -55,7 +55,8 @@ describe("자동 시연 대본", () => {
       "CQ-BS-01", "CQ-BS-02", "IG-BS-01", "IG-BS-02", "IG-BS-08", "IG-BS-11", "IG-BS-13", "IG-BS-14", "IG-BS-15", "IG-BS-16", "IG-BS-17",
       "IG-DJ-01", "IG-DJ-03", "IG-DJ-07", "IG-IJ-01", "IG-IJ-08", "IG-IJ-09", "IG-SE-01", "IG-SE-02", "IG-SE-03", "IG-SE-04", "SIM-SH-1-3",
     ]);
-    expect(aiMode.sort()).toEqual(AIM_DEMO.map((a) => a.id).sort());
+    // AIM-BS-00 = 특보 없음(초록) 첫 화면 — 받아 둔 답이 아니라 화면이 그린다(2026-11-24)
+    expect(aiMode.sort()).toEqual(["AIM-BS-00", ...AIM_DEMO.map((a) => a.id)].sort());
   });
 
   it("장면 지역은 부산·인제 기준지역(인제 = 강원 인제군)", () => {

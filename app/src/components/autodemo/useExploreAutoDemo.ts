@@ -5,7 +5,7 @@ import { useSession } from "@/lib/session";
 import { manualPanel } from "@/lib/manualPanel";
 import { baseKey } from "@/lib/baseRegion";
 import { DAY_ITEMS, demoAsk, type DemoItem } from "@/lib/library";
-import { aimDemoAdvisory, aimDemoById } from "@/lib/autoDemoAim";
+import { AIM_QUIET_ID, aimDemoAdvisory, aimDemoById, aimQuietView } from "@/lib/autoDemoAim";
 import { AUTODEMO_START_EVENT, autoDemoBus } from "@/lib/autoDemoBus";
 import { DemoRegions, type DemoPin, type DemoScenarioId } from "./autoScript";
 import { useAutoDemo } from "./useAutoDemo";
@@ -62,6 +62,11 @@ export function useExploreAutoDemo(p: {
       return pRef.current.ask({ ...demoAsk(d), pinId: d.id }).then(() => true, () => false);
     },
     aiMode: async (pinId) => {
+      // 특보 없음(초록) — 특보 줄도 비운다(실제 특보가 섞이지 않게)
+      if (pinId === AIM_QUIET_ID) {
+        autoDemoBus.set({ aim: aimQuietView(), aimOpen: true, warnings: [] });
+        return true;
+      }
       const it = aimDemoById(pinId);
       const row = it ? (await loadAimPins().catch(() => [])).find((x) => x.id === pinId) : undefined;
       if (!it || !row?.view) return false;

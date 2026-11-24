@@ -26,6 +26,21 @@ export const AIM_DEMO: AimDemoItem[] = [
 ];
 export const aimDemoById = (id: string) => AIM_DEMO.find((x) => x.id === id);
 
+/**
+ * 시연 첫 장면 — 담당자가 AI 모드를 켰을 때 「발효 중인 특보 없음」(초록) 상태(사용자 지시 2026-11-24).
+ * 받아 둔 답이 아니다 — 특보가 없으면 AI 안내도 없으므로 우리 화면의 「특보 없음」 카드를 그대로 그린다. 점검 10:50 · 다음 점검 11:00
+ */
+export const AIM_QUIET_ID = "AIM-BS-00";
+export function aimQuietView(): AimView {
+  const at = "2026-11-05T10:50:00+09:00";
+  return {
+    checkId: `DEMO-${AIM_QUIET_ID}`, adminCode: "2600000000", regionName: "부산광역시", triggerType: "FIRST", status: "DONE",
+    noWarningMessage: null, guides: [], warnings: [], collectStatus: "SUCCESS",
+    checkedDe: new Date(at).toISOString(), lastCheckDe: new Date(at).toISOString(),
+    nextCheckDe: new Date(Date.parse(at) + AIM_INTERVAL_MIN * 60_000).toISOString(),
+  };
+}
+
 /** 가상 특보 발표 시각(+09:00) */
 export const aimDemoIssued = (it: AimDemoItem) => `${it.date}T${it.at}:00+09:00`;
 /** 점검 기준 시각 — 발표 5분 뒤(개발서버 asOf) */
