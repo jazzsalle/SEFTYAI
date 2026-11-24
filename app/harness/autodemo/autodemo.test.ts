@@ -170,7 +170,8 @@ describe("자동 시연 시나리오(2026-11-18 사용자 지시 — 부산+인�
       expect(manual.steps?.some((st) => st.click?.sel === ".wxbar .wxsop")).toBe(true);
       for (const s of sc.filter((x) => x.pinId === "IG-BS-17" || x.pinId === "IG-SE-03")) expect(JSON.stringify(s.steps)).not.toContain("click");
     }
-    expect(scenarioScenes("seoul-busan-inje").some((s) => s.region === "seoul")).toBe(true);
+    // 서울은 뺐다 — 부산만(사용자 지시 2026-11-24 「부산도 벅차다」)
+    expect(scenarioScenes("seoul-busan-inje").every((s) => s.region === "busan")).toBe(true);
     expect(scenarioScenes("busan-inje-manual").some((s) => s.region === "seoul")).toBe(false);
   });
 
