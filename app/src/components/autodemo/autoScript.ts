@@ -1288,8 +1288,8 @@ export const AutoScript: AutoScene[] = [
           { at: { sel: `input[aria-label="풍속 값 (m/s)"]` }, value: "15" },
           { at: { sel: ".cond-pick", text: "피해·통제" }, value: "침수, 하천 범람" },
         ],
-        scroll: { sel: ".cond-noperiod" },
-        focus: [{ sel: ".cond-noperiod" }, { sel: ".cond-detail > .cond-two" }, { sel: ".cond-pick", text: "피해·통제" }],
+        scroll: { sel: ".cond-detail > .cond-two" },
+        focus: [{ sel: ".cond-detail > .cond-two" }, { sel: ".cond-pick", text: "피해·통제" }],
         wait: 1200,
       },
       {
@@ -1337,7 +1337,7 @@ export const AutoScript: AutoScene[] = [
       {
         scroll: { sel: ".evp-fold .evp-table" },
         focus: [{ sel: ".evp-fold .evp-table" }],
-        say: "설정한 조건과 그 사건이 왜 비슷한지 유사도 근거를 요인별로 확인할 수 있습니다.",
+        say: "설정한 조건과 그 사건이 얼마나 닮았는지 유사도 근거를 요인별로 확인할 수 있습니다.",
         wait: 1200,
       },
       // 뒷장면에 남지 않게 — 조건 되돌리기
