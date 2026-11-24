@@ -1307,13 +1307,13 @@ export const AutoScript: AutoScene[] = [
         fold: true,
         scroll: { sel: MdText, text: "입력하신 조건" },
         focus: [{ sel: MdText, text: "입력하신 조건" }],
-        say: "설정한 조건에 맞춘 답이 나왔습니다.",
+        say: "설정한 조건에 맞춘 요약 결과를 먼저 확인하고, 최우선 위험지역부터 살펴봅니다.",
         wait: 800,
       },
       {
         scroll: { sel: `${BodyBox} h4`, text: "재해위험개선지구", next: true },
         focus: [{ sel: `${BodyBox} h4`, text: "재해위험개선지구" }, { sel: `${BodyBox} h4`, text: "재해위험개선지구", next: true }],
-        say: "설정한 조건에서 먼저 점검할 곳으로 가 등급 재해위험개선지구,",
+        say: "가 등급 재해위험개선지구와",
         wait: 500,
       },
       {
