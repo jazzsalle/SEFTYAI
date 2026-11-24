@@ -297,6 +297,21 @@ export function useAutoDemo(actions: AutoDemoActions) {
             if (s) await point(s, false, run)
             else missing = true
           }
+          if (st.fills) {
+            for (const f of st.fills) {
+              const s = resolve(f.at)
+              const box = s ? document.querySelector<HTMLElement>(s) : null
+              const el =
+                box instanceof HTMLInputElement || box instanceof HTMLTextAreaElement || box instanceof HTMLSelectElement
+                  ? box
+                  : box?.querySelector<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>("input, textarea, select")
+              if (!el) { missing = true; continue }
+              const proto = el instanceof HTMLSelectElement ? HTMLSelectElement.prototype : el instanceof HTMLTextAreaElement ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype
+              Object.getOwnPropertyDescriptor(proto, "value")?.set?.call(el, f.value)
+              el.dispatchEvent(new Event(el instanceof HTMLSelectElement ? "change" : "input", { bubbles: true }))
+            }
+            await wait(300, run)
+          }
           if (st.fill) {
             const s = resolve(st.fill.at)
             const box = s ? document.querySelector<HTMLElement>(s) : null

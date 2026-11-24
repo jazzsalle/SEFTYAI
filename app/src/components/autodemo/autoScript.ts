@@ -65,6 +65,8 @@ export interface DemoStep {
   orElse?: DemoStep[]
   /** 입력칸에 글자를 한 자씩 넣는다. at 이 입력칸이 아니면 그 안의 입력칸에 넣는다. */
   fill?: { at: Target; value: string }
+  /** 여러 칸을 한 번에 채운다 — 한 칸씩 치는 모습 없이(조건 창, 2026-11-24 사용자 지시 「한번에 탁 입력」) */
+  fills?: { at: Target; value: string }[]
   /** 누른 요소의 글(대상 이름)을 기억한다 — 뒤 걸음의 Target.text 에 "$picked" 로 쓴다. */
   remember?: boolean
   /** 실제 질문을 보내고 답이 올 때까지 기다린다(최대 ms) — 이 대본에는 쓰지 않는다(개발서버와 같음). */
@@ -446,14 +448,15 @@ export const AutoScript: AutoScene[] = [
       // 채팅창의 [브리핑 세트]보다 AI 모드 창의 [브리핑 시작]으로 건다(사용자 지시 2026-11-04).
       // 15:00 의 창이 열린 채 이어 온다(화면 유지 — 사용자 지시 2026-11-24). 이 장면만 돌릴 때처럼 창이 닫혀 있으면 [AI 모드]로 연다.
       // 앞 장면에서 연 상세 탭이 브리핑 동안 패널에 남지 않게 지도 탭으로(11/19 녹화 검수)
+      // 안내 뒤 바로 누른다 — 지도 탭 전환은 기다리지 않고(전엔 2.6초+굴림 0.5초 — 사용자 지시 2026-11-24 「텀이 너무 길어」)
       {
-        scroll: { sel: AimBriefGo },
         click: { sel: AimBriefGo },
         orElse: [
           { click: { sel: UI.aiButton, text: "AI" }, waitFor: AimBriefGo },
           { click: { sel: AimBriefGo } },
         ],
         open: "map",
+        openWait: 0,
         waitFor: BriefDone,
         focus: [{ sel: BriefBlock }],
         wait: 1200,
@@ -981,7 +984,7 @@ export const AutoScript: AutoScene[] = [
         click: { sel: Entity, text: "신천죽성지구3" },
         orElse: [{ open: "map", click: { sel: MapPinAny, text: "신천죽성지구3" } }],
         focus: ["panel", { sel: `${MdTable} tr`, text: "신천죽성지구3" }],
-        say: "가장 넓은 기장 신천죽성지구3은 17만 제곱미터 넘게 잠겼습니다.",
+        say: "가장 많이 잠긴 곳은 기장 신천죽성지구3입니다.",
         wait: 1200,
       },
     ],
@@ -1107,8 +1110,8 @@ export const AutoScript: AutoScene[] = [
       { look: { sel: UI.askButton, text: "질의" }, play: "CQ-BS-03" },
       {
         fold: true,
-        scroll: { sel: MdText, text: "입력하신 조건" },
-        focus: [{ sel: MdText, text: "입력하신 조건" }],
+        scroll: { sel: MdText, text: "입력하신 재난상황 조건" },
+        focus: [{ sel: MdText, text: "입력하신 재난상황 조건" }],
         say: "답은 넣은 조건을 그대로 받아,",
       },
       {
@@ -1246,37 +1249,39 @@ export const AutoScript: AutoScene[] = [
     outro: "",
   },
   // 2026-11-24 실장 보고 — 조건을 최대한 넣고(발생기간 묻지 않음) 우선 위험지역과 조건이 비슷했던 과거 호우를 한 질문으로(CQ-BS-04, T3Q 실측 11/24).
-  // 넣는 숫자는 말로 읽지 않는다(사용자 지시). 유사도 1위 2021년 08.25 호우 89.67 — 답 아래 사건 목록에서 열어야 유사도 근거(지금 조건과 견줌)가 나온다
+  // 넣는 숫자는 말로 읽지 않는다(사용자 지시). 유사도 1위 2021년 08.25 호우 88.91(11/24 조건 5개로 다시 받음) — 답 아래 사건 목록에서 열어야 유사도 근거(지금 조건과 견줌)가 나온다
   {
     label: "부산 · 지금 조건으로 우선 위험지역과 비슷했던 호우 묻기",
     region: "busan",
     intro: "비가 이어지는 지금 상황을 조건으로 넣고 직접 물어봅니다.",
     steps: [
-      { click: { sel: CondOpen, text: "조건 변경" }, waitFor: ".cond-field", focus: [{ sel: ".cond-modal" }], say: "재난상황 조건 창에서 발생기간은 묻지 않음으로 두고," },
-      { click: { sel: ".cond-noperiod input:not(:checked)" }, focus: [{ sel: ".cond-noperiod" }], wait: 300 },
-      { fill: { at: { sel: ".cond-pick", text: "특보 종류" }, value: "호우" }, focus: [{ sel: ".cond-pick", text: "특보 종류" }], say: "호우경보와 강우·하천 수위·풍속 같은 지금 상황 값을 넣고," },
-      { fill: { at: { sel: ".cond-pick", text: "특보 단계" }, value: "경보" } },
-      { fill: { at: { sel: `input[aria-label="1시간 강우 값 (mm)"]` }, value: "50" } },
-      { fill: { at: { sel: `input[aria-label="3시간 누적 값 (mm)"]` }, value: "90" } },
-      { fill: { at: { sel: `input[aria-label="6시간 누적 값 (mm)"]` }, value: "130" } },
-      { fill: { at: { sel: `input[aria-label="12시간 누적 값 (mm)"]` }, value: "180" } },
-      { fill: { at: { sel: `input[aria-label="24시간 누적 값 (mm)"]` }, value: "250" } },
-      { fill: { at: { sel: `input[aria-label="하천 수위 값 (m)"]` }, value: "3.5" } },
-      { fill: { at: { sel: `input[aria-label="하천 유량 값 (m³/s)"]` }, value: "800" } },
-      { fill: { at: { sel: `input[aria-label="풍속 값 (m/s)"]` }, value: "15" } },
-      { fill: { at: { sel: `input[aria-label="습도 값 (%)"]` }, value: "95" } },
-      { fill: { at: { sel: ".cond-pick", text: "피해·통제" }, value: "침수, 하천 범람" }, focus: [{ sel: ".cond-pick", text: "피해·통제" }], say: "피해·통제 키워드를 적습니다." },
+      { click: { sel: CondOpen, text: "조건 변경" }, waitFor: ".cond-field", focus: [{ sel: ".cond-modal" }] },
+      { silentClick: { sel: ".cond-noperiod input:not(:checked)" } },
+      {
+        fills: [
+          { at: { sel: ".cond-pick", text: "특보 종류" }, value: "호우" },
+          { at: { sel: ".cond-pick", text: "특보 단계" }, value: "경보" },
+          { at: { sel: `input[aria-label="1시간 강우 값 (mm)"]` }, value: "50" },
+          { at: { sel: `input[aria-label="24시간 누적 값 (mm)"]` }, value: "250" },
+          { at: { sel: `input[aria-label="하천 수위 값 (m)"]` }, value: "3.5" },
+          { at: { sel: `input[aria-label="하천 유량 값 (m³/s)"]` }, value: "800" },
+          { at: { sel: `input[aria-label="풍속 값 (m/s)"]` }, value: "15" },
+          { at: { sel: ".cond-pick", text: "피해·통제" }, value: "침수, 하천 범람" },
+        ],
+        focus: [{ sel: ".cond-modal" }],
+        say: "지금 상황 값을 조건으로 넣고 적용합니다.",
+      },
       { click: { sel: CondApply, text: "적용" }, wait: 400 },
       { fill: { at: { sel: UI.questionBox }, value: "재난상황 조건에서 가장 먼저 확인해야 할 우선 위험지역과, 이 조건과 비슷했던 과거 호우 사례를 유사도 순으로 보여줘." } },
       { look: { sel: UI.askButton, text: "질의" }, play: "CQ-BS-04" },
       {
         fold: true,
-        scroll: { sel: MdText, text: "입력하신 재난상황 조건" },
-        focus: [{ sel: MdText, text: "입력하신 재난상황 조건" }, { sel: `${BodyBox} h4`, text: "자연재해위험개선지구" }],
+        scroll: { sel: MdText, text: "입력하신 조건" },
+        focus: [{ sel: MdText, text: "입력하신 조건" }, { sel: `${BodyBox} h4`, text: "재해위험개선지구" }],
         say: "답은 넣은 조건을 받아 우선 점검할 위험지역부터 정리하고,",
       },
       {
-        scroll: { sel: `${MdTable} tr`, text: "89.67" },
+        scroll: { sel: `${MdTable} tr`, text: "88.91" },
         focus: [{ sel: MdTable }],
         say: "같은 조건과 비슷했던 과거 호우도 유사도 순으로 붙습니다.",
       },
@@ -1330,10 +1335,16 @@ export const AutoScript: AutoScene[] = [
         focus: [{ sel: `${MdTable} tr`, text: "호우주의보" }, { sel: `${MdTable} tr`, text: "호우경보" }, { sel: `${MdTable} tr`, text: "22:53" }],
         say: "오후 2시 호우주의보, 저녁 8시 호우경보, 밤 10시 53분 초량 지하차도 통제까지 재난문자와 함께 시간순으로 정리됩니다.",
       },
+      // 피해·통제/대응·복구를 먼저 보이고 근거 문서로 — 한 번에 셋을 짚으면 둘이 화면 밖이라 빈 상자만 보였다(사용자 지시 2026-11-24)
+      {
+        scroll: { sel: `${BodyBox} h4`, text: "피해 및 통제" },
+        focus: [{ sel: `${BodyBox} h4`, text: "피해 및 통제" }, { sel: `${BodyBox} h4`, text: "대응 및 복구" }],
+        say: "피해·통제와 대응·복구가 이어지고,",
+      },
       {
         scroll: { sel: `${BodyBox} h4`, text: "근거 문서" },
-        focus: [{ sel: `${BodyBox} h4`, text: "피해 및 통제" }, { sel: `${BodyBox} h4`, text: "대응 및 복구" }, { sel: `${BodyBox} h4`, text: "근거 문서" }],
-        say: "피해·통제와 대응·복구, 근거 문서까지 항목별로 이어집니다.",
+        focus: [{ sel: `${BodyBox} h4`, text: "근거 문서" }],
+        say: "근거 문서까지 항목별로 정리됩니다.",
         wait: 600,
       },
     ],

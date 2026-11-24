@@ -92,7 +92,8 @@ export function speakOne(text: string, voice: SpeechSynthesisVoice | null, rate 
       synth.cancel()
       finish()
     }, 3000 + (text.length * 220) / Math.max(0.5, rate))
-    const u = new SpeechSynthesisUtterance(text)
+    // 「119」를 「백십구」로 읽는다 — 소리만 「일일구」로(자막은 그대로, 2026-11-24 사용자 지시)
+    const u = new SpeechSynthesisUtterance(text.replace(/119/g, "일일구"))
     u.voice = voice
     u.lang = voice.lang
     u.rate = rate
