@@ -1378,6 +1378,36 @@ export const AutoScript: AutoScene[] = [
     ],
     outro: "",
   },
+  // 2026-11-24 — 김인건 서기관(11/5 중간보고) 「홍수경보가 발령됐을 때 어디를 어떻게 조치해야 하는지」. T3Q 11/24 실측 45초:
+  // 세병교 수위관측소 대응수위(주의 4.02m·경보 4.99m) · 세병교/수연교/연안교 하상도로 · 온천천 500m 안 지하차도 5곳(통제 침수심 5cm)
+  {
+    label: "부산 · 온천천 홍수경보 때 먼저 막을 곳",
+    pinId: "IG-BS-24",
+    region: "busan",
+    intro: "홍수경보가 나면 어디를 먼저 막아야 하는지, 온천천을 예로 물어봅니다.",
+    steps: [
+      {
+        fold: true,
+        scroll: { sel: MdText, text: "세병교) 수위관측소" },
+        focus: [{ sel: MdText, text: "세병교) 수위관측소" }, { sel: MdText, text: "4.02m" }, { sel: MdText, text: "4.99m" }],
+        say: "기준 수위관측소의 단계별 대응수위와 함께,",
+      },
+      {
+        scroll: { sel: `${BodyBox} h3`, text: "하상도로" },
+        focus: [{ sel: MdText, text: "세병교 하상도로" }, { sel: MdText, text: "수연교 하상도로" }, { sel: MdText, text: "연안교 하상도로" }],
+        say: "먼저 막아야 할 하상도로와",
+      },
+      {
+        scroll: { sel: MdTable },
+        scrollTop: true,
+        focus: [{ sel: MdTable }],
+        say: "하천 가까운 지하차도의 통제 기준까지 지점별로 나옵니다.",
+        wait: 600,
+      },
+      { open: "map", focus: ["panel"], say: "통제할 곳은 지도에서 바로 확인합니다.", wait: 1200 },
+    ],
+    outro: "",
+  },
   {
     label: "부산 · 119 신고가 가장 많았던 날과 그날 비",
     pinId: "IG-BS-17",
@@ -1815,6 +1845,7 @@ DemoScenarios.push(
       "부산 · 119 신고가 가장 많았던 날과 그날 비",
       "부산 · 지금 조건으로 우선 위험지역과 비슷했던 호우 묻기",
       "부산 · 자연재해저감종합계획 위험지구 위치도",
+      "부산 · 온천천 홍수경보 때 먼저 막을 곳",
       "부산 · 호우경보 때 매뉴얼상 누가 무엇을",
       // 인제는 위성지도로만(사용자 지시 2026-11-24) — 전환에서 위성으로 펴고 장면에서도 위성 유지
       "전환 · 인제군",
