@@ -1381,26 +1381,36 @@ export const AutoScript: AutoScene[] = [
     pinId: "IG-BS-24",
     region: "busan",
     intro: "홍수경보가 나면 어디를 먼저 막아야 하는지, 온천천을 예로 물어봅니다.",
+    // 포인트는 「어디를 어떻게」 — 답 항목마다 곳과 조치를 짚어 짧게, 지도는 처음에 옆에 켜 두기만(사용자 지시 2026-11-25)
     steps: [
+      { open: "map", openWait: 300, fold: true },
       {
-        fold: true,
         scroll: { sel: MdText, text: "세병교) 수위관측소" },
         focus: [{ sel: MdText, text: "세병교) 수위관측소" }, { sel: MdText, text: "4.02m" }, { sel: MdText, text: "4.99m" }],
-        say: "기준 수위관측소의 단계별 대응수위와 함께,",
+        say: "세병교 수위가 대응수위에 이르면 단계별로 움직이고,",
       },
       {
         scroll: { sel: `${BodyBox} h3`, text: "하상도로" },
         focus: [{ sel: MdText, text: "세병교 하상도로" }, { sel: MdText, text: "수연교 하상도로" }, { sel: MdText, text: "연안교 하상도로" }],
-        say: "먼저 막아야 할 하상도로와",
+        say: "세병교·수연교·연안교 하상도로는 바로 전면 통제합니다.",
       },
       {
         scroll: { sel: MdTable },
         scrollTop: true,
-        focus: [{ sel: MdTable }],
-        say: "하천 가까운 지하차도의 통제 기준까지 지점별로 나옵니다.",
-        wait: 600,
+        focus: [{ sel: MdTable }, { sel: MdText, text: "침수심 5.0cm 도달 시" }],
+        say: "온천천 가까운 지하차도는 물이 5센티미터 차면 진입을 막고,",
       },
-      { open: "map", focus: ["panel"], say: "통제할 곳은 지도에서 바로 확인합니다.", wait: 1200 },
+      {
+        scroll: { sel: `${BodyBox} h3`, text: "산책로" },
+        focus: [{ sel: MdText, text: "차단선" }, { sel: MdText, text: "진입로 전면 폐쇄" }],
+        say: "산책로는 주의보 때부터 차단기를 내려 사람을 내보내고,",
+      },
+      {
+        scroll: { sel: `${BodyBox} h3`, text: "저지대" },
+        focus: [{ sel: MdText, text: "배후 저지대" }, { sel: MdText, text: "대피소 선제 이동" }],
+        say: "연산동·안락동 일대 저지대는 노약자부터 미리 대피시킵니다.",
+        wait: 800,
+      },
     ],
     outro: "",
   },
