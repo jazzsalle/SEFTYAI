@@ -277,15 +277,18 @@ export function useAutoDemo(actions: AutoDemoActions) {
               // 실제로 굴러가는 틀(브리핑은 .thread--brief 등 UI.scroll 과 다를 수 있다 — 11/25 점검)
               let box: HTMLElement | null = target.parentElement
               while (box && !(box.scrollHeight > box.clientHeight + 5 && /auto|scroll/.test(getComputedStyle(box).overflowY))) box = box.parentElement
-              const top = box?.getBoundingClientRect().top ?? 0
+              // 굴린 뒤 위에 붙을 줄(sticky)의 높이 + 붙는 자리(top) — 굴리기 전에는 아직 붙어 있지 않을 수 있어 위치는 보지 않는다(11/25 점검)
               let cover = 0
               box?.querySelectorAll<HTMLElement>("*").forEach((e) => {
-                if (e.contains(target) || getComputedStyle(e).position !== "sticky") return
-                const r = e.getBoundingClientRect()
-                // 지금 위에 붙어 있는 것만(아래쪽에 흘러 있는 sticky 는 빼고)
-                if (r.height > 0 && r.top - top < 40) cover = Math.max(cover, r.bottom - top)
+                if (e.contains(target)) return
+                const cs = getComputedStyle(e)
+                if (cs.position !== "sticky") return
+                const h = e.getBoundingClientRect().height
+                if (h > 0) cover = Math.max(cover, h + (parseFloat(cs.top) || 0))
               })
-              target.style.scrollMarginTop = `${Math.round(cover + 12)}px`
+              // 틀의 위 여백만큼 아래에 붙는다(브리핑 화면 실측 24px) — 그만큼 더 띄운다
+              const pad = box ? parseFloat(getComputedStyle(box).paddingTop) || 0 : 0
+              target.style.scrollMarginTop = `${Math.round(cover + pad + 12)}px`
             }
             target?.scrollIntoView({ behavior: "smooth", block })
             // 위의 한눈 요약 카드가 늦게 다 만들어져 커지면 짚은 곳이 화면 밖으로 밀린다 —
