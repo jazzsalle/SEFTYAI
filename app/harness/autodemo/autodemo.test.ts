@@ -163,7 +163,8 @@ describe("자동 시연 시나리오(2026-11-18 사용자 지시 — 부산+인�
     const { scenarioScenes } = await import("@/components/autodemo/autoScript");
     for (const id of ["busan-inje-manual", "seoul-busan-inje"] as const) {
       const sc = scenarioScenes(id);
-      expect(sc.slice(0, 4).map((s) => s.label)).toEqual(["프롤로그 · AI 모드 소개", "11:00 · 호우 예비특보, AI 모드 시작", "15:00 · 호우주의보, AI 모드", "15:05 · 현재 상황 브리핑"]);
+      // 예비특보를 빼고 초록에서 바로 호우주의보로(사용자 지시 2026-11-24)
+      expect(sc.slice(0, 3).map((s) => s.label)).toEqual(["프롤로그 · AI 모드 소개", "15:00 · 호우주의보, AI 모드", "15:05 · 현재 상황 브리핑"]);
       expect(sc.at(-1)?.intro).toBe("이상으로 시연을 마치겠습니다.");
       const manual = sc.find((s) => s.pinId === "IG-BS-16")!;
       expect(manual.steps?.some((st) => st.click?.sel === ".wxbar .wxsop")).toBe(true);
