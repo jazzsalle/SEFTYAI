@@ -39,6 +39,8 @@ describe("자동 시연 대본", () => {
       "부산 · 호우경보 때 매뉴얼상 누가 무엇을",
       "부산 · 2020년 7월 23일 사건 깊이 보기와 비슷했던 호우",
       "부산 · 개인정보는 가려서 보여 줍니다",
+      "부산 · 지금 조건으로 우선 위험지역과 비슷했던 호우 묻기",
+      "부산 · 2020년 7월 23일 사건 깊이 보기",
       "부산 · 119 신고가 가장 많았던 날과 그날 비",
       "인제 · 하천 인접 캠핑장 주변 범람 위험",
       "인제 · 호우경보 때 야영객 대피는 누가 언제",
@@ -58,7 +60,7 @@ describe("자동 시연 대본", () => {
     const day = new Set(DAY_ITEMS.map((d) => d.id));
     expect(answers.filter((id) => !day.has(id))).toEqual([]);
     expect(answers.sort()).toEqual([
-      "CQ-BS-01", "CQ-BS-02", "CQ-BS-03", "IG-BS-01", "IG-BS-02", "IG-BS-08", "IG-BS-11", "IG-BS-14", "IG-BS-15", "IG-BS-16", "IG-BS-17", "IG-BS-19", "IG-BS-20", "IG-BS-21", "IG-BS-22",
+      "CQ-BS-01", "CQ-BS-02", "CQ-BS-03", "CQ-BS-04", "IG-BS-01", "IG-BS-02", "IG-BS-08", "IG-BS-11", "IG-BS-14", "IG-BS-15", "IG-BS-16", "IG-BS-17", "IG-BS-19", "IG-BS-20", "IG-BS-21", "IG-BS-22", "IG-BS-23",
       "IG-DJ-01", "IG-DJ-03", "IG-DJ-07", "IG-IJ-01", "IG-IJ-08", "IG-IJ-09", "IG-SE-01", "IG-SE-02", "IG-SE-03", "IG-SE-04", "IG-SE-06", "IG-SE-07", "SIM-SH-1-3",
     ]);
     // AIM-BS-00 = 특보 없음(초록) 첫 화면 — 받아 둔 답이 아니라 화면이 그린다(2026-11-24)
@@ -172,8 +174,8 @@ describe("자동 시연 시나리오(2026-11-18 사용자 지시 — 부산+인�
       expect(manual.steps?.some((st) => st.click?.sel === ".wxbar .wxsop")).toBe(true);
       for (const s of sc.filter((x) => x.pinId === "IG-BS-17" || x.pinId === "IG-SE-03")) expect(JSON.stringify(s.steps)).not.toContain("click");
     }
-    // 서울은 뺐다 — 부산만(사용자 지시 2026-11-24 「부산도 벅차다」)
-    expect(scenarioScenes("seoul-busan-inje").every((s) => s.region === "busan")).toBe(true);
+    // 서울은 뺐다 — 부산 + 인제(사용자 지시 2026-11-24)
+    expect(scenarioScenes("seoul-busan-inje").every((s) => s.region === "busan" || s.region === "inje")).toBe(true);
     expect(scenarioScenes("busan-inje-manual").some((s) => s.region === "seoul")).toBe(false);
   });
 

@@ -304,7 +304,15 @@ export function useAutoDemo(actions: AutoDemoActions) {
               box instanceof HTMLInputElement || box instanceof HTMLTextAreaElement
                 ? box
                 : box?.querySelector<HTMLInputElement | HTMLTextAreaElement>("input, textarea")
-            if (s && input) {
+            // 고르기 칸(특보 종류·단계 — 조건 창)은 값을 한 번에 골라 change 를 낸다(2026-11-24 조건 질의)
+            const select = box instanceof HTMLSelectElement ? box : input ? null : box?.querySelector<HTMLSelectElement>("select")
+            if (s && select) {
+              select.scrollIntoView({ behavior: "smooth", block: "nearest" })
+              await point(s, true, run)
+              Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, "value")?.set?.call(select, st.fill.value)
+              select.dispatchEvent(new Event("change", { bubbles: true }))
+              await wait(300, run)
+            } else if (s && input) {
               input.scrollIntoView({ behavior: "smooth", block: "nearest" })
               await point(s, true, run)
               input.focus()
