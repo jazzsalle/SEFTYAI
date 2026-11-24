@@ -338,7 +338,8 @@ function Card({ job, full, compact, noActions, brief }: CardProps) {
           selected={groupKey}
           onSelect={setGroupKey}
           onEntity={(r) => x.openEntity(job.id, r as unknown as T3qRef)}
-          onEvent={similarCtx ? (it) => x.openDetail("T3Q-10", it.key, it.name, similarCtx) : undefined}
+          // 사건은 어느 답에서든 사건 상세(T3Q-10)로 — 유사사례 답이면 유사도 조건도 넘긴다. 아니면 지역 단위 대상으로 열려 「객체 상세가 없습니다」가 떴다(11/24 운영 점검)
+          onEvent={(it) => x.openDetail("T3Q-10", it.key, it.name, similarCtx ?? null)}
           onDoc={(d) => {
             const row = docList.find((r) => r.doc === d);
             if (row) x.openEvidence(job.id, row, docList);
