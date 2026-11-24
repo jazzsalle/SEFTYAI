@@ -40,7 +40,9 @@ describe("자동 시연 대본", () => {
       "인제 · 호우경보 때 야영객 대피는 누가 언제",
       "전환 · 서울특별시",
       "서울 · 침수흔적 구역 안 지하차도",
-      "서울 · 2022년 8월 강남역, 그때와 지금",
+      "서울 · 2022년 8월 노들길이 잠긴 사건 깊이 보기",
+      "서울 · 2022년 8월 같은 비, 비슷했던 과거 호우",
+      "서울 · 2022년 8월 강남역 침수흔적",
       "서울 · 119 신고가 가장 많았던 날과 그날 비",
       "서울 · 개인정보는 가려서 보여 줍니다",
       "마무리",
@@ -53,7 +55,7 @@ describe("자동 시연 대본", () => {
     expect(answers.filter((id) => !day.has(id))).toEqual([]);
     expect(answers.sort()).toEqual([
       "CQ-BS-01", "CQ-BS-02", "IG-BS-01", "IG-BS-02", "IG-BS-08", "IG-BS-11", "IG-BS-14", "IG-BS-15", "IG-BS-16", "IG-BS-17", "IG-BS-18",
-      "IG-DJ-01", "IG-DJ-03", "IG-DJ-07", "IG-IJ-01", "IG-IJ-08", "IG-IJ-09", "IG-SE-01", "IG-SE-02", "IG-SE-03", "IG-SE-04", "SIM-SH-1-3",
+      "IG-DJ-01", "IG-DJ-03", "IG-DJ-07", "IG-IJ-01", "IG-IJ-08", "IG-IJ-09", "IG-SE-01", "IG-SE-02", "IG-SE-03", "IG-SE-04", "IG-SE-06", "IG-SE-07", "SIM-SH-1-3",
     ]);
     // AIM-BS-00 = 특보 없음(초록) 첫 화면 — 받아 둔 답이 아니라 화면이 그린다(2026-11-24)
     expect(aiMode.sort()).toEqual(["AIM-BS-00", ...AIM_DEMO.map((a) => a.id)].sort());

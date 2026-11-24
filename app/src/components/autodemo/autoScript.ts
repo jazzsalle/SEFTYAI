@@ -115,6 +115,8 @@ export interface AutoScene {
    * 실제로 누르면 실시간 질문이 나가므로 고르는 질문은 가리키기(look)만 하고 서랍을 닫는다.
    */
   beforeAsk?: DemoStep[]
+  /** 안내(intro)를 읽는 동안 우측 패널에 펼쳐 둘 것 — 전환 장면에서 새 지역 지도를 함께 보인다(사용자 지시 2026-11-24). */
+  introOpen?: "map"
   /** 장면이 끝나도 AI 모드 창을 닫지 않는다 — 다음 장면이 같은 창에서 이어 간다(「화면 유지」). */
   keepAiMode?: boolean
   /** 답을 보인 뒤 우측 패널에서 열 것. */
@@ -710,6 +712,7 @@ export const AutoScript: AutoScene[] = [
   {
     label: "전환 · 인제군",
     region: "inje",
+    introOpen: "map",
     intro:
       "이번에는 산간 지역인 인제군을 살펴보겠습니다. " +
       "부산에서 도심 침수와 지하차도를 중점적으로 살펴봤다면, 인제에서는 산사태와 급경사지 붕괴 위험에 주의를 기울여야 합니다.",
@@ -949,6 +952,26 @@ export const AutoScript: AutoScene[] = [
     ],
     steps: [
       // 글을 먼저 넓게 읽고(패널 접기) 지도가 필요할 때 편다 · 말할 때 짚은 곳이 이미 보이게(사용자 지시 2026-11-24)
+      // 만들어 둔 그림(한눈 요약 · 패널에서 크게 보기 · 지도 요약 보기)을 먼저 보인다(사용자 지시 2026-11-24)
+      {
+        scroll: { sel: `${LastTurn} ${UI.summaryCard}` },
+        focus: ["answer-summary"],
+        say: "답 위의 한눈 요약에는 하천 500미터 안 지하차도의 위험 요소와 통제 기준 수심이 그림으로 정리됩니다.",
+      },
+      {
+        click: { sel: `${LastTurn} .sm-expand` },
+        focus: ["panel"],
+        say: "패널에서 크게 보기로 펼치면 같은 요약을 넓게 볼 수 있고,",
+        wait: 600,
+      },
+      { open: "map", wait: 600 },
+      {
+        click: { sel: `${Panel} .sm-map-toggle`, text: "요약 보기" },
+        focus: ["panel"],
+        say: "지도를 요약 보기로 바꾸면 구별로 몇 곳씩 몰려 있는지 색으로 드러납니다.",
+        wait: 1000,
+      },
+      { silentClick: { sel: `${Panel} .sm-map-toggle`, text: "지도 보기" }, wait: 300 },
       {
         fold: true,
         scroll: { sel: MdText, text: "22곳" },
@@ -960,7 +983,7 @@ export const AutoScript: AutoScene[] = [
         focus: [{ sel: MdTable }],
         say: "지하차도마다 재해위험등급과 인명피해 우려, 통제 기준수심, 차단시설이 함께 나와 어디부터 통제를 준비할지 바로 보입니다.",
       },
-      { open: "map", focus: ["panel"], say: "같은 대상이 지도에도 함께 표시됩니다.", wait: 800 },
+      { open: "map", focus: ["panel"], say: "지도에서 그중 한 곳을 골라 봅니다.", wait: 800 },
       { click: { sel: Entity, text: "장전지하차도(1)" }, wait: 600 },
       {
         click: { sel: Tab, text: "장전지하차도(1)" },
@@ -1002,6 +1025,21 @@ export const AutoScript: AutoScene[] = [
         say: "이어서 어느 동네가 얼마나 넓게, 얼마나 깊게 잠겼는지 침수흔적 기록으로 정리됩니다.",
       },
       { open: "map", focus: ["panel"], say: "지도에는 그때의 침수흔적과 지금의 취약시설이 함께 겹쳐 보입니다.", wait: 1000 },
+      // 받아 둔 답의 표에서 눌리는 이름 첫째·둘째를 차례로 누른다 — 이름을 대본에 박지 않아 답을 다시 받아도 어긋나지 않는다.
+      {
+        click: { sel: `${MdTable} .ref-link`, nth: 0 },
+        remember: true,
+        focus: ["panel", { sel: `${MdTable} tr`, text: "$picked" }],
+        say: "표에서 한 곳을 누르면 지도가 그 자리로 옮겨 가, 그때 잠겼던 범위가 그대로 그려집니다.",
+        wait: 1200,
+      },
+      {
+        click: { sel: `${MdTable} .ref-link`, nth: 1 },
+        remember: true,
+        focus: ["panel", { sel: `${MdTable} tr`, text: "$picked" }],
+        say: "다른 곳을 누르면 지도가 다시 그 자리로 옮겨 갑니다.",
+        wait: 1200,
+      },
     ],
     outro: "과거 사건의 강우 조건을 지금의 위험시설과 이어 보면, 같은 비가 왔을 때 어디부터 대비할지 미리 정할 수 있습니다.",
   },
@@ -1124,6 +1162,39 @@ export const AutoScript: AutoScene[] = [
         say: "캠핑장 가까이에 있는 개선지구와 붕괴위험 급경사지도 함께 짚어 줍니다.",
       },
       { open: "map", focus: ["panel"], say: "지도에서 캠핑장과 주변 위험지역이 얼마나 가까운지 봅니다.", wait: 1000 },
+      // 지도 점 → 말풍선 [상세 보기] → 상세 칸(사용자 지시 2026-11-24). 값은 T3Q-15 HZ-4261 진동99 실측(11/24):
+      // 위험등급 D · 위험도 점수 66 · 지정 2026-02-03 · 변경사유 신규 붕괴위험지역 지정 · 용도 도로 · 추진구분 예정 · 정비공법 옹벽·낙석방지
+      {
+        scroll: { sel: MdText, text: "진동99" },
+        focus: [{ sel: MdText, text: "진동99" }],
+        say: "진동계곡 캠핑장 가까이에는 D등급 붕괴위험 사면이 150미터 남짓 거리에 붙어 있습니다.",
+      },
+      { click: { sel: Entity, text: "진동99" }, focus: ["panel"], wait: 1200 },
+      {
+        click: { sel: MapPinAny, text: "진동99", visible: true },
+        waitFor: UI.mapPopup,
+        focus: ["panel"],
+        say: "지도에서 진동99 사면을 골라",
+      },
+      {
+        click: { sel: PopDetail },
+        orElse: [{ click: { sel: Tab, text: "진동99" } }],
+        focus: ["panel"],
+        say: "상세 보기로 엽니다.",
+        wait: 400,
+      },
+      {
+        scroll: { sel: DetailField, text: "위험도 점수" },
+        focus: [{ sel: DetailField, text: "위험등급" }, { sel: DetailField, text: "위험등급", next: true }, { sel: DetailField, text: "위험도 점수" }, { sel: DetailField, text: "위험도 점수", next: true }, { sel: DetailField, text: "변경사유" }, { sel: DetailField, text: "변경사유", next: true }],
+        say: "위험등급 D, 위험도 점수 66점으로, 올해 새로 붕괴위험지역에 지정된 도로 사면입니다.",
+        wait: 400,
+      },
+      {
+        scroll: { sel: DetailField, text: "정비공법" },
+        focus: [{ sel: DetailField, text: "추진구분" }, { sel: DetailField, text: "추진구분", next: true }, { sel: DetailField, text: "정비공법" }, { sel: DetailField, text: "정비공법", next: true }],
+        say: "정비는 아직 예정 단계라, 공사가 끝나기 전까지는 특보 때 이 진입로부터 살펴야 합니다.",
+        wait: 600,
+      },
     ],
     outro: "사람이 머무는 곳과 위험지역의 거리를 알면, 특보 때 먼저 대피를 안내할 곳이 분명해집니다.",
   },
@@ -1155,6 +1226,7 @@ export const AutoScript: AutoScene[] = [
   {
     label: "전환 · 서울특별시",
     region: "seoul",
+    introOpen: "map",
     intro: "이번에는 서울특별시를 살펴보겠습니다. 2022년 8월 집중호우 때 도심 저지대와 지하차도가 잠겼던 곳입니다.",
     dwellMs: 1200,
   },
@@ -1179,7 +1251,7 @@ export const AutoScript: AutoScene[] = [
         click: { sel: MapPinAny, text: "노들길지하차도", visible: true },
         waitFor: UI.mapPopup,
         focus: ["panel"],
-        say: "지도에서 노들길지하차도를 골라",
+        say: "2022년 8월 침수이력이 있는 노들길지하차도를 골라",
       },
       {
         click: { sel: PopDetail },
@@ -1210,11 +1282,92 @@ export const AutoScript: AutoScene[] = [
     ],
     outro: "물에 잠겼던 자리에 있는 지하차도는 다음 호우 때 가장 먼저 통제를 검토할 곳입니다.",
   },
+  // 2026-11-24 실장 보고 — 노들길이 잠겼던 2022년 8월 사건 한 건을 따라간다. 답은 T3Q 직접 시험(11/24) 그대로:
+  // IG-SE-06 사건 상세 항목별(사건 ID T10107-20220808-0001 · 타임라인 노들로 통제 · 근거에 상황전파·재난문자 이력) /
+  // IG-SE-07 같은 극한호우 유사사례(유사도 기준 사건이 2022년 8월 사건 — 답 속 사건 이름을 누르면 사건 상세 패널)
   {
-    label: "서울 · 2022년 8월 강남역, 그때와 지금",
+    label: "서울 · 2022년 8월 노들길이 잠긴 사건 깊이 보기",
+    pinId: "IG-SE-06",
+    region: "seoul",
+    intro: "노들길지하차도가 잠겼던 2022년 8월 호우는 어떤 사건이었는지, 사건 하나를 항목별로 물어봅니다.",
+    steps: [
+      {
+        fold: true,
+        scroll: { sel: MdText, text: "T10107-20220808-0001" },
+        focus: [{ sel: MdText, text: "T10107-20220808-0001" }, { sel: MdText, text: "재난유형" }],
+        say: "사건 ID와 재난유형, 발생 기간이 먼저 정리되고,",
+      },
+      {
+        scroll: { sel: MdText, text: "12:50" },
+        focus: [{ sel: MdText, text: "12:50" }, { sel: MdText, text: "07:30" }],
+        say: "시간대별 타임라인에는 호우경보 발령부터 노들로와 잠수교 통제까지 노들길 주변 상황이 시간순으로 이어집니다.",
+      },
+      {
+        scroll: { sel: MdText, text: "통제 기준 수위" },
+        focus: [{ sel: MdText, text: "위험 등급 및 인접 하천" }, { sel: MdText, text: "통제 기준 수위" }],
+        say: "피해·통제 정보에는 노들길지하차도의 위험등급과 통제 기준이 서울의 피해 규모와 함께 나오고,",
+      },
+      {
+        scroll: { sel: MdText, text: "547억" },
+        focus: [{ sel: MdText, text: "비상 3단계" }, { sel: MdText, text: "547억" }],
+        say: "대응·복구에서는 당시 비상 단계와 복구비까지 확인됩니다.",
+      },
+      {
+        scroll: { sel: MdText, text: "상황전파" },
+        focus: [{ sel: MdText, text: "재해연보" }, { sel: MdText, text: "일일상황보고" }, { sel: MdText, text: "상황전파" }],
+        say: "근거 문서로 재해연보와 일일상황보고, 상황전파와 재난문자 발송 이력이 함께 제시됩니다.",
+        wait: 400,
+      },
+    ],
+    outro: "사건 하나를 항목별로 물으면, 보고서를 따로 찾지 않아도 그 사건의 전 과정을 한 번에 확인할 수 있습니다.",
+  },
+  {
+    label: "서울 · 2022년 8월 같은 비, 비슷했던 과거 호우",
+    pinId: "IG-SE-07",
+    region: "seoul",
+    intro: "같은 극한호우가 다시 온다면 무엇과 견줘 볼지, 2022년 8월 사건과 비슷했던 과거 호우를 유사도 순으로 찾습니다.",
+    steps: [
+      {
+        fold: true,
+        scroll: { sel: MdTable },
+        focus: [{ sel: MdTable }],
+        say: "비슷했던 과거 호우가 유사도 순으로 정리되고, 사건마다 인명과 재산 피해가 함께 나옵니다.",
+      },
+      {
+        click: { sel: Entity, text: "2022년 08.08." },
+        waitFor: EventTimeline,
+        focus: ["panel", { sel: MdText, text: "2022년 08.08." }],
+        say: "기준이 된 2022년 8월 사건을 누르면 패널에 사건 상세가 열립니다.",
+        wait: 400,
+      },
+      {
+        scroll: { sel: ".evp-fold > summary" },
+        click: { sel: ".evp-fold > summary" },
+        focus: [{ sel: ".evp-fold" }],
+        say: "유사도 근거를 펼치면 어떤 요인이 얼마나 비슷한지 요인별로 나오고,",
+        wait: 1200,
+      },
+      {
+        scroll: { sel: `${EventTimeline} > li` },
+        focus: [{ sel: EventTimeline }],
+        say: "2022년 8월 8일 당시 발송된 재난문자와 특보가 시각 그대로 이어집니다.",
+        wait: 600,
+      },
+      {
+        scroll: { sel: ".evp-sec", text: "피해·복구" },
+        focus: [{ sel: ".evp-sec", text: "피해·복구" }],
+        say: "피해·복구와 근거 문서도 같은 패널에서 이어서 확인할 수 있습니다.",
+        wait: 600,
+      },
+    ],
+    outro: "비슷했던 사건과 그때의 문자·피해·복구 기록을 견주면, 다음 호우 때 무엇을 먼저 할지 정하는 근거가 됩니다.",
+  },
+  {
+    // 위험지구 지정 현황 비교는 뺐다 — 정치·부동산 이슈로 읽힐 수 있어 민감하다(사용자 지시 2026-11-24). 침수흔적만 본다.
+    label: "서울 · 2022년 8월 강남역 침수흔적",
     pinId: "IG-SE-02",
     region: "seoul",
-    intro: "2022년 8월 강남역 일대가 잠겼을 때의 침수흔적과, 지금의 위험지구 지정 현황을 견줘 봅니다.",
+    intro: "2022년 8월 강남역 일대가 잠겼을 때, 어디가 얼마나 잠겼는지 침수흔적으로 확인합니다.",
     steps: [
       {
         fold: true,
@@ -1234,16 +1387,11 @@ export const AutoScript: AutoScene[] = [
         click: { sel: Entity, text: "역삼동 858" },
         orElse: [{ open: "map", click: { sel: MapPinAny, text: "역삼동 858" } }],
         focus: ["panel", { sel: MdText, text: "역삼동 858" }],
-        say: "바로 옆 역삼동 858 일원은 4만 제곱미터 넘게 잠겼습니다.",
+        say: "바로 옆 역삼동 858 일원을 누르면 지도가 다시 옮겨 가고, 이곳은 4만 제곱미터 넘게 잠겼습니다.",
         wait: 1200,
       },
-      {
-        scroll: { sel: `${MdTable} tr`, text: "자연재해위험개선지구" },
-        focus: [{ sel: `${MdTable} tr`, text: "자연재해위험개선지구" }],
-        say: "그런데 강남구에는 자연재해위험개선지구가 한 곳도 없습니다. 이웃한 서초구와 표로 바로 견줘 볼 수 있습니다.",
-      },
     ],
-    outro: "과거 피해와 지금의 지정 현황을 견주면, 관리가 비어 있는 곳을 찾을 수 있습니다.",
+    outro: "실제로 잠겼던 범위를 지도에서 바로 확인하면, 같은 비가 올 때 어디부터 살펴볼지 정할 수 있습니다.",
   },
   {
     label: "서울 · 119 신고가 가장 많았던 날과 그날 비",
@@ -1414,7 +1562,7 @@ DemoScenarios.push(
   {
     id: "seoul-busan-inje",
     name: "서울 + 부산 + 인제",
-    desc: "부산 AI 모드 특보 감지·브리핑 → 경보 때 먼저 볼 곳 → 경보와 통제 시각 → 매뉴얼 근거·대응절차, 이어서 서울 침수흔적 안 지하차도 → 강남역 그때와 지금 → 119 신고와 그날 비 → 개인정보 가림, 인제 캠핑장 → 야영객 대피",
+    desc: "부산 AI 모드 특보 감지·브리핑 → 추천 질문 하천 500m 지하차도 → 경보와 통제 시각 → 매뉴얼 근거·대응절차, 이어서 서울 노들길지하차도 → 2022년 8월 사건 깊이 보기 → 강남역 침수흔적 → 비슷했던 과거 호우와 사건 상세 패널 → 개인정보 가림, 인제 캠핑장 주변 사면",
     minutes: "1.2배속 약 9분",
     scenes: [
       ...AimStart,
@@ -1423,12 +1571,12 @@ DemoScenarios.push(
       "부산 · 호우경보 때 매뉴얼상 누가 무엇을",
       "전환 · 서울특별시",
       "서울 · 침수흔적 구역 안 지하차도",
-      "서울 · 2022년 8월 강남역, 그때와 지금",
-      "서울 · 119 신고가 가장 많았던 날과 그날 비",
+      "서울 · 2022년 8월 노들길이 잠긴 사건 깊이 보기",
+      "서울 · 2022년 8월 강남역 침수흔적",
+      "서울 · 2022년 8월 같은 비, 비슷했던 과거 호우",
       "서울 · 개인정보는 가려서 보여 줍니다",
       "전환 · 인제군",
       "인제 · 하천 인접 캠핑장 주변 범람 위험",
-      "인제 · 호우경보 때 야영객 대피는 누가 언제",
       "마무리",
     ],
     text: {

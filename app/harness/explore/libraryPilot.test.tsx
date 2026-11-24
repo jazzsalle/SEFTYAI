@@ -50,7 +50,7 @@ describe("질문 모음 — 시·도까지만 고른 기준지역(R48)", () => {
 
   it("서울특별시 → 서울 「한눈 요약 질의」(2026-11-25 실장 보고)", () => {
     const c = drawer({ sido: { code: "11", name: "서울특별시" } });
-    expect(dayItemsFor("seoul").map((d) => d.id)).toEqual(["IG-SE-01", "IG-SE-02", "IG-SE-03", "IG-SE-04", "IG-SE-05"]);
+    expect(dayItemsFor("seoul").map((d) => d.id)).toEqual(["IG-SE-01", "IG-SE-02", "IG-SE-03", "IG-SE-04", "IG-SE-06", "IG-SE-07", "IG-SE-05"]);
     expect(dayTitles(c)).toEqual(dayItemsFor("seoul").map((d) => d.title));
   });
 

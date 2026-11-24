@@ -414,6 +414,12 @@ export function useAutoDemo(actions: AutoDemoActions) {
         setFocus(null)
 
         if (scene.region) act.current.region(scene.region)
+        // 전환 장면 — 안내를 읽는 동안 새 지역 지도를 펼쳐 둔다(사용자 지시 2026-11-24)
+        if (scene.introOpen) {
+          await wait(300, run)
+          act.current.open(scene.introOpen)
+          setFocus(["panel"])
+        }
 
         // 원 질문의 답이 없고 대체 질문으로 갈 때는 그 질문에 맞는 안내를 읽는다.
         const useFallback = (pin === null || pin.received_at === null) && fallback?.received_at != null
