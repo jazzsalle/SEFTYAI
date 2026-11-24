@@ -1078,10 +1078,16 @@ export const AutoScript: AutoScene[] = [
         // 사건은 답 글 속 링크가 아니다 — 답 아래 사건 목록(데이터군)에서 연다(11/24 운영 점검: 사건이 열리지 않아 타임라인이 비었음)
         scroll: { sel: `${LastTurn} .dg-name`, text: "2020년 7.23" },
         click: { sel: `${LastTurn} .dg-name`, text: "2020년 7.23" },
-        waitFor: EventTimeline,
-        orElse: [{ click: { sel: Entity, text: "2020년 7.23" }, waitFor: EventTimeline }],
+        orElse: [{ click: { sel: Entity, text: "2020년 7.23" } }],
         focus: ["panel", { sel: `${LastTurn} .dg-name`, text: "2020년 7.23" }],
         say: "답 아래 사건 목록에서 이 사건을 열어 보면,",
+        wait: 300,
+      },
+      // 지도 좌표가 있는 사건은 탭만 생기고 지도에 머문다(개발서버 openEntity) — 생긴 사건 탭을 누른다(11/24 운영 점검)
+      {
+        click: { sel: Tab, text: "2020년 7.23" },
+        waitFor: EventTimeline,
+        focus: ["panel"],
       },
       {
         scroll: { sel: `${EventTimeline} > li` },
@@ -1170,7 +1176,9 @@ export const AutoScript: AutoScene[] = [
         focus: [{ sel: `${BodyBox} h3`, text: "자연재해위험지구" }],
         say: "캠핑장 가까이에 있는 개선지구와 붕괴위험 급경사지도 함께 짚어 줍니다.",
       },
-      { open: "map", focus: ["panel"], say: "지도에서 캠핑장과 주변 위험지역이 얼마나 가까운지 봅니다.", wait: 1000 },
+      { open: "map", focus: ["panel"], say: "지도에서 캠핑장과 주변 위험지역이 얼마나 가까운지 봅니다.", wait: 400 },
+      // 패널을 접었다 펴면 위성지도가 풀린다 — 다시 위성으로(사용자 지시 2026-11-24 「인제는 처음부터 위성지도」)
+      { silentClick: { sel: `${Panel} .map-sat:not(.is-on)` }, wait: 800 },
       // 지도 점 → 말풍선 [상세 보기] → 상세 칸(사용자 지시 2026-11-24). 값은 T3Q-15 HZ-4261 진동99 실측(11/24):
       // 위험등급 D · 위험도 점수 66 · 지정 2026-02-03 · 변경사유 신규 붕괴위험지역 지정 · 용도 도로(정비 이야기는 뺌 — 사용자 지시 2026-11-24)
       {
@@ -1567,7 +1575,7 @@ DemoScenarios.push(
     id: "busan-inje-manual",
     name: "부산 + 인제(매뉴얼)",
     desc: "부산 AI 모드 특보 감지·브리핑 → 경보 때 먼저 볼 곳 → 2020년 7월 23일 그 비가 지금 온다면 · 경보와 통제 시각 → 매뉴얼 근거·대응절차 → 119 신고와 그날 비, 이어서 인제 캠핑장 주변 위험 → 야영객 대피 매뉴얼",
-    minutes: "1.2배속 약 8분",
+    minutes: "1.2배속 약 10분",
     scenes: [
       ...AimStart,
       "부산 · 추천 질문으로 하천 500m 안 지하차도",
@@ -1586,7 +1594,7 @@ DemoScenarios.push(
     id: "seoul-busan-inje",
     name: "서울 + 부산 + 인제",
     desc: "부산 AI 모드 특보 감지·브리핑 → 추천 질문 하천 500m 지하차도 → 경보와 통제 시각 → 매뉴얼 근거·대응절차, 이어서 서울 노들길지하차도 → 2022년 8월 사건 깊이 보기 → 강남역 침수흔적 → 비슷했던 과거 호우와 사건 상세 패널 → 개인정보 가림, 인제 캠핑장 주변 사면",
-    minutes: "1.2배속 약 9분",
+    minutes: "1.2배속 약 12~13분",
     scenes: [
       ...AimStart,
       "부산 · 추천 질문으로 하천 500m 안 지하차도",
