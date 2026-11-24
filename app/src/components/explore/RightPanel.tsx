@@ -12,6 +12,7 @@ import { isClosable, tabTitles } from "@/lib/panelTabs";
 import type { PanelTab } from "./ExploreCtx";
 import { useExplore } from "./ExploreCtx";
 import { DEFAULT_LAYERS, type Basemap, type MapFeature, type MissingItem } from "../map/MapView";
+import { keepBasemap, keptBasemap } from "@/lib/mapMemory";
 import MapLegendPanel from "../map/MapLegendPanel";
 import { useAdminNames } from "../map/useAdminNames";
 import SopPane from "../sop/SopPane";
@@ -187,7 +188,12 @@ function riskHasDetail(r: RefLike | undefined): Promise<boolean> {
 function MapPanel(p: Props) {
   const { cond } = useSession();
   const x = useExplore();
-  const [basemap, setBasemap] = useState<Basemap>("Base");
+  // 위성·일반 — 패널을 접었다 펴도 그대로(lib/mapMemory, 2026-11-25)
+  const [basemap, setBasemapState] = useState<Basemap>(keptBasemap);
+  const setBasemap = (b: Basemap) => {
+    keepBasemap(b);
+    setBasemapState(b);
+  };
   const scope = p.mapScope ?? p.activeJobId ?? "";
   // 범례 거르기·구 거르기 — 지도가 그리는 답이 바뀌면 풀린다(개발 서버)
   const [filt, setFilt] = useState<{ scope: string; key: string | null }>({ scope: "", key: null });

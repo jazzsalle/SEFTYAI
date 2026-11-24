@@ -22,6 +22,7 @@
  */
 import "./map.css";
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { keepView, keptView } from "@/lib/mapMemory";
 import { createPortal } from "react-dom";
 import OlMap from "ol/Map";
 import View from "ol/View";
@@ -509,6 +510,8 @@ export default function MapView(p: Props) {
   const api = useRef<Api | null>(null);
   const focusSeen = useRef<{ token?: number } | null>(null);
   const areaSeen = useRef<{ token?: number } | null>(null);
+  /** 패널을 다시 펼쳐 보던 자리를 되살림 — 처음 붙을 때의 맞춤(focus·기준지역 경계)을 건너뛴다 */
+  const restored = useRef(false);
   const [ready, setReady] = useState(false);
   // 선택 말풍선 — OpenLayers 오버레이 요소에 React 로 그린다 · 닫아 둔 대상 키
   const [popEl, setPopEl] = useState<HTMLDivElement | null>(null);
@@ -532,6 +535,9 @@ export default function MapView(p: Props) {
     if (!target) return;
     const P0 = propsRef.current;
     const r0 = REGIONS[P0.region] ?? REGIONS.national;
+    // 패널을 접었다 편 것 — 같은 답이면 보던 자리 그대로(lib/mapMemory)
+    const kept = keptView(P0.scope ?? "");
+    restored.current = !!kept;
 
     // ── 배경지도: VWorld WMTS (일반·영상+하이브리드) · 실패하면 대체 없이 회색 바탕 + 알림(개발서버)
     const vw = (layer: string, ext: string, maxZoom = 19) =>
@@ -673,7 +679,7 @@ export default function MapView(p: Props) {
     const m = new OlMap({
       target,
       layers: [base, sat, hyb, bnd, area, line, pin, label, clLayer],
-      view: new View({ center: fromLonLat(r0.center), zoom: r0.zoom, minZoom: 6, maxZoom: 19 }),
+      view: new View({ center: kept?.center ?? fromLonLat(r0.center), zoom: kept?.zoom ?? r0.zoom, minZoom: 6, maxZoom: 19 }),
       // 확대·축소는 우리 단추가, 출처 띠·축척 막대는 두지 않는다(개발서버 zoomControl·attributionControl false)
       controls: defaultControls({ zoom: false, rotate: false, attribution: false }),
       interactions: defaultInteractions({ altShiftDragRotate: false, pinchRotate: false }),
@@ -806,7 +812,7 @@ export default function MapView(p: Props) {
      * 사람이 지도를 움직였는가(끌기·휠·확대 단추). 움직인 뒤에는 새 답이 와도 다시 잡지 않는다 — 핀을 확대해 보던 사람이
      * 답이 올 때마다 처음 자리로 끌려가면 읽고 있는 것을 빼앗는 셈이다(개발 서버 moved). 답(scope)이 바뀌면 푼다.
      */
-    let moved = false;
+    let moved = !!kept; // 되살린 자리도 사람이 보던 자리 — 답이 바뀔 때까지 지킨다
     /** 마지막으로 맞춘 대상 묶음(열쇠를 이은 글자) — 같은 것이 다시 와도 다시 잡지 않는다 */
     let fitted: string | null = null;
     const sizeOk = () => {
@@ -1259,6 +1265,7 @@ export default function MapView(p: Props) {
       vp.removeEventListener("pointerleave", onLeave);
       vp.removeEventListener("wheel", onWheel);
       propsRef.current.onMap?.(null);
+      keepView(propsRef.current.scope ?? "", m.getView().getCenter(), m.getView().getZoom());
       m.setTarget(undefined);
       m.dispose();
       api.current = null;
@@ -1314,7 +1321,7 @@ export default function MapView(p: Props) {
     const first = focusSeen.current === null;
     if (!first && focusSeen.current?.token === p.focusToken) return;
     focusSeen.current = { token: p.focusToken };
-    if (p.focusToken === undefined) return;
+    if (p.focusToken === undefined || (first && restored.current)) return;
     // 같은 대상을 다시 보여 달라고 하면 닫아 둔 말풍선도 다시 연다
     closedRef.current = null;
     setClosedKey(null);
@@ -1343,7 +1350,7 @@ export default function MapView(p: Props) {
     const first = baseSeen.current === null;
     if (!first && baseSeen.current === p.baseCode) return;
     baseSeen.current = p.baseCode;
-    if (first && p.features.length) return;
+    if (first && (p.features.length || restored.current)) return;
     a.toBase(p.baseCode);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [p.baseCode, ready]);
@@ -1355,8 +1362,9 @@ export default function MapView(p: Props) {
     const a = api.current;
     const j = p.activeJobId;
     if (!a || !j || p.resultStatus || !p.baseCode || emptySeen.current === j) return;
+    const first = emptySeen.current === null;
     emptySeen.current = j;
-    if (p.features.some((f) => f.jobId === j)) return;
+    if ((first && restored.current) || p.features.some((f) => f.jobId === j)) return;
     a.toBase(p.baseCode, true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [p.activeJobId, p.resultStatus, ready]);

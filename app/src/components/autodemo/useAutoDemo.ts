@@ -7,6 +7,7 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import { type AutoScene, DefaultDwellMs, type DemoPin, type DemoRegion, type DemoScenarioId, type DemoStep, type FocusTarget, type Target, UI, scenesFrom } from "./autoScript"
 import { clearMapMarks, markOnMap, parseMapSel } from "@/lib/autoDemoMap"
+import { forgetMap } from "@/lib/mapMemory"
 import { koreanVoices, pick, saveVoiceName, sentences, speakOne, speech } from "./speech"
 
 export type AutoPhase = "idle" | "loading" | "playing" | "paused" | "done"
@@ -455,6 +456,7 @@ export function useAutoDemo(actions: AutoDemoActions) {
       const plan = scenesFrom(pins, scenario)
       setTotal(plan.length)
       act.current.reset()
+      forgetMap() // 앞 시연이 켜 둔 위성·지도 자리를 지운다(부산은 일반지도로 시작)
       act.current.layout()
       setPhase("playing")
 
