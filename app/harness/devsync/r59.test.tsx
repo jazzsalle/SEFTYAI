@@ -180,7 +180,7 @@ describe("② 답 속 이름 — 개발서버 openEntity(탭은 만들되 보이
     expect(src).not.toMatch(/sel: Tab, text: "[^"]+" \}, orElse/);
     expect(src).not.toMatch(/orElse: \[\{ click: \{ sel: PopDetail \} \}\]/);
     // 19 = 개발서버 걸음 + 3 = 2026-11-25 실장 보고 장면(답 속 이름·사건이 눌리지 않으면 [상세 보기]로 — 말풍선 걸음 아님)
-    expect((src.match(/orElse:/g) ?? []).length).toBe(27); // +1 = 인제 진동99 말풍선(11/24) · +1 = 브리핑 크게 보기 표 → 소제목, +2 = 강남 침수흔적 답 속 이름 → 지도 점, +1 = 15:05 창이 닫혀 있으면 [AI 모드]로(2026-11-24)
+    expect((src.match(/orElse:/g) ?? []).length).toBe(28); // +1 = 인제 진동99 말풍선(11/24) · +1 = 브리핑 크게 보기 표 → 소제목, +2 = 강남 침수흔적 답 속 이름 → 지도 점, +1 = 15:05 창이 닫혀 있으면 [AI 모드]로(2026-11-24)
     expect(src).toContain('const SimCard = `${LastTurn} .sim-card`');
   });
 });
