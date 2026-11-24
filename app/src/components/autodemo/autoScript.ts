@@ -1292,18 +1292,12 @@ export const AutoScript: AutoScene[] = [
       { click: { sel: CondApply, text: "적용" }, wait: 400 },
       { fill: { at: { sel: UI.questionBox }, value: "재난상황 조건에서 가장 먼저 확인해야 할 우선 위험지역과, 이 조건과 비슷했던 과거 호우 사례를 유사도 순으로 보여줘." } },
       { look: { sel: UI.askButton, text: "질의" }, play: "CQ-BS-04" },
+      // 답 내용 설명으로 바로(사용자 지시 2026-11-25) — 소제목 아래 목록을 가운데로 굴려 읽는 동안 머문다
       {
         fold: true,
-        scroll: { sel: MdText, text: "입력하신 조건" },
-        focus: [{ sel: MdText, text: "입력하신 조건" }],
-        say: "답은 넣은 조건을 그대로 받아 먼저 점검할 곳을 정리합니다.",
-        wait: 400,
-      },
-      // 답 내용 설명 — 소제목마다 위에 맞춰 굴리고 그 내용을 읽는 동안 머문다(한 번에 셋을 짚으니 굴림이 먼저 지나갔다 — 사용자 지시 2026-11-25)
-      {
         scroll: { sel: `${BodyBox} h4`, text: "재해위험개선지구", next: true },
         focus: [{ sel: `${BodyBox} h4`, text: "재해위험개선지구" }, { sel: `${BodyBox} h4`, text: "재해위험개선지구", next: true }],
-        say: "가 등급 재해위험개선지구가 먼저 나오고,",
+        say: "지금 조건에서 먼저 점검할 곳으로 가 등급 재해위험개선지구,",
         wait: 500,
       },
       {
@@ -1315,7 +1309,7 @@ export const AutoScript: AutoScene[] = [
       {
         scroll: { sel: `${BodyBox} h4`, text: "홍수취약지구", next: true },
         focus: [{ sel: `${BodyBox} h4`, text: "홍수취약지구" }, { sel: `${BodyBox} h4`, text: "홍수취약지구", next: true }],
-        say: "하천 홍수취약지구 순으로 짚어 줍니다.",
+        say: "하천 홍수취약지구를 짚어 주고,",
         wait: 500,
       },
       {
@@ -1323,36 +1317,21 @@ export const AutoScript: AutoScene[] = [
         focus: [{ sel: MdTable }],
         say: "같은 조건과 비슷했던 과거 호우도 유사도 순으로 붙습니다.",
       },
+      // 1위 사건 상세 → 유사도 근거는 말 없이 펼치고 자막과 함께 요인 비교 표를 보인 뒤 마무리(사용자 지시 2026-11-25)
       {
         scroll: { sel: `${LastTurn} .dg-name`, text: "2021년 08.25" },
         click: { sel: `${LastTurn} .dg-name`, text: "2021년 08.25" },
         waitFor: EventTimeline,
         focus: ["panel", { sel: `${LastTurn} .dg-name`, text: "2021년 08.25" }],
-        say: "1위 사건을 열어",
-        wait: 400,
+        say: "유사도 1위 사건의 상세정보를 열면,",
       },
+      { silentClick: { sel: ".evp-fold:not([open]) > summary" }, wait: 300 },
       {
-        scroll: { sel: ".evp-fold > summary" },
-        click: { sel: ".evp-fold > summary" },
-        focus: [{ sel: ".evp-fold" }],
-        say: "유사도 근거를 펼치면",
-        wait: 600,
-      },
-      // 요인 비교는 위 → 아래로 굴려 더 보인다(사용자 지시 2026-11-24)
-      {
-        scroll: { sel: ".evp-fold .evp-table thead" },
+        scroll: { sel: ".evp-fold .evp-table" },
         focus: [{ sel: ".evp-fold .evp-table" }],
-        say: "지금 넣은 조건과 그 사건을 요인별로 견줘 보고,",
-        wait: 600,
+        say: "지금 조건과 그 사건이 왜 비슷한지 유사도 근거를 요인별로 확인할 수 있습니다.",
+        wait: 1200,
       },
-      {
-        scroll: { sel: ".evp-fold .evp-table tr:last-child" },
-        focus: [{ sel: ".evp-fold .evp-table tr:last-child" }],
-        say: "아래로 내리면 나머지 요인까지 이어집니다.",
-        wait: 1000,
-      },
-      // 부산은 일반지도로만(위성은 인제만 — 사용자 지시 2026-11-25)
-      { click: { sel: Tab, text: "지도" }, focus: ["panel"], say: "위험지역 위치는 지도에서 함께 봅니다.", wait: 1500 },
       // 뒷장면에 남지 않게 — 조건 되돌리기
       { silentClick: { sel: CondOpen, text: "조건 변경" }, wait: 400 },
       { silentClick: { sel: CondReset, text: "기본 조건으로" }, wait: 200 },
