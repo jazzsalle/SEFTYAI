@@ -987,6 +987,20 @@ export const AutoScript: AutoScene[] = [
         say: "가장 많이 잠긴 곳은 기장 신천죽성지구3입니다.",
         wait: 1200,
       },
+      // 지도 점 → 말풍선 [상세 보기] → 상세 칸(사용자 지시 2026-11-24 「지도 객체 POI 상세보기 하나 추가」)
+      {
+        click: { sel: MapPinAny, text: "신천죽성지구3", visible: true },
+        waitFor: UI.mapPopup,
+        focus: ["panel"],
+        wait: 600,
+      },
+      {
+        click: { sel: PopDetail },
+        orElse: [{ click: { sel: Tab, text: "신천죽성지구3" } }],
+        focus: ["panel"],
+        say: "지도에서 그 지점을 눌러 상세 보기로 침수흔적의 속성을 바로 확인합니다.",
+        wait: 800,
+      },
     ],
     outro: "",
   },
@@ -1249,7 +1263,7 @@ export const AutoScript: AutoScene[] = [
     outro: "",
   },
   // 2026-11-24 실장 보고 — 조건을 최대한 넣고(발생기간 묻지 않음) 우선 위험지역과 조건이 비슷했던 과거 호우를 한 질문으로(CQ-BS-04, T3Q 실측 11/24).
-  // 넣는 숫자는 말로 읽지 않는다(사용자 지시). 유사도 1위 2021년 08.25 호우 88.91(11/24 조건 5개로 다시 받음) — 답 아래 사건 목록에서 열어야 유사도 근거(지금 조건과 견줌)가 나온다
+  // 넣는 숫자는 말로 읽지 않는다(사용자 지시). 유사도 1위 2021년 08.25 호우 90.09(11/24 강우 1·3·6시간으로 다시 받음) — 답 아래 사건 목록에서 열어야 유사도 근거(지금 조건과 견줌)가 나온다
   {
     label: "부산 · 지금 조건으로 우선 위험지역과 비슷했던 호우 묻기",
     region: "busan",
@@ -1262,7 +1276,8 @@ export const AutoScript: AutoScene[] = [
           { at: { sel: ".cond-pick", text: "특보 종류" }, value: "호우" },
           { at: { sel: ".cond-pick", text: "특보 단계" }, value: "경보" },
           { at: { sel: `input[aria-label="1시간 강우 값 (mm)"]` }, value: "50" },
-          { at: { sel: `input[aria-label="24시간 누적 값 (mm)"]` }, value: "250" },
+          { at: { sel: `input[aria-label="3시간 누적 값 (mm)"]` }, value: "90" },
+          { at: { sel: `input[aria-label="6시간 누적 값 (mm)"]` }, value: "130" },
           { at: { sel: `input[aria-label="하천 수위 값 (m)"]` }, value: "3.5" },
           { at: { sel: `input[aria-label="하천 유량 값 (m³/s)"]` }, value: "800" },
           { at: { sel: `input[aria-label="풍속 값 (m/s)"]` }, value: "15" },
@@ -1281,7 +1296,7 @@ export const AutoScript: AutoScene[] = [
         say: "답은 넣은 조건을 받아 우선 점검할 위험지역부터 정리하고,",
       },
       {
-        scroll: { sel: `${MdTable} tr`, text: "88.91" },
+        scroll: { sel: `${MdTable} tr`, text: "90.09" },
         focus: [{ sel: MdTable }],
         say: "같은 조건과 비슷했던 과거 호우도 유사도 순으로 붙습니다.",
       },
@@ -1300,11 +1315,18 @@ export const AutoScript: AutoScene[] = [
         say: "유사도 근거를 펼치면",
         wait: 600,
       },
+      // 요인 비교는 위 → 아래로 굴려 더 보인다(사용자 지시 2026-11-24)
+      {
+        scroll: { sel: ".evp-fold .evp-table thead" },
+        focus: [{ sel: ".evp-fold .evp-table" }],
+        say: "지금 넣은 조건과 그 사건을 요인별로 견줘 보고,",
+        wait: 600,
+      },
       {
         scroll: { sel: ".evp-fold .evp-table tr:last-child" },
-        focus: [{ sel: ".evp-fold .evp-table" }],
-        say: "지금 넣은 조건과 그 사건을 요인별로 견줘 볼 수 있습니다.",
-        wait: 1200,
+        focus: [{ sel: ".evp-fold .evp-table tr:last-child" }],
+        say: "아래로 내리면 나머지 요인까지 이어집니다.",
+        wait: 1000,
       },
       // 자저감 위험지역은 위성지도로(사용자 지시 2026-11-24)
       { click: { sel: Tab, text: "지도" }, focus: ["panel"], wait: 400 },

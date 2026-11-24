@@ -143,6 +143,16 @@ const factorVal = (v: unknown) =>
   v !== null && typeof v === "object" && !Array.isArray(v)
     ? Object.entries(v as Record<string, unknown>).map(([k, x]) => `${k.replace(/^(\d+)h$/, "$1시간")} ${txt(x)}`).join(" · ") || "—"
     : txt(v);
+/** 요인 값이 여러 칸(객체)이면 칸마다 한 줄 — 현재·과거 칸 이름을 합쳐 순서대로. 객체가 아니거나 한 칸뿐이면 null(한 줄 그대로) */
+const factorRows = (cur: unknown, past: unknown): { k: string; cur: unknown; past: unknown }[] | null => {
+  const obj = (v: unknown) => (v !== null && typeof v === "object" && !Array.isArray(v) ? (v as Record<string, unknown>) : null);
+  const c = obj(cur);
+  const p = obj(past);
+  if (!c && !p) return null;
+  const keys = [...new Set([...Object.keys(c ?? {}), ...Object.keys(p ?? {})])];
+  if (keys.length < 2) return null;
+  return keys.map((k) => ({ k: k.replace(/^(\d+)h$/, "$1시간"), cur: c ? c[k] : undefined, past: p ? p[k] : undefined }));
+};
 /** 원 단위 전체 금액(개발서버 fullWon) — 칸의 title */
 const fullWon = (v: number | null | undefined) => (typeof v === "number" && Number.isFinite(v) ? `${v.toLocaleString("ko-KR")}원` : "—");
 const lifeKo = (s: string) => LIFE_KO[s] ?? s;
@@ -429,18 +439,39 @@ function SimilarityView({ s }: { s: Sim | null }) {
             </tr>
           </thead>
           <tbody>
-            {(s.factors ?? []).map((f, i) => (
-              <tr key={i}>
-                <td>
-                  {f.factor_group} · {f.factor}
-                  {f.unit ? ` (${f.unit})` : ""}
-                </td>
-                <td>{factorVal(f.current_value)}</td>
-                <td>{factorVal(f.past_value)}</td>
-                <td>{txt(f.match)}</td>
-                <td>{txt(f.contribution)}</td>
-              </tr>
-            ))}
+            {(s.factors ?? []).flatMap((f, i) => {
+              // 값이 여러 칸(1시간·3시간… 강우)이면 칸마다 한 줄로 — 한 줄에 옆으로 늘어놓으면 표가 길어진다(사용자 지시 2026-11-24).
+              // 일치도·기여도는 요인 하나의 값이라 첫 줄에 줄 합치기로 한 번만
+              const subs = factorRows(f.current_value, f.past_value);
+              const name = `${f.factor_group} · ${f.factor}`;
+              const unit = f.unit ? ` (${f.unit})` : "";
+              if (!subs) {
+                return [
+                  <tr key={i}>
+                    <td>
+                      {name}
+                      {unit}
+                    </td>
+                    <td>{factorVal(f.current_value)}</td>
+                    <td>{factorVal(f.past_value)}</td>
+                    <td>{txt(f.match)}</td>
+                    <td>{txt(f.contribution)}</td>
+                  </tr>,
+                ];
+              }
+              return subs.map((r, j) => (
+                <tr key={`${i}-${j}`}>
+                  <td>
+                    {name} {r.k}
+                    {unit}
+                  </td>
+                  <td>{txt(r.cur)}</td>
+                  <td>{txt(r.past)}</td>
+                  {j === 0 && <td rowSpan={subs.length}>{txt(f.match)}</td>}
+                  {j === 0 && <td rowSpan={subs.length}>{txt(f.contribution)}</td>}
+                </tr>
+              ));
+            })}
           </tbody>
         </table>
       )}
