@@ -955,7 +955,8 @@ function Explore() {
             }}
           />
         )}
-        {libOpen && autoDemo.phase === "idle" && (
+        {/* 자동 시연 중에도 연다 — 추천 질문 갈피에서 고르는 장면(사용자 지시 2026-11-24). 시연 시작 때 layout() 이 닫는다 */}
+        {libOpen && (
           <LibraryDrawer
             regionName={regionName}
             busy={lock.locked}
