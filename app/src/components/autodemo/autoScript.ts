@@ -1376,8 +1376,15 @@ export const AutoScript: AutoScene[] = [
     region: "seoul",
     intro: "2022년 8월 강남역 일대가 잠겼을 때, 어디가 얼마나 잠겼는지 침수흔적으로 확인합니다.",
     steps: [
+      // 한눈 요약의 「침수흔적 면적 큰 순」 그림 — 곳마다 잠긴 넓이가 다르다(사용자 지시 2026-11-24). 개선지구 블록은 짚지 않는다(지정 현황은 민감)
       {
         fold: true,
+        scroll: { sel: `${LastTurn} .sm-mod`, text: "침수흔적 면적" },
+        focus: [{ sel: `${LastTurn} .sm-mod`, text: "침수흔적 면적" }],
+        say: "한눈 요약에는 침수흔적마다 잠긴 면적이 큰 순으로 그려져, 어디가 가장 넓게 잠겼는지 바로 보입니다.",
+        wait: 400,
+      },
+      {
         scroll: { sel: MdText, text: "1.8m" },
         focus: [{ sel: MdText, text: "1.8m" }],
         say: "2022년 8월 강남역 일대는 최대 1.8미터까지 잠겼습니다.",
