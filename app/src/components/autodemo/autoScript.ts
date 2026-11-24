@@ -964,7 +964,8 @@ export const AutoScript: AutoScene[] = [
         say: "패널에서 크게 보기로 펼치면 같은 요약을 넓게 볼 수 있고,",
         wait: 600,
       },
-      { open: "map", wait: 600 },
+      // 지도를 연 직후에 누르면 요약 보기가 다시 풀린다(11/24 브라우저 점검) — 지도가 자리 잡을 틈을 준다
+      { open: "map", wait: 2000 },
       {
         click: { sel: `${Panel} .sm-map-toggle`, text: "요약 보기" },
         focus: ["panel"],
