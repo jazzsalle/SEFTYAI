@@ -1183,14 +1183,13 @@ export const AutoScript: AutoScene[] = [
         click: { sel: MapPinAny, text: "진동99", visible: true },
         waitFor: UI.mapPopup,
         focus: ["panel"],
-        say: "지도에서 진동99 사면을 골라",
+        say: "진동99 사면을 확인합니다.",
       },
       {
         click: { sel: PopDetail },
         orElse: [{ click: { sel: Tab, text: "진동99" } }],
         focus: ["panel"],
-        say: "상세 보기로 엽니다.",
-        wait: 400,
+        wait: 600,
       },
       {
         scroll: { sel: DetailField, text: "위험도 점수" },
