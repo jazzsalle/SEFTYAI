@@ -1159,11 +1159,18 @@ export const AutoScript: AutoScene[] = [
         say: "샛강에서 500미터 안에 있는 U자형 지하차도이고, 인명피해 우려지역으로 지정되어 있어 침수 때 위험이 큰 곳입니다.",
         wait: 400,
       },
+      // 통제 기준 수심(10cm)과 과거 침수심(답 표 — 2022년 8월 0.3m)을 함께 보인다(사용자 제안 2026-11-24)
       {
-        scroll: { sel: DetailField, text: "진입차단시설" },
-        focus: [{ sel: DetailField, text: "통제 기준 수심" }, { sel: DetailField, text: "통제 기준 수심", next: true }, { sel: DetailField, text: "진입차단시설" }, { sel: DetailField, text: "진입차단시설", next: true }],
-        say: "물이 10센티미터만 차도 통제하도록 되어 있고, 진입차단시설도 갖춰져 있습니다.",
-        wait: 600,
+        scroll: { sel: DetailField, text: "통제 기준 수심" },
+        focus: [{ sel: DetailField, text: "통제 기준 수심" }, { sel: DetailField, text: "통제 기준 수심", next: true }],
+        say: "이곳은 물이 10센티미터만 차도 통제하는 기준인데,",
+        wait: 300,
+      },
+      {
+        scroll: { sel: `${MdTable} tr`, text: "노들길지하차도" },
+        focus: [{ sel: `${MdTable} tr`, text: "노들길지하차도" }, { sel: DetailField, text: "통제 기준 수심", next: true }],
+        say: "2022년 8월에는 이 자리가 0.3미터, 기준의 세 배까지 잠겼습니다.",
+        wait: 800,
       },
     ],
     outro: "물에 잠겼던 자리에 있는 지하차도는 다음 호우 때 가장 먼저 통제를 검토할 곳입니다.",
