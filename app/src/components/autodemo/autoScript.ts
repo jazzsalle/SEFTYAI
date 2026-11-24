@@ -52,6 +52,8 @@ export interface DemoStep {
   silentClick?: Target
   scroll?: Target
   open?: "map" | "summary"
+  /** open 뒤 기다리는 시간(ms) — 없으면 지도 2.6초·요약 0.9초. 자막을 바로 읽고 싶을 때 줄인다(사용자 지적 2026-11-24 「텀이 길다」). */
+  openWait?: number
   /** 우측 패널을 접는다(scroll 보다 먼저) — 지도가 필요 없는 답은 글을 넓게. 지도·상세·근거가 필요해지면 open·click 이 다시 편다(사용자 지시 2026-11-24). */
   fold?: boolean
   /** 누른 뒤 이 요소가 나타날 때까지 기다린다(최대 4초). */
@@ -531,7 +533,7 @@ export const AutoScript: AutoScene[] = [
     region: "busan",
     intro: "점검할 대상을 추렸다면, 이제 단계별로 어떤 조치를 준비해야 하는지도 확인해야 합니다.",
     steps: sopSteps("비가 이어질 때 실제로 어떤 조치를 준비해야 하는지 대응절차를 확인합니다."),
-    outro: "점검 우선순위와 해야 할 조치까지 같은 화면에서 확인했습니다. 실제 조치 여부는 현장 상황과 공식 기준에 따라 담당자가 판단합니다.",
+    outro: "점검 우선순위와 해야 할 조치까지 같은 화면에서 확인했습니다.",
   },
 
   // 조건 입력·질문 입력까지는 실제로 보이고, 답은 같은 조건으로 받아 둔 시연 답(CQ-BS-01·02)을 놓는다
@@ -638,7 +640,7 @@ export const AutoScript: AutoScene[] = [
       // 이어서 대응절차(전 15:30 장면의 걸음 그대로).
       ...sopSteps("과거 피해가 있었던 만큼, 비가 이어질 때 실제로 어떤 조치를 준비해야 하는지 대응절차를 확인합니다."),
     ],
-    outro: "조건을 바꿔 묻고 고른 대상을 이어 물은 뒤, 해야 할 조치까지 같은 화면에서 확인했습니다. 실제 조치 여부는 현장 상황과 공식 기준에 따라 담당자가 판단합니다.",
+    outro: "조건을 바꿔 묻고 고른 대상을 이어 물은 뒤, 해야 할 조치까지 같은 화면에서 확인했습니다.",
   },
 
   {
@@ -964,12 +966,12 @@ export const AutoScript: AutoScene[] = [
         say: "패널에서 크게 보기로 펼치면 같은 요약을 넓게 볼 수 있고,",
         wait: 600,
       },
-      // 지도를 연 직후에 누르면 요약 보기가 다시 풀린다(11/24 브라우저 점검) — 지도가 자리 잡을 틈을 준다
-      { open: "map", wait: 2000 },
+      // 지도를 연 직후에 누르면 요약 보기가 다시 풀린다(11/24 브라우저 점검) — 지도가 자리 잡는 동안 자막을 읽어 빈 틈을 없앤다(사용자 지적 「텀이 길다」)
+      { open: "map", openWait: 400, focus: ["panel"], say: "지도에서도 같은 대상을 볼 수 있는데," },
       {
         click: { sel: `${Panel} .sm-map-toggle`, text: "요약 보기" },
         focus: ["panel"],
-        say: "지도를 요약 보기로 바꾸면 구별로 몇 곳씩 몰려 있는지 색으로 드러납니다.",
+        say: "요약 보기로 바꾸면 구별로 몇 곳씩 몰려 있는지 색으로 드러납니다.",
         wait: 1000,
       },
       { silentClick: { sel: `${Panel} .sm-map-toggle`, text: "지도 보기" }, wait: 300 },
@@ -984,13 +986,14 @@ export const AutoScript: AutoScene[] = [
         focus: [{ sel: MdTable }],
         say: "지하차도마다 재해위험등급과 인명피해 우려, 통제 기준수심, 차단시설이 함께 나와 어디부터 통제를 준비할지 바로 보입니다.",
       },
-      { open: "map", focus: ["panel"], say: "지도에서 그중 한 곳을 골라 봅니다.", wait: 800 },
+      // 고르는 이유를 댄다(사용자 지시 2026-11-24) — 표 값 그대로: 장전지하차도(1) 온천천 · 통제 기준수심 5.0cm
+      { open: "map", focus: ["panel"], say: "그중 온천천 바로 옆에 있어, 물이 5센티미터만 차도 통제해야 하는 장전지하차도를 열어 봅니다.", wait: 400 },
       { click: { sel: Entity, text: "장전지하차도(1)" }, wait: 600 },
       {
         click: { sel: Tab, text: "장전지하차도(1)" },
         orElse: [{ click: { sel: RefDetail } }],
         focus: ["panel"],
-        say: "온천천 옆 장전지하차도의 상세를 열어 봅니다.",
+        say: "상세를 열면,",
       },
       // 상세를 연 뒤 내려서 위험·취약정보 → 진입차단시설을 짚으며 말한다(사용자 지시 2026-11-24). 값은 T3Q-15 UP-630 실측(11/24)
       {
@@ -1048,7 +1051,7 @@ export const AutoScript: AutoScene[] = [
     label: "부산 · 경보는 20시, 통제는 22시 53분",
     pinId: "IG-BS-15",
     region: "busan",
-    intro: "같은 날 특보와 재난문자, 통제가 어떤 순서로 이뤄졌는지 사건 타임라인으로 되짚습니다.",
+    intro: "같은 날 특보와 재난문자, 통제가 어떤 순서로 이뤄졌는지 사건 타임라인으로 알아봅니다.",
     steps: [
       // 「시간순」이라고 말할 때 이미 표가 보이게 내려 짚는다(사용자 지시 2026-11-24)
       {
@@ -1068,11 +1071,13 @@ export const AutoScript: AutoScene[] = [
         say: "초량 제1·2 지하차도 통제 안내는 밤 10시 53분에 나갔습니다.",
       },
       {
-        click: { sel: Entity, text: "2020년 7.23" },
+        // 사건은 답 글 속 링크가 아니다 — 답 아래 사건 목록(데이터군)에서 연다(11/24 운영 점검: 사건이 열리지 않아 타임라인이 비었음)
+        scroll: { sel: `${LastTurn} .dg-name`, text: "2020년 7.23" },
+        click: { sel: `${LastTurn} .dg-name`, text: "2020년 7.23" },
         waitFor: EventTimeline,
-        orElse: [{ click: { sel: RefDetail }, waitFor: EventTimeline }],
-        focus: ["panel"],
-        say: "사건을 열어 보면,",
+        orElse: [{ click: { sel: Entity, text: "2020년 7.23" }, waitFor: EventTimeline }],
+        focus: ["panel", { sel: `${LastTurn} .dg-name`, text: "2020년 7.23" }],
+        say: "답 아래 사건 목록에서 이 사건을 열어 보면,",
       },
       {
         scroll: { sel: `${EventTimeline} > li` },
@@ -1123,7 +1128,6 @@ export const AutoScript: AutoScene[] = [
       },
       ...sopSteps("세부 조치는 대응절차에서 단계별로 확인하고 진행 상황을 남깁니다."),
     ],
-    outro: "실제 조치 여부는 현장 상황과 공식 기준에 따라 담당자가 판단합니다.",
   },
   {
     label: "부산 · 119 신고가 가장 많았던 날과 그날 비",

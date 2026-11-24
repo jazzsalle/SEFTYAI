@@ -256,7 +256,7 @@ export function useAutoDemo(actions: AutoDemoActions) {
         if (st.open) {
           act.current.open(st.open)
           // 지도는 처음 열릴 때 답의 대상 전체로 한 번 맞춘다 — 그 전에 누르면 확대가 덮인다.
-          await wait(st.open === "map" ? 2600 : 900, run)
+          await wait(st.openWait ?? (st.open === "map" ? 2600 : 900), run)
         }
         let keep: number | undefined
         if (st.scroll) {
