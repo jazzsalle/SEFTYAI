@@ -959,7 +959,9 @@ export const AutoScript: AutoScene[] = [
       {
         scroll: { sel: `${LastTurn} ${UI.summaryCard}` },
         focus: ["answer-summary"],
-        say: "한눈 요약에 건수와 잠긴 면적이 그림으로 정리됩니다.",
+        // 설명을 늘리고 머무는 시간을 준다(사용자 지시 2026-11-24)
+        say: "한눈 요약에서는 건수와 잠긴 면적을 그림으로 보여 줘, 어디가 얼마나 잠겼는지 표를 읽지 않아도 한눈에 비교할 수 있습니다.",
+        wait: 1500,
       },
       {
         click: { sel: `${LastTurn} .sm-expand` },
@@ -972,8 +974,8 @@ export const AutoScript: AutoScene[] = [
       {
         click: { sel: `${Panel} .sm-map-toggle`, text: "요약 보기" },
         focus: ["panel"],
-        say: "요약 보기로 구·군별 분포를 색으로 봅니다.",
-        wait: 1000,
+        say: "요약 보기로 바꾸면 구·군 구역별로 침수흔적이 얼마나 몰렸는지 색의 짙기로 나눠 볼 수 있습니다.",
+        wait: 2000,
       },
       { silentClick: { sel: `${Panel} .sm-map-toggle`, text: "지도 보기" }, wait: 300 },
       {
