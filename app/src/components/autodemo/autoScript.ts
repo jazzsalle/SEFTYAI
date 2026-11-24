@@ -1129,11 +1129,9 @@ export const AutoScript: AutoScene[] = [
         focus: [{ sel: MdText, text: "연산교" }],
         say: "넣은 하천 수위로 온천천 연산교가 주의 기준수위 4.02미터에 가깝다는 것도 짚어 줍니다.",
       },
-      // 자저감 위험지역은 위성지도로 보인다(사용자 지시 2026-11-24)
-      { open: "map", openWait: 400, focus: ["panel"], say: "위성지도에서 위치를 함께 봅니다." },
-      { silentClick: { sel: `${Panel} .map-sat:not(.is-on)` }, wait: 1800 },
-      // 뒷장면에 남지 않게 — 위성 끄기 · 조건 되돌리기
-      { silentClick: { sel: `${Panel} .map-sat.is-on` }, wait: 200 },
+      // 부산은 일반지도로만(위성은 인제만 — 사용자 지시 2026-11-25)
+      { open: "map", openWait: 400, focus: ["panel"], say: "지도에서 위치를 함께 봅니다.", wait: 1800 },
+      // 뒷장면에 남지 않게 — 조건 되돌리기
       { silentClick: { sel: CondOpen, text: "조건 변경" }, wait: 400 },
       { silentClick: { sel: CondReset, text: "기본 조건으로" }, wait: 200 },
       { silentClick: { sel: CondApply, text: "적용" }, wait: 200 },
@@ -1334,11 +1332,9 @@ export const AutoScript: AutoScene[] = [
         say: "아래로 내리면 나머지 요인까지 이어집니다.",
         wait: 1000,
       },
-      // 자저감 위험지역은 위성지도로(사용자 지시 2026-11-24)
-      { click: { sel: Tab, text: "지도" }, focus: ["panel"], wait: 400 },
-      { silentClick: { sel: `${Panel} .map-sat:not(.is-on)` }, focus: ["panel"], say: "위험지역 위치는 위성지도에서 함께 봅니다.", wait: 1500 },
-      // 뒷장면에 남지 않게 — 위성 끄기 · 조건 되돌리기
-      { silentClick: { sel: `${Panel} .map-sat.is-on` }, wait: 200 },
+      // 부산은 일반지도로만(위성은 인제만 — 사용자 지시 2026-11-25)
+      { click: { sel: Tab, text: "지도" }, focus: ["panel"], say: "위험지역 위치는 지도에서 함께 봅니다.", wait: 1500 },
+      // 뒷장면에 남지 않게 — 조건 되돌리기
       { silentClick: { sel: CondOpen, text: "조건 변경" }, wait: 400 },
       { silentClick: { sel: CondReset, text: "기본 조건으로" }, wait: 200 },
       { silentClick: { sel: CondApply, text: "적용" }, wait: 200 },
