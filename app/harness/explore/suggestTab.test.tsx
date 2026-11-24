@@ -52,7 +52,8 @@ describe("질문 모음 「추천 질문」", () => {
     net.body = { envelope: { result: { capability_set_version: "CQS-152-v0.3", items: ITEMS } } };
     const ask = vi.fn();
     const c = drawer(SEOGU, ask);
-    expect(net.calls.some((p) => p.startsWith("/api/t3q/suggested"))).toBe(false); // 열기 전에는 부르지 않는다
+    // 추천 질문이 첫 갈피이자 처음 열리는 갈피(사용자 지시 2026-11-24) — 열자마자 부른다
+    expect(screen.getAllByRole("tab").map((t) => t.textContent)).toEqual(["추천 질문", "한눈 요약 질의"]);
     fireEvent.click(screen.getByRole("tab", { name: "추천 질문" }));
     await waitFor(() => expect(c.querySelectorAll(".qlib-q")).toHaveLength(3));
     expect(net.calls).toContain("/api/t3q/suggested?region=30170");

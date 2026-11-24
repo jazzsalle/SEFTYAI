@@ -460,6 +460,8 @@ describe("통합 탐색 화면 흐름 — 질문 현황은 지금 대화만 · [
     await mountExplore();
     fireEvent.click(await screen.findByRole("button", { name: "질문 모음 보기" }));
     const drawer = await screen.findByRole("dialog", { name: "질문 모음" });
+    // 처음 열리는 갈피는 추천 질문(2026-11-24) — 한눈 요약 질의로 옮긴다
+    fireEvent.click(screen.getByRole("tab", { name: "한눈 요약 질의" }));
     fireEvent.click(drawer.querySelector<HTMLButtonElement>(".qlib-day-btn")!);
     await waitFor(() => expect(srv.posts.length).toBeGreaterThan(0));
     expect(srv.posts[0].source).toBe("QUICK");

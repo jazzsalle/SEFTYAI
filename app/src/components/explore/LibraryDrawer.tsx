@@ -58,7 +58,8 @@ export default function LibraryDrawer({ regionName, busy = false, onClose, onAsk
   onAskSuggest?: (text: string) => void;
 }) {
   const s = useSession();
-  const [tab, setTab] = useState<Tab>("day");
+  // 추천 질문을 앞에, 처음 열 때도 추천 질문(사용자 지시 2026-11-24 — 시연 때 추천 질문 내용만 보이게)
+  const [tab, setTab] = useState<Tab>(onAskSuggest ? "sug" : "day");
   const box = useRef<HTMLElement>(null);
   // 한눈 요약 질의 — 시·도까지만 골라도 인제·영천(R48), 대전·서울도(lib/baseRegion baseDayRegion)
   const dr = baseDayRegion(s.cond.base);
@@ -167,8 +168,8 @@ export default function LibraryDrawer({ regionName, busy = false, onClose, onAsk
       </div>
 
       <div className="qlib-tabs" role="tablist" aria-label="질문 갈래">
-        <button type="button" role="tab" aria-selected={tab === "day"} className={tab === "day" ? "is-on" : undefined} onClick={() => setTab("day")}>한눈 요약 질의</button>
         {onAskSuggest && <button type="button" role="tab" aria-selected={tab === "sug"} className={tab === "sug" ? "is-on" : undefined} onClick={() => setTab("sug")}>추천 질문</button>}
+        <button type="button" role="tab" aria-selected={tab === "day"} className={tab === "day" ? "is-on" : undefined} onClick={() => setTab("day")}>한눈 요약 질의</button>
       </div>
 
       <p className="qlib-note">
