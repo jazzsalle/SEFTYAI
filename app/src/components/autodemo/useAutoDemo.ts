@@ -461,8 +461,9 @@ export function useAutoDemo(actions: AutoDemoActions) {
         }
 
         if (scene.pinId) {
-          // 질문 칸을 눌러 묻는 것처럼 보인다.
-          await point(UI.questionBox, true, run)
+          // 질문 칸을 눌러 묻는 것처럼 보인다. 앞 걸음(추천 질문에서 고르기 등)이 있으면 그것을 돈다.
+          if (scene.beforeAsk) await runSteps(scene.beforeAsk, run)
+          else await point(UI.questionBox, true, run)
           // 저장된 답이 없으면 대체 질문으로, 그것도 없으면 건너뛴다(에이전트는 부르지 않는다).
           const lastBefore = document.querySelector(UI.lastTurn)
           let ok = pin !== null && pin.received_at !== null && (await act.current.play(pin, scene.region))
