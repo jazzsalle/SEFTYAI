@@ -966,15 +966,15 @@ export const AutoScript: AutoScene[] = [
       {
         click: { sel: `${LastTurn} .sm-expand` },
         focus: ["panel"],
-        say: "크게 보기로 넓게 펼치고,",
-        wait: 600,
+        say: "크게 보기로 펼치면 같은 그림을 넓은 화면으로 볼 수 있습니다.",
+        wait: 800,
       },
       // 지도를 연 직후에 누르면 요약 보기가 다시 풀린다(11/24 브라우저 점검) — 지도가 자리 잡는 동안 자막을 읽어 빈 틈을 없앤다(사용자 지적 「텀이 길다」)
-      { open: "map", openWait: 400, focus: ["panel"], say: "지도에서는" },
+      { open: "map", openWait: 900, focus: ["panel"] },
       {
         click: { sel: `${Panel} .sm-map-toggle`, text: "요약 보기" },
         focus: ["panel"],
-        say: "요약 보기로 바꾸면 구·군 구역별로 침수흔적이 얼마나 몰렸는지 색의 짙기로 나눠 볼 수 있습니다.",
+        say: "지도에서도 요약 보기로 바꾸면 구·군 구역별로 침수흔적이 얼마나 몰렸는지 색의 짙기로 나눠 볼 수 있습니다.",
         wait: 2000,
       },
       { silentClick: { sel: `${Panel} .sm-map-toggle`, text: "지도 보기" }, wait: 300 },
@@ -1291,13 +1291,30 @@ export const AutoScript: AutoScene[] = [
         fold: true,
         scroll: { sel: MdText, text: "입력하신 조건" },
         focus: [{ sel: MdText, text: "입력하신 조건" }],
-        say: "답은 넣은 조건을 그대로 받아,",
+        say: "답은 넣은 조건을 그대로 받아 먼저 점검할 곳을 정리합니다.",
+        wait: 400,
       },
-      // 답 내용 설명(사용자 지시 2026-11-24) — CQ-BS-04 11/24 받은 답의 소제목 ①②③ 그대로
+      // 답 내용 설명 — 소제목마다 위에 맞춰 굴리고 그 내용을 읽는 동안 머문다(한 번에 셋을 짚으니 굴림이 먼저 지나갔다 — 사용자 지시 2026-11-25)
+      {
+        scroll: { sel: `${BodyBox} h4`, text: "재해위험개선지구" },
+        scrollTop: true,
+        focus: [{ sel: `${BodyBox} h4`, text: "재해위험개선지구" }, { sel: `${BodyBox} h4`, text: "재해위험개선지구", next: true }],
+        say: "가 등급 재해위험개선지구가 먼저 나오고,",
+        wait: 500,
+      },
       {
         scroll: { sel: `${BodyBox} h4`, text: "급경사" },
-        focus: [{ sel: `${BodyBox} h4`, text: "재해위험개선지구" }, { sel: `${BodyBox} h4`, text: "급경사" }, { sel: `${BodyBox} h4`, text: "홍수취약지구" }],
-        say: "가 등급 재해위험개선지구, 붕괴위험 급경사지, 하천 홍수취약지구 순으로 먼저 점검할 곳을 짚어 줍니다.",
+        scrollTop: true,
+        focus: [{ sel: `${BodyBox} h4`, text: "급경사" }, { sel: `${BodyBox} h4`, text: "급경사", next: true }],
+        say: "붕괴위험 급경사지,",
+        wait: 500,
+      },
+      {
+        scroll: { sel: `${BodyBox} h4`, text: "홍수취약지구" },
+        scrollTop: true,
+        focus: [{ sel: `${BodyBox} h4`, text: "홍수취약지구" }, { sel: `${BodyBox} h4`, text: "홍수취약지구", next: true }],
+        say: "하천 홍수취약지구 순으로 짚어 줍니다.",
+        wait: 500,
       },
       {
         scroll: { sel: `${MdTable} tr`, text: "90.09" },
