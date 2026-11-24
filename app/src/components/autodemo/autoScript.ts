@@ -1398,10 +1398,11 @@ export const AutoScript: AutoScene[] = [
         wait: 1200,
       },
       {
-        click: { sel: Entity, text: "역삼동 858" },
-        orElse: [{ open: "map", click: { sel: MapPinAny, text: "역삼동 858" } }],
-        focus: ["panel", { sel: MdText, text: "역삼동 858" }],
-        say: "바로 옆 역삼동 858 일원을 누르면 지도가 다시 옮겨 가고, 이곳은 4만 제곱미터 넘게 잠겼습니다.",
+        // 역삼동 858 은 답 글 속 링크가 아니다(11/24 운영 점검) — 눌리는 곳 가운데 가장 넓게 잠긴 대치역사거리 일대(46,057.5㎡ — 답 글·한눈 요약 그대로)
+        click: { sel: Entity, text: "대치역사거리 일대" },
+        orElse: [{ open: "map", click: { sel: MapPinAny, text: "대치역사거리" } }],
+        focus: ["panel", { sel: MdText, text: "대치역사거리 일대" }],
+        say: "가장 넓게 잠긴 대치역사거리 일대를 누르면 지도가 다시 옮겨 가고, 이곳은 4만 6천 제곱미터 가까이 잠겼습니다.",
         wait: 1200,
       },
     ],

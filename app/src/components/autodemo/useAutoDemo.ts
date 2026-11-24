@@ -260,7 +260,12 @@ export function useAutoDemo(actions: AutoDemoActions) {
         }
         let keep: number | undefined
         if (st.scroll) {
-          const s = resolve(st.scroll)
+          // 상세(T3Q-15)·한눈 요약은 늦게 올 수 있다 — 짚을 곳이 아직 없으면 3초까지 기다린다(11/24 운영 점검: 상세 칸을 못 찾고 넘어감)
+          let s = resolve(st.scroll)
+          for (let left = 3000; !s && left > 0 && !run.skip; left -= 200) {
+            await wait(200, run)
+            s = resolve(st.scroll)
+          }
           if (s) {
             document.querySelector(s)?.scrollIntoView({ behavior: "smooth", block: "center" })
             // 위의 한눈 요약 카드가 늦게 다 만들어져 커지면 짚은 곳이 화면 밖으로 밀린다 —
@@ -501,7 +506,9 @@ export function useAutoDemo(actions: AutoDemoActions) {
           // 짚은 곳이 화면 아래로 밀려난다(2026-11-18 대전 장면 점검). 최대 6초 기다린다.
           // 첫 걸음이 짚을 곳으로 직접 굴리는 장면은 기다리지 않는다 — 굴림 걸음이 밀려나면 다시 굴린다.
           // 지도 대상이 많은 답(하천 500m 지하차도 51곳)은 요약이 늦어 화면이 멈춘 듯 보였다(사용자 지적 2026-11-24).
-          const scrollsFirst = !!scene.steps?.[0]?.scroll
+          // 첫 걸음이 한눈 요약(.sm-…)을 짚으면 요약이 다 만들어질 때까지는 기다린다(11/24 운영 점검 — 만드는 중이라 [크게 보기]·요약 블록을 못 찾음)
+          const first = scene.steps?.[0]?.scroll
+          const scrollsFirst = !!first && !/\.sm-|summaryCard/.test(first.sel)
           for (let left = scrollsFirst ? 0 : 6000; left > 0 && document.querySelector(`${UI.lastTurn} .sm-card--loading`); left -= 200) {
             await new Promise((r) => window.setTimeout(r, 200))
             alive(run)
