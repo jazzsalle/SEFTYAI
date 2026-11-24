@@ -269,7 +269,21 @@ export function useAutoDemo(actions: AutoDemoActions) {
           if (s) {
             // 표는 제목 열이 보이게 위에 맞춘다(scrollTop — 사용자 지시 2026-11-24)
             const block: ScrollLogicalPosition = st.scrollTop ? "start" : "center"
-            document.querySelector(s)?.scrollIntoView({ behavior: "smooth", block })
+            const target = document.querySelector<HTMLElement>(s)
+            // 위에 붙어 있는 것(질문 말풍선 등 position: sticky)이 제목 열을 가리지 않게 그 높이만큼 띄운다(2026-11-25 브라우저 점검)
+            if (target && st.scrollTop) {
+              const box = target.closest<HTMLElement>(UI.scroll)
+              const top = box?.getBoundingClientRect().top ?? 0
+              let cover = 0
+              box?.querySelectorAll<HTMLElement>("*").forEach((e) => {
+                if (e.contains(target) || getComputedStyle(e).position !== "sticky") return
+                const r = e.getBoundingClientRect()
+                // 지금 위에 붙어 있는 것만(아래쪽에 흘러 있는 sticky 는 빼고)
+                if (r.height > 0 && r.top - top < 40) cover = Math.max(cover, r.bottom - top)
+              })
+              target.style.scrollMarginTop = `${Math.round(cover + 12)}px`
+            }
+            target?.scrollIntoView({ behavior: "smooth", block })
             // 위의 한눈 요약 카드가 늦게 다 만들어져 커지면 짚은 곳이 화면 밖으로 밀린다 —
             // 이 걸음 동안 밀려 나가면 다시 굴린다(2026-11-18 자동 시연 점검).
             // 화면 갱신이 느린 PC(창 가림·원격 등)에서는 부드러운 굴림이 끝나지 않는다 —
