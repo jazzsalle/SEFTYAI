@@ -50,6 +50,8 @@ export interface DemoStep {
   silentClick?: Target
   scroll?: Target
   open?: "map" | "summary"
+  /** 우측 패널을 접는다(scroll 보다 먼저) — 지도가 필요 없는 답은 글을 넓게. 지도·상세·근거가 필요해지면 open·click 이 다시 편다(사용자 지시 2026-11-24). */
+  fold?: boolean
   /** 누른 뒤 이 요소가 나타날 때까지 기다린다(최대 4초). */
   waitFor?: string
   focus?: FocusTarget[]
@@ -904,7 +906,13 @@ export const AutoScript: AutoScene[] = [
     region: "busan",
     intro: "주의보가 경보로 올라설 때를 대비해, 경보가 나면 먼저 확인해야 할 시설을 한 번에 추려 봅니다.",
     steps: [
-      { focus: ["answer"], say: "하천 가까이 있는 지하차도와 위험 급경사지, 관리 중인 개선지구가 종류별로 정리됩니다." },
+      // 글을 먼저 넓게 읽고(패널 접기) 지도가 필요할 때 편다 · 말할 때 짚은 곳이 이미 보이게(사용자 지시 2026-11-24)
+      {
+        fold: true,
+        scroll: { sel: MdText, text: "D·E등급" },
+        focus: [{ sel: MdText, text: "D·E등급" }],
+        say: "하천 가까이 있는 지하차도와 위험 급경사지, 관리 중인 개선지구가 종류별로 정리됩니다.",
+      },
       {
         scroll: { sel: MdTable },
         focus: [{ sel: MdTable }],
@@ -941,6 +949,7 @@ export const AutoScript: AutoScene[] = [
     intro: "2020년 7월 23일 부산에는 시간당 80밀리미터가 넘는 비가 내렸습니다. 그때 어디가 잠겼는지, 지금 같은 비가 오면 어디가 위험한지 묻습니다.",
     steps: [
       {
+        fold: true,
         scroll: { sel: MdText, text: "81.6" },
         focus: [{ sel: MdText, text: "81.6" }],
         say: "먼저 그날 관측된 시간당 최대 강우량과 하루 강우량이 나옵니다.",
@@ -962,6 +971,7 @@ export const AutoScript: AutoScene[] = [
     steps: [
       // 「시간순」이라고 말할 때 이미 표가 보이게 내려 짚는다(사용자 지시 2026-11-24)
       {
+        fold: true,
         scroll: { sel: MdTable },
         focus: [{ sel: MdTable }],
         say: "호우특보와 재난문자, 도로와 지하차도 통제가 시간순으로 정리됩니다.",
@@ -998,11 +1008,17 @@ export const AutoScript: AutoScene[] = [
     region: "busan",
     intro: "지금 같은 경보가 나면 행동매뉴얼은 누가 무엇을 하도록 정해 두었는지 묻습니다.",
     steps: [
-      { focus: ["answer"], say: "호우경보가 나면 비상 1단계로 올라가고, 부서별 임무가 매뉴얼 쪽수와 함께 정리됩니다." },
+      // 결론의 ①하천변 산책로 → ②하천 옆 지하차도 → ③주요 간선 지하차도 문단 전체를 강조(소제목만이 아니라 — 사용자 지시 2026-11-24)
       {
-        scroll: { sel: `${BodyBox} h3`, text: "통제 순서" },
-        focus: [{ sel: `${BodyBox} h3`, text: "통제 순서" }],
-        say: "통제는 하천변 산책로부터 하천 옆 지하차도, 간선 지하차도 순서로 하도록 되어 있습니다.",
+        fold: true,
+        scroll: { sel: MdText, text: "간선" },
+        focus: [{ sel: MdText, text: "비상1단계" }, { sel: MdText, text: "간선" }],
+        say: "호우경보가 나면 비상 1단계로 올라가고, 통제는 하천변 산책로부터 하천 옆 지하차도, 주요 간선 지하차도 순서로 하도록 되어 있습니다.",
+      },
+      {
+        scroll: { sel: MdTable },
+        focus: [{ sel: MdTable }],
+        say: "부서별 임무는 매뉴얼 쪽수와 함께 표로 정리됩니다.",
       },
       {
         click: { sel: `${LastTurn} .doc-cite` },
@@ -1027,7 +1043,12 @@ export const AutoScript: AutoScene[] = [
     region: "busan",
     intro: "우리 지역에서 신고가 가장 많았던 날, 비는 얼마나 왔을까요. 119 신고와 기상 관측을 묶어 봅니다.",
     steps: [
-      { focus: ["answer"], say: "부산에서 풍수해 신고가 가장 많았던 날과, 그날의 강우량이 함께 나옵니다." },
+      {
+        fold: true,
+        scroll: { sel: MdText, text: "9월 21일" },
+        focus: [{ sel: MdText, text: "9월 21일" }, { sel: MdText, text: "378.5" }],
+        say: "부산에서 풍수해 신고가 가장 많았던 날과, 그날의 강우량이 함께 나옵니다.",
+      },
       {
         scroll: { sel: MdTable },
         focus: [{ sel: MdTable }],
@@ -1043,6 +1064,7 @@ export const AutoScript: AutoScene[] = [
     intro: "인제군에는 계곡과 하천을 따라 캠핑장이 많습니다. 하천 바로 옆 캠핑장과 주변 위험지역을 확인합니다.",
     steps: [
       {
+        fold: true,
         scroll: { sel: `${MdTable} tr`, text: "상남천" },
         focus: [{ sel: MdTable }],
         say: "하천에서 수십 미터밖에 떨어지지 않은 캠핑장이 하천별로 정리됩니다.",
@@ -1062,7 +1084,12 @@ export const AutoScript: AutoScene[] = [
     region: "inje",
     intro: "경보가 나면 야영객 대피는 누가, 언제 해야 하는지 인제군 행동매뉴얼로 확인합니다.",
     steps: [
-      { focus: ["answer"], say: "대피명령은 군수가 내리고, 현장 대피는 안전교통과와 경찰, 읍·면이 맡는다고 정리됩니다." },
+      {
+        fold: true,
+        scroll: { sel: MdText, text: "인제군수" },
+        focus: [{ sel: MdText, text: "인제군수" }],
+        say: "대피명령은 군수가 내리고, 현장 대피는 안전교통과와 경찰, 읍·면이 맡는다고 정리됩니다.",
+      },
       {
         click: { sel: `${LastTurn} .doc-cite` },
         waitFor: ".edp-tabs",
@@ -1085,14 +1112,41 @@ export const AutoScript: AutoScene[] = [
     region: "seoul",
     intro: "과거에 물에 잠겼던 구역 안에 들어 있는 지하차도가 어디인지 확인합니다.",
     steps: [
-      { focus: ["answer"], say: "침수흔적 구역 안에 있는 지하차도와, 경계 바로 옆에 있는 지하차도가 나뉘어 정리됩니다." },
-      { open: "map", focus: ["panel"], say: "지도에서 위치를 함께 봅니다.", wait: 800 },
-      { click: { sel: Entity, text: "노들길지하차도" }, wait: 600 },
       {
-        click: { sel: Tab, text: "노들길지하차도" },
-        orElse: [{ click: { sel: RefDetail } }],
+        fold: true,
+        scroll: { sel: MdTable },
+        focus: [{ sel: MdTable }],
+        say: "침수흔적 구역 안에 바로 들어 있는 지하차도와, 경계 바로 옆에 있는 지하차도가 나뉘어 정리됩니다.",
+      },
+      // 지도 아이콘 → 말풍선 [상세 보기]로 상세를 열고, 왜 위험한지 상세 본문을 짚으며 말한다(사용자 지시 2026-11-24).
+      // 노들길은 동 중심 점(dong_center)이라 정확 위치 점(Pin)이 아니다 — 답 속 이름을 눌러 지도를 그 자리로 옮긴 뒤 지도의 점을 누른다.
+      // 상세 값은 T3Q-15 UP-831 실측(11/24): 위험등급 4 · 샛강 500m 안 · U형 · 인명피해우려지역 예 · 통제 수심 10cm · 스크린
+      { open: "map", focus: ["panel"], say: "지도에서 위치를 함께 봅니다.", wait: 800 },
+      { click: { sel: Entity, text: "노들길지하차도" }, focus: ["panel"], wait: 1200 },
+      {
+        click: { sel: MapPinAny, text: "노들길지하차도", visible: true },
+        waitFor: UI.mapPopup,
         focus: ["panel"],
-        say: "노들길지하차도를 열면 위험등급과 시설 정보를 바로 확인할 수 있습니다.",
+        say: "지도에서 노들길지하차도를 골라",
+      },
+      {
+        click: { sel: PopDetail },
+        orElse: [{ click: { sel: Tab, text: "노들길지하차도" } }],
+        focus: ["panel"],
+        say: "상세 보기로 엽니다.",
+        wait: 400,
+      },
+      {
+        scroll: { sel: DetailField, text: "인명피해우려지역" },
+        focus: [{ sel: DetailField, text: "위험등급" }, { sel: DetailField, text: "하천 500m" }, { sel: DetailField, text: "인명피해우려지역" }],
+        say: "샛강에서 500미터 안에 있는 U자형 지하차도이고, 인명피해 우려지역으로 지정되어 있어 침수 때 위험이 큰 곳입니다.",
+        wait: 400,
+      },
+      {
+        scroll: { sel: DetailField, text: "진입차단시설" },
+        focus: [{ sel: DetailField, text: "통제 기준 수심" }, { sel: DetailField, text: "진입차단시설" }],
+        say: "물이 10센티미터만 차도 통제하도록 되어 있고, 진입차단시설도 갖춰져 있습니다.",
+        wait: 600,
       },
     ],
     outro: "물에 잠겼던 자리에 있는 지하차도는 다음 호우 때 가장 먼저 통제를 검토할 곳입니다.",
@@ -1103,12 +1157,31 @@ export const AutoScript: AutoScene[] = [
     region: "seoul",
     intro: "2022년 8월 강남역 일대가 잠겼을 때의 침수흔적과, 지금의 위험지구 지정 현황을 견줘 봅니다.",
     steps: [
-      { focus: ["answer"], say: "강남역 일대는 깊게 잠겼지만, 강남구에는 법정 자연재해위험개선지구가 한 곳도 없다고 나옵니다." },
-      { open: "map", focus: ["panel"], say: "그때의 침수흔적이 지도에 그대로 그려집니다.", wait: 1000 },
       {
-        scroll: { sel: MdTable },
-        focus: [{ sel: MdTable }],
-        say: "이웃한 서초구와 지정 현황을 표로 견줘 볼 수 있습니다.",
+        fold: true,
+        scroll: { sel: MdText, text: "1.8m" },
+        focus: [{ sel: MdText, text: "1.8m" }],
+        say: "2022년 8월 강남역 일대는 최대 1.8미터까지 잠겼습니다.",
+      },
+      // 서울 전체로 맞춘 지도에서는 침수흔적이 너무 작게 보인다 — 답에서 침수흔적을 눌러 그 범위로 확대한다(사용자 지시 2026-11-24)
+      {
+        click: { sel: Entity, text: "강남역사거리 일대" },
+        orElse: [{ open: "map", click: { sel: MapPinAny, text: "강남역사거리" } }],
+        focus: ["panel", { sel: MdText, text: "강남역사거리 일대" }],
+        say: "강남역사거리 일대를 누르면 지도가 그 자리로 다가가, 실제로 잠겼던 범위가 그대로 그려집니다.",
+        wait: 1200,
+      },
+      {
+        click: { sel: Entity, text: "역삼동 858" },
+        orElse: [{ open: "map", click: { sel: MapPinAny, text: "역삼동 858" } }],
+        focus: ["panel", { sel: MdText, text: "역삼동 858" }],
+        say: "바로 옆 역삼동 858 일원은 4만 제곱미터 넘게 잠겼습니다.",
+        wait: 1200,
+      },
+      {
+        scroll: { sel: `${MdTable} tr`, text: "자연재해위험개선지구" },
+        focus: [{ sel: `${MdTable} tr`, text: "자연재해위험개선지구" }],
+        say: "그런데 강남구에는 자연재해위험개선지구가 한 곳도 없습니다. 이웃한 서초구와 표로 바로 견줘 볼 수 있습니다.",
       },
     ],
     outro: "과거 피해와 지금의 지정 현황을 견주면, 관리가 비어 있는 곳을 찾을 수 있습니다.",
@@ -1118,7 +1191,19 @@ export const AutoScript: AutoScene[] = [
     pinId: "IG-SE-03",
     region: "seoul",
     intro: "서울에서 신고가 가장 많았던 날, 비는 얼마나 왔는지 119 신고와 기상 관측을 묶어 봅니다.",
-    steps: [{ focus: ["answer"], say: "신고가 가장 많았던 날과 그날의 강우량, 자치구별 신고 건수가 함께 나옵니다." }],
+    steps: [
+      {
+        fold: true,
+        scroll: { sel: MdText, text: "126.7" },
+        focus: [{ sel: MdText, text: "314건" }, { sel: MdText, text: "126.7" }],
+        say: "신고가 가장 많았던 날과 그날의 강우량이 함께 나오고,",
+      },
+      {
+        scroll: { sel: MdText, text: "은평구" },
+        focus: [{ sel: MdText, text: "은평구" }],
+        say: "자치구별 신고 건수까지 정리됩니다.",
+      },
+    ],
     outro: "신고 기록과 그날의 비를 함께 보면, 비슷한 비가 올 때 어느 동네에서 신고가 몰릴지 가늠할 수 있습니다.",
   },
   {
@@ -1128,6 +1213,7 @@ export const AutoScript: AutoScene[] = [
     intro: "재난문자에는 개인정보가 담길 때가 있습니다. 같은 기간 서울에서 나간 실종자 찾기 문자를 봅니다.",
     steps: [
       {
+        fold: true,
         scroll: { sel: `${BodyBox} li`, text: "노원구" },
         focus: [{ sel: BodyBox }],
         say: "실종자의 이름과 나이, 인상착의, 사진 주소는 원천에서 가려져 오고, 화면에는 가림으로 표시됩니다.",

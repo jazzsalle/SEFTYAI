@@ -30,6 +30,8 @@ export interface AutoDemoActions {
   layout: () => void
   /** 우측 패널에서 연다. */
   open: (what: NonNullable<AutoScene["open"]>) => void
+  /** 우측 패널을 접는다 — 지도가 필요 없고 답 글을 넓게 볼 장면(사용자 지시 2026-11-24). */
+  fold: () => void
 }
 
 interface Run {
@@ -246,6 +248,10 @@ export function useAutoDemo(actions: AutoDemoActions) {
         if (run.skip) return
         await gate(run)
         let missing = false
+        if (st.fold) {
+          act.current.fold()
+          await wait(700, run)
+        }
         if (st.open) {
           act.current.open(st.open)
           // 지도는 처음 열릴 때 답의 대상 전체로 한 번 맞춘다 — 그 전에 누르면 확대가 덮인다.

@@ -543,6 +543,7 @@ function Explore() {
     ask: (a) => ask(a),
     layout: () => { setQueueOpen(false); setLibOpen(false); setChatW(55); },
     open: (what) => { setPanelOpen(true); setActive(what); },
+    fold: () => setPanelOpen(false),
   });
 
   /**

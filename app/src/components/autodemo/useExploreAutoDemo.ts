@@ -24,6 +24,7 @@ export function useExploreAutoDemo(p: {
   ask: Ask;
   layout: () => void;
   open: (what: "map" | "summary") => void;
+  fold: () => void;
 }) {
   const s = useSession();
   const sRef = useRef(s);
@@ -75,6 +76,7 @@ export function useExploreAutoDemo(p: {
     },
     layout: () => pRef.current.layout(),
     open: (what) => pRef.current.open(what),
+    fold: () => pRef.current.fold(),
   });
 
   // 머리 메뉴 [자동 시연] · 다른 화면에서 옮겨 온 /explore?autodemo=1
