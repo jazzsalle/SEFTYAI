@@ -503,6 +503,9 @@ interface Api {
 
 const EMPTY_NAMES: ReadonlyMap<string, string> = new Map();
 
+/** 보던 자리를 되살려도 되는 같은 화면 — 같은 답·같은 기준지역(접은 사이 기준지역을 바꾸면 그 지역으로 맞춘다, 2026-11-25) */
+const viewKey = (p: Pick<Props, "scope" | "region" | "baseCode" | "areaToken">) => `${p.scope ?? ""}|${p.region}|${p.baseCode ?? ""}|${p.areaToken ?? ""}`;
+
 export default function MapView(p: Props) {
   const el = useRef<HTMLDivElement>(null);
   const propsRef = useRef(p);
@@ -536,7 +539,7 @@ export default function MapView(p: Props) {
     const P0 = propsRef.current;
     const r0 = REGIONS[P0.region] ?? REGIONS.national;
     // 패널을 접었다 편 것 — 같은 답이면 보던 자리 그대로(lib/mapMemory)
-    const kept = keptView(P0.scope ?? "");
+    const kept = keptView(viewKey(P0));
     restored.current = !!kept;
 
     // ── 배경지도: VWorld WMTS (일반·영상+하이브리드) · 실패하면 대체 없이 회색 바탕 + 알림(개발서버)
@@ -1265,7 +1268,7 @@ export default function MapView(p: Props) {
       vp.removeEventListener("pointerleave", onLeave);
       vp.removeEventListener("wheel", onWheel);
       propsRef.current.onMap?.(null);
-      keepView(propsRef.current.scope ?? "", m.getView().getCenter(), m.getView().getZoom());
+      keepView(viewKey(propsRef.current), m.getView().getCenter(), m.getView().getZoom());
       m.setTarget(undefined);
       m.dispose();
       api.current = null;
