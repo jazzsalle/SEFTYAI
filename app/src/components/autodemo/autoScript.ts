@@ -1076,6 +1076,93 @@ export const AutoScript: AutoScene[] = [
     ],
     outro: "",
   },
+  // 2026-11-24 실장 보고 — 조건 질의(강우·하천 수위·풍속 + 피해·통제 키워드). 조건 입력은 실제로 보이고 답은 같은 조건으로 받아 둔 CQ-BS-03.
+  // 답 값은 11/24 T3Q 실측 그대로: 「가」 등급 개선지구 6곳 → 붕괴위험 급경사지 → 통제할 지하차도, 온천천 연산교 주의 기준수위 4.02m
+  {
+    label: "부산 · 강우·하천 수위·풍속 조건으로 묻기",
+    region: "busan",
+    intro: "비가 이어지는 지금 상황을 조건으로 넣고 직접 물어봅니다.",
+    steps: [
+      {
+        click: { sel: CondOpen, text: "조건 변경" },
+        waitFor: ".cond-field",
+        focus: [{ sel: ".cond-modal" }],
+        say: "재난상황 조건 창에",
+      },
+      {
+        fill: { at: { sel: `input[aria-label="3시간 누적 값 (mm)"]` }, value: "70" },
+        focus: [{ sel: ".cond-measure", text: "3시간 누적" }],
+        say: "3시간 누적 강우 70밀리미터,",
+      },
+      {
+        fill: { at: { sel: `input[aria-label="하천 수위 값 (m)"]` }, value: "3.5" },
+        focus: [{ sel: ".cond-measure", text: "하천 수위" }],
+        say: "하천 수위 3.5미터,",
+      },
+      {
+        fill: { at: { sel: `input[aria-label="풍속 값 (m/s)"]` }, value: "15" },
+        focus: [{ sel: ".cond-measure", text: "풍속" }],
+        say: "풍속 초속 15미터를 넣고,",
+      },
+      {
+        fill: { at: { sel: ".cond-pick", text: "피해·통제" }, value: "침수, 하천 범람" },
+        focus: [{ sel: ".cond-pick", text: "피해·통제" }],
+        say: "피해·통제 키워드에 침수와 하천 범람을 적습니다.",
+      },
+      { click: { sel: CondApply, text: "적용" }, wait: 400 },
+      { fill: { at: { sel: UI.questionBox }, value: "재난상황 조건에서 가장 먼저 확인해야 할 우선 위험지역은?" } },
+      { look: { sel: UI.askButton, text: "질의" }, play: "CQ-BS-03" },
+      {
+        fold: true,
+        scroll: { sel: MdText, text: "입력하신 조건" },
+        focus: [{ sel: MdText, text: "입력하신 조건" }],
+        say: "답은 넣은 조건을 그대로 받아,",
+      },
+      {
+        scroll: { sel: MdTable },
+        focus: [{ sel: MdTable }],
+        say: "‘가’ 등급 자연재해위험개선지구부터 붕괴위험 급경사지, 통제할 지하차도 순으로 정리합니다.",
+      },
+      {
+        scroll: { sel: MdText, text: "연산교" },
+        focus: [{ sel: MdText, text: "연산교" }],
+        say: "넣은 하천 수위로 온천천 연산교가 주의 기준수위 4.02미터에 가깝다는 것도 짚어 줍니다.",
+      },
+      // 자저감 위험지역은 위성지도로 보인다(사용자 지시 2026-11-24)
+      { open: "map", openWait: 400, focus: ["panel"], say: "위성지도에서 위치를 함께 봅니다." },
+      { silentClick: { sel: `${Panel} .map-sat:not(.is-on)` }, wait: 1800 },
+      // 뒷장면에 남지 않게 — 위성 끄기 · 조건 되돌리기
+      { silentClick: { sel: `${Panel} .map-sat.is-on` }, wait: 200 },
+      { silentClick: { sel: CondOpen, text: "조건 변경" }, wait: 400 },
+      { silentClick: { sel: CondReset, text: "기본 조건으로" }, wait: 200 },
+      { silentClick: { sel: CondApply, text: "적용" }, wait: 200 },
+    ],
+    outro: "",
+  },
+  // 2026-11-24 실장 보고 — 위 개선지구의 근거인 자연재해저감종합계획 위치도를 근거 문서 본문 그림으로 연다(IG-BS-20, T3Q 실측 11/24)
+  {
+    label: "부산 · 자연재해저감종합계획 위험지구 위치도",
+    pinId: "IG-BS-20",
+    region: "busan",
+    intro: "이 위험지구들이 자연재해저감종합계획 어디에 근거하는지 확인합니다.",
+    steps: [
+      {
+        fold: true,
+        scroll: { sel: MdTable },
+        focus: [{ sel: MdTable }],
+        say: "재해 유형별 위험지구 위치도가 실린 쪽까지 근거 문서로 정리됩니다.",
+      },
+      {
+        scroll: { sel: `${LastTurn} .edp-fig`, text: "내수재해" },
+        click: { sel: `${LastTurn} .edp-fig`, text: "내수재해" },
+        waitFor: ".edp-figure .edp-img",
+        focus: ["panel", { sel: `${LastTurn} .edp-fig`, text: "내수재해" }],
+        say: "내수재해 위험지구 위치도를 열면, 문서 본문 그림에 위험지구 경계가 그대로 그려져 있습니다.",
+        wait: 1800,
+      },
+    ],
+    outro: "",
+  },
   {
     label: "부산 · 호우경보 때 매뉴얼상 누가 무엇을",
     pinId: "IG-BS-16",
@@ -1089,29 +1176,7 @@ export const AutoScript: AutoScene[] = [
         focus: [{ sel: MdText, text: "비상1단계" }, { sel: MdText, text: "간선" }],
         say: "호우경보가 나면 비상 1단계로 올라가고, 통제는 하천변 산책로부터 하천 옆 지하차도, 주요 간선 지하차도 순서로 하도록 되어 있습니다.",
       },
-      {
-        scroll: { sel: MdTable },
-        focus: [{ sel: MdTable }],
-      },
-      {
-        click: { sel: `${LastTurn} .doc-cite` },
-        waitFor: ".edp-tabs",
-        focus: ["panel"],
-        say: "근거를 누르면 매뉴얼 해당 쪽이 열리고,",
-        wait: 400,
-      },
-      // 인용 부분은 글이 짧다 — 쪽 전체와 원본 쪽을 보인다(사용자 지시 2026-11-24)
-      {
-        click: { sel: ".edp-tab", text: "쪽 전체" },
-        focus: ["panel"],
-        wait: 1000,
-      },
-      {
-        click: { sel: ".edp-tab", text: "원본 쪽" },
-        focus: ["panel"],
-        say: "원본 쪽으로 책자 모습도 봅니다.",
-        wait: 1200,
-      },
+      // 근거 쪽 보기는 뺐다 — 바로 대응절차로(사용자 지시 2026-11-24). 근거 문서·본문 그림은 서울 사건 장면에서 보인다
       ...sopSteps("대응절차에는 현장조치 행동매뉴얼이 단계별로 정리되어 있고,"),
     ],
   },
@@ -1228,28 +1293,12 @@ export const AutoScript: AutoScene[] = [
         focus: [{ sel: MdTable }],
         say: "구역 안과 경계 옆 지하차도가 나뉘어 정리됩니다.",
       },
-      // 지도 아이콘 → 말풍선 [상세 보기]로 상세를 열고, 왜 위험한지 상세 본문을 짚으며 말한다(사용자 지시 2026-11-24).
-      // 노들길은 동 중심 점(dong_center)이라 정확 위치 점(Pin)이 아니다 — 답 속 이름을 눌러 지도를 그 자리로 옮긴 뒤 지도의 점을 누른다.
-      // 상세 값은 T3Q-15 UP-831 실측(11/24): 위험등급 4 · 샛강 500m 안 · U형 · 인명피해우려지역 예 · 통제 수심 10cm · 스크린
-      { open: "map", focus: ["panel"], wait: 800 },
-      { click: { sel: Entity, text: "노들길지하차도" }, focus: ["panel"], wait: 1200 },
+      // 서울은 줄인다 — 지도 패널을 보이고 노들길은 짚기만 하고 바로 사건 깊이 보기로(사용자 지시 2026-11-24). 상세 열기는 뺐다
+      { open: "map", focus: ["panel"], wait: 600 },
       {
-        click: { sel: MapPinAny, text: "노들길지하차도", visible: true },
-        waitFor: UI.mapPopup,
-        focus: ["panel"],
-        say: "2022년 8월 침수이력이 있는 노들길지하차도를 선택하여 상세정보를 확인합니다.",
-      },
-      {
-        click: { sel: PopDetail },
-        orElse: [{ click: { sel: Tab, text: "노들길지하차도" } }],
-        focus: ["panel"],
-        wait: 400,
-      },
-      // 군더더기 없이 「차단시설 같은 것까지 볼 수 있다」로 끝낸다(사용자 지시 2026-11-24)
-      {
-        scroll: { sel: DetailField, text: "진입차단시설" },
-        focus: [{ sel: DetailField, text: "위험등급" }, { sel: DetailField, text: "인명피해우려지역" }, { sel: DetailField, text: "진입차단시설" }, { sel: DetailField, text: "진입차단시설", next: true }],
-        say: "위험등급과 인명피해 우려, 진입차단시설까지 볼 수 있습니다.",
+        scroll: { sel: `${MdTable} tr`, text: "노들길지하차도" },
+        focus: ["panel", { sel: `${MdTable} tr`, text: "노들길지하차도" }],
+        say: "그중 2022년 8월 침수이력이 있는 노들길지하차도는 위험등급이 높아 침수 때 위험이 큰 곳입니다.",
         wait: 600,
       },
     ],
@@ -1288,8 +1337,8 @@ export const AutoScript: AutoScene[] = [
       {
         scroll: { sel: MdText, text: "상황전파" },
         focus: [{ sel: MdText, text: "재해연보" }, { sel: MdText, text: "일일상황보고" }, { sel: MdText, text: "상황전파" }],
-        say: "근거 문서도 함께 제시됩니다.",
-        wait: 400,
+        say: "근거로는 재해연보와 일일상황보고, 상황전파와 재난문자 발송 이력까지 문서별로 제시됩니다.",
+        wait: 800,
       },
     ],
     outro: "",
@@ -1554,21 +1603,21 @@ DemoScenarios.push(
   },
   {
     id: "seoul-busan-inje",
-    name: "서울 + 부산 + 인제",
-    desc: "부산 AI 모드 특보 감지·브리핑 → 추천 질문 2020년 침수흔적 → 경보와 통제 시각 → 매뉴얼 근거·대응절차, 이어서 서울 노들길지하차도 → 2022년 8월 사건 깊이 보기 → 비슷했던 과거 호우와 사건 상세 패널 → 개인정보 가림, 인제 캠핑장 주변 사면",
+    name: "부산 + 서울",
+    desc: "부산 AI 모드 특보 감지·브리핑 → 추천 질문 2020년 침수흔적 → 경보와 통제 시각 → 강우·하천 수위·풍속 조건 질의 → 자연재해저감종합계획 위험지구 위치도 → 대응절차, 이어서 서울 노들길지하차도 → 2022년 8월 사건 깊이 보기 → 비슷했던 과거 호우와 사건 상세 패널 → 개인정보 가림",
     minutes: "1.2배속 약 12~13분",
     scenes: [
       ...AimStart,
       "부산 · 추천 질문으로 2020년 침수흔적",
       "부산 · 경보는 20시, 통제는 22시 53분",
+      "부산 · 강우·하천 수위·풍속 조건으로 묻기",
+      "부산 · 자연재해저감종합계획 위험지구 위치도",
       "부산 · 호우경보 때 매뉴얼상 누가 무엇을",
       "전환 · 서울특별시",
       "서울 · 침수흔적 구역 안 지하차도",
       "서울 · 2022년 8월 노들길이 잠긴 사건 깊이 보기",
       "서울 · 2022년 8월 같은 비, 비슷했던 과거 호우",
       "서울 · 개인정보는 가려서 보여 줍니다",
-      "전환 · 인제군",
-      "인제 · 하천 인접 캠핑장 주변 범람 위험",
       "마무리",
     ],
     text: {
