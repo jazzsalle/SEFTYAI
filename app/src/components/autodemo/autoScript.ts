@@ -30,6 +30,8 @@ export interface Target {
   largest?: boolean
   /** 지금 화면에 실제로 보이는 것만(지도 점 — 화면 밖·다른 것에 가린 점은 누를 수 없다). */
   visible?: boolean
+  /** 찾은 요소 바로 다음 요소(상세의 칸 이름 dt → 값 dd) — 이름과 값을 함께 강조할 때(사용자 지시 2026-11-24). */
+  next?: boolean
 }
 
 /** 강조할 곳 — 이름(FocusName) 또는 직접 집은 요소. */
@@ -940,7 +942,7 @@ export const AutoScript: AutoScene[] = [
       },
       {
         scroll: { sel: DetailField, text: "진입차단시설" },
-        focus: [{ sel: DetailField, text: "진입차단시설" }, { sel: DetailField, text: "통제 기준 수심" }],
+        focus: [{ sel: DetailField, text: "진입차단시설" }, { sel: DetailField, text: "진입차단시설", next: true }, { sel: DetailField, text: "통제 기준 수심" }, { sel: DetailField, text: "통제 기준 수심", next: true }],
         say: "진입차단시설과 통제 기준 수심까지 나와 있어, 경보가 나면 바로 차단을 준비할 수 있습니다.",
         wait: 600,
       },
@@ -1143,13 +1145,13 @@ export const AutoScript: AutoScene[] = [
       },
       {
         scroll: { sel: DetailField, text: "인명피해우려지역" },
-        focus: [{ sel: DetailField, text: "위험등급" }, { sel: DetailField, text: "하천 500m" }, { sel: DetailField, text: "인명피해우려지역" }],
+        focus: [{ sel: DetailField, text: "위험등급" }, { sel: DetailField, text: "위험등급", next: true }, { sel: DetailField, text: "하천 500m" }, { sel: DetailField, text: "하천 500m", next: true }, { sel: DetailField, text: "인명피해우려지역" }, { sel: DetailField, text: "인명피해우려지역", next: true }],
         say: "샛강에서 500미터 안에 있는 U자형 지하차도이고, 인명피해 우려지역으로 지정되어 있어 침수 때 위험이 큰 곳입니다.",
         wait: 400,
       },
       {
         scroll: { sel: DetailField, text: "진입차단시설" },
-        focus: [{ sel: DetailField, text: "통제 기준 수심" }, { sel: DetailField, text: "진입차단시설" }],
+        focus: [{ sel: DetailField, text: "통제 기준 수심" }, { sel: DetailField, text: "통제 기준 수심", next: true }, { sel: DetailField, text: "진입차단시설" }, { sel: DetailField, text: "진입차단시설", next: true }],
         say: "물이 10센티미터만 차도 통제하도록 되어 있고, 진입차단시설도 갖춰져 있습니다.",
         wait: 600,
       },
