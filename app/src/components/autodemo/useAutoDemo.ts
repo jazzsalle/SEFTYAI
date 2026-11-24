@@ -245,6 +245,8 @@ export function useAutoDemo(actions: AutoDemoActions) {
 
     /** 답을 놓은 뒤의 화면 동작(5차안). 집을 요소가 없으면 동작만 건너뛰고 자막은 읽는다. */
     const runSteps = async (steps: DemoStep[], run: Run): Promise<void> => {
+      // sayOver 걸음의 자막은 읽는 동안 다음 걸음(강조 옮기기 등)을 이어 간다 — 다음 자막 앞에서만 끝나기를 기다린다(2026-11-25 조건 입력)
+      let talking: Promise<void> | null = null
       for (const st of steps) {
         if (run.skip) return
         await gate(run)
@@ -414,12 +416,18 @@ export function useAutoDemo(actions: AutoDemoActions) {
           if (st.waitFor && !missing) await until(st.waitFor, 4000, run)
           // 못 찾아 대신 걸음(orElse)이 제 강조를 세웠으면 그대로 둔다 — 못 찾은 원래 대상으로 덮으면 박스가 사라진다(11/19 인제 점검 기록)
           if (st.focus && !(missing && st.orElse?.some((o) => o.focus))) setFocus(st.focus)
-          await say(st.say, voiceRef.current, run)
+          if (st.say && talking) {
+            await talking
+            talking = null
+          }
+          if (st.sayOver) talking = say(st.say, voiceRef.current, run)
+          else await say(st.say, voiceRef.current, run)
           if (st.wait) await wait(st.wait, run)
         } finally {
           window.clearInterval(keep)
         }
       }
+      if (talking) await talking
     }
 
     speech.cancel()

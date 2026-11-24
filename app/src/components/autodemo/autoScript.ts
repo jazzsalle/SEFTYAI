@@ -64,6 +64,8 @@ export interface DemoStep {
   /** 집을 요소가 없을 때 대신 돌 걸음. */
   orElse?: DemoStep[]
   /** 입력칸에 글자를 한 자씩 넣는다. at 이 입력칸이 아니면 그 안의 입력칸에 넣는다. */
+  /** 자막을 읽기 시작하고 끝나기를 기다리지 않고 다음 걸음으로 — 강조를 자연스럽게 옮겨 가며 한 문장을 읽을 때(2026-11-25) */
+  sayOver?: boolean
   /** scroll 대상을 가운데가 아니라 위에 맞춘다 — 표의 제목 열이 보이게(2026-11-24) */
   scrollTop?: boolean
   fill?: { at: Target; value: string }
@@ -964,6 +966,8 @@ export const AutoScript: AutoScene[] = [
         wait: 1500,
       },
       {
+        // 버튼이 화면 밖이면 누르는 모습이 안 보인다 — 가운데로 올려 보이고 누른다(사용자 지시 2026-11-25)
+        scroll: { sel: `${LastTurn} .sm-expand` },
         click: { sel: `${LastTurn} .sm-expand` },
         wait: 300,
       },
@@ -1263,7 +1267,14 @@ export const AutoScript: AutoScene[] = [
     region: "busan",
     intro: "비가 이어지는 지금 상황을 조건으로 넣고 직접 물어봅니다.",
     steps: [
-      { click: { sel: CondOpen, text: "조건 변경" }, waitFor: ".cond-field", focus: [{ sel: ".cond-modal" }] },
+      // 한 문장으로 읽는 동안 강조가 칸을 따라 옮겨 간다 — 상자마다 따로 설명하거나 기다리지 않는다(사용자 지시 2026-11-25)
+      {
+        click: { sel: CondOpen, text: "조건 변경" },
+        waitFor: ".cond-field",
+        focus: [{ sel: ".cond-modal" }],
+        say: "강우와 하천 수위·유량, 풍속 같은 재난상황 조건을 설정하고 질의합니다.",
+        sayOver: true,
+      },
       { silentClick: { sel: ".cond-noperiod input:not(:checked)" } },
       {
         fills: [
@@ -1279,15 +1290,12 @@ export const AutoScript: AutoScene[] = [
         ],
         scroll: { sel: ".cond-noperiod" },
         focus: [{ sel: ".cond-noperiod" }, { sel: ".cond-detail > .cond-two" }, { sel: ".cond-pick", text: "피해·통제" }],
-        say: "지금 상황을 조건으로 넣습니다.",
-        wait: 400,
+        wait: 1200,
       },
-      // 넣은 값을 굴려 보이고 적용(사용자 지시 2026-11-24)
       {
         scroll: { sel: ".cond-detail > .cond-two:last-child" },
         focus: [{ sel: ".cond-detail > .cond-two:last-child" }],
-        say: "강우와 하천 수위·유량, 풍속 값을 넣고 적용합니다.",
-        wait: 400,
+        wait: 1600,
       },
       { click: { sel: CondApply, text: "적용" }, wait: 400 },
       { fill: { at: { sel: UI.questionBox }, value: "재난상황 조건에서 가장 먼저 확인해야 할 우선 위험지역과, 이 조건과 비슷했던 과거 호우 사례를 유사도 순으로 보여줘." } },
