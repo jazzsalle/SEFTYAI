@@ -916,7 +916,20 @@ export const AutoScript: AutoScene[] = [
         click: { sel: Tab, text: "장전지하차도" },
         orElse: [{ click: { sel: RefDetail } }],
         focus: ["panel"],
-        say: "온천천 옆 장전지하차도를 열면 통제 기준과 차단시설을 상세에서 확인할 수 있습니다.",
+        say: "온천천 옆 장전지하차도의 상세를 열어 봅니다.",
+      },
+      // 상세를 연 뒤 내려서 위험·취약정보 → 진입차단시설을 짚으며 말한다(사용자 지시 2026-11-24). 값은 T3Q-15 UP-630 실측(11/24)
+      {
+        scroll: { sel: DetailField, text: "위험·취약정보" },
+        focus: [{ sel: DetailField, text: "위험·취약정보" }],
+        say: "아래로 내려 위험·취약정보를 보면, 하천 500미터 안에 있는 U자형 지하차도이고,",
+        wait: 400,
+      },
+      {
+        scroll: { sel: DetailField, text: "진입차단시설" },
+        focus: [{ sel: DetailField, text: "진입차단시설" }, { sel: DetailField, text: "통제 기준 수심" }],
+        say: "진입차단시설과 통제 기준 수심까지 나와 있어, 경보가 나면 바로 차단을 준비할 수 있습니다.",
+        wait: 600,
       },
     ],
     outro: "경보가 나기 전에 통제를 준비할 곳을 목록과 지도로 함께 확인했습니다.",
@@ -947,7 +960,12 @@ export const AutoScript: AutoScene[] = [
     region: "busan",
     intro: "같은 날 특보와 재난문자, 통제가 어떤 순서로 이뤄졌는지 사건 타임라인으로 되짚습니다.",
     steps: [
-      { focus: ["answer"], say: "호우특보와 재난문자, 도로와 지하차도 통제가 시간순으로 정리됩니다." },
+      // 「시간순」이라고 말할 때 이미 표가 보이게 내려 짚는다(사용자 지시 2026-11-24)
+      {
+        scroll: { sel: MdTable },
+        focus: [{ sel: MdTable }],
+        say: "호우특보와 재난문자, 도로와 지하차도 통제가 시간순으로 정리됩니다.",
+      },
       {
         scroll: { sel: `${MdTable} tr`, text: "20:00" },
         focus: [{ sel: `${MdTable} tr`, text: "20:00" }],
@@ -963,7 +981,13 @@ export const AutoScript: AutoScene[] = [
         waitFor: EventTimeline,
         orElse: [{ click: { sel: RefDetail }, waitFor: EventTimeline }],
         focus: ["panel"],
-        say: "사건을 열면 당시 발송된 재난문자와 특보 기록을 원본 그대로 시간순으로 확인할 수 있습니다.",
+        say: "사건을 열어 보면,",
+      },
+      {
+        scroll: { sel: `${EventTimeline} > li` },
+        focus: [{ sel: EventTimeline }],
+        say: "당시 발송된 재난문자와 특보 기록이 원본 그대로 시간순으로 이어집니다.",
+        wait: 600,
       },
     ],
     outro: "경보가 난 뒤 무엇을 언제 통제해야 하는지, 지금의 매뉴얼로 이어서 확인합니다.",
