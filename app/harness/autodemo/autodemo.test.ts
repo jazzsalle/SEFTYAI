@@ -169,7 +169,8 @@ describe("자동 시연 시나리오(2026-11-18 사용자 지시 — 부산+인�
       const sc = scenarioScenes(id);
       // 예비특보를 빼고 초록에서 바로 호우주의보로(사용자 지시 2026-11-24)
       expect(sc.slice(0, 3).map((s) => s.label)).toEqual(["프롤로그 · AI 모드 소개", "15:00 · 호우주의보, AI 모드", "15:05 · 현재 상황 브리핑"]);
-      expect(sc.at(-1)?.intro).toBe("이상으로 시연을 마치겠습니다.");
+      // 부산+인제(중간)은 한 줄 마무리 + 맺음말(사용자 지시 2026-11-24)
+      expect(sc.at(-1)?.intro).toMatch(/이상으로 시연을 마치겠습니다.$/);
       const manual = sc.find((s) => s.pinId === "IG-BS-16")!;
       expect(manual.steps?.some((st) => st.click?.sel === ".wxbar .wxsop")).toBe(true);
       for (const s of sc.filter((x) => x.pinId === "IG-BS-17" || x.pinId === "IG-SE-03")) expect(JSON.stringify(s.steps)).not.toContain("click");

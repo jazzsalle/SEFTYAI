@@ -64,6 +64,8 @@ export interface DemoStep {
   /** 집을 요소가 없을 때 대신 돌 걸음. */
   orElse?: DemoStep[]
   /** 입력칸에 글자를 한 자씩 넣는다. at 이 입력칸이 아니면 그 안의 입력칸에 넣는다. */
+  /** scroll 대상을 가운데가 아니라 위에 맞춘다 — 표의 제목 열이 보이게(2026-11-24) */
+  scrollTop?: boolean
   fill?: { at: Target; value: string }
   /** 여러 칸을 한 번에 채운다 — 한 칸씩 치는 모습 없이(조건 창, 2026-11-24 사용자 지시 「한번에 탁 입력」) */
   fills?: { at: Target; value: string }[]
@@ -483,6 +485,7 @@ export const AutoScript: AutoScene[] = [
       // 말만 하고 화면이 멈춰 있지 않게 실제로 내려 짚는다(사용자 지시 2026-11-24). 답은 실제로 받아 오므로 표가 없으면 소제목, 그것도 없으면 그대로.
       {
         scroll: { sel: ".brief-big table" },
+        scrollTop: true,
         focus: [{ sel: ".brief-big table" }],
         orElse: [{ scroll: { sel: ".brief-big h3" }, focus: [{ sel: ".brief-big h3" }] }],
         say: "대상마다 위치와 통제 기준이 함께 나옵니다.",
@@ -987,20 +990,6 @@ export const AutoScript: AutoScene[] = [
         say: "가장 많이 잠긴 곳은 기장 신천죽성지구3입니다.",
         wait: 1200,
       },
-      // 지도 점 → 말풍선 [상세 보기] → 상세 칸(사용자 지시 2026-11-24 「지도 객체 POI 상세보기 하나 추가」)
-      {
-        click: { sel: MapPinAny, text: "신천죽성지구3", visible: true },
-        waitFor: UI.mapPopup,
-        focus: ["panel"],
-        wait: 600,
-      },
-      {
-        click: { sel: PopDetail },
-        orElse: [{ click: { sel: Tab, text: "신천죽성지구3" } }],
-        focus: ["panel"],
-        say: "지도에서 그 지점을 눌러 상세 보기로 침수흔적의 속성을 바로 확인합니다.",
-        wait: 800,
-      },
     ],
     outro: "",
   },
@@ -1283,8 +1272,17 @@ export const AutoScript: AutoScene[] = [
           { at: { sel: `input[aria-label="풍속 값 (m/s)"]` }, value: "15" },
           { at: { sel: ".cond-pick", text: "피해·통제" }, value: "침수, 하천 범람" },
         ],
-        focus: [{ sel: ".cond-modal" }],
-        say: "지금 상황 값을 조건으로 넣고 적용합니다.",
+        scroll: { sel: ".cond-noperiod" },
+        focus: [{ sel: ".cond-noperiod" }, { sel: ".cond-detail > .cond-two" }, { sel: ".cond-pick", text: "피해·통제" }],
+        say: "지금 상황을 조건으로 넣습니다.",
+        wait: 400,
+      },
+      // 넣은 값을 굴려 보이고 적용(사용자 지시 2026-11-24)
+      {
+        scroll: { sel: ".cond-detail > .cond-two:last-child" },
+        focus: [{ sel: ".cond-detail > .cond-two:last-child" }],
+        say: "강우와 하천 수위·유량, 풍속 값을 넣고 적용합니다.",
+        wait: 400,
       },
       { click: { sel: CondApply, text: "적용" }, wait: 400 },
       { fill: { at: { sel: UI.questionBox }, value: "재난상황 조건에서 가장 먼저 확인해야 할 우선 위험지역과, 이 조건과 비슷했던 과거 호우 사례를 유사도 순으로 보여줘." } },
@@ -1292,8 +1290,14 @@ export const AutoScript: AutoScene[] = [
       {
         fold: true,
         scroll: { sel: MdText, text: "입력하신 조건" },
-        focus: [{ sel: MdText, text: "입력하신 조건" }, { sel: `${BodyBox} h4`, text: "재해위험개선지구" }],
-        say: "답은 넣은 조건을 받아 우선 점검할 위험지역부터 정리하고,",
+        focus: [{ sel: MdText, text: "입력하신 조건" }],
+        say: "답은 넣은 조건을 그대로 받아,",
+      },
+      // 답 내용 설명(사용자 지시 2026-11-24) — CQ-BS-04 11/24 받은 답의 소제목 ①②③ 그대로
+      {
+        scroll: { sel: `${BodyBox} h4`, text: "급경사" },
+        focus: [{ sel: `${BodyBox} h4`, text: "재해위험개선지구" }, { sel: `${BodyBox} h4`, text: "급경사" }, { sel: `${BodyBox} h4`, text: "홍수취약지구" }],
+        say: "가 등급 재해위험개선지구, 붕괴위험 급경사지, 하천 홍수취약지구 순으로 먼저 점검할 곳을 짚어 줍니다.",
       },
       {
         scroll: { sel: `${MdTable} tr`, text: "90.09" },
@@ -1386,6 +1390,7 @@ export const AutoScript: AutoScene[] = [
       },
       {
         scroll: { sel: MdTable },
+        scrollTop: true,
         focus: [{ sel: MdTable }],
         say: "구·군별로 어떤 신고가 몇 건이었는지도 정리됩니다.",
       },
@@ -1818,6 +1823,8 @@ DemoScenarios.push(
       ...InjeShort,
       ...ShortEnd,
       ...DirectWarn,
+      // 인제 뒤 짧게 한 줄 마무리(사용자 지시 2026-11-24)
+      마무리: { intro: "특보부터 과거 사건, 지금 조건, 대응절차까지 한 화면에서 이어 확인할 수 있습니다. 이상으로 시연을 마치겠습니다." },
     },
   },
 )

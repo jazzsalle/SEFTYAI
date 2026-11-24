@@ -267,7 +267,9 @@ export function useAutoDemo(actions: AutoDemoActions) {
             s = resolve(st.scroll)
           }
           if (s) {
-            document.querySelector(s)?.scrollIntoView({ behavior: "smooth", block: "center" })
+            // 표는 제목 열이 보이게 위에 맞춘다(scrollTop — 사용자 지시 2026-11-24)
+            const block: ScrollLogicalPosition = st.scrollTop ? "start" : "center"
+            document.querySelector(s)?.scrollIntoView({ behavior: "smooth", block })
             // 위의 한눈 요약 카드가 늦게 다 만들어져 커지면 짚은 곳이 화면 밖으로 밀린다 —
             // 이 걸음 동안 밀려 나가면 다시 굴린다(2026-11-18 자동 시연 점검).
             // 화면 갱신이 느린 PC(창 가림·원격 등)에서는 부드러운 굴림이 끝나지 않는다 —
@@ -282,9 +284,9 @@ export function useAutoDemo(actions: AutoDemoActions) {
                 return
               }
               out++
-              if (out === 1) el.scrollIntoView({ behavior: "smooth", block: "center" })
+              if (out === 1) el.scrollIntoView({ behavior: "smooth", block })
               else if (out >= 3) {
-                el.scrollIntoView({ behavior: "auto", block: "center" })
+                el.scrollIntoView({ behavior: "auto", block })
                 out = 0
               }
             }, 400)
