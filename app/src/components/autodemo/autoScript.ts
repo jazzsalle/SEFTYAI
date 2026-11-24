@@ -1091,7 +1091,7 @@ export const AutoScript: AutoScene[] = [
   {
     label: "부산 · 강우·하천 수위·풍속 조건으로 묻기",
     region: "busan",
-    intro: "비가 이어지는 지금 상황을 조건으로 넣고 직접 물어봅니다.",
+    intro: "비가 이어지는 상황에서, 담당자가 재난상황 조건을 직접 설정해 물어봅니다.",
     steps: [
       {
         click: { sel: CondOpen, text: "조건 변경" },
@@ -1265,7 +1265,7 @@ export const AutoScript: AutoScene[] = [
   {
     label: "부산 · 지금 조건으로 우선 위험지역과 비슷했던 호우 묻기",
     region: "busan",
-    intro: "비가 이어지는 지금 상황을 조건으로 넣고 직접 물어봅니다.",
+    intro: "비가 이어지는 상황에서, 담당자가 재난상황 조건을 직접 설정해 물어봅니다.",
     steps: [
       // 한 문장으로 읽는 동안 강조가 칸을 따라 옮겨 간다 — 상자마다 따로 설명하거나 기다리지 않는다(사용자 지시 2026-11-25)
       {
@@ -1305,7 +1305,7 @@ export const AutoScript: AutoScene[] = [
         fold: true,
         scroll: { sel: `${BodyBox} h4`, text: "재해위험개선지구", next: true },
         focus: [{ sel: `${BodyBox} h4`, text: "재해위험개선지구" }, { sel: `${BodyBox} h4`, text: "재해위험개선지구", next: true }],
-        say: "지금 조건에서 먼저 점검할 곳으로 가 등급 재해위험개선지구,",
+        say: "설정한 조건에서 먼저 점검할 곳으로 가 등급 재해위험개선지구,",
         wait: 500,
       },
       {
@@ -1337,7 +1337,7 @@ export const AutoScript: AutoScene[] = [
       {
         scroll: { sel: ".evp-fold .evp-table" },
         focus: [{ sel: ".evp-fold .evp-table" }],
-        say: "지금 조건과 그 사건이 왜 비슷한지 유사도 근거를 요인별로 확인할 수 있습니다.",
+        say: "설정한 조건과 그 사건이 왜 비슷한지 유사도 근거를 요인별로 확인할 수 있습니다.",
         wait: 1200,
       },
       // 뒷장면에 남지 않게 — 조건 되돌리기
