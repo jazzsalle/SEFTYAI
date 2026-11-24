@@ -424,6 +424,10 @@ export function useAutoDemo(actions: AutoDemoActions) {
           await wait(300, run)
           act.current.open(scene.introOpen)
           setFocus(["panel"])
+          if (scene.introSat) {
+            await wait(600, run)
+            press(".rpanel .map-sat:not(.is-on)")
+          }
         }
 
         // 원 질문의 답이 없고 대체 질문으로 갈 때는 그 질문에 맞는 안내를 읽는다.

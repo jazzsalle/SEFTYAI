@@ -119,6 +119,8 @@ export interface AutoScene {
   beforeAsk?: DemoStep[]
   /** 안내(intro)를 읽는 동안 우측 패널에 펼쳐 둘 것 — 전환 장면에서 새 지역 지도를 함께 보인다(사용자 지시 2026-11-24). */
   introOpen?: "map"
+  /** introOpen 으로 지도를 펼칠 때 위성지도로 바꿔 둔다(인제 — 사용자 지시 2026-11-24). */
+  introSat?: boolean
   /** 장면이 끝나도 AI 모드 창을 닫지 않는다 — 다음 장면이 같은 창에서 이어 간다(「화면 유지」). */
   keepAiMode?: boolean
   /** 답을 보인 뒤 우측 패널에서 열 것. */
@@ -715,6 +717,8 @@ export const AutoScript: AutoScene[] = [
     label: "전환 · 인제군",
     region: "inje",
     introOpen: "map",
+    // 인제는 처음부터 위성지도로(사용자 지시 2026-11-24) — 계곡·하천과 캠핑장이 사진으로 보인다
+    introSat: true,
     intro:
       "이번에는 산간 지역인 인제군을 살펴보겠습니다. " +
       "부산에서 도심 침수와 지하차도를 중점적으로 살펴봤다면, 인제에서는 산사태와 급경사지 붕괴 위험에 주의를 기울여야 합니다.",
@@ -1168,7 +1172,7 @@ export const AutoScript: AutoScene[] = [
       },
       { open: "map", focus: ["panel"], say: "지도에서 캠핑장과 주변 위험지역이 얼마나 가까운지 봅니다.", wait: 1000 },
       // 지도 점 → 말풍선 [상세 보기] → 상세 칸(사용자 지시 2026-11-24). 값은 T3Q-15 HZ-4261 진동99 실측(11/24):
-      // 위험등급 D · 위험도 점수 66 · 지정 2026-02-03 · 변경사유 신규 붕괴위험지역 지정 · 용도 도로 · 추진구분 예정 · 정비공법 옹벽·낙석방지
+      // 위험등급 D · 위험도 점수 66 · 지정 2026-02-03 · 변경사유 신규 붕괴위험지역 지정 · 용도 도로(정비 이야기는 뺌 — 사용자 지시 2026-11-24)
       {
         scroll: { sel: MdText, text: "진동99" },
         focus: [{ sel: MdText, text: "진동99" }],
@@ -1193,12 +1197,6 @@ export const AutoScript: AutoScene[] = [
         focus: [{ sel: DetailField, text: "위험등급" }, { sel: DetailField, text: "위험등급", next: true }, { sel: DetailField, text: "위험도 점수" }, { sel: DetailField, text: "위험도 점수", next: true }, { sel: DetailField, text: "변경사유" }, { sel: DetailField, text: "변경사유", next: true }],
         say: "위험등급 D, 위험도 점수 66점으로, 올해 새로 붕괴위험지역에 지정된 도로 사면입니다.",
         wait: 400,
-      },
-      {
-        scroll: { sel: DetailField, text: "정비공법" },
-        focus: [{ sel: DetailField, text: "추진구분" }, { sel: DetailField, text: "추진구분", next: true }, { sel: DetailField, text: "정비공법" }, { sel: DetailField, text: "정비공법", next: true }],
-        say: "정비는 아직 예정 단계라, 공사가 끝나기 전까지는 특보 때 이 진입로부터 살펴야 합니다.",
-        wait: 600,
       },
     ],
     outro: "사람이 머무는 곳과 위험지역의 거리를 알면, 특보 때 먼저 대피를 안내할 곳이 분명해집니다.",
@@ -1256,7 +1254,7 @@ export const AutoScript: AutoScene[] = [
         click: { sel: MapPinAny, text: "노들길지하차도", visible: true },
         waitFor: UI.mapPopup,
         focus: ["panel"],
-        say: "2022년 8월 침수이력이 있는 노들길지하차도를 골라",
+        say: "2022년 8월 침수이력이 있는 노들길지하차도를 선택하여",
       },
       {
         click: { sel: PopDetail },
@@ -1294,7 +1292,7 @@ export const AutoScript: AutoScene[] = [
     label: "서울 · 2022년 8월 노들길이 잠긴 사건 깊이 보기",
     pinId: "IG-SE-06",
     region: "seoul",
-    intro: "노들길지하차도가 잠겼던 2022년 8월 호우는 어떤 사건이었는지, 사건 하나를 항목별로 물어봅니다.",
+    intro: "노들길지하차도가 잠겼던 2022년 8월 호우는 어떤 사건이었는지, 사건 하나를 항목별로 확인합니다.",
     steps: [
       {
         fold: true,
@@ -1356,7 +1354,14 @@ export const AutoScript: AutoScene[] = [
         click: { sel: ".evp-fold > summary" },
         focus: [{ sel: ".evp-fold" }],
         say: "유사도 근거를 펼치면 어떤 요인이 얼마나 비슷한지 요인별로 나오고,",
-        wait: 1200,
+        wait: 600,
+      },
+      // 요인 표가 길어 아래가 잘린다 — 표 끝까지 내려 보인다(사용자 지시 2026-11-24)
+      {
+        scroll: { sel: ".evp-fold .evp-table tr:last-child" },
+        focus: [{ sel: ".evp-fold .evp-table" }],
+        say: "강우와 지역, 계절, 피해 규모 같은 요인을 지금 조건과 과거 사례로 나란히 견줘 볼 수 있습니다.",
+        wait: 1000,
       },
       {
         scroll: { sel: `${EventTimeline} > li` },
@@ -1442,7 +1447,7 @@ export const AutoScript: AutoScene[] = [
         fold: true,
         scroll: { sel: `${BodyBox} li`, text: "노원구" },
         focus: [{ sel: BodyBox }],
-        say: "실종자의 이름과 나이, 인상착의, 사진 주소는 원천에서 가려져 오고, 화면에는 가림으로 표시됩니다.",
+        say: "실종자의 이름과 나이, 사진 주소는 원천에서 가려져 오고, 화면에는 가림으로 표시됩니다.",
       },
     ],
     outro: "개인정보는 원천에서 가린 상태로만 다루고, 화면은 가린 자리를 그대로 알려 줍니다.",
