@@ -82,7 +82,7 @@ export interface DemoStep {
   play?: string
 }
 
-export type DemoRegion = "busan" | "inje" | "daejeon" | "seoul"
+export type DemoRegion = "busan" | "inje" | "daejeon" | "seoul" | "yeongcheon"
 
 /** 장면의 기준지역 — 개발서버 DemoRegions(부산광역시 2600000000 · 인제군 5181000000)를 우리 기준지역(브이월드 이름·코드)으로 */
 export const DemoRegions: Record<DemoRegion, BaseRegion> = {
@@ -92,6 +92,8 @@ export const DemoRegions: Record<DemoRegion, BaseRegion> = {
   daejeon: { sido: { code: "30", name: "대전광역시" } },
   /** 2026-11-25 행안부 실장 보고 — 서울특별시(시·도) */
   seoul: { sido: { code: "11", name: "서울특별시" } },
+  /** 2026-11-25 영천+인제(산지·하천) — 경상북도 영천시(시·군·구) */
+  yeongcheon: { sido: { code: "47", name: "경상북도" }, sigungu: { code: "47230", name: "영천시" } },
 }
 
 export interface AutoScene {
@@ -1720,6 +1722,198 @@ export const AutoScript: AutoScene[] = [
     ],
     outro: "",
   },
+  // ── 영천+인제(산지·하천) — 사용자 지시 2026-11-25(김인건 서기관 중점: 지점 → 가까운 관측소 → 과거 피해 강우 → 대피 기준, 하천은 홍수경보 연동).
+  // 답은 T3Q 직접 시험(11/25) 그대로 — IG-YC-10~13 · IG-IJ-10~13. 짚는 숫자는 답 글에 있는 것만.
+  {
+    label: "전환 · 영천시",
+    region: "yeongcheon",
+    introOpen: "map",
+    intro: "경상북도 영천시입니다. 산지에 바로 붙은 시설은 큰비 한 번에 인명피해로 이어질 수 있습니다. 임고서원을 예로 살펴봅니다.",
+    dwellMs: 1200,
+  },
+  {
+    label: "영천 · 임고서원은 재난취약지역일까",
+    pinId: "IG-YC-10",
+    region: "yeongcheon",
+    intro: "먼저 임고서원 주변이 재난취약지역으로 지정돼 있는지 묻습니다.",
+    steps: [
+      {
+        fold: true,
+        scroll: { sel: MdText, text: "지정되어 있지 않습니다" },
+        focus: [{ sel: MdText, text: "지정되어 있지 않습니다" }],
+        say: "임고서원이 있는 양항리는 산사태·급경사지·개선지구 어디에도 지정돼 있지 않고,",
+      },
+      {
+        scroll: { sel: `${BodyBox} h4`, text: "산사태취약지역", next: true },
+        focus: [{ sel: `${BodyBox} h4`, text: "산사태취약지역" }, { sel: `${BodyBox} h4`, text: "산사태취약지역", next: true }],
+        say: "같은 임고면의 다른 마을에는 산사태취약지역 18곳이 지정돼 있습니다.",
+        wait: 400,
+      },
+    ],
+    outro: "지정되지 않은 곳일수록, 가까운 관측소와 과거 기록으로 위험을 판단해야 합니다.",
+  },
+  {
+    label: "영천 · 임고서원 가까이 지켜볼 관측소",
+    pinId: "IG-YC-11",
+    region: "yeongcheon",
+    intro: "비가 올 때 어느 관측소를 지켜봐야 하는지 묻습니다.",
+    steps: [
+      {
+        fold: true,
+        scroll: { sel: MdTable },
+        scrollTop: true,
+        focus: [{ sel: MdTable }],
+        say: "기상청 AWS와 영천시가 직접 운영하는 AWS, 하천 수위관측소가 임고서원과의 거리와 함께 정리됩니다.",
+      },
+      {
+        focus: [{ sel: `${MdTable} tr`, text: "임고면 관측소" }, { sel: `${MdTable} tr`, text: "양항교" }],
+        say: "서원에서 170미터 떨어진 영천시 자체 AWS와, 900미터 거리의 양항교 수위관측소가 가장 가깝고,",
+      },
+      {
+        focus: [{ sel: `${MdTable} tr`, text: "화북" }],
+        say: "기상청 화북 관측소는 상류 산간에 내리는 비를 먼저 알려 줍니다.",
+        wait: 400,
+      },
+    ],
+    outro: "데이터를 대신 지켜보는 것이 아니라, 어느 관측소를 봐야 하는지 짚어 줍니다.",
+  },
+  {
+    label: "영천 · 과거 피해 때 비와 견준 위험 기준",
+    pinId: "IG-YC-12",
+    region: "yeongcheon",
+    intro: "2025년 7월 임고면에 피해가 났던 비와 견주어, 비가 얼마나 오면 위험한지 묻습니다.",
+    steps: [
+      {
+        fold: true,
+        scroll: { sel: MdText, text: "200.9" },
+        focus: [{ sel: MdText, text: "200.9" }, { sel: MdText, text: "선원천 제방" }],
+        say: "2025년 7월에는 닷새 동안 200.9밀리미터가 내려 임고면 선원천 제방이 유실됐습니다.",
+      },
+      {
+        scroll: { sel: MdTable },
+        scrollTop: true,
+        focus: [{ sel: `${MdTable} tr`, text: "경계 (2단계)" }],
+        say: "이 비를 기준선으로, 누적 150에서 200밀리미터나 시간당 30밀리미터부터는 사면 붕괴를 경계해야 한다고 단계별로 정리됩니다.",
+        wait: 400,
+      },
+    ],
+    outro: "",
+  },
+  {
+    label: "영천 · 산지 인접 시설 대피 기준",
+    pinId: "IG-YC-13",
+    region: "yeongcheon",
+    intro: "대피 기준을 특보, 강우량, 과거 피해 세 가지로 나누어 묻습니다.",
+    steps: [
+      {
+        fold: true,
+        scroll: { sel: MdTable },
+        scrollTop: true,
+        focus: [{ sel: `${MdTable} tr`, text: "호우주의보" }, { sel: `${MdTable} tr`, text: "호우경보" }],
+        say: "호우주의보 때는 예찰과 대피 준비, 경보 때는 산지 인접 주택의 사전 대피로 특보 단계별 기준이 나오고,",
+      },
+      {
+        scroll: { sel: MdText, text: "산지 인접 취약가구 사전 대피 개시" },
+        focus: [{ sel: MdText, text: "산지 인접 취약가구 사전 대피 개시" }, { sel: MdText, text: "전면 대피 및 출입 통제" }],
+        say: "하루 80에서 100밀리미터면 취약가구부터 대피하는 강우량 기준과,",
+      },
+      {
+        scroll: { sel: `${MdTable} tr`, text: "2024년 7.8." },
+        focus: [{ sel: `${MdTable} tr`, text: "2024년 7.8." }],
+        say: "2024년 7월 임고서원 일대 옹벽이 부서졌던 비까지, 과거 피해 기준으로 함께 나옵니다.",
+        wait: 600,
+      },
+    ],
+    outro: "",
+  },
+  {
+    label: "인제 · 하천 50미터 안 캠핑장",
+    pinId: "IG-IJ-10",
+    region: "inje",
+    intro: "먼저 하천에 바로 붙은 캠핑장이 어디인지 묻습니다.",
+    steps: [
+      {
+        fold: true,
+        scroll: { sel: MdText, text: "36개소" },
+        focus: [{ sel: MdText, text: "36개소" }],
+        say: "하천에서 100미터 안의 캠핑장이 36곳, 그중 50미터 안이 21곳입니다.",
+      },
+      {
+        scroll: { sel: MdTable },
+        scrollTop: true,
+        focus: [{ sel: `${MdTable} tr`, text: "반디하우스캠핑장" }],
+        say: "하천까지 12미터인 반디하우스캠핑장처럼, 캠핑장마다 하천과의 거리와 위험 요인이 정리됩니다.",
+        wait: 400,
+      },
+    ],
+    outro: "",
+  },
+  {
+    label: "인제 · 캠핑장 가까이 지켜볼 관측소",
+    pinId: "IG-IJ-11",
+    region: "inje",
+    intro: "이 캠핑장들 가까이에서 지켜볼 관측소를 묻습니다.",
+    steps: [
+      {
+        fold: true,
+        scroll: { sel: MdTable },
+        scrollTop: true,
+        focus: [{ sel: `${MdTable} tr`, text: "왕성동교" }],
+        say: "내린천 왕성동교 수위관측소는 홍수주의보 5.5미터, 경보 6.5미터가 기준이고,",
+      },
+      {
+        scroll: { sel: `${MdTable} tr`, text: "미산분교 캠핑장" },
+        focus: [{ sel: `${MdTable} tr`, text: "미산분교 캠핑장" }, { sel: `${MdTable} tr`, text: "반디하우스캠핑장" }],
+        say: "캠핑장마다 수위관측소와 기상청 AWS까지의 거리가 함께 나옵니다.",
+        wait: 400,
+      },
+    ],
+    outro: "",
+  },
+  {
+    label: "인제 · 내린천 홍수경보 문자가 오면",
+    pinId: "IG-IJ-12",
+    region: "inje",
+    intro: "내린천에 홍수경보 긴급재난문자가 발령되면, 누구를 대피시키고 어디를 막아야 하는지 묻습니다.",
+    steps: [
+      {
+        fold: true,
+        scroll: { sel: `${BodyBox} h4`, text: "내린천 홍수특보", next: true },
+        focus: [{ sel: `${BodyBox} h4`, text: "내린천 홍수특보" }, { sel: `${BodyBox} h4`, text: "내린천 홍수특보", next: true }],
+        say: "경보 수위 6.5미터에 이르면 하천변 캠핑장 이용객을 바로 대피시키고, 세월교와 하천변 도로를 막도록 정리되고,",
+      },
+      {
+        scroll: { sel: MdTable },
+        scrollTop: true,
+        focus: [{ sel: MdTable }],
+        say: "대피시킬 캠핑장이 면별로 목록으로 나옵니다.",
+        wait: 600,
+      },
+    ],
+    outro: "",
+  },
+  {
+    label: "인제 · 기준이 없는 지류는 범용 기준",
+    pinId: "IG-IJ-13",
+    region: "inje",
+    intro: "고유 홍수경보 기준이 없는 지류 옆 캠핑장은 어떤 기준을 쓰는지 묻습니다.",
+    steps: [
+      {
+        fold: true,
+        scroll: { sel: MdTable },
+        scrollTop: true,
+        focus: [{ sel: MdTable }],
+        say: "시간당 30밀리미터나 하루 80에서 100밀리미터면 선제 대피, 50밀리미터나 150밀리미터면 강제 대피로 범용 강우 기준이 나오고,",
+      },
+      {
+        scroll: { sel: MdText, text: "방태천 구간" },
+        focus: [{ sel: MdText, text: "방태천 구간" }],
+        say: "방태천처럼 특보 수위가 없는 지류는 이 강우 기준을 먼저 쓰도록 안내합니다.",
+        wait: 600,
+      },
+    ],
+    outro: "",
+  },
   {
     label: "마무리",
     // 기준지역을 부산으로 되돌리면 대화가 새로 시작되어 첫 화면으로 돌아간다(사용자 지시 2026-11-04).
@@ -1748,7 +1942,7 @@ export interface DemoPin {
  *    (대전과 겹치는 부산 위험지역·대응수위·과거 사례·강우 조건 장면은 뺀다 — 7~8분)
  *  · 부산 + 인제 + 대전(사용자 지시 2026-11-19) = 부산은 「부산 + 대전」과 같은 AI 모드 흐름, 이어서 인제 계곡 → 대전 4장면, 마무리는 짧게
  */
-export type DemoScenarioId = "busan-inje" | "busan-daejeon" | "busan-inje-daejeon" | "busan-inje-manual" | "seoul-busan-inje"
+export type DemoScenarioId = "busan-inje" | "busan-daejeon" | "busan-inje-daejeon" | "busan-inje-manual" | "seoul-busan-inje" | "yeongcheon-inje"
 export interface DemoScenario {
   id: DemoScenarioId
   name: string
@@ -1909,6 +2103,32 @@ DemoScenarios.push({
         "부산과 인제, 대전에서 특보 변화부터 위험지역, 과거 피해와 대응 기록까지 살펴봤습니다. " +
         "지역이 달라도 같은 방식으로 위험정보를 확인하고 대응에 활용할 수 있습니다. 이상으로 시연을 마치겠습니다.",
     },
+  },
+})
+
+// 사용자 지시 2026-11-25 — 「부산+인제(중간)」과 별개. 김인건 서기관 중점(산지·하천에 붙은 시설마다 지점 → 가까운 관측소 → 과거 피해 강우 → 대피 기준,
+// 하천은 홍수경보 연동, 기준 없으면 범용 기준)을 영천 임고서원과 인제 하천 인접 캠핑장으로. 7~8장면(사용자 지시), AI 모드 없이 질문부터
+DemoScenarios.push({
+  id: "yeongcheon-inje",
+  name: "영천+인제(산지·하천)",
+  desc: "영천 임고서원(산지 인접 시설) 취약지역 지정 여부 → 지켜볼 관측소 → 과거 피해 비와 견준 위험 기준 → 대피 기준, 이어서 인제 하천 인접 캠핑장 → 지켜볼 관측소 → 내린천 홍수경보 때 대피·통제 → 범용 기준",
+  minutes: "1.2배속 약 6분(추정)",
+  scenes: [
+    "전환 · 영천시",
+    "영천 · 임고서원은 재난취약지역일까",
+    "영천 · 임고서원 가까이 지켜볼 관측소",
+    "영천 · 과거 피해 때 비와 견준 위험 기준",
+    "영천 · 산지 인접 시설 대피 기준",
+    "전환 · 인제군",
+    "인제 · 하천 50미터 안 캠핑장",
+    "인제 · 캠핑장 가까이 지켜볼 관측소",
+    "인제 · 내린천 홍수경보 문자가 오면",
+    "인제 · 기준이 없는 지류는 범용 기준",
+    "마무리",
+  ],
+  text: {
+    "전환 · 인제군": { intro: "이번에는 하천을 따라 캠핑장이 많은 인제군입니다. 하천에 붙은 시설은 홍수경보와 이어서 봅니다." },
+    마무리: { intro: "산지와 하천에 붙은 시설마다, 지켜볼 관측소와 과거 피해, 대피 기준까지 이어서 확인할 수 있습니다. 이상으로 시연을 마치겠습니다." },
   },
 })
 

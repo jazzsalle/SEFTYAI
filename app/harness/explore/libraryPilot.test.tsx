@@ -37,7 +37,7 @@ describe("질문 모음 — 시·도까지만 고른 기준지역(R48)", () => {
     const c = drawer(GANGWON, ask);
     fireEvent.click(screen.getByRole("tab", { name: "한눈 요약 질의" }));
     expect(dayTitles(c)).toEqual(dayItemsFor("inje").map((d) => d.title));
-    expect(dayItemsFor("inje").map((d) => d.id)).toEqual(["IG-IJ-01", "IG-IJ-02", "IG-IJ-03", "IG-IJ-04", "IG-IJ-05", "IG-IJ-06", "IG-IJ-07", "IG-IJ-08", "IG-IJ-09", "DD-IJ-04", "DD-IJ-05", "DD-IJ-07-R"]);
+    expect(dayItemsFor("inje").map((d) => d.id)).toEqual(["IG-IJ-01", "IG-IJ-02", "IG-IJ-03", "IG-IJ-04", "IG-IJ-05", "IG-IJ-06", "IG-IJ-07", "IG-IJ-08", "IG-IJ-09", "IG-IJ-10", "IG-IJ-11", "IG-IJ-12", "IG-IJ-13", "DD-IJ-04", "DD-IJ-05", "DD-IJ-07-R"]);
     expect(c.textContent).not.toContain("한눈 요약 질의가 없습니다");
     fireEvent.click(c.querySelector(".qlib-day-btn")!);
     expect((ask.mock.calls[0][0] as DemoItem).id).toBe("IG-IJ-01"); // 질문 글만 묻는다

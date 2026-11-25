@@ -52,6 +52,16 @@ describe("자동 시연 대본", () => {
       "서울 · 2022년 8월 강남역 침수흔적",
       "서울 · 119 신고가 가장 많았던 날과 그날 비",
       "서울 · 개인정보는 가려서 보여 줍니다",
+      // 2026-11-25 영천+인제(산지·하천)
+      "전환 · 영천시",
+      "영천 · 임고서원은 재난취약지역일까",
+      "영천 · 임고서원 가까이 지켜볼 관측소",
+      "영천 · 과거 피해 때 비와 견준 위험 기준",
+      "영천 · 산지 인접 시설 대피 기준",
+      "인제 · 하천 50미터 안 캠핑장",
+      "인제 · 캠핑장 가까이 지켜볼 관측소",
+      "인제 · 내린천 홍수경보 문자가 오면",
+      "인제 · 기준이 없는 지류는 범용 기준",
       "마무리",
     ]);
   });
@@ -62,7 +72,7 @@ describe("자동 시연 대본", () => {
     expect(answers.filter((id) => !day.has(id))).toEqual([]);
     expect(answers.sort()).toEqual([
       "CQ-BS-01", "CQ-BS-02", "CQ-BS-03", "CQ-BS-04", "IG-BS-01", "IG-BS-02", "IG-BS-08", "IG-BS-11", "IG-BS-14", "IG-BS-15", "IG-BS-16", "IG-BS-17", "IG-BS-19", "IG-BS-20", "IG-BS-21", "IG-BS-22", "IG-BS-23", "IG-BS-24",
-      "IG-DJ-01", "IG-DJ-03", "IG-DJ-07", "IG-IJ-01", "IG-IJ-08", "IG-IJ-09", "IG-SE-01", "IG-SE-02", "IG-SE-03", "IG-SE-04", "IG-SE-06", "IG-SE-07", "SIM-SH-1-3",
+      "IG-DJ-01", "IG-DJ-03", "IG-DJ-07", "IG-IJ-01", "IG-IJ-08", "IG-IJ-09", "IG-IJ-10", "IG-IJ-11", "IG-IJ-12", "IG-IJ-13", "IG-SE-01", "IG-SE-02", "IG-SE-03", "IG-SE-04", "IG-SE-06", "IG-SE-07", "IG-YC-10", "IG-YC-11", "IG-YC-12", "IG-YC-13", "SIM-SH-1-3",
     ]);
     // AIM-BS-00 = 특보 없음(초록) 첫 화면 — 받아 둔 답이 아니라 화면이 그린다(2026-11-24)
     expect(aiMode.sort()).toEqual(["AIM-BS-00", ...AIM_DEMO.map((a) => a.id)].sort());
@@ -72,6 +82,7 @@ describe("자동 시연 대본", () => {
     expect(baseKey(DemoRegions.busan)).toBe(baseKey({ sido: { code: "26", name: "부산광역시" } }));
     expect(DemoRegions.inje.sigungu?.code).toBe("51810");
     expect(baseKey(DemoRegions.daejeon)).toBe("30");
+    expect(DemoRegions.yeongcheon.sigungu?.code).toBe("47230");
     for (const s of AutoScript) expect(s.region === undefined || s.region in DemoRegions).toBe(true);
   });
 
@@ -160,7 +171,7 @@ describe("대전 한눈 요약 질의(2026-11-19 대전시청 시연)", () => {
 describe("자동 시연 시나리오(2026-11-18 사용자 지시 — 부산+인제 · 부산+대전)", () => {
   it("두 시나리오만, 장면 이름이 모두 대본에 있다", async () => {
     const { DemoScenarios, scenarioScenes } = await import("@/components/autodemo/autoScript");
-    expect(DemoScenarios.map((s) => s.id)).toEqual(["busan-inje", "busan-daejeon", "busan-inje-manual", "seoul-busan-inje", "busan-inje-daejeon"]);
+    expect(DemoScenarios.map((s) => s.id)).toEqual(["busan-inje", "busan-daejeon", "busan-inje-manual", "seoul-busan-inje", "busan-inje-daejeon", "yeongcheon-inje"]);
     for (const s of DemoScenarios) expect(() => scenarioScenes(s.id)).not.toThrow();
   });
 
