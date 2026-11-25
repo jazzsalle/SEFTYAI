@@ -21,6 +21,7 @@ import DetailPane from "./DetailPane";
 import EvidencePane from "./EvidencePane";
 import PosterSummary, { type SummarySource } from "../summary/PosterSummary";
 import MapSummary from "../summary/MapSummary";
+import RainSlider from "../map/RainSlider";
 
 const MapView = dynamic(() => import("../map/MapView"), { ssr: false, loading: () => <div className="olmap" /> });
 
@@ -264,6 +265,8 @@ function MapPanel(p: Props) {
           onActive={setSummaryOn}
           onRegion={(r) => setAreaPick({ scope, label: r.label, ids: new Set(r.ids) })}
         />
+        {/* 「비가 이만큼 오면」 강우 막대 — 샘플이 있는 지역(영천)만(김인건 서기관 제안 2026-11-25) */}
+        {!summaryOn && <RainSlider map={olMap} region={cond.region} />}
         {area && !summaryOn && (
           <p className="map-area-chip" role="status">
             {area.label}
